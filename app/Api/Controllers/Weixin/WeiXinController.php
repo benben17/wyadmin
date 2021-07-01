@@ -102,14 +102,14 @@ class WeiXinController extends BaseController
       return $this->error("请先登录");
     }
     $wxService = new WeiXinServices;
-    // $result = $wxService->wxKey($request->code);
+    $result = $wxService->wxKey($request->code);
 
-    // if (isset($result['errcode']) || !isset($result['unionid'])) {
-    //   return $this->error($result['errmsg']);
-    // }
-    // Log::error($result['unionid']);
-    // DB::enableQueryLog();
-    $result['unionid'] = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
+    if (isset($result['errcode']) || !isset($result['unionid'])) {
+      return $this->error($result['errmsg']);
+    }
+    Log::error($result['unionid']);
+    DB::enableQueryLog();
+    // $result['unionid'] = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
     $res = $wxService->bindWx($result['unionid'], $uid, $request->wxUser);
     if ($res) {
       return $this->success("绑定成功;");
