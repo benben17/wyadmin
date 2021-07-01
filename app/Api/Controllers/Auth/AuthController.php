@@ -64,7 +64,7 @@ class AuthController extends BaseController
         $project_info = $service->getLoginUser($user->id);
         $nickname = "";
         if ($user->unionid) {
-            $wxInfo = \App\Api\Models\WeiXin\WxInfo::where('unionid', $user['unionid'])->first();
+            $wxInfo = \App\Api\Models\Weixin\WxInfo::where('unionid', $user['unionid'])->first();
             $isbind = 1;
             $nickname = $wxInfo->nickname;
         } else {
