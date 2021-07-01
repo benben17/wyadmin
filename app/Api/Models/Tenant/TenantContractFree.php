@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Api\Models\Contract;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Api\Scopes\CompanyScope;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * 免租类型 免租时间
+ */
+class TenantContractFree extends Model
+{
+  /**
+   * 关联到模型的数据表
+   *
+   * @var string
+   */
+
+  protected $table = 'bse_tenant_contract_free';
+
+  protected $fillable = ['tenant_id', 'contract_id', 'free_type', 'start_date', 'end_date', 'free_num', 'is_vaild', 'remark'];
+  protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'updated_at', 'created_at'];
+
+
+  public function addAll(array $data)
+  {
+    $res = DB::table($this->getTable())->insert($data);
+    return $res;
+  }
+}
