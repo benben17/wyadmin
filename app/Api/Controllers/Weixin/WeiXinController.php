@@ -9,7 +9,7 @@ use App\Api\Services\Weixin\WeiXinServices;
 use Illuminate\Http\Request;
 use SocialiteProviders\WeixinWeb\Provider;
 use App\Api\Services\Sys\UserServices;
-use App\Api\Models\Weixin\WxUser;
+use App\Api\Models\Weixin\WxInfo;
 use FFI\Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

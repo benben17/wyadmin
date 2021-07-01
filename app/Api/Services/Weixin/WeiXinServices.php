@@ -5,7 +5,7 @@ namespace App\Api\Services\Weixin;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
-use App\Api\Models\Weixin\WxUser;
+use App\Api\Models\Weixin\WxInfo;
 use GuzzleHttp\Client;
 use App\Models\User;
 
@@ -16,7 +16,7 @@ class WeiXinServices
 {
   public function wxModel()
   {
-    $model = new WxUser;
+    $model = new WxInfo;
     return $model;
   }
   /**
@@ -31,7 +31,7 @@ class WeiXinServices
       $wxModel = $this->wxModel();
       $wx_user = $wxModel->where('unionid', $DA['unionid'])->first();
       if (!$wx_user) {
-        $wx_user = new WxUser;
+        $wx_user = new WxInfo;
       }
       $wx_user->unionid   = isset($DA['unionid']) ? $DA['unionid'] : "";
       $wx_user->openid    = isset($DA['openid']) ? $DA['openid'] : "";

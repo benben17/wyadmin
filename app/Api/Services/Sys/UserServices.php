@@ -10,7 +10,7 @@ use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Sys\UserRole as UserRoleModel;
 use App\Api\Models\Sys\UserProfile as UserProfileModel;
 use App\Api\Models\Project as ProjectModel;
-use App\Api\Models\Weixin\WxUser;
+use App\Api\Models\Weixin\WxInfo;
 
 /**
  * 用户、用户角色、用户组服务
@@ -116,7 +116,7 @@ class UserServices
     ];
     $data['project_info'] = $project_info;
 
-    $wxInfo = \App\Api\Models\WeiXin\WxUser::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
+    $wxInfo = WxInfo::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
     $data['info'] = [
       'name' => $user->realname,
       'uid' => $user->id,
