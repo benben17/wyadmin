@@ -120,7 +120,7 @@ class UserServices
     $data['info'] = [
       'name' => $user->realname,
       'uid' => $user->id,
-      'avatar' => $user->avatar,
+      // 'avatar' => $user->avatar,
       'access' => ['admin'],
       'company_name' => $result->name,
       'company_access' => [$result->product->en_name],

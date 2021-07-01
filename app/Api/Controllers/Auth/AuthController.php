@@ -62,21 +62,33 @@ class AuthController extends BaseController
         $result = CompanyModel::with("product")->find($user->company_id);
         $service = new UserServices;
         $project_info = $service->getLoginUser($user->id);
+        $nickname = "";
+        if ($user->unionid) {
+            $wxInfo = \App\Api\Models\WeiXin\WxUser::where('unionid', $user['unionid'])->first();
+            $isbind = 1;
+            $nickname = $wxInfo->nickname;
+        } else {
+            $isbind = 0;
+        }
         $data = [
             'token' => $token,
             'uuid' => $user->id,
             'username' => $user->name,
             'is_admin' => $user->is_admin,
-            'phone' => $user->phone
+            'phone' => $user->phone,
+            'is_bind' => $isbind,
+
         ];
         $data['project_info'] = $project_info;
+
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
             'avatar' => $user->avatar,
             'access' => ['admin'],
             'company_name' => $result->name,
-            'company_access' => [$result->product->en_name]
+            'company_access' => [$result->product->en_name],
+            'nickname' => $nickname
         ];
 
         // 获取用户系统权限，当用户is admin 的时候返回空

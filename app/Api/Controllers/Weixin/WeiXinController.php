@@ -194,6 +194,7 @@ class WeiXinController extends BaseController
         if (!$token = auth('api')->tokenById($user->id)) {
           return $this->error('Token获取失败!');
         }
+        Log::error("aaaa" . json_encode($user));
         $userService = new UserServices;
         $data = $userService->loginUserInfo($user, $token);
         return $this->success($data);
