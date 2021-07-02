@@ -188,14 +188,15 @@ class WeiXinController extends BaseController
       $wxService = new WeiXinServices;
       $result = $wxService->wxKey($request->code);
       if (isset($result['unionid'])) {
-        $map['unionid']   = $result['unionid'];
+        $map['unionid']   = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
         $map['is_vaild'] = 1;
-        $user = \App\Models\User::where($map)->first();
-        if (!$token = auth('api')->tokenById($user->id)) {
+        // $user = \App\Models\User::where($map)->first();
+        $user = \App\User::where($map)->first();
+        if (!$token =  auth('api')->login($user, false)) { //$user->id
           return $this->error('Token获取失败!');
         }
         $user = auth('api')->user();
-        Log::error("aaaa" . json_encode($user));
+        // Log::error("aaaa" . json_encode($user));
         $userService = new UserServices;
         $data = $userService->loginUserInfo($user, $token);
         return $this->success($data);
