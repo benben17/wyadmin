@@ -36,7 +36,6 @@ class ChargeService
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
       }
-
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
       $charge->amount      = $BA['amount'];

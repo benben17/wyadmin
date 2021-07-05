@@ -14,7 +14,7 @@ class Charge extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at'];
 
-  protected $appends = ['tenant_name', 'audit_label', 'type_label'];
+  protected $appends = ['tenant_name', 'audit_label', 'type_label', 'c_name'];
   public function getTenantNameAttribute()
   {
     $tenantId = $this->attributes['tenant_id'];
@@ -47,6 +47,12 @@ class Charge extends Model
         return "抵扣";
         break;
     }
+  }
+  public function getcNameAttribute()
+  {
+    $c_uid = $this->attributes['c_uid'];
+    $user = \App\Models\User::select('realname')->find($c_uid);
+    return $user['realname'];
   }
   public function detail()
   {
