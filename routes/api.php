@@ -385,7 +385,14 @@ Route::group(['prefix' => 'operation/supplier'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\SupplierController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\SupplierController@show');
 });
-
+// 预充值管理
+Route::group(['prefix' => 'operation/charge'], function () {
+    Route::post('/list', '\App\Api\Controllers\Operation\ChargeController@list');
+    Route::post('/add', '\App\Api\Controllers\Operation\ChargeController@store');
+    Route::post('/edit', '\App\Api\Controllers\Operation\ChargeController@edit');
+    Route::post('/del', '\App\Api\Controllers\Operation\ChargeController@del');
+    Route::post('/audit', '\App\Api\Controllers\Operation\ChargeController@audit');
+});
 
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WeiXinController@redirectToProvider');

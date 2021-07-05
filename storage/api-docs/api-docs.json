@@ -5051,6 +5051,205 @@
                 }
             }
         },
+        "/api/operation/charge/list": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    ""
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "start_date": {
+                                        "description": "开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "结束时间",
+                                        "type": "date"
+                                    },
+                                    "audit_status": {
+                                        "description": "1待审核2已审核3 拒绝",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": 1,
+                                "tenant_name": "",
+                                "start_date": "",
+                                "end_date": "",
+                                "audit_status": "1,2,3"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/add": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值新增",
+                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id,amount,charge_date"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "充值金额",
+                                        "type": "double"
+                                    },
+                                    "charge_date": {
+                                        "description": "充值日期",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": 1,
+                                "tenant_name": "2",
+                                "amount": "",
+                                "charge_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/edit": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值编辑",
+                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::edit",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id,amount,charge_date",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "充值金额",
+                                        "type": "double"
+                                    },
+                                    "charge_date": {
+                                        "description": "充值日期",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": 1,
+                                "tenant_name": "2",
+                                "amount": "",
+                                "charge_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/audit": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值审核",
+                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::audit",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "充值ID",
+                                        "type": "int"
+                                    },
+                                    "audit_status": {
+                                        "description": "3 拒绝2通过",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 1,
+                                "audit_status": "2"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/equipment/list": {
             "post": {
                 "tags": [
