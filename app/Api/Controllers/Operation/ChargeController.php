@@ -100,12 +100,13 @@ class ChargeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"tenant_id,amount,charge_date"},
+   *          required={"tenant_id,amount,charge_date","charge_type"},
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="amount",type="double",description="充值金额"),
+   *       @OA\Property(property="charge_type",type="int",description="费用类型"),
    *       @OA\Property(property="charge_date",type="date",description="充值日期")
    *     ),
-   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":""}
+   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","charge_type":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -120,6 +121,7 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
+      'charge_type' => 'required',
       'charge_date'    => 'required|date',
     ]);
 
@@ -140,10 +142,11 @@ class ChargeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"tenant_id,amount,charge_date","id"},
+   *          required={"tenant_id,amount,charge_date","id","charge_type"},
    *       @OA\Property(property="id",type="int",description="id"),
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="amount",type="double",description="充值金额"),
+   *       @OA\Property(property="charge_type",type="int",description="费用类型"),
    *       @OA\Property(property="charge_date",type="date",description="充值日期")
    *     ),
    *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":""}
