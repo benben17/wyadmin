@@ -5123,7 +5123,8 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "tenant_id,amount,charge_date"
+                                    "tenant_id,amount,charge_date",
+                                    "charge_type"
                                 ],
                                 "properties": {
                                     "tenant_id": {
@@ -5133,6 +5134,10 @@
                                     "amount": {
                                         "description": "充值金额",
                                         "type": "double"
+                                    },
+                                    "charge_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
                                     },
                                     "charge_date": {
                                         "description": "充值日期",
@@ -5145,7 +5150,8 @@
                                 "tenant_id": 1,
                                 "tenant_name": "2",
                                 "amount": "",
-                                "charge_date": ""
+                                "charge_date": "",
+                                "charge_type": ""
                             }
                         }
                     }
@@ -5171,7 +5177,8 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "tenant_id,amount,charge_date",
-                                    "id"
+                                    "id",
+                                    "charge_type"
                                 ],
                                 "properties": {
                                     "id": {
@@ -5185,6 +5192,10 @@
                                     "amount": {
                                         "description": "充值金额",
                                         "type": "double"
+                                    },
+                                    "charge_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
                                     },
                                     "charge_date": {
                                         "description": "充值日期",
@@ -5239,6 +5250,78 @@
                             "example": {
                                 "id": 1,
                                 "audit_status": "2"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/del": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值删除",
+                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::del",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "ids"
+                                ],
+                                "properties": {
+                                    "ids": {
+                                        "description": "id集合",
+                                        "type": "List"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "[1,2]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/show": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值详细",
+                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "1"
                             }
                         }
                     }

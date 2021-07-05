@@ -76,7 +76,7 @@ class ChargeController extends BaseController
     DB::enableQueryLog();
     $data = $this->charge->model()
       ->where(function ($q) use ($request) {
-        $request->tenant_id && $q->whereIn('proj_id', $request->tenant_id);
+        $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
@@ -230,8 +230,8 @@ class ChargeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"ids},
-   *       @OA\Property(property="ids",type="int",description="id集合")
+   *          required={"ids"},
+   *       @OA\Property(property="ids",type="List",description="id集合")
    *     ),
    *       example={"ids":"[1,2]"}
    *       )
@@ -249,7 +249,7 @@ class ChargeController extends BaseController
       'ids' => 'required|array',
     ]);
 
-    $res = $this->charge->model()->where('audit_status', '!=', $status)->whereIn('id', $request->ids)->delete();
+    $res = $this->charge->model()->where('audit_status', '!=', 2)->whereIn('id', $request->ids)->delete();
     if (!$res) {
       return $this->error("删除失败！");
     }
@@ -265,7 +265,7 @@ class ChargeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"id},
+   *          required={"id"},
    *       @OA\Property(property="id",type="int",description="id")
    *     ),
    *       example={"ids":"1"}
