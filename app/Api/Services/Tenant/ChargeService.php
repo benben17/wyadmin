@@ -59,7 +59,7 @@ class ChargeService
     $detail = $this->detailModel();
     $detail->charge_id  = $DA['charge_id'];
     $detail->amount     = $DA['amount'];
-    $detail->charge_type = $DA['charge_type'];
+    $detail->type       = $DA['type'];
     $detail->bill_id    = isset($DA['bill_id']) ? $DA['bill_id'] : 0;
     $detail->bill_name  = isset($DA['bill_name']) ? $DA['bill_name'] : "";
     $detail->remark     = isset($DA['remark']) ? $DA['remark'] : "";
@@ -85,10 +85,11 @@ class ChargeService
         $charge->audit_uid = $user['id'];
         $charge->audit_user = $user['realname'];
         $charge->audit_status = $auditStatus;
+        $charge->audit_time = nowTime();
         $charge->save();
         if ($auditStatus == 2) {
           $detail['charge_id']    = $charge->id;
-          $detail['charge_type']  = 1;
+          $detail['type']         = 1;
           $detail['amount']       = $charge->amount;
           $detail['remark']       = "预充审核通过";
           $this->detailSave($detail, $user);

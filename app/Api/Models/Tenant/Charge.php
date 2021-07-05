@@ -38,15 +38,10 @@ class Charge extends Model
   }
   public function getTypeLabelAttribute()
   {
-    $type = $this->attributes['charge_type'];
-    switch ($type) {
-      case '1':
-        return "充值";
-        break;
-      case '2':
-        return "抵扣";
-        break;
-    }
+    $charge_type = $this->attributes['charge_type'];
+    $feeType = new  \App\Api\Services\Company\FeeTypeService;
+    $feeName = $feeType->model()->select('fee_name')->find($charge_type);
+    return $feeName['fee_name'];
   }
   public function getcNameAttribute()
   {
