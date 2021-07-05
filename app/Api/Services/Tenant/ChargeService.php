@@ -40,6 +40,7 @@ class ChargeService
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
       $charge->amount      = $BA['amount'];
+      $charge->proj_id     = $BA['proj_id'];
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->charge_type = isset($BA['charge_type']) ? $BA['charge_type'] : 1;
       $charge->charge_date = $BA['charge_date'];

@@ -37,6 +37,7 @@ class ChargeController extends BaseController
    *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
    *       @OA\Property(property="start_date",type="date",description="开始时间"),
    *       @OA\Property(property="end_date",type="date",description="结束时间"),
+   *       @OA\Property(property="charge_type",type="String",description="充值类型 数组"),
    *       @OA\Property(property="audit_status",type="String",description="1待审核2已审核3 拒绝")
    * 
    *     ),
@@ -80,6 +81,7 @@ class ChargeController extends BaseController
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
+        $request->charge_type && $q->whereIn('charge_type',  $request->charge_type);
         $request->audit_status && $q->whereIn('audit_status', str2Array($request->audit_status));
       })
       ->with('detail')
@@ -104,7 +106,8 @@ class ChargeController extends BaseController
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="amount",type="double",description="充值金额"),
    *       @OA\Property(property="charge_type",type="int",description="费用类型"),
-   *       @OA\Property(property="charge_date",type="date",description="充值日期")
+   *       @OA\Property(property="charge_date",type="date",description="充值日期"),
+   *       @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),
    *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","charge_type":""}
    *       )
@@ -122,6 +125,7 @@ class ChargeController extends BaseController
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
       'charge_type' => 'required',
+      'proj_id'    => 'required|numeric|gt:0',
       'charge_date'    => 'required|date',
     ]);
 
@@ -147,9 +151,10 @@ class ChargeController extends BaseController
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="amount",type="double",description="充值金额"),
    *       @OA\Property(property="charge_type",type="int",description="费用类型"),
-   *       @OA\Property(property="charge_date",type="date",description="充值日期")
+   *       @OA\Property(property="charge_date",type="date",description="充值日期"),
+   * @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),
-   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":""}
+   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","proj_id":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -165,6 +170,7 @@ class ChargeController extends BaseController
       'id'        => 'required|numeric|gt:0',
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
+      'proj_id'    => 'required|numeric|gt:0',
       'charge_date' => 'required|date',
     ]);
 
