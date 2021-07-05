@@ -38,8 +38,8 @@ class ChargeController extends BaseController
    *       @OA\Property(property="start_date",type="date",description="开始时间"),
    *       @OA\Property(property="end_date",type="date",description="结束时间"),
    *       @OA\Property(property="charge_type",type="String",description="充值类型 数组"),
-   *       @OA\Property(property="audit_status",type="String",description="1待审核2已审核3 拒绝")
-   * 
+   *       @OA\Property(property="audit_status",type="String",description="1待审核2已审核3 拒绝"),
+   *        @OA\Property(property="proj_ids",type="array",description="")
    *     ),
    *       example={"tenant_id":1,"tenant_name":"","start_date":"","end_date":"","audit_status":"1,2,3"}
    *       )
@@ -83,6 +83,7 @@ class ChargeController extends BaseController
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->charge_type && $q->whereIn('charge_type',  $request->charge_type);
         $request->audit_status && $q->whereIn('audit_status', str2Array($request->audit_status));
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->with('detail')
       ->orderBy($orderBy, $order)
