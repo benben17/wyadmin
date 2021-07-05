@@ -4018,6 +4018,31 @@
                 }
             }
         },
+        "/api/pub/freetype/getAll": {
+            "post": {
+                "tags": [
+                    "选择公用接口"
+                ],
+                "summary": "费用类型接口",
+                "operationId": "App\\Api\\Controllers\\Common\\PubSelectController::feetypeList",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": []
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/common/remark/list": {
             "post": {
                 "tags": [
@@ -4720,6 +4745,108 @@
                             "example": {
                                 "dictIds": "[1,2]",
                                 "is_vaild": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/company/fee/list": {
+            "post": {
+                "tags": [
+                    "费用类型"
+                ],
+                "summary": "费用类型列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": []
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/company/fee/add": {
+            "post": {
+                "tags": [
+                    "费用类型"
+                ],
+                "summary": "费用类型新增",
+                "operationId": "App\\Api\\Controllers\\Company\\FeeTypeController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "fee_name"
+                                ],
+                                "properties": {
+                                    "fee_name": {
+                                        "description": "费用类型",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "fee_name": "中介费"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/company/fee/enable": {
+            "post": {
+                "tags": [
+                    "费用类型"
+                ],
+                "summary": "费用类型启用禁用，当启用的时候禁用，当禁用的时候启用",
+                "operationId": "App\\Api\\Controllers\\Company\\FeeTypeController::enable",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "ids",
+                                    "is_vaild"
+                                ],
+                                "properties": {
+                                    "is_vaild": {
+                                        "description": "1启用0禁用",
+                                        "type": "int"
+                                    },
+                                    "ids": {
+                                        "description": "id集合",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "is_vaild": "1",
+                                "ids": "[]"
                             }
                         }
                     }
@@ -9157,7 +9284,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序绑定",
-                "operationId": "App\\Api\\Controllers\\WeiXin\\WeiXinController::bindWx",
+                "operationId": "App\\Api\\Controllers\\Weixin\\WeiXinController::bindWx",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9193,7 +9320,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信解除绑定",
-                "operationId": "App\\Api\\Controllers\\WeiXin\\WeiXinController::unBindWx",
+                "operationId": "App\\Api\\Controllers\\Weixin\\WeiXinController::unBindWx",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9227,7 +9354,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序登陆",
-                "operationId": "App\\Api\\Controllers\\WeiXin\\WeiXinController::wxAppAuth",
+                "operationId": "App\\Api\\Controllers\\Weixin\\WeiXinController::wxAppAuth",
                 "requestBody": {
                     "content": {
                         "application/json": {

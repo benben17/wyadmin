@@ -262,6 +262,7 @@ Route::group(['prefix' => 'pub/'], function () {
     Route::post('supplier/getAll', '\App\Api\Controllers\Common\PubSelectController@supplierList');
     Route::post('relations/getAll', '\App\Api\Controllers\Common\PubSelectController@relationsList');
     Route::post('equipment/getAll', '\App\Api\Controllers\Common\PubSelectController@equipmentList');
+    Route::post('feetype/getAll', '\App\Api\Controllers\Common\PubSelectController@feetypeList');
 });
 
 // 公司收款账户
@@ -271,6 +272,12 @@ Route::group(['prefix' => 'company'], function () {
     Route::post('bankaccount/edit', '\App\Api\Controllers\Company\BankAccountController@update');
     Route::post('bankaccount/show', '\App\Api\Controllers\Company\BankAccountController@show');
     Route::post('bankaccount/enable', '\App\Api\Controllers\Company\BankAccountController@enable');
+
+    // 费用类型
+    Route::post('fee/list', '\App\Api\Controllers\Company\FeeTypeController@list');
+    Route::post('fee/add', '\App\Api\Controllers\Company\FeeTypeController@save');
+    Route::post('fee/edit', '\App\Api\Controllers\Company\FeeTypeController@save');
+    Route::post('fee/enable', '\App\Api\Controllers\Company\FeeTypeController@enable');
 });
 
 Route::group(['prefix' => 'business/stat'], function () {

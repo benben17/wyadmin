@@ -16,6 +16,6 @@ class CompanyVariable extends Model
   // use SoftDeletes;
   protected $table = 'bse_company_variable';
   protected $primaryKey = 'company_id';
-  protected $hidden = ['deleted_at','updated_at'];
+  protected $hidden = ['deleted_at', 'updated_at'];
   // protected $fillable = ['no','company_id'];
 }

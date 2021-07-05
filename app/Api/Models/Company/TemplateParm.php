@@ -8,17 +8,15 @@ use App\Api\Scopes\CompanyScope;
 
 class TemplateParm extends Model
 {
- /**
-  * 关联到模型的数据表
-  *
-  * @var string
-  */
+  /**
+   * 关联到模型的数据表
+   *
+   * @var string
+   */
 
   protected $table = 'bse_template_parm';
 
   protected $fillable = [];
 
-  protected $hidden = ['deleted_at','created_at','updated_at'];
-
-
+  protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 }

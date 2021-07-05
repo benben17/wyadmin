@@ -605,4 +605,37 @@ class PubSelectController extends BaseController
 		}
 		return $this->success($data);
 	}
+
+
+	/**
+	 * @OA\Post(
+	 *     path="/api/pub/freetype/getAll",
+	 *     tags={"选择公用接口"},
+	 *     summary="费用类型接口",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={},
+	 *     ),
+	 *       example={}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function feetypeList(Request $request)
+	{
+		$service = new \App\Api\Services\Company\FeeTypeService;
+		$companyIds = getCompanyIds($this->uid);
+		$data = $service->model()->whereIn('company_id', $companyIds)
+			->where('is_vaild', 1)
+			->orderBy('id', 'asc')
+			->get()->toArray();
+		return $this->success($data);
+	}
 }
