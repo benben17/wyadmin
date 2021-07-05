@@ -391,6 +391,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/add', '\App\Api\Controllers\Operation\ChargeController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\ChargeController@edit');
     Route::post('/del', '\App\Api\Controllers\Operation\ChargeController@del');
+    Route::post('/show', '\App\Api\Controllers\Operation\ChargeController@show');
     Route::post('/audit', '\App\Api\Controllers\Operation\ChargeController@audit');
 });
 

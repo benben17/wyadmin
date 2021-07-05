@@ -255,4 +255,37 @@ class ChargeController extends BaseController
     }
     return $this->success("删除成功。");
   }
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/show",
+   *     tags={"预充值"},
+   *     summary="预充值详细",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id},
+   *       @OA\Property(property="id",type="int",description="id")
+   *     ),
+   *       example={"ids":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function show(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required',
+    ]);
+
+    $data = $this->charge->model()
+      ->with('detail')
+      ->find($request->id);
+    return $this->success($data);
+  }
 }
