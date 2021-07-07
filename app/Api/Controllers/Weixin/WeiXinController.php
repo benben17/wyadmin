@@ -128,9 +128,7 @@ class WeiXinController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"uid"},
-   *          @OA\Property(property="uid",type="int",description="用户id"),
-   * 
+   *          required={}
    *     ),
    *       example={}
    *       )
@@ -145,7 +143,7 @@ class WeiXinController extends BaseController
   {
 
     $uid  = auth()->payload()->get('sub');
-    if (!$uid || $request->uid != $uid) {
+    if (!$uid) {
       return $this->error("请先登录");
     }
     $wxService = new WeiXinServices;
@@ -188,7 +186,7 @@ class WeiXinController extends BaseController
       $wxService = new WeiXinServices;
       $result = $wxService->wxKey($request->code);
       if (isset($result['unionid'])) {
-        $map['unionid']   = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
+        $map['unionid']  = $result['unionid'];
         $map['is_vaild'] = 1;
         // $user = \App\Models\User::where($map)->first();
         $user = \App\User::where($map)->first();
