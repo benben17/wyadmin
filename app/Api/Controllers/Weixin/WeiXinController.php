@@ -145,7 +145,7 @@ class WeiXinController extends BaseController
   {
 
     $uid  = auth()->payload()->get('sub');
-    if ($uid) {
+    if (!$uid || $request->uid) {
       return $this->error("请先登录");
     }
     $wxService = new WeiXinServices;
