@@ -125,7 +125,7 @@ class WorkOrderService
         $BA['amount']       = $DA['charge_amount'];
         $BA['remark']       = $order['tenant_name'] . "-" . $order['repair_content'];
         $billService = new TenantBillService;
-        $billService->saveBillDetail($BA);
+        $billService->saveBillDetail($BA, $user);
       }
       if ($res) {
         // 发送短信通知
