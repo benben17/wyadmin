@@ -14,7 +14,7 @@ class TenantLeaseback extends Model
   use SoftDeletes;
   protected $table = 'bse_tenant_leaseback';
   protected $fillable = [];
-  protected $hidden = ['updated_at', 'created_at'];
+  protected $hidden = ['updated_at'];
 
 
   protected $appends = ['type_label'];

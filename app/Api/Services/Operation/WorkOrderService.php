@@ -52,8 +52,8 @@ class WorkOrderService
       Log::error(json_encode($order));
       if ($res) {
         $msg = new MessageService;
-        $DA['title']    = '报修';
-        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个报修工单,请及时处理！';
+        $DA['title']    = '报修工单消息通知';
+        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个报修工单,请及时处理！</br>' . $DA['repair_content'];
         $DA['role_id']  = '-1';
         $msg->sendMsg($DA, $user, 2);
         // 写入日志

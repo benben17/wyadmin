@@ -2,20 +2,20 @@
 
 namespace App\Api\Services\Tenant;
 
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
-
-use App\Api\Models\Tenant\TenantShare as TenantShareModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Operation\Invoice as InvoiceModel;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Company\VariableService;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Contract\ContractRoom;
+use App\Api\Models\Tenant\TenantContractFree;
 use App\Api\Models\Customer\Customer as CustomerModel;
 use App\Api\Services\Tenant\TenantContractService;
-use App\Api\Models\Tenant\TenantLeaseback;
 use App\Enums\AppEnum;
 
 /**
@@ -24,11 +24,6 @@ use App\Enums\AppEnum;
 class TenantService
 {
 
-  public function leasebakcModel()
-  {
-    $model = new TenantLeaseback;
-    return $model;
-  }
   public function tenantModel()
   {
     $model = new TenantModel;
@@ -59,7 +54,7 @@ class TenantService
       $tenant->industry      = isset($DA['industry']) ? $DA['industry'] : "";  // 行业
       $tenant->level         = isset($DA['level']) ? $DA['level'] : "";  // 租户级别
       $tenant->worker_num    = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
-      $tenant->pay_method    = isset($DA['pay_method']) ? $DA['pay_method'] : 0;  // 收款方式
+      // $tenant->pay_method    = isset($DA['pay_method']) ? $DA['pay_method'] : 0;  // 收款方式
       $tenant->nature        = isset($DA['nature']) ? $DA['nature'] : "";
       $tenant->remark        = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $tenant->save();
@@ -155,7 +150,7 @@ class TenantService
 
   public function tenantSync($contractId, $user)
   {
-    $contract = Contract::find($contractId);
+    $contract = Contract::where('is_sync', 0)->find($contractId);
     if (!$contract) {
       return false;
     }
@@ -194,26 +189,50 @@ class TenantService
           $contact->addAll($contactData);
         }
         // 同步合同
-        $tenantContract = new TenantContractService;
+        $contractService = new TenantContractService;
         $contract['tenant_id'] = $tenantId;
-        $tenantContract->save($contract, $user, "add");
+        $tenantContract = $contractService->save($contract, $user, "add");
         // 同步房间
-
-
+        $rooms = ContractRoom::where('contract_id', $contract['id'])->get();
+        if ($rooms) {
+          foreach ($rooms as $k => $v) {
+            $v['contract_id'] = $tenantContract['id'];
+          }
+          $contractService->contractRoomModel()->addAll($rooms->toArray());
+        }
         // 同步免租
         $cusFreePeriod = ContractFreePeriod::where('contract_id', $contract['id'])->get();
-        // foreach($cusFreePeriod :)
-        Contract::find($contract['id'])->update('is_sync', 1);
+        Log::error("免租信息：" . $cusFreePeriod);
+        if ($cusFreePeriod) {
+          $tenantFree = $this->formatFree($cusFreePeriod, $user, $tenantContract->id);
+          $tenantFreeModel = new TenantContractFree;
+          $tenantFreeModel->addAll($tenantFree);
+        }
+        Contract::whereId($contract['id'])->update(array('is_sync' => "1"));
       });
       return true;
     } catch (Exception $e) {
-
       Log::error($e->getMessage());
       return false;
     }
   }
 
-
+  private function formatFree($DA, $user, $contractId)
+  {
+    $BA = array();
+    foreach ($DA as $k => $v) {
+      $BA[$k]['company_id'] = $user['company_id'];
+      $BA[$k]['c_uid']      = $user['id'];
+      $BA[$k]['created_at'] = nowTime();
+      $BA[$k]['tenant_id'] = $DA['tenant_id'];
+      $BA[$k]['contract_id'] = $contractId;
+      $BA[$k]['start_date'] = $DA['start_date'];
+      $BA[$k]['end_date']   = $DA['end_date'];
+      $BA[$k]['free_num']   = $DA['free_num'];
+      $BA[$k]['remark']   = isset($DA['remark']) ? $DA['remark'] : "";
+    }
+    return $BA;
+  }
 
 
 

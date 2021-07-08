@@ -74,7 +74,7 @@ class TenantContractController extends BaseController
     }
     $contractService = new TenantContractService;
     DB::enableQueryLog();
-    $result = $contractService->contractModel()->where($map)
+    $result = $contractService->model()->where($map)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     return $this->success($result);

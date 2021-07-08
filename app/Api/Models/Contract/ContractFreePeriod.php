@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Models\Contract;
 
 use Illuminate\Database\Eloquent\Model;
@@ -11,21 +12,21 @@ use Illuminate\Support\Facades\DB;
  */
 class ContractFreePeriod extends Model
 {
- /**
-  * 关联到模型的数据表
-  *
-  * @var string
-  */
+  /**
+   * 关联到模型的数据表
+   *
+   * @var string
+   */
 
   protected $table = 'bse_contract_free_period';
 
-  protected $fillable = ['cus_id','contract_id','free_type','start_date','end_date','free_num','is_vaild','remark'];
-  protected $hidden = ['deleted_at',"company_id",'c_uid','u_uid','updated_at','created_at'];
+  protected $fillable = ['cus_id', 'contract_id', 'free_type', 'start_date', 'end_date', 'free_num', 'is_vaild', 'remark'];
+  protected $hidden = ['deleted_at', 'company_id', 'c_uid', 'u_uid'];
 
 
-  public function addAll(Array $data)
+  public function addAll(array $data)
   {
-      $res = DB::table($this->getTable())->insert($data);
-      return $res;
+    $res = DB::table($this->getTable())->insert($data);
+    return $res;
   }
 }

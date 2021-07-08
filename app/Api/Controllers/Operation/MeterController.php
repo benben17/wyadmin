@@ -100,10 +100,15 @@ class MeterController extends BaseController
     } else {
       $order = 'desc';
     }
+    $currentDate = date('Y-m-01');
     $data = $this->meterService->meterModel()->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
       })
+      ->withCount(['meterRecord' => function ($q) {
+        $q->where('record_date', '>', date('Y-m-01'));
+      }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
@@ -125,7 +130,7 @@ class MeterController extends BaseController
       if ($v['tenant_id'] > 0) {
         $v['tenant_name'] = $tenant->getTenantById($v['tenant_id']);
       } else {
-        $v['tenant_name'] = '共区';
+        $v['tenant_name'] = '公区';
       }
     }
     return $this->success($data);

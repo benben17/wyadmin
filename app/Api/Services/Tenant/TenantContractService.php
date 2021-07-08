@@ -8,12 +8,13 @@ use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Tenant\TenantContract;
 use App\Api\Models\Tenant\TenantContractRoom;
+use App\Api\Models\Contract\ContractRoom;
 
 class TenantContractService
 {
 
 
-  public function contractModel()
+  public function model()
   {
     $model = new TenantContract;
     return $model;
@@ -37,13 +38,14 @@ class TenantContractService
   public function save($DA, $user, $type = "add")
   {
     try {
+      // DB::transaction(function () use ($DA, $user, $type) {
       if ($type == "add") {
-        $contract = new TenantContract;
+        $contract = $this->model();
         $contract->c_uid = $user->id;
         $contract->company_id = $user->company_id;
       } else {
         //编辑
-        $contract = TenantContract::find($DA['id']);
+        $contract = $this->model()->find($DA['id']);
         $contract->u_uid = $user->id;
       }
       // 合同编号不设置的时候系统自动生成
@@ -86,14 +88,10 @@ class TenantContractService
       $contract->manager_show = isset($DA['manager_show']) ? $DA['manager_show'] : 0;
       $contract->rental_usage = isset($DA['rental_usage']) ? $DA['rental_usage'] : "";
       $contract->room_type    = isset($DA['room_type']) ? $DA['room_type'] : 1;
-      $res = $contract->save();
-      // 保存room
-      $contractRooms = \App\Api\Models\Contract\ContractRoom::where('contract_id', $DA['id'])->get();
-      foreach ($contractRooms as $room => &$v) {
-        $v['contract_id'] = $res->id;
-      }
-      $this->ContractRoomModel()->addAll($contractRooms);
-      return true;
+      $contract->save();
+
+      // });
+      return $contract;
     } catch (Exception $e) {
       throw new Exception($e, 1);
       Log::error($e->getMessage());
