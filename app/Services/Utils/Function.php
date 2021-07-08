@@ -269,6 +269,22 @@ function uuid($prefix = '')
 function getDictName($dictId)
 {
     $res = \App\Api\Models\Company\CompanyDict::select('dict_value')->find($dictId);
-
     return $res['dict_value'];
+}
+
+/** 获取费用名称 */
+
+function getFeeNameById($feeId)
+{
+    return \App\Api\Models\Company\FeeType::find($feeId);
+}
+/** 获取用户信息 */
+function getUserByUid($uid)
+{
+    return \App\Models\User::find($uid);
+}
+/** 获取项目信息 */
+function getProjById($projId)
+{
+    return  \App\Api\Models\Project::find($projId);
 }

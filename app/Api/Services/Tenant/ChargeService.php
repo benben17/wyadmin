@@ -17,7 +17,7 @@ class ChargeService
   }
   public function detailModel()
   {
-    $model = new ChargeDetail();
+    $model = new ChargeDetail;
     return $model;
   }
 

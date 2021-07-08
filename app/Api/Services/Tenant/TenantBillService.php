@@ -61,8 +61,16 @@ class TenantBillService
       return false;
     }
   }
+  // 批量保存账单信息
+  public function saveAllBillDetail(array $DA, $user)
+  {
+    $data = $this->formatBillDetail($DA, $user);
+    return $this->BillDetailModel()->addAll($data);
+  }
 
-  /** 账单表头保存 */
+  /** 
+   * 账单表头保存 
+   */
   public function saveBill($DA)
   {
     try {
@@ -71,9 +79,9 @@ class TenantBillService
       $bill->tenant_name = $DA['tenant_name'];
       $bill->type        = $DA['type']; // 1 收款 2 付款
       $bill->fee_type    = $DA['fee_type']; // 费用类型
-      $bill->bank_id          = $DA['bank_id'];
-      $bill->charge_amount      = $DA['charge_amount'];
-      $bill->charge_date = $DA['charge_date']; //收款日期
+      $bill->bank_id      = $DA['bank_id'];
+      $bill->charge_amount = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;;
+      $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $bill->save();
       return $res;
@@ -101,8 +109,8 @@ class TenantBillService
         return false;
       }
       $bill->audit_user   = $DA['audit_user'];
-      $bill->audit_uid = $DA['audit_uid'];
-      $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+      $bill->audit_uid    = $DA['audit_uid'];
+      $bill->remark       = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $bill->save();
       return $res;
     } catch (Exception $e) {
@@ -151,6 +159,26 @@ class TenantBillService
       $energy = new EnergyService;
       $water = $energy->getMeterRecord($tenantId, $month);
       return $water;
+    }
+  }
+
+  public function formatBillDetail(array $DA, $user)
+  {
+    if ($DA && $user) {
+      foreach ($DA as $k => &$v) {
+        $v['company_id']  = $user['company_id'];
+        $v['proj_id']     = $v['proj_id'];
+        $v['tenant_id']   = $v['tenant_id'];
+        $v['tenant_name'] = $v['tenant_name'];
+        $v['type']        = $v['type']; // 1 收款 2 付款
+        $v['fee_type']    = $v['fee_type']; // 费用类型
+        $v['amount']      = $v['amount'];
+        $v['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+        $v['c_uid']       = $user['id'];
+      }
+      return $DA;
+    } else {
+      return false;
     }
   }
 }

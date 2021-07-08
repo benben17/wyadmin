@@ -466,9 +466,9 @@ class ContractService
     try {
       $freeperiod  = new ContractFreePeriod();
       $freeperiod->contract_id = $contractId;
-      $freeperiod->cus_id = $cusId;
-      $freeperiod->start_date = $DA['start_date'];
-      $freeperiod->free_num = $DA['free_num'];
+      $freeperiod->cus_id       = $cusId;
+      $freeperiod->start_date   = $DA['start_date'];
+      $freeperiod->free_num     = $DA['free_num'];
       if (isset($DA['end_date'])) {
         $freeperiod->end_date = $DA['end_date'];
       }

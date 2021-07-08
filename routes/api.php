@@ -402,6 +402,11 @@ Route::group(['prefix' => 'wx'], function () {
     Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
     Route::post('/auth/login', '\App\Api\Controllers\Weixin\WeiXinController@wxAppAuth');
 });
+Route::group(['prefix' => 'tenant/bill'], function () {
+    Route::post('list', '\App\Api\Controllers\Operation\TenantBillController@list');
+    Route::post('detail/list', '\App\Api\Controllers\Operation\TenantBillController@billDetailList');
+});
+
 
 
 // Route::get('/test', function() {

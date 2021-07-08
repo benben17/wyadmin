@@ -9,7 +9,7 @@ use Exception;
 use App\Api\Models\Tenant\TenantShare as TenantShareModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Operation\Invoice as InvoiceModel;
-use App\Api\Models\Company\CompanyVariable;
+use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Company\VariableService;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Common\Contact as ContactModel;
@@ -197,9 +197,12 @@ class TenantService
         $tenantContract = new TenantContractService;
         $contract['tenant_id'] = $tenantId;
         $tenantContract->save($contract, $user, "add");
+        // 同步房间
 
 
-
+        // 同步免租
+        $cusFreePeriod = ContractFreePeriod::where('contract_id', $contract['id'])->get();
+        // foreach($cusFreePeriod :)
         Contract::find($contract['id'])->update('is_sync', 1);
       });
       return true;
