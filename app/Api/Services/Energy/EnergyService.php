@@ -9,7 +9,7 @@ use Exception;
 use App\Api\Models\Energy\Meter as MeterModel;
 use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 use App\Api\Models\Energy\MeterLog as MeterLogModel;
-use App\Api\Services\CustomerService;
+use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\BseRemark;
 
@@ -75,6 +75,8 @@ class EnergyService
         }
         if ($is_add) {
           $DA['id']  = $meter->id;
+          $meter->qcode_path = $this->createQcode($meter->id, $user['company_id']);
+          $meter->save();
         }
         $res = $this->saveMeterLog($DA, $user);
         if (!$res) {
@@ -96,6 +98,11 @@ class EnergyService
   }
 
 
+  public function createQcode($meterId, $companyId)
+  {
+    $qrcode = new QrcodeService;
+    return $qrcode->createQr($meterId, $companyId);
+  }
   /** 保存抄表记录 以及新加表初始化 */
   public function initRecord($DA, $user, $is_add = false)
   {
@@ -304,9 +311,6 @@ class EnergyService
   {
     $data['audit_user'] = $userId;
     $res = $this->meterRecordModel()->whereIn('id', $Ids)->update($data);
-    return $res;
-
-
     return $res;
   }
 
