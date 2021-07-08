@@ -27,6 +27,7 @@ class BillRuleService
       }
       $rule->tenant_id   = $DA['tenant_id'];
       $rule->contract_id = $DA['contract_id'];
+      $rule->fee_type    = $DA['fee_type'];
       $rule->unit_price  = $DA['unit_price'];
       $rule->price_type  = $DA['price_type'];
       $rule->start_date  = $DA['start_date'];

@@ -4,6 +4,7 @@ namespace App\Api\Services\Common;
 
 use QrCode;
 use Illuminate\Support\Facades\Storage;
+use Exception;
 
 /**
  * 二维码
@@ -11,12 +12,12 @@ use Illuminate\Support\Facades\Storage;
 class QrcodeService
 {
 
-  /** 生成二维码 */
   /**
-   * 二维码地址
-   * @Author   leezhua
-   * @DateTime 2020-07-12
-   * @return   [type]     [description]
+   * 二维码生成
+   *
+   * @param [type] $content  内容
+   * @param [type] $companyId 公司ID
+   * @return void
    */
   public  function createQr($content, $companyId)
   {
@@ -29,7 +30,7 @@ class QrcodeService
         ->format('png')
         ->size(400)
         ->errorCorrection('H')
-        ->merge('/public/icon.png', .2)
+        ->merge('/public/icon.png', .15)
         ->generate($content, $fileName);
     } catch (Exception $e) {
       throw new Exception("生成二维码错误");
