@@ -336,7 +336,9 @@ class EquipmentController extends BaseController
         $request->end_date && $q->where('maintain_date', '<=', $request->end_date);
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
-      })->paginate($pagesize)->toArray();
+      })->orderBy($orderBy, $order)
+      ->paginate($pagesize)
+      ->toArray();
     $data = $this->handleBackData($data);
     return $this->success($data);
   }

@@ -38,9 +38,7 @@ class Charge extends Model
   }
   public function getTypeLabelAttribute()
   {
-    $charge_type = $this->attributes['charge_type'];
-    $feeType = new  \App\Api\Services\Company\FeeTypeService;
-    $feeName = $feeType->model()->select('fee_name')->find($charge_type);
+    $feeName = getFeeNameById($this->attributes['charge_type']);
     return $feeName['fee_name'];
   }
   public function getcNameAttribute()
