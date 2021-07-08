@@ -75,7 +75,7 @@ class EnergyService
         }
         if ($is_add) {
           $DA['id']  = $meter->id;
-          $meter->qcode_path = $this->createQcode($meter->id, $user['company_id']);
+          $meter->qrcode_path = $this->createQcode($meter->id, $user['company_id']);
           $meter->save();
         }
         $res = $this->saveMeterLog($DA, $user);
