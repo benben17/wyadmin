@@ -125,8 +125,8 @@ class MeterController extends BaseController
         $v['master_slave'] = '子表';
       }
       $record = $this->meterService->getNewMeterRecord($v['id']);
-      $v['new_record']  = $record->meter_value;
-      $v['record_date'] = $record->record_date;
+      $v['last_record']  = $record->meter_value;
+      $v['last_date'] = $record->record_date;
       if ($v['tenant_id'] > 0) {
         $v['tenant_name'] = $tenant->getTenantById($v['tenant_id']);
       } else {
