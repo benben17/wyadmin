@@ -65,15 +65,16 @@ class EquipmentController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-
-
-
+    if (!$request->year) {
+      $request->year = date('Y');
+    }
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
     } else {
       $orderBy = 'created_at';
     }
+
     // 排序方式desc 倒叙 asc 正序
     if ($request->input('order')) {
       $order = $request->input('order');
@@ -86,7 +87,10 @@ class EquipmentController extends BaseController
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
       })
-      ->withCount('maintain')
+      ->where('year', $request->year)
+      ->withCount(['maintain' => function ($q) use ($request) {
+        $q->whereYear('maintain_date', $request->year);
+      }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
@@ -292,6 +296,7 @@ class EquipmentController extends BaseController
    *       @OA\Property(property="start_date",type="date",description="日期"),
    *       @OA\Property(property="end_date",type="String",description="维护内容"),
    *       @OA\Property(property="maintain_type",type="String",description="维护类型1 全部2 部分"),
+   *       @OA\Property(property="year",type="String",description="年份 默认当年"),
    *       @OA\Property(property="period",type="String",description="维护周期")
    *     ),
    *       example={"equipment_id":"","equipment_type":"","maintain_date":"",
@@ -313,7 +318,9 @@ class EquipmentController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-
+    if (!$request->year) {
+      $request->year = date('Y');
+    }
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -327,7 +334,9 @@ class EquipmentController extends BaseController
       $order = 'desc';
     }
 
+
     $data = $this->equipment->maintainModel()
+      ->whereYear('maintain_date', $request->year)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
@@ -508,7 +517,7 @@ class EquipmentController extends BaseController
     $DA = $request->toArray();
     $res = $this->equipment->maintainModel()->whereIn('id', $request->Ids)->delete();
     if ($res) {
-      return $this->success($data);
+      return $this->success("维护记录删除成功。");
     }
     return $this->error('删除失败！');
   }

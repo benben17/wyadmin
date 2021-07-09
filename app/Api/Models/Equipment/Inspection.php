@@ -12,42 +12,54 @@ use App\Api\Scopes\CompanyScope;
 class Inspection extends Model
 {
 
-   /**
-    * 关联到模型的数据表
-    * @var string
-    */
+  /**
+   * 关联到模型的数据表
+   * @var string
+   */
 
   protected $table = 'bse_inspection';
   protected $fillable = [];
-  protected $hidden = [];
+  protected $hidden = ['company_id', 'deleted_at'];
 
 
-  protected $appends = ['proj_name','check_cycle_label'];
+  protected $appends = ['proj_name', 'check_cycle_label', 'major_label'];
 
-  public function getProjNameAttribute () {
+  public function getProjNameAttribute()
+  {
     $projId = $this->attributes['proj_id'];
     $proj = \App\Api\Models\Project::select('proj_name')->find($projId);
     return $proj['proj_name'];
   }
 
 
-  public function getCheckCycleLabelAttribute () {
+  public function getCheckCycleLabelAttribute()
+  {
     $check_id = $this->attributes['check_cycle'];
     $dict = \App\Api\Models\Company\CompanyDict::find($check_id);
     return $dict['dict_value'];
   }
 
-  public function getStatusAttribute(){
+  public function getMajorLabelAttribute()
+  {
+    if ($this->attributes['major'] == 1) {
+      return "工程";
+    } else {
+      return "秩序";
+    }
+  }
+
+  public function getStatusAttribute()
+  {
     if ($this->attributes['status']) {
       return '正常';
-    }else{
+    } else {
       return '异常';
     }
   }
 
-  protected static function boot(){
-      parent::boot();
-      static::addGlobalScope(new CompanyScope);
+  protected static function boot()
+  {
+    parent::boot();
+    static::addGlobalScope(new CompanyScope);
   }
-
 }
