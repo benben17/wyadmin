@@ -80,7 +80,6 @@ class AuthController extends BaseController
 
         ];
         $data['project_info'] = $project_info;
-
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,

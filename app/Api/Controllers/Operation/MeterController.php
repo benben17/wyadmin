@@ -315,8 +315,8 @@ class MeterController extends BaseController
         $data['tenant_name'] = '公区';
       }
       $record = $this->meterService->getNewMeterRecord($request->id);
-      $data['new_record']  = $record->meter_value;
-      $data['record_date'] = $record->record_date;
+      $data['last_record']  = $record->meter_value;
+      $data['last_date'] = $record->record_date;
     }
 
     return $this->success($data);

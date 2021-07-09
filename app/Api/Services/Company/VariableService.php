@@ -120,7 +120,6 @@ class VariableService
       $variable->company_id = $companyId;
       $variable->cus_prefix = 'CUS';
       $res = $variable->save();
-
       // 项目初始化
       $project = new ProjectModel;
       $project->proj_type = '办公园区';
@@ -129,7 +128,7 @@ class VariableService
       $project->is_vaild = 1;
       $project->save();
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("初始化公司失败" . $e->getMessage());
       throw new Exception("初始化公司失败!");
     }
     return true;
