@@ -114,16 +114,6 @@ class MeterController extends BaseController
     $data = $this->handleBackData($data);
     $tenant = new TenantService;
     foreach ($data['result'] as $k => &$v) {
-      if ($v['type'] == 1) {
-        $v['meter_type'] = '水表';
-      } else {
-        $v['meter_type'] = '电表';
-      }
-      if ($v['master_slave'] == 1) {
-        $v['master_slave'] = '总表';
-      } else {
-        $v['master_slave'] = '子表';
-      }
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value;
       $v['last_date'] = $record->record_date;

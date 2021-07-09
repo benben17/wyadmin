@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Api\Services\Operation;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Exception;
 use App\Api\Models\Equipment\Inspection as InspectionModel;
 use App\Api\Models\Equipment\InspectionRecord as InspectionRecordModel;
 use App\Api\Services\Common\MessageService;
@@ -36,13 +38,13 @@ class InspectionService
    * @param    [type]     $user [description]
    * @return   [type]           [description]
    */
-  public function saveInspection($DA,$user){
+  public function saveInspection($DA, $user)
+  {
     try {
-      $qrcodeService = new QrcodeService;
-      if (isset($DA['id']) && $DA['id']>0) {
-        $inspection = $this->inspectionModel()->find($DA['id']);
 
-      }else{
+      if (isset($DA['id']) && $DA['id'] > 0) {
+        $inspection = $this->inspectionModel()->find($DA['id']);
+      } else {
         $inspection = $this->inspectionModel();
         $inspection->company_id = $user['company_id'];
         $inspection->c_uid = $user['id'];
@@ -50,18 +52,17 @@ class InspectionService
       $inspection->proj_id      = $DA['proj_id'];
       $inspection->name         = $DA['name'];
       $inspection->type         = $DA['type'];
-      $inspection->device_name  = isset($DA['device_name'])?$DA['device_name']:"";
-      $inspection->position     = isset($DA['position'])?$DA['position']:"";
-      $inspection->check_cycle  = isset($DA['check_cycle'])?$DA['check_cycle']:1;
-      $inspection->rfid_id      = isset($DA['rfid_id'])?$DA['rfid_id']:"";
-      $inspection->remark       = isset($DA['remark'])?$DA['remark']:"";
+      $inspection->device_name  = isset($DA['device_name']) ? $DA['device_name'] : "";
+      $inspection->position     = isset($DA['position']) ? $DA['position'] : "";
+      $inspection->check_cycle  = isset($DA['check_cycle']) ? $DA['check_cycle'] : 1;
+      $inspection->rfid_id      = isset($DA['rfid_id']) ? $DA['rfid_id'] : "";
+      $inspection->remark       = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $inspection->save();
 
       // 生成二维码
       if (!isset($DA['id']) || $DA['id'] == 0) {
-        $this->createQr($inspection->id,$inspection->id,$user['company_id']);
+        $this->createQr($inspection->id, $inspection->id, $user['company_id']);
       }
-
     } catch (Exception $e) {
       Log::error($e->getMessage());
     }
@@ -75,12 +76,12 @@ class InspectionService
    * @param    [type]     $user [description]
    * @return   [type]           [description]
    */
-  public function saveInspectionRecord($DA,$user)
+  public function saveInspectionRecord($DA, $user)
   {
     try {
-      if (isset($DA['id']) && $DA['id']>0) {
+      if (isset($DA['id']) && $DA['id'] > 0) {
         $record = $this->inspectionRecordModel()->find($DA['id']);
-      }else{
+      } else {
         $record = $this->inspectionRecordModel();
         $record->company_id   = $user['company_id'];
         $record->c_uid        = $user['id'];
@@ -89,16 +90,16 @@ class InspectionService
       $record->proj_id        = $DA['proj_id'];
       $record->inspection_id     = $DA['inspection_id'];
       $record->is_unusual     = $DA['is_unusual'];
-      $record->pic            = isset($DA['pic']) ?$DA['pic'] :"";
-      $record->record         = isset($DA['record']) ?$DA['record']:"";
+      $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
+      $record->record         = isset($DA['record']) ? $DA['record'] : "";
       if ($DA['is_unusual'] == 0) {
         $workOrder = new WorkOrderService;
-        $inspection = inspectionModel()->find($DA['inspection_id'])->toArray();
-        $inspection['repair_content'] =isset($DA['record']) ?$DA['record']:"";
-        $inspection['pic'] = $record->pic ;
-        $workOrder->saveWorkOrder($DA,$user);
+        $inspection = $this->inspectionModel()->find($DA['inspection_id'])->toArray();
+        $inspection['repair_content'] = isset($DA['record']) ? $DA['record'] : "";
+        $inspection['pic'] = $record->pic;
+        $workOrder->saveWorkOrder($DA, $user);
         // 更新主表状态
-        $this->updateInspectionStatus($DA['inspection_id'],$DA['is_unusual']);
+        $this->updateInspectionStatus($DA['inspection_id'], $DA['is_unusual']);
       }
       $res = $record->save();
     } catch (Exception $e) {
@@ -116,23 +117,25 @@ class InspectionService
    * @param    [type]     $company_id    [description]
    * @return   [type]                    [description]
    */
-  public function createQr($inspection_id,$info,$company_id){
+  public function createQr($inspection_id, $info, $company_id)
+  {
+    $qrcodeService = new QrcodeService;
     $data = $this->inspectionModel()->find($inspection_id);
-    $qrcode = $qrcodeService->createQr($info,$company_id);
+    $qrcode = $qrcodeService->createQr($info, $company_id);
     if ($qrcode) {
       $data->qr_code      = $qrcode;
-    }else{
+    } else {
       return false;
     }
     $res = $data->save();
     return $res;
   }
 
-  public function updateInspectionStatus($id,$status){
+  public function updateInspectionStatus($id, $status)
+  {
     $data = $this->inspectionModel()->find($id);
     $data->status = $status;
     $res = $data->save();
     return $res;
   }
-
 }
