@@ -190,6 +190,9 @@ class WeiXinController extends BaseController
         $map['is_vaild'] = 1;
         // $user = \App\Models\User::where($map)->first();
         $user = \App\User::where($map)->first();
+        if (!$user) {
+          return $this->error("未绑定微信，请登陆绑定微信!");
+        }
         if (!$token =  auth('api')->login($user, false)) { //$user->id
           return $this->error('Token获取失败!');
         }
