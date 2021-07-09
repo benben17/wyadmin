@@ -16,7 +16,13 @@ class BillRule extends Model
   protected $table = 'bse_tenant_bill_rule';
   protected $fillable = [];
   protected $hidden = ['deleted_at'];
+  protected $appends = ['fee_type_label'];
 
+  public function getFeeTypeLabelAttribute()
+  {
+    $feeName = getFeeNameById($this->attributes['fee_type']);
+    return $feeName['fee_name'];
+  }
   public function addAll(array $data)
   {
     $res = DB::table($this->getTable())->insert($data);

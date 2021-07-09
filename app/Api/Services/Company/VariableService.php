@@ -144,6 +144,7 @@ class VariableService
     $variable->contract_due_remind  = $DA['contract_due_remind'];
     $variable->msg_revoke_time      = $DA['msg_revoke_time'];
     $variable->contract_prefix      = $DA['contract_prefix'];
+    $variable->days                 = $DA['days'];
     $variable->u_uid                = $user['id'];
     $res = $variable->save();
     return $res;

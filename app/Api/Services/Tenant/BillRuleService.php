@@ -43,4 +43,13 @@ class BillRuleService
       return false;
     }
   }
+
+  public function formatRuleData($DA, $user)
+  {
+    foreach ($DA as $k => &$v) {
+      $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
+      $v['c_uid'] = $user['id'];
+      $v['u_uid'] = $user['id'];
+    }
+  }
 }
