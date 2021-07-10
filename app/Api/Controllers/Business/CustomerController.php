@@ -415,7 +415,7 @@ class CustomerController extends BaseController
             'id' => 'required|numeric|min:1',
         ]);
         $data = $this->customerService->tenantModel()
-            ->with('contact')
+            ->with('contacts')
             ->with('extraInfo')
             ->with('room')
             ->find($request->id)->toArray();
