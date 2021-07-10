@@ -348,7 +348,7 @@ class ContractBillService
    * @param    string     $freeRemark  [备注]
    * @return   [type]                  [array]
    */
-  private function endDateByMonth($startDate, $period, $freeList, $months, $signEndDate, $freeRemark = "")
+  private function endDateByMonth($startDate, $period, $freeList, int $months, $signEndDate, $freeRemark = "")
   {
 
     if ($period == 0) {

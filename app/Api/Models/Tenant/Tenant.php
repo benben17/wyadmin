@@ -46,7 +46,7 @@ class Tenant extends Model
   }
 
   // 联系人
-  public function contact()
+  public function contacts()
   {
     return $this->hasMany('App\Api\Models\Common\Contact', 'parent_id', 'id')->where('parent_type', $this->parentType);
   }
