@@ -491,10 +491,13 @@ class ContractController extends BaseController
         $contractService = new  ContractService;
         $contract = $contractService->model()->find($request->contractId);
         if ($contract->bill_type == 1) {
-            $data = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+            $fee_list = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
         } else if ($contract->bill_type == 2) {
-            $data = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+            $fee_list = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
         }
+        $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
+        $data['fee_list'] = $fee_list;
+        $data['deospit_list'] = $deospitBill;
         return $this->success($data);
     }
     /**

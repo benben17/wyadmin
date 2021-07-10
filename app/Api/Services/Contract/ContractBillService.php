@@ -217,14 +217,18 @@ class ContractBillService
       $data['total'] = 0.00;
       $i = 0;
       foreach ($deposit as $k => $v) {
-        $data[$i]['amount']     = $v['amount'];
-        $data[$i]['start_date'] = $v['start_date'];
-        $data[$i]['end_date']   = $v['end_date'];
-        $data[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
-        $data[$i]['remark']     = $v['remark'];
+        $bill[$i]['type']       = $v['fee_type'];
+        $bill[$i]['amount']     = $v['amount'];
+        $bill[$i]['start_date'] = $v['start_date'];
+        $bill[$i]['end_date']   = $v['end_date'];
+        $bill[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
+        $bill[$i]['remark']     = $v['remark'];
+        $bill[$i]['fee_type'] = $v['fee_type_label'];
         $data['total'] += $v['amount'];
         $i++;
       }
+      $data['bill'] = $bill;
+      $data['fee_type'] = '押金';
     }
     return $data;
   }
