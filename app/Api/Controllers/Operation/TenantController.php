@@ -75,6 +75,7 @@ class TenantController extends BaseController
         } else {
             $order = 'desc';
         }
+        $map['type'] = 2;
         DB::enableQueryLog();
         $result = $this->tenantService->tenantModel()->where($map)
             ->where(function ($q) use ($request) {

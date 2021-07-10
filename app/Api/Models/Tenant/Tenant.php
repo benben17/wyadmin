@@ -18,22 +18,19 @@ class Tenant extends Model
   var $parentType = AppEnum::Tenant;  // 维护
   protected $table = 'bse_tenant';
   protected $fillable = [];
-  protected $hidden = ['updated_at', 'company_id', 'created_at'];
+  protected $hidden = ['updated_at', 'company_id', 'deleted_at'];
 
-  protected $appends = ['proj_name', 'on_rent_label'];
-  public function getProjNameAttribute()
-  {
-    $projId = $this->attributes['proj_id'];
-    $proj = Project::select('proj_name')->find($projId);
-    return $proj['proj_name'];
-  }
+  protected $appends = ['on_rent_label'];
+
   public function getOnRentLabelAttribute()
   {
-    $onRent = $this->attributes['on_rent'];
-    if ($onRent) {
-      return '在租';
-    } else {
-      return '非在租';
+    if (isset($this->attributes['on_rent'])) {
+      $onRent = $this->attributes['on_rent'];
+      if ($onRent) {
+        return '在租';
+      } else {
+        return '非在租';
+      }
     }
   }
   public function tenantShare()

@@ -97,8 +97,9 @@ class CustomerController extends BaseController
         } else {
             $order = 'desc';
         }
+        $request->type = [1, 3];
         DB::enableQueryLog();
-        $result = $this->customerService->model()
+        $result = $this->customerService->tenantModel()
             ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
@@ -117,7 +118,7 @@ class CustomerController extends BaseController
         // return response()->json(DB::getQueryLog());
         $cusState = "";
         // if ($request->list_type == 1) {
-        $customerStat = $this->customerService->model()
+        $customerStat = $this->customerService->tenantModel()
             ->select('state', DB::Raw('ifnull(count(*),0) as count'))
             ->where($map)
             ->where(function ($q) use ($request) {
@@ -127,34 +128,34 @@ class CustomerController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
             ->groupBy('state')->get()->toArray();
-
+        // return response()->json(DB::getQueryLog());
         $dict = new DictServices;  // 根据ID 获取字典信息
         $cusState = $dict->getByKey([0, $this->company_id], 'cus_state');
 
         $total = 0;
         foreach ($cusState as $kt => &$vt) {
             $vt['count'] = 0;
-            $vt['cus_state'] = $vt['value'];
+            $vt['state'] = $vt['value'];
             foreach ($customerStat as $k => $v) {
-                if ($v['cus_state'] == $vt['value']) {
-                    $vt['cus_state'] = $vt['value'];
+                if ($v['state'] == $vt['value']) {
+                    $vt['state'] = $vt['value'];
                     $vt['count'] = $v['count'];
                     $total += $cusState[$kt]['count'];
                     break;
                 } else {
                     $vt['count'] = 0;
-                    $vt['cus_state'] = $vt['value'];
+                    $vt['state'] = $vt['value'];
                 }
             }
         }
-        $cus_total[sizeof($cusState)]['cus_state'] = '客户总计';
+        $cus_total[sizeof($cusState)]['state'] = '客户总计';
         $cus_total[sizeof($cusState)]['count'] = $total;
         $cusState = array_merge($cusState, $cus_total);
         // }
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['customer_extra']['demand_area'];
+            $v['demand_area'] = $v['extra_info']['demand_area'];
         }
         $data['stat'] = $cusState;
         return $this->success($data);
@@ -259,7 +260,7 @@ class CustomerController extends BaseController
                     $business = $info->save($businessInfo, 1);   // 1 新增
                     if ($business) {
                         $businessData['business_info_id'] = $business->id;
-                        $this->customerService->model()->whereId($parent_id)->update($businessData);
+                        $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
                     }
                 }
                 // 插入跟进
@@ -327,7 +328,7 @@ class CustomerController extends BaseController
         $map['company_id'] = $this->company_id;
         $map['name'] = $request->name;
 
-        $checkRepeat = $this->customerService->model()->where($map)->where('id', '!=', $DA['id'])->exists();
+        $checkRepeat = $this->customerService->tenantModel()->where($map)->where('id', '!=', $DA['id'])->exists();
         if ($checkRepeat) {
             return $this->error('客户名称重复!');
         }
@@ -415,7 +416,7 @@ class CustomerController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|min:1',
         ]);
-        $data = $this->customerService->model()
+        $data = $this->customerService->tenantModel()
             ->with('contact')
             ->with('extraInfo')
             ->with('room')

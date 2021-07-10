@@ -17,7 +17,7 @@ use App\Api\Services\Company\VariableService;
 class CustomerService
 {
 
-  public function model()
+  public function tenantModel()
   {
     $model = new Tenant;
     return $model;
@@ -50,7 +50,7 @@ class CustomerService
 
   public function getCusNameById($cusId)
   {
-    $res = $this->model()->select('name')->whereId($cusId)->first();
+    $res = $this->tenantModel()->select('name')->whereId($cusId)->first();
     return $res['name'];
   }
 
@@ -120,7 +120,7 @@ class CustomerService
         $follow->times = $followTimes + 1;
         $res = $follow->save();
         //更新客户状态
-        $this->model()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
+        $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
         if (isset($DA['remind_date'])) {
           $this->saveRemind($follow->tenant_id, $DA['remind_date'], $user);
         }
@@ -212,14 +212,14 @@ class CustomerService
   {
     try {
       if ($type == 1) {
-        $tenant = $this->model();
+        $tenant = $this->tenantModel();
         $tenant->tenant_no = $this->getTenantNo($user['company_id']);
         $tenant->c_uid = $user->id;
         $tenant->state = $DA['state'];
         $tenant->company_id = $user['company_id'];
         $tenant->type = 1;
       } else {
-        $tenant = $this->model()->find($DA['id']);
+        $tenant = $this->tenantModel()->find($DA['id']);
         $tenant->u_uid = $user->uid;
       }
       $tenant->name = $DA['name'];
