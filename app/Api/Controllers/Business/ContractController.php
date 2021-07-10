@@ -250,13 +250,12 @@ class ContractController extends BaseController
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
-            'rental_bill' => 'array',
-            'management_bill' => 'array',
         ]);
         $DA = $request->toArray();
 
         try {
             DB::transaction(function () use ($DA) {
+                $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
                 if ($DA['save_type'] == 1) {
@@ -287,10 +286,8 @@ class ContractController extends BaseController
                         $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
-
-                $contractService = new ContractService;
                 $contractService->contractLog($contract, $user);
-            });
+            }, 2);
             return $this->success('创建合同成功！');
         } catch (Exception $e) {
             Log::error($e);
@@ -433,22 +430,7 @@ class ContractController extends BaseController
                     $ruleService = new BillRuleService;
                     $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
-                /** 删除所有的bill账单 */
-                ContractBillModel::where('contract_id', $DA['id'])->delete();
-                /** 租金bill账单 */
-                $bill = new ContractBillModel;
-                if (!empty($DA['rental_bill'])) {
-                    $rentalBill = $this->formatBill($DA['rental_bill'], $contract->tenant_id, $DA['id']);
-                    $res = $bill->addAll($rentalBill);
-                }
-                if ($DA['management_bill']) {
-                    $managementBill = $this->formatBill($DA['management_bill'], $contract->tenant_id, $DA['id']);
-                    $res = $bill->addAll($managementBill);
-                }
-                if ($DA['deposit_bill']) {
-                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
-                    $res = $bill->addAll($deospitBill);
-                }
+
                 $res = $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
