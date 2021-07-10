@@ -8,9 +8,8 @@ use Exception;
 
 use App\Api\Models\Tenant\TenantShare as TenantShareModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Models\Tenant\TenantBill as BillModel;
-use App\Api\Models\Tenant\TenantBillDetail as BillDetailModel;
-use App\Api\Models\Contract\Contract as ContractModel;
+use App\Api\Models\Bill\TenantBill as BillModel;
+use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
 use App\Api\Services\Energy\EnergyService;
 
 /**
