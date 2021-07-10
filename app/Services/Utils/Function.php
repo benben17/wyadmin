@@ -177,6 +177,12 @@ function getNextYmdByDay($ymd, $days)
     $ymd =  date("Y-m-d", strtotime("+" . $days . "days", strtotime($ymd)));
     return $ymd;
 }
+function getYmdPlusDays($ymd, $days)
+{
+    $days = intval($days);
+    $ymd =  date("Y-m-d", strtotime("+" . $days . "days", strtotime($ymd)));
+    return $ymd;
+}
 /** 获取多少天前的日期 */
 function getPreYmdByDay($ymd, $days)
 {
@@ -205,7 +211,7 @@ function diffDays($date1, $date2)
     $start_date = new DateTime($date1);
     $end_end    = new DateTime($date2);
     $days = $start_date->diff($end_end)->days;
-    return $days;
+    return $days + 1;
 }
 /**
  * 获取日期后几个月

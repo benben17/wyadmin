@@ -467,14 +467,12 @@ class ContractController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"bill_type" ,"increase_show","manager_show"},
-     *      @OA\Property(property="bill_type",type="int",
-     *       description="1:正常账单（有免租减去免租日期的金额）2 按照帐期（有免租帐期后延）"),
-     *      @OA\Property(property="increase_show",type="int",description="0 无递增1 租金递增"),
-     *      @OA\Property(property="manager_show",type="int",description="0 无管理费1 有管理费")
+     *          required={"contractId" },
+     *      @OA\Property(property="contractId",type="int",
+     *       description="合同id")
      *     ),
      *       example={
-     *              "bill_type": "1","increase_show":"0","manager_show":"1"
+     *              "contractId": ""
      *           }
      *       )
      *     ),
@@ -487,36 +485,16 @@ class ContractController extends BaseController
     public function contractBill(Request $request)
     {
         $validatedData = $request->validate([
-            // 'increase_show' => 'required|numeric|in:0,1',
-            // 'manager_show' => 'required|numeric|in:0,1',
-            // 'sign_date' => 'required|date',
-            // 'start_date' => 'required|date',
-            // 'end_date' => 'required|date',
-            // 'lease_term' => 'required|numeric',
-            // 'sign_area' => 'required|numeric|gt:0',
-            // 'rental_price' => 'required',
-            // 'rental_month_amount' => 'required',
-            // 'ahead_pay_month' => 'required|numeric',
-            // 'pay_method' => 'required|numeric|gt:0',
-            // 'rental_price_type' => 'required',
-            // 'free_list' => 'array',
-            // 'bill_day' => 'required|numeric',
-            // 'bill_type' => 'required|numeric|in:1,2',
-            // 'free_type' => 'required|in:1,2',
-            // 'room_type' => 'required|in:1,2,3', // 1 房源 2 工位 3 场馆
+            'contractId' => 'required',
         ]);
-
-        if (!empty($DA['increase_date'])) {
-            if (strtotime($DA['increase_date']) > strtotime($DA['end_date'])) {
-                return $this->error('递增开始日期不能大于合同截至日期');
-            }
-        }
-        $contract = $request->toArray();
         $billService = new ContractBillService;
-        // 是否有管理费
-        $data = $billService->createBill(1, 12, $this->uid);
-
-
+        $contractService = new  ContractService;
+        $contract = $contractService->model()->find($request->contractId);
+        if ($contract->bill_type == 1) {
+            $data = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+        } else if ($contract->bill_type == 2) {
+            $data = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+        }
         return $this->success($data);
     }
     /**

@@ -31,7 +31,7 @@ class ChargeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={""},
+   *          required={"tenant_id"},
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="pagesize",type="int",description="行数"),
    *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
@@ -39,9 +39,9 @@ class ChargeController extends BaseController
    *       @OA\Property(property="end_date",type="date",description="结束时间"),
    *       @OA\Property(property="charge_type",type="String",description="充值类型 数组"),
    *       @OA\Property(property="audit_status",type="String",description="1待审核2已审核3 拒绝"),
-   *        @OA\Property(property="proj_ids",type="array",description="")
+   *        @OA\Property(property="proj_ids",type="list",description="")
    *     ),
-   *       example={"tenant_id":1,"tenant_name":"","start_date":"","end_date":"","audit_status":"1,2,3"}
+   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":"","audit_status":"1,2,3"}
    *       )
    *     ),
    *     @OA\Response(

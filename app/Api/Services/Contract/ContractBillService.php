@@ -3,6 +3,7 @@
 namespace App\Api\Services\Contract;
 
 use App\Api\Models\Contract\BillRule;
+use App\Api\Models\Contract\Contract;
 use App\Api\Services\Company\FeeTypeService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use Exception;
 class ContractBillService
 
 {
+
 
   /**
    * [createBillNormal description]
@@ -139,13 +141,65 @@ class ContractBillService
         $data[$k]['total'] += $bill[$i]['amount'];
         $i++;
       }
-
-      $data[$k][$v['fee_type']] = $bill;
+      $data[$k]['bill'] = $bill;
+      $data[$k]['fee_type'] =  $v['fee_type_label'];
     }
 
     return $data;
   }
 
+  public function createBillziranyue($contractId, $leaseTerm, $uid)
+  {
+    $data = array();
+    $feeTypeService = new FeeTypeService;
+    $feetype = $feeTypeService->getFeeIds(1, $uid);
+    Log::error(json_encode($feetype) . "费用id");
+    DB::enableQueryLog();
+    $feeList = BillRule::where('contract_id', $contractId)->whereIn('fee_type', $feetype)->get();
+    // return response()->json(DB::getQueryLog());
+    Log::error(json_encode($feeList) . "");
+    foreach ($feeList as $k => $v) {
+      Log::error("创建账单" . $v['id']);
+      $i = 0;
+      $data[$k]['total'] = 0.00;
+      $bill = array();
+      $startDate = $v['start_date'];
+      while (strtotime($startDate) < strtotime($v['end_date'])) {
+        $bill[$i]['type'] = $v['fee_type'];
+        $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
+        $bill[$i]['start_date'] = $startDate;
+        Log::error($startDate);
+        $endDate = date("Y-m-t", strtotime($startDate));
+        $bill[$i]['end_date'] = $endDate;
+        $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime($startDate));
+        $bill[$i]['amount'] = numFormat($v['month_amt']);
+        if (strtotime($startDate) == strtotime($v['start_date'])) {
+
+          if (date('d', strtotime($startDate)) != "01") {
+
+            $days =  diffDays($startDate, $endDate);
+            Log::error("第一期账单天数：" . $days);
+            $bill[$i]['amount'] = numFormat($v['month_amt'] / 30 * $days);
+          }
+        }
+        if (strtotime($endDate) > strtotime($v['end_date'])) {
+          $days =  diffDays($startDate,  $v['end_date']);
+          $bill[$i]['end_date'] = $v['end_date'];
+          Log::error($days . "最后一期天数");
+          $bill[$i]['amount'] = numFormat($v['month_amt'] * $leaseTerm - $data[$k]['total']);
+        }
+        $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '至' . $bill[$i]['end_date'];
+        $data[$k]['total'] += $bill[$i]['amount'];
+        $bill[$i]['mouth_amt'] = $v['month_amt'];
+        $bill[$i]['bill_num']  = $i + 1;
+        $i++;
+        $startDate = getNextYmd(date('Y-m-01', strtotime($startDate)), 1);
+      }
+      $data[$k]['bill'] = $bill;
+      $data[$k]['fee_type'] =  $v['fee_type_label'];
+    }
+    return $data;
+  }
   /**
    * 各种押金计算
    * @Author   leezhua

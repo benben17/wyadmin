@@ -1158,13 +1158,13 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "contract_type",
+                                    "contract_state",
                                     "sign_date",
                                     "start_date",
                                     "end_date"
                                 ],
                                 "properties": {
-                                    "contract_type": {
+                                    "contract_state": {
                                         "description": "0:草稿 1:待审核 2:正式合同",
                                         "type": "int"
                                     }
@@ -1172,7 +1172,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "contract_type": "1",
+                                "contract_state": "1",
                                 "sign_date": "",
                                 "start_date": "1",
                                 "end_date": ""
@@ -1278,30 +1278,18 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "bill_type",
-                                    "increase_show",
-                                    "manager_show"
+                                    "contractId"
                                 ],
                                 "properties": {
-                                    "bill_type": {
-                                        "description": "1:正常账单（有免租减去免租日期的金额）2 按照帐期（有免租帐期后延）",
-                                        "type": "int"
-                                    },
-                                    "increase_show": {
-                                        "description": "0 无递增1 租金递增",
-                                        "type": "int"
-                                    },
-                                    "manager_show": {
-                                        "description": "0 无管理费1 有管理费",
+                                    "contractId": {
+                                        "description": "合同id",
                                         "type": "int"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "bill_type": "1",
-                                "increase_show": "0",
-                                "manager_show": "1"
+                                "contractId": ""
                             }
                         }
                     }
@@ -1464,7 +1452,7 @@
                                         "description": "每页行数",
                                         "type": "int"
                                     },
-                                    "cus_id": {
+                                    "id": {
                                         "description": "客户ID，不传默认为所有的跟进",
                                         "type": "int"
                                     }
@@ -1497,40 +1485,40 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "cus_id",
-                                    "cus_follow_type",
-                                    "cus_state",
-                                    "cus_follow_time",
-                                    "cus_follow_record",
-                                    "cus_contact_id",
-                                    "cus_contact_user"
+                                    "tenant_id",
+                                    "follow_type",
+                                    "state",
+                                    "follow_time",
+                                    "follow_record",
+                                    "contact_id",
+                                    "contact_user"
                                 ],
                                 "properties": {
-                                    "cus_id": {
+                                    "tenant_id": {
                                         "description": "客户ID",
                                         "type": "int"
                                     },
-                                    "cus_follow_type": {
+                                    "follow_type": {
                                         "description": "跟进类型",
                                         "type": "int"
                                     },
-                                    "cus_state": {
+                                    "state": {
                                         "description": "客户状态",
                                         "type": "String"
                                     },
-                                    "cus_follow_time": {
+                                    "follow_time": {
                                         "description": "跟进时间",
                                         "type": "date"
                                     },
-                                    "cus_follow_record": {
+                                    "follow_record": {
                                         "description": "跟进记录",
                                         "type": "String"
                                     },
-                                    "cus_contact_id": {
+                                    "contact_id": {
                                         "description": "跟进客户联系人ID",
                                         "type": "int"
                                     },
-                                    "cus_contact_user": {
+                                    "contact_user": {
                                         "description": "跟进客户联系人",
                                         "type": "int"
                                     }
@@ -1538,13 +1526,13 @@
                                 "type": "object"
                             },
                             "example": {
-                                "cus_id": "",
-                                "cus_follow_type": "",
-                                "cus_state": "",
-                                "cus_visit_time": "",
-                                "0": "cus_follow_record",
-                                "cus_contact_id": "",
-                                "cus_contact_user": ""
+                                "id": "",
+                                "follow_type": "",
+                                "state": "",
+                                "visit_time": "",
+                                "0": "follow_record",
+                                "contact_id": "",
+                                "contact_user": ""
                             }
                         }
                     }
@@ -1561,7 +1549,7 @@
                 "tags": [
                     "客户"
                 ],
-                "summary": "跟进记录编辑，cus_state 不允许编辑",
+                "summary": "跟进记录编辑，state 不允许编辑",
                 "operationId": "App\\Api\\Controllers\\Business\\CusFollowController::update",
                 "requestBody": {
                     "content": {
@@ -1678,15 +1666,15 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "channel_id",
-                                    "cus_type",
-                                    "cus_name"
+                                    "tenant_type",
+                                    "name"
                                 ],
                                 "properties": {
-                                    "cus_type": {
+                                    "tenant_type": {
                                         "description": "客户类型 1:公司 2 个人",
                                         "type": "int"
                                     },
-                                    "cus_name": {
+                                    "name": {
                                         "description": "客户名称",
                                         "type": "String"
                                     },
@@ -1707,8 +1695,8 @@
                             },
                             "example": {
                                 "channel_id": 1,
-                                "cus_type": 1,
-                                "cus_name": "公司客户",
+                                "tenant_type": 1,
+                                "name": "公司客户",
                                 "contact_name": "",
                                 "contact_phone": ""
                             }
@@ -1736,19 +1724,19 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "id",
-                                    "cus_type",
-                                    "cus_name"
+                                    "type",
+                                    "tenant_idname"
                                 ],
                                 "properties": {
                                     "id": {
                                         "description": "客户id",
                                         "type": "int"
                                     },
-                                    "cus_type": {
+                                    "type": {
                                         "description": "客户类型 1:公司 2 个人",
                                         "type": "int"
                                     },
-                                    "cus_name": {
+                                    "name": {
                                         "description": "客户名称",
                                         "type": "String"
                                     }
@@ -1757,8 +1745,8 @@
                             },
                             "example": {
                                 "id": 1,
-                                "cus_type": 1,
-                                "cus_name": "公司客户"
+                                "type": 1,
+                                "name": "公司客户"
                             }
                         }
                     }
@@ -1819,11 +1807,11 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "properties": {
-                                    "cus_name": {
+                                    "name": {
                                         "description": "公司名字，全名",
                                         "type": "Strig"
                                     },
-                                    "cus_id": {
+                                    "tenant_id": {
                                         "description": "客户ID",
                                         "type": "Strig"
                                     }
@@ -1831,8 +1819,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "cus_name": "北京玄墨信息科技有限公司",
-                                "cus_id": "1"
+                                "name": "北京玄墨信息科技有限公司"
                             }
                         }
                     }
@@ -1861,7 +1848,7 @@
                                 ],
                                 "properties": {
                                     "id": {
-                                        "description": "公司名字，全名",
+                                        "description": "id",
                                         "type": "int"
                                     }
                                 },
@@ -1869,42 +1856,6 @@
                             },
                             "example": {
                                 "id": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/customer/no/edit": {
-            "post": {
-                "tags": [
-                    "客户"
-                ],
-                "summary": "编辑客户编号前缀",
-                "operationId": "App\\Api\\Controllers\\Business\\CustomerController::cusNoEdit",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "no_prefix"
-                                ],
-                                "properties": {
-                                    "no_prefix": {
-                                        "description": "公司编号前缀",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "no_prefix": "CUS"
                             }
                         }
                     }
@@ -1968,12 +1919,12 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "cus_id",
+                                    "tenant_id",
                                     "cus_remind_date",
                                     "cus_name"
                                 ],
                                 "properties": {
-                                    "cus_id": {
+                                    "tenant_id": {
                                         "description": "客户ID",
                                         "type": "int"
                                     },
@@ -1989,7 +1940,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "cus_id": "",
+                                "tenant_id": "",
                                 "cus_name": ""
                             }
                         }
@@ -2016,14 +1967,14 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "id",
-                                    "cus_id"
+                                    "tenant_id"
                                 ],
                                 "properties": {
                                     "id": {
                                         "description": "id",
                                         "type": "int"
                                     },
-                                    "cus_id": {
+                                    "tenant_id": {
                                         "description": "客户ID",
                                         "type": "int"
                                     }
@@ -2032,7 +1983,7 @@
                             },
                             "example": {
                                 "id": "",
-                                "cus_id": ""
+                                "tenant_id": ""
                             }
                         }
                     }
@@ -5063,7 +5014,7 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    ""
+                                    "tenant_id"
                                 ],
                                 "properties": {
                                     "tenant_id": {
@@ -5086,15 +5037,23 @@
                                         "description": "结束时间",
                                         "type": "date"
                                     },
+                                    "charge_type": {
+                                        "description": "充值类型 数组",
+                                        "type": "String"
+                                    },
                                     "audit_status": {
                                         "description": "1待审核2已审核3 拒绝",
                                         "type": "String"
+                                    },
+                                    "proj_ids": {
+                                        "description": "",
+                                        "type": "list"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "tenant_id": 1,
+                                "tenant_id": "1",
                                 "tenant_name": "",
                                 "start_date": "",
                                 "end_date": "",
@@ -5142,6 +5101,10 @@
                                     "charge_date": {
                                         "description": "充值日期",
                                         "type": "date"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
                                     }
                                 },
                                 "type": "object"
@@ -5200,6 +5163,10 @@
                                     "charge_date": {
                                         "description": "充值日期",
                                         "type": "date"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
                                     }
                                 },
                                 "type": "object"
@@ -5208,7 +5175,8 @@
                                 "tenant_id": 1,
                                 "tenant_name": "2",
                                 "amount": "",
-                                "charge_date": ""
+                                "charge_date": "",
+                                "proj_id": ""
                             }
                         }
                     }
@@ -5668,6 +5636,10 @@
                                     },
                                     "maintain_type": {
                                         "description": "维护类型1 全部2 部分",
+                                        "type": "String"
+                                    },
+                                    "year": {
+                                        "description": "年份 默认当年",
                                         "type": "String"
                                     },
                                     "period": {
@@ -9608,16 +9580,7 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": [
-                                    "uid"
-                                ],
-                                "properties": {
-                                    "uid": {
-                                        "description": "用户id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
+                                "required": []
                             },
                             "example": []
                         }
