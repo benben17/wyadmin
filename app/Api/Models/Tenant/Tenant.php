@@ -80,6 +80,10 @@ class Tenant extends Model
     return $this->hasOne(ExtraInfo::class, 'tenant_id', 'id');
   }
 
+  public function business()
+  {
+    return $this->hasOne(BaseInfo::class, 'id', 'business_id');
+  }
   // 合同信息
   public function contract()
   {

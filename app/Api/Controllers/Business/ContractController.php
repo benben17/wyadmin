@@ -658,7 +658,7 @@ class ContractController extends BaseController
     private function formatBill($data, $tenantId, $contractId)
     {
         foreach ($data as $k => &$v) {
-            $v['cus_id'] = $tenantId;
+            $v['tenant_id']    = $tenantId;
             $v['contract_id'] = $contractId;
             $v['company_id']  = $this->company_id;
             $v['created_at'] = nowTime();

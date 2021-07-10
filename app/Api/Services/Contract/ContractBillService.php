@@ -223,7 +223,8 @@ class ContractBillService
         $bill[$i]['end_date']   = $v['end_date'];
         $bill[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
         $bill[$i]['remark']     = $v['remark'];
-        $bill[$i]['fee_type'] = $v['fee_type_label'];
+        $bill[$i]['fee_type']   = $v['fee_type'];
+        $bill[$i]['fee_type_label']   = $v['fee_type'];
         $data['total'] += $v['amount'];
         $i++;
       }

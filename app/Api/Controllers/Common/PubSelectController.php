@@ -14,6 +14,7 @@ use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
+use App\Api\Models\Tenant\Tenant;
 
 /**
  * parent_type 联系人类型 1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -417,15 +418,15 @@ class PubSelectController extends BaseController
 	 */
 	public function cusList(Request $request)
 	{
-		$data = \App\Api\Models\Customer\Customer::select('id', 'cus_name', 'cus_industry', 'cus_type', 'business_info_id')
+		$data = Tenant::select('id', 'name', 'industry', 'type', 'business_id')
 			->where(function ($q) use ($request) {
-				if ($request->cus_type == 2) {
-					$q->where('cus_type', 2);
+				if ($request->type == 2) {
+					$q->where('type', 2);
 				}
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
 			})
-			->with('customerBusiness:id,legalPersonName')
-			->orderBy('cus_name', 'asc')
+			->with('business:id,legalPersonName')
+			->orderBy('name', 'asc')
 			->get()->toArray();
 
 		return $this->success($data);
