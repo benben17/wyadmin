@@ -220,8 +220,9 @@ class CustomerController extends BaseController
             'rooms' => 'array'
         ]);
         $DA = $request->toArray();
-
-        $checkRepeat = Tenant::where(['company_id' => $this->company_id], ['name' => $request->name])->exists();
+        $map['company_id'] = $this->company_id;
+        $map['name'] = $request->name;
+        $checkRepeat = Tenant::where($map)->count();
         if ($checkRepeat) {
             return $this->error('客户名称重复');
         }
