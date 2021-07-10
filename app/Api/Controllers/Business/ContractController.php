@@ -210,9 +210,9 @@ class ContractController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"contract_type","sign_date","start_date","end_date",},
+     *          required={"contract_state","sign_date","start_date","end_date",},
      *      @OA\Property(
-     *       property="contract_type",
+     *       property="contract_state",
      *       type="int",
      *       description="0:草稿 1:待审核 2:正式合同")
      *       ),
@@ -232,7 +232,7 @@ class ContractController extends BaseController
      *          description="合同截止时间"
      *       ),
      *       example={
-     *              "contract_type": "1","sign_date":"","start_date":"1","end_date":""
+     *              "contract_state": "1","sign_date":"","start_date":"1","end_date":""
      *           }
      *       )
      *     ),
@@ -291,7 +291,6 @@ class ContractController extends BaseController
                     }
                 }
                 $rentalBill = $this->formatBill($DA['rental_bill'], $contract->tenant_id, $contract->id);
-
                 $bill = new ContractBillModel;
                 $res = $bill->addAll($rentalBill);
                 $managementBill = $this->formatBill($DA['management_bill'], $contract->tenant_id, $contract->id);

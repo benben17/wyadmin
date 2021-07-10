@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Models\Tenant;
+namespace App\Api\Models\Contract;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;

@@ -108,7 +108,7 @@ class CustomerController extends BaseController
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
-            ->with('contact')
+            ->with('contacts')
             ->with('extraInfo')
             // ->with('customerRoom')
             ->withCount('follow')
@@ -215,9 +215,9 @@ class CustomerController extends BaseController
             'type' => 'required|in:1,2',
             'name' => 'required|String|max:64',
             'channel_id' => 'required|numeric|gt:0',
-            'customer_contact' => 'array',
-            'customer_extra' => 'array',
-            'customer_room' => 'array'
+            'contacts' => 'array',
+            'extra_info' => 'array',
+            'rooms' => 'array'
         ]);
         $DA = $request->toArray();
 
@@ -232,22 +232,22 @@ class CustomerController extends BaseController
                 $res = $this->customerService->saveTenant($DA, $user);
                 //写入联系人
                 $parent_id = $res->id;
-                $cusExtra = $this->formatCusExtra($DA['customer_extra']);
+                $cusExtra = $this->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $parent_id;
                 $cusExtra['c_uid'] = $this->uid;
                 $customerExtra = ExtraInfo::Create($cusExtra);
                 // 写入联系人 支持多联系人写入
-                $contacts = $DA['customer_contact'];
-                if ($contacts) {
+
+                if ($DA['contacts']) {
                     $user['parent_type'] = $this->parent_type;
-                    $contacts = formatContact($contacts, $parent_id, $user);
+                    $contacts = formatContact($DA['contacts'], $parent_id, $user);
                     // return $contacts;
                     $contact = new contactModel;
                     $contact->addAll($contacts);
                 }
                 // 房间
-                if (!empty($DA['customer_room']) && $DA['customer_room']) {
-                    $roomList = $this->formatRoom($DA['customer_room'], $res->id, $DA['room_type']);
+                if (!empty($DA['rooms']) && $DA['rooms']) {
+                    $roomList = $this->formatRoom($DA['rooms'], $res->id, $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -319,9 +319,9 @@ class CustomerController extends BaseController
             'id' => 'required|numeric|gt:0',
             'type' => 'required|in:1,2',
             'name' => 'required|String|max:64',
-            'customer_contact' => 'array',
-            'customer_extra' => 'array',
-            'customer_room' => 'array'
+            'contacts' => 'array',
+            'extra_info' => 'array',
+            'rooms' => 'array'
         ]);
         $DA = $request->toArray();
         $map['company_id'] = $this->company_id;
@@ -337,13 +337,13 @@ class CustomerController extends BaseController
                 DB::enableQueryLog();
                 $res = $this->customerService->saveTenant($DA, $user, 2);
 
-                $cusExtra = $this->formatCusExtra($DA['customer_extra']);
+                $cusExtra = $this->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $DA['id'];
                 $cusExtra['u_uid'] = $this->uid;
                 ExtraInfo::where('tenant_id', $DA['id'])->update($cusExtra);
                 // 写入联系人 支持多联系人写入
 
-                $contacts = $DA['customer_contact'];
+                $contacts = $DA['contacts'];
                 if ($contacts) {
                     $user['parent_type'] = $this->parent_type;
                     $res = ContactModel::where('parent_id', $DA['id'])->where('parent_type', $this->parent_type)->delete();
@@ -353,9 +353,9 @@ class CustomerController extends BaseController
                     Log::error("联系人" . $res);
                 }
                 // 房间
-                if ($DA['customer_room'] && !empty($DA['customer_room'])) {
+                if ($DA['rooms'] && !empty($DA['rooms'])) {
                     $res = TenantRoom::where('tenant_id', $DA['id'])->delete();  // 删除
-                    $roomList = $this->formatRoom($DA['customer_room'], $DA['id'], $DA['room_type']);
+                    $roomList = $this->formatRoom($DA['rooms'], $DA['id'], $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }

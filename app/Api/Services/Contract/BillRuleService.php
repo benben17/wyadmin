@@ -43,13 +43,27 @@ class BillRuleService
       return false;
     }
   }
+  /** 批量保存 */
+  public function batchSave($DA, $user, $contractId, $tenantId)
+  {
+    try {
+      $ruleData = formatRuleData($DA, $user, $contractId, $tenantId);
+      return $this->model()->addAll($ruleData);
+    } catch (Exception $th) {
+      throw $th;
+      Log::error("费用规则保存失败." . $th->getMessage());
+      return false;
+    }
+  }
 
-  public function formatRuleData($DA, $user)
+  public function formatRuleData($DA, $user, $contractId, $tenantId)
   {
     foreach ($DA as $k => &$v) {
       $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
       $v['c_uid'] = $user['id'];
       $v['u_uid'] = $user['id'];
+      $v['tenant_id'] = $tenantId;
+      $v['contract_id'] = $contractId;
     }
   }
 }

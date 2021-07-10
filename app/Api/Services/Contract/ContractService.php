@@ -24,6 +24,7 @@ use App\Enums\AppEnum;
 class ContractService
 {
 
+
   /**
    * 合同查看
    * @Author   leezhua
@@ -178,7 +179,7 @@ class ContractService
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
           $msgContent =  $contract['customer_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";
-          $msgTitle = '合同审核不通过';
+          $msgTitle = '合同审核不通过!';
         }
         // 更新合同状态
         $contract->contract_state = $DA['contract_state'];
