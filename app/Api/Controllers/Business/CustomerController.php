@@ -223,7 +223,7 @@ class CustomerController extends BaseController
         $map['company_id'] = $this->company_id;
         $map['name'] = $request->name;
         DB::enableQueryLog();
-        $checkRepeat = Tenant::where($map)->count();
+        $checkRepeat = $this->customerService->tenantModel()->where($map)->count();
         if ($checkRepeat) {
             return $this->error('客户名称重复');
         }

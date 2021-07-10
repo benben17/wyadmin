@@ -192,7 +192,7 @@ class ChannelController extends BaseController
             $pagesize = config("per_size");
         }
         DB::enableQueryLog();
-        $data = CustomerModel::with('customerExtra:cus_id,demand_area')
+        $data = CustomerModel::with('extraInfo:cus_id,demand_area')
             ->withCount(['brokerageLog as brokerage_amount' => function ($q) {
                 $q->select(DB::Raw('sum(brokerage_amount)'));
             }])

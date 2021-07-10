@@ -15,7 +15,7 @@ use App\Api\Models\Common\Contact as ContactModel;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Tenant\TenantContractFree;
 use App\Api\Models\Customer\Customer as CustomerModel;
-use App\Api\Services\Tenant\TenantContractService;
+use App\Api\Services\Contract\ContractService;
 use App\Enums\AppEnum;
 
 /**
@@ -147,75 +147,6 @@ class TenantService
   }
 
 
-
-  public function tenantSync($contractId, $user)
-  {
-    $contract = Contract::where('is_sync', 0)->find($contractId);
-    if (!$contract) {
-      return false;
-    }
-    try {
-      DB::transaction(function () use ($contract, $user) {
-        $customer = CustomerModel::find($contract['customer_id']);
-        $map['name'] = $customer['cus_name'];
-        $map['company_id'] = $customer['company_id'];
-        $checkTenant = $this->tenantRepeat($map);
-        if (!$checkTenant) {
-          $tenantModel = $this->tenantModel();
-          $tenantModel->tenant_no   = $this->getTenantNo($user['company_id']);
-          $tenantModel->company_id  = $user['company_id'];
-          $tenantModel->c_uid       = $user['id'];
-          $tenantModel->name        = $customer['cus_name'];
-          $tenantModel->proj_id     = $customer['proj_id'];
-          $tenantModel->business_id = $customer['business_info_id'];
-          $tenantModel->industry    = $customer['cus_industry'];
-          $tenantModel->level       = $customer['cus_level'];
-          $tenantModel->worker_num  = $customer['cus_worker_num'];
-          $tenantModel->on_rent     = 1; // 是否在租 1在租 0 其他
-          $res = $tenantModel->save();
-          $tenantId = $tenantModel->id;
-        } else {
-          $tenantId = $checkTenant->id;
-        }
-
-        //同步联系人
-        Log::error($customer->id . "customerId");
-        $user['parent_type']  = AppEnum::Tenant;
-        $contacts = ContactModel::where('parent_type', AppEnum::Customer)->where('parent_id', $customer->id)->get();
-        if ($contacts) {
-          Log::error($contacts);
-          $contactData = formatContact($contacts, $tenantId, $user, 1);
-          $contact = new ContactModel;
-          $contact->addAll($contactData);
-        }
-        // 同步合同
-        $contractService = new TenantContractService;
-        $contract['tenant_id'] = $tenantId;
-        $tenantContract = $contractService->save($contract, $user, "add");
-        // 同步房间
-        $rooms = ContractRoom::where('contract_id', $contract['id'])->get();
-        if ($rooms) {
-          foreach ($rooms as $k => $v) {
-            $v['contract_id'] = $tenantContract['id'];
-          }
-          $contractService->contractRoomModel()->addAll($rooms->toArray());
-        }
-        // 同步免租
-        $cusFreePeriod = ContractFreePeriod::where('contract_id', $contract['id'])->get();
-        Log::error("免租信息：" . $cusFreePeriod);
-        if ($cusFreePeriod) {
-          $tenantFree = $this->formatFree($cusFreePeriod, $user, $tenantContract->id);
-          $tenantFreeModel = new TenantContractFree;
-          $tenantFreeModel->addAll($tenantFree);
-        }
-        Contract::whereId($contract['id'])->update(array('is_sync' => "1"));
-      });
-      return true;
-    } catch (Exception $e) {
-      Log::error($e->getMessage());
-      return false;
-    }
-  }
 
   private function formatFree($DA, $user, $contractId)
   {

@@ -10,11 +10,8 @@ use Illuminate\Support\Facades\Log;
 
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Common\DictServices;
-use App\Api\Models\Customer\Customer as CustomerModel;
-use App\Api\Models\Customer\CustomerFollow as CustomerFollowModel;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Contract\ContractBill as ContractBillModel;
-use App\Api\Models\Customer\ExtraInfo;
 use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Services\CustomerService;

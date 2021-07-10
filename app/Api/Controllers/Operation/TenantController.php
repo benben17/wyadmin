@@ -9,7 +9,9 @@ use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Tenant\BaseInfo;
 use App\Api\Services\CustomerInfoService;
+use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
@@ -159,7 +161,7 @@ class TenantController extends BaseController
                 if ($DA['business_info']) {
                     $businessInfo = $DA['business_info'];
                     $businessInfo['name'] = $DA['name'];
-                    $info = new CustomerInfoService;
+                    $info = new BaseInfoService;
                     $business = $info->save($businessInfo, 1);   // 1 新增
                     if ($business) {
                         $businessData['business_id'] = $business->id;
