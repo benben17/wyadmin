@@ -22,5 +22,4 @@ config/database.php
 .settings/
 yarn.lock
 composer.lock
-composer.json
 .vscode
