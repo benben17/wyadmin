@@ -2,13 +2,14 @@
 
 namespace App\Api\Models\Tenant;
 
+use App\Api\Models\Contract\Contract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *
  */
-class TenantLeaseback extends Model
+class Leaseback extends Model
 {
 
   use SoftDeletes;
@@ -32,7 +33,7 @@ class TenantLeaseback extends Model
 
   public function contract()
   {
-    return $this->hasOne('\App\Api\Models\Contract\Contract', 'id', 'contract_id');
+    return $this->hasOne(Contract::class, 'id', 'contract_id');
   }
 
   public function tenant()

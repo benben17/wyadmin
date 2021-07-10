@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class BillRule extends Model
 {
   use SoftDeletes;
-  protected $table = 'bse_tenant_bill_rule';
+  protected $table = 'bse_contract_bill_rule';
   protected $fillable = [];
   protected $hidden = ['deleted_at'];
   protected $appends = ['fee_type_label'];

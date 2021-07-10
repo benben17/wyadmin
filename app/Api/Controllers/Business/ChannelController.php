@@ -10,11 +10,12 @@ use App\Api\Controllers\BaseController;
 
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Customer\Customer as CustomerModel;
-use App\Api\Models\Customer\CustomerExtra as CustomerExtraModel;
+use App\Api\Models\Tenant\Tenant as CustomerModel;
+use App\Api\Models\Tenant\ExtraInf;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+
 /**
  * 渠道管理
  * 类型 1 渠道 2 客户 3 租户 4供应商 5 公共关系
@@ -72,12 +73,12 @@ class ChannelController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config("per_size");
         }
-        if($pagesize == '-1'){
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
         $map = array();
         // 渠道ID
-        if ($request->id && $request->id>0) {
+        if ($request->id && $request->id > 0) {
             $map['id'] = $request->id;
         }
         // 是否可用 1 可用0禁用
@@ -99,22 +100,22 @@ class ChannelController extends BaseController
 
         // return $map;
         $data = channelModel::where($map)
-        ->with('channelPolicy:id,name')
-        ->with('channelContact')
-        ->withCount('customer')
-        ->withCount(['customer as cus_deal_count' => function($q) {
-            $q->where('cus_state','成交客户');
-        }])
-        ->where(function ($q) use ($request){
-            $request->channel_name && $q->where('channel_name','like','%'.$request->channel_name.'%');
-            $request->channel_type && $q->where('channel_type',$request->channel_type);
-        })
-        ->orderBy($orderBy, $order)
-        ->paginate($pagesize)->toArray();
+            ->with('channelPolicy:id,name')
+            ->with('channelContact')
+            ->withCount('customer')
+            ->withCount(['customer as cus_deal_count' => function ($q) {
+                $q->where('cus_state', '成交客户');
+            }])
+            ->where(function ($q) use ($request) {
+                $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
+                $request->channel_type && $q->where('channel_type', $request->channel_type);
+            })
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
         // DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
         $dict = new DictServices;  // 根据ID 获取字典信息
-        $stat = $dict->getByKey(getCompanyIds($this->uid),'channel_type');
+        $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
 
         /** 根据渠道类型统计有多少渠道 */
         $channelTotal = 0;
@@ -122,25 +123,25 @@ class ChannelController extends BaseController
         // $stat = array();
         foreach ($stat as $k => &$v) {
             $channel = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
-            ->where($map)
-            ->where(function ($q) use ($request){
-            $request->channel_name && $q->where('channel_name','like','%'.$request->channel_name.'%');
-            })
-            ->where('channel_type',$v['value'])->first();
+                ->where($map)
+                ->where(function ($q) use ($request) {
+                    $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
+                })
+                ->where('channel_type', $v['value'])->first();
 
             $v['count'] = $channel['count'];
             $v['channel_type'] = $v['value'];
             if (empty($channel['Ids']) || !$channel['Ids']) {
-                $v['cus_count'] = 0 ;
-            }else{
+                $v['cus_count'] = 0;
+            } else {
                 $Ids = explode(",", $channel['Ids']);
-                $v['cus_count'] = CustomerModel::whereIn('channel_id',$Ids)->count();
+                $v['cus_count'] = CustomerModel::whereIn('channel_id', $Ids)->count();
             }
             $cusCount += $v['cus_count'];
             $channelTotal += $v['count'];
         }
 
-        $stat = array_merge($stat,array(array('channel_type'=>'总计' ,'count' => $channelTotal,'cus_count' => $cusCount)));
+        $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         $data['stat'] = $stat;
@@ -181,7 +182,8 @@ class ChannelController extends BaseController
      * )
      */
     /** 获取渠道带来的客户 */
-    public function getCustomer(Request $request){
+    public function getCustomer(Request $request)
+    {
         $validatedData = $request->validate([
             'channel_id' => 'required|numeric',
         ]);
@@ -191,12 +193,12 @@ class ChannelController extends BaseController
         }
         DB::enableQueryLog();
         $data = CustomerModel::with('customerExtra:cus_id,demand_area')
-        ->withCount(['brokerageLog as brokerage_amount' => function ($q){
-            $q->select(DB::Raw('sum(brokerage_amount)'));
-        }])
-        ->where('channel_id',$request->channel_id)
-        // ->select('id','cus_name','cus_state','channel_id')
-        ->paginate($pagesize)->toArray();
+            ->withCount(['brokerageLog as brokerage_amount' => function ($q) {
+                $q->select(DB::Raw('sum(brokerage_amount)'));
+            }])
+            ->where('channel_id', $request->channel_id)
+            // ->select('id','cus_name','cus_state','channel_id')
+            ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         return $this->success($data);
@@ -248,15 +250,15 @@ class ChannelController extends BaseController
             'channel_contact' => 'array',
         ]);
         try {
-            DB::transaction(function () use ($request){
+            DB::transaction(function () use ($request) {
                 $userinfo = auth('api')->user();
                 $channel = $request->toArray();
                 $channel = $this->formatChannel($channel); // 格式化数据
                 $result = channelModel::Create($channel);
-                if($result &&  $request->channel_contact){
-                    $channel_id=$result->id;
-                    $userinfo['parent_type'] =$this->parent_type;
-                    $contacts = formatContact($request->channel_contact,$channel_id,$userinfo);
+                if ($result &&  $request->channel_contact) {
+                    $channel_id = $result->id;
+                    $userinfo['parent_type'] = $this->parent_type;
+                    $contacts = formatContact($request->channel_contact, $channel_id, $userinfo);
                     if ($contacts) {
                         $contact = new ContactModel;
                         $contact->addAll($contacts);
@@ -266,7 +268,6 @@ class ChannelController extends BaseController
             return $this->success('渠道新增成功！');
         } catch (Exception $e) {
             return $this->error("渠道新增失败！");
-
         }
     }
 
@@ -310,7 +311,6 @@ class ChannelController extends BaseController
             ->find($request->input('id'));
 
         return $this->success($data);
-
     }
 
     /**
@@ -342,12 +342,12 @@ class ChannelController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config("per_size");
         }
-        if($pagesize == '-1'){
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
 
 
-        $map =array();
+        $map = array();
         if ($request->channel_id) {
             $map['channel_id'] = $request->channel_id;
         }
@@ -364,8 +364,8 @@ class ChannelController extends BaseController
         }
 
         $data = BrokerageModel::where($map)
-        ->orderBy($orderBy, $order)
-        ->paginate($pagesize)->toArray();
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
         $data = $this->handleBackData($data);
         return $this->success($data);
     }
@@ -409,15 +409,17 @@ class ChannelController extends BaseController
      */
     public function update(Request $request)
     {
-       $messages = ['id.required'=> '渠道信息不存在!',
-                    'channel_name.required'=> '渠道信息名称不能为空!',
-                    'channel_name.unique'=> '渠道名称重复!'];
-       $validator = \Validator::make($request->all(), [
-          'id' => 'required|numeric|gt:0',
-          'channel_name' => 'required',
-          'channel_name' => Rule::unique('bse_channel')->ignore($request->input('id')),
-          'channel_contact' =>'required|array',
-       ], $messages);
+        $messages = [
+            'id.required' => '渠道信息不存在!',
+            'channel_name.required' => '渠道信息名称不能为空!',
+            'channel_name.unique' => '渠道名称重复!'
+        ];
+        $validator = \Validator::make($request->all(), [
+            'id' => 'required|numeric|gt:0',
+            'channel_name' => 'required',
+            'channel_name' => Rule::unique('bse_channel')->ignore($request->input('id')),
+            'channel_contact' => 'required|array',
+        ], $messages);
 
         $error = $validator->errors()->first();
         if ($error) {
@@ -428,11 +430,11 @@ class ChannelController extends BaseController
             return $this->error('渠道不存在');
         }
         try {
-            DB::transaction(function () use ($request){
+            DB::transaction(function () use ($request) {
                 $data = $request->toArray();
                 $userinfo = auth('api')->user();
                 $userinfo['parent_type'] = $this->parent_type;
-                $channel = $this->formatChannel($data,2); //编辑传入值
+                $channel = $this->formatChannel($data, 2); //编辑传入值
                 //更新渠道
                 DB::enableQueryLog();
                 // return $data['id'];
@@ -440,11 +442,11 @@ class ChannelController extends BaseController
                 // return response()->json(DB::getQueryLog());
                 //更新或者新增渠道联系人
                 if ($data['channel_contact']) {
-                    $contacts = formatContact($data['channel_contact'], $request->id,$userinfo,2);
+                    $contacts = formatContact($data['channel_contact'], $request->id, $userinfo, 2);
                     foreach ($contacts as $k => $v) {
                         if (isset($v['id'])) {
                             $res = ContactModel::whereId($v['id'])->update($v);
-                        }else{
+                        } else {
                             $res = ContactModel::Create($v);
                         }
                     }
@@ -504,7 +506,7 @@ class ChannelController extends BaseController
         }
     }
     /**
-    * @OA\Post(
+     * @OA\Post(
      *     path="/api/business/channel/policy/add",
      *     tags={"渠道"},
      *     summary="渠道政策添加",
@@ -541,15 +543,15 @@ class ChannelController extends BaseController
         if ($check) {
             return $this->error('渠道佣金政策名称！');
         }
-        $res = $policy->savePolicy($BA,$this->user);
-        if($res){
+        $res = $policy->savePolicy($BA, $this->user);
+        if ($res) {
             return $this->success('渠道政策保存成功。');
         }
         return $this->error('渠道政策保存失败！');
     }
 
     /**
-    * @OA\Post(
+     * @OA\Post(
      *     path="/api/business/channel/policy/edit",
      *     tags={"渠道"},
      *     summary="渠道政策更新",
@@ -591,8 +593,8 @@ class ChannelController extends BaseController
         if ($check) {
             return $this->error('渠道佣金政策名称重复！');
         }
-        $res = $policy->savePolicy($BA,$this->user);
-        if($res){
+        $res = $policy->savePolicy($BA, $this->user);
+        if ($res) {
             return $this->success('渠道政策保存成功。');
         }
         return $this->error('渠道政策保存失败！');
@@ -607,7 +609,6 @@ class ChannelController extends BaseController
         $data = $policy->policyModel()->find($request->id);
 
         return $this->success($data);
-
     }
 
     public function policyList(Request $request)
@@ -616,11 +617,11 @@ class ChannelController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config("per_size");
         }
-        if($pagesize == '-1'){
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
         $map = array();
-        if ($request->id && $request->id>0) {
+        if ($request->id && $request->id > 0) {
             $map['id'] = $request->id;
         }
         // 是否可用 1 可用0禁用
@@ -645,47 +646,46 @@ class ChannelController extends BaseController
         //
         $policy = new ChannelService;
         $data =  $policy->policyModel()->where($map)
-        ->where(function ($q) use($request){
-            $request->name && $q->where('name','like','%'.$request->name.'%');
-        })
-        ->orderBy($orderBy,$order)
-        ->paginate($pagesize)->toArray();
+            ->where(function ($q) use ($request) {
+                $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+            })
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
 
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         return $this->success($data);
-
     }
     // return response()->json(DB::getQueryLog());
 
-    private function formatChannel($DA,$type = 1){
+    private function formatChannel($DA, $type = 1)
+    {
         if ($type == 1) {
-            $BA['company_id']= $this->company_id;
+            $BA['company_id'] = $this->company_id;
             $BA['c_uid'] = $this->uid;
             $BA['is_vaild'] = 1;
-        }else{
+        } else {
             $BA['u_uid'] = $this->uid;
             $BA['id'] = $DA['id'];
         }
         $BA['channel_name'] = $DA['channel_name'];
-        if(isset($DA['channel_addr'])){
+        if (isset($DA['channel_addr'])) {
             $BA['channel_addr'] = $DA['channel_addr'];
         }
-        if(isset($DA['channel_type'])){
+        if (isset($DA['channel_type'])) {
             $BA['channel_type'] = $DA['channel_type'];
         }
-        if(isset($DA['policy_id'])){
+        if (isset($DA['policy_id'])) {
             $BA['policy_id'] = $DA['policy_id'];
         }
-        if(isset($DA['brokerage_amount'])){
+        if (isset($DA['brokerage_amount'])) {
             $BA['brokerage_amount'] = $DA['brokerage_amount'];
         }
 
-        if(isset($DA['remark'])){
+        if (isset($DA['remark'])) {
             $BA['remark'] = $DA['remark'];
         }
 
         return $BA;
     }
-
 }

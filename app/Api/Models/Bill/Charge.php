@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Api\Models\Tenant;
+namespace App\Api\Models\Bill;
 
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;

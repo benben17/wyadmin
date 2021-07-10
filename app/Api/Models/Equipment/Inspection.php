@@ -3,7 +3,7 @@
 namespace App\Api\Models\Equipment;
 
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
 
 /**
@@ -16,13 +16,13 @@ class Inspection extends Model
    * 关联到模型的数据表
    * @var string
    */
-
+  use SoftDeletes;
   protected $table = 'bse_inspection';
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at'];
 
 
-  protected $appends = ['proj_name', 'check_cycle_label', 'major_label'];
+  protected $appends = ['proj_name', 'check_cycle_label', 'type_label'];
 
   public function getProjNameAttribute()
   {
@@ -39,9 +39,9 @@ class Inspection extends Model
     return $dict['dict_value'];
   }
 
-  public function getMajorLabelAttribute()
+  public function getTypeLabelAttribute()
   {
-    if ($this->attributes['major'] == 1) {
+    if ($this->attributes['type'] == 1) {
       return "工程";
     } else {
       return "秩序";

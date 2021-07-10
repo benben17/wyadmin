@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Api\Services\Tenant;
+namespace App\Api\Services\Contract;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
-use App\Api\Models\Tenant\Charge;
-use App\Api\Models\Tenant\ChargeDetail;
+use App\Api\Models\Bill\Charge;
+use App\Api\Models\Bill\ChargeDetail;
 
 class ChargeService
 {

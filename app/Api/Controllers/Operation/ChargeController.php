@@ -7,7 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Contract\ChargeService;
 
 class ChargeController extends BaseController
 {

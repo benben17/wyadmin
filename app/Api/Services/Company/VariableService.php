@@ -6,11 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-use App\Api\Models\Customer\Customer as CustomerModel;
 use App\Api\Models\Company\CompanyVariable;
-use App\Api\Models\Customer\CustomerLeaseback as  CustomerLeasebackModel;
-use App\Api\Models\Customer\CustomerFollow as CustomerFollowModel;
-use App\Api\Models\Customer\CustomerRemind;
 use App\Api\Models\Project as ProjectModel;
 
 /**

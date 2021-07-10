@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Models\Tenant;
+namespace App\Api\Models\Bill;
 
 use Illuminate\Database\Eloquent\Model;
 

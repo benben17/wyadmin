@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Business;
 
 use App\Api\Controllers\BaseController;
@@ -7,17 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Common\DictServices;
 use App\Api\Models\Customer\Customer as CustomerModel;
-use App\Api\Models\Channel\Channel as ChannelModel;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Customer\CustomerFollow as CustomerFollowModel;
-use App\Api\Models\Customer\CustomerExtra as CustomerExtraModel;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Contract\ContractBill as ContractBillModel;
-
+use App\Api\Models\Customer\ExtraInfo;
+use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
+use App\Api\Models\Tenant\Follow;
 
 /**
  *
@@ -29,15 +28,15 @@ class StatController extends BaseController
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
-        if(!$this->uid){
+        if (!$this->uid) {
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
     }
 
-	/**
-	 * 招商首页统计信息
-	 */
+    /**
+     * 招商首页统计信息
+     */
     /**
      * [dashboard description]
      * @Author   leezhua
@@ -45,81 +44,80 @@ class StatController extends BaseController
      * @param    Request    $request [description]
      * @return   [type]              [description]
      */
-	public function dashboard (Request $request)
-	{
-		$validatedData = $request->validate([
+    public function dashboard(Request $request)
+    {
+        $validatedData = $request->validate([
             'proj_ids' => 'required|array',
         ]);
-		$DA = $request->toArray();
+        $DA = $request->toArray();
         // $projIds = ;
         if (empty($request->projIds)) {
-        	return $this->error('项目ID不允许为空！');
+            return $this->error('项目ID不允许为空！');
         }
         $thisYear = date('Y-01-01');
         DB::enableQueryLog();
         $data = BuildingModel::select('proj_id')
-        ->where(function ($q) use($DA){
-        	$q->whereIn('proj_id' ,$DA['proj_ids']);
-        })
-        //统计所有房间
-        ->withCount(['buildRoom as manager_room_count' =>function ($q){
-        	$q->where('room_type',1);
-        }])
-        // 统计空闲房间
-        ->withCount(['buildRoom as free_room_count' =>function ($q){
-            $q->where('room_state',1);
-            $q->where('room_type',1);
-        }])
-        //统计管理房间面积
-        ->withCount(['buildRoom as manager_area' =>function ($q){
-            $q->select(DB::raw("sum(room_area)"));
-            $q->where('room_type',1);
-        }])
-        //统计空闲房间面积
-        ->withCount(['buildRoom as free_area' =>function ($q){
-            $q->select(DB::raw("sum(room_area)"));
-            $q->where('room_state',1);
-            $q->where('room_type',1);
-        }])
-        ->get()->toArray();
+            ->where(function ($q) use ($DA) {
+                $q->whereIn('proj_id', $DA['proj_ids']);
+            })
+            //统计所有房间
+            ->withCount(['buildRoom as manager_room_count' => function ($q) {
+                $q->where('room_type', 1);
+            }])
+            // 统计空闲房间
+            ->withCount(['buildRoom as free_room_count' => function ($q) {
+                $q->where('room_state', 1);
+                $q->where('room_type', 1);
+            }])
+            //统计管理房间面积
+            ->withCount(['buildRoom as manager_area' => function ($q) {
+                $q->select(DB::raw("sum(room_area)"));
+                $q->where('room_type', 1);
+            }])
+            //统计空闲房间面积
+            ->withCount(['buildRoom as free_area' => function ($q) {
+                $q->select(DB::raw("sum(room_area)"));
+                $q->where('room_state', 1);
+                $q->where('room_type', 1);
+            }])
+            ->get()->toArray();
         // return response()->json(DB::getQueryLog());
         $room['manager_room_count'] = 0;
         $room['free_room_count'] = 0;
         $room['manager_area'] = 0.00;
         $room['free_area'] = 0.00;
         foreach ($data as $k => $v) {
-        	$room['manager_room_count'] += $v['manager_room_count'];
-        	$room['free_room_count'] 	+= $v['free_room_count'];
-	        $room['manager_area'] 	+= $v['manager_area'];
-	        $room['free_area'] 		+= $v['free_area'];
-
+            $room['manager_room_count'] += $v['manager_room_count'];
+            $room['free_room_count']     += $v['free_room_count'];
+            $room['manager_area']     += $v['manager_area'];
+            $room['free_area']         += $v['free_area'];
         }
 
-        $room['rental_rate'] =  sprintf("%01.2f",$room['free_area'] / $room['manager_area']*100);
+        $room['rental_rate'] =  sprintf("%01.2f", $room['free_area'] / $room['manager_area'] * 100);
         //统计客户
         DB::enableQueryLog();
-        $customer = CustomerModel::select('cus_state',DB::Raw('count(*) as cus_count'))
-        ->where(function ($q) use($request){
-            $q->whereIn('proj_id' ,$DA['proj_ids']);
-        })
-        ->where('created_at','>',$thisYear)
-        ->groupBy('cus_state')->get();
+        $customer = CustomerModel::select('cus_state', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($request) {
+                $q->whereIn('proj_id', $DA['proj_ids']);
+            })
+            ->where('created_at', '>', $thisYear)
+            ->groupBy('cus_state')->get();
 
         // return response()->json(DB::getQueryLog());
-        $channel = CustomerModel::select('channel_id','cus_state',DB::Raw('count(*) as cus_count'))
-        ->with('channel:id,channel_type')
-        ->where(function ($q) use($request){
-            $q->whereIn('proj_id' ,$DA['proj_ids']);
-        })
-        ->where('created_at','>',$thisYear)
-        ->groupBy('channel_id','cus_state')->get();
+        $channel = CustomerModel::select('channel_id', 'cus_state', DB::Raw('count(*) as cus_count'))
+            ->with('channel:id,channel_type')
+            ->where(function ($q) use ($request) {
+                $q->whereIn('proj_id', $DA['proj_ids']);
+            })
+            ->where('created_at', '>', $thisYear)
+            ->groupBy('channel_id', 'cus_state')->get();
 
 
         $BA['room'] = $room;
         $BA['customer'] = $customer;
-        $BA['channel'] =$channel;
+        $BA['channel'] = $channel;
         return $this->success($BA);
-	}
+    }
 
 
     /**
@@ -146,90 +144,91 @@ class StatController extends BaseController
      *     )
      * )
      */
-    public function getCustomerStat(Request $request){
+    public function getCustomerStat(Request $request)
+    {
         $BA = $request->toArray();
 
         //如果没有传值，默认统计最近一年的数据
-        if (!isset($BA['start_date']) || !isset($BA['end_date']) ) {
-            $BA['end_date']     = date('Y-m-d',time());
+        if (!isset($BA['start_date']) || !isset($BA['end_date'])) {
+            $BA['end_date']     = date('Y-m-d', time());
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
-        $BA['end_date']     = getNextYmdByDay($BA['end_date'],1);
+        $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
         DB::enableQueryLog();
         /** 统计每种状态下的客户  */
-        $customerByState = CustomerModel::select('cus_state',DB::Raw('count(*) as cus_count'))
-        ->where(function ($q) use($BA){
-            $q->WhereBetween('created_at',[$BA['start_date'],$BA['end_date']]);
-            if (!empty($BA['proj_ids'])) {
-               $q->whereIn('proj_id' ,$BA['proj_ids']);
-            }
-        })
-        ->groupBy('cus_state')->get();
+        $customerByState = CustomerModel::select('cus_state', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->groupBy('cus_state')->get();
 
         // return response()->json(DB::getQueryLog());
         // 按照行业进行客户统计
-        $customerByIndustry = CustomerModel::select('cus_industry',DB::Raw('count(*) as cus_count'))
-        ->where(function ($q) use($BA){
-            $q->WhereBetween('created_at',[$BA['start_date'],$BA['end_date']]);
-            if (!empty($BA['proj_name'])) {
-                $q->whereIn('proj_name',$BA['proj_name']);
-            }
-            if (!empty($BA['proj_ids'])) {
-               $q->whereIn('proj_id' ,$BA['proj_ids']);
-            }
-        })
-        ->groupBy('cus_industry')->get();
+        $customerByIndustry = CustomerModel::select('cus_industry', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                if (!empty($BA['proj_name'])) {
+                    $q->whereIn('proj_name', $BA['proj_name']);
+                }
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->groupBy('cus_industry')->get();
 
         // 按照渠道统计统计每种渠道带来的客户
-        $customerByChannel = CustomerModel::select('channel_id',DB::Raw('count(*) as cus_count'))
-        ->where(function ($q) use($BA){
-            $q->WhereBetween('created_at',[$BA['start_date'],$BA['end_date']]);
-            if (!empty($BA['proj_name'])) {
-                $q->whereIn('proj_name',$BA['proj_name']);
-            }
-            if (!empty($BA['proj_ids'])) {
-               $q->whereIn('proj_id' ,$BA['proj_ids']);
-            }
-        })
-        ->with('channel:id,channel_name')
-        ->groupBy('channel_id')->get();
+        $customerByChannel = CustomerModel::select('channel_id', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                if (!empty($BA['proj_name'])) {
+                    $q->whereIn('proj_name', $BA['proj_name']);
+                }
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->with('channel:id,channel_name')
+            ->groupBy('channel_id')->get();
 
         // 按照渠道统计成交的客户
-        $customerByChannelDeal = CustomerModel::select('channel_id',DB::Raw('count(*) as cus_count'))
-        ->where(function ($q) use($BA){
-           $q->WhereBetween('created_at',[$BA['start_date'],$BA['end_date']]);
-            $q->where('cus_state','成交客户');
-            if (!empty($BA['proj_name'])) {
-                $q->whereIn('proj_name',$BA['proj_name']);
-            }
-            if (!empty($BA['proj_ids'])) {
-               $q->whereIn('proj_id' ,$BA['proj_ids']);
-            }
-        })
-        ->with('channel:id,channel_name')
-        ->groupBy('channel_id')->get();
+        $customerByChannelDeal = CustomerModel::select('channel_id', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                $q->where('cus_state', '成交客户');
+                if (!empty($BA['proj_name'])) {
+                    $q->whereIn('proj_name', $BA['proj_name']);
+                }
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->with('channel:id,channel_name')
+            ->groupBy('channel_id')->get();
 
         // 统计客户需求面积
-        $demandStat = CustomerExtraModel::select(DB::Raw('count(*) as count'),'demand_area')
-        ->where(function ($q) use($BA){
-           $q->WhereBetween('created_at',[$BA['start_date'],$BA['end_date']]);
-        })
-        ->whereHas('customer',function ($q) use($BA){
-            if (!empty($BA['proj_ids'])) {
-               $q->whereIn('proj_id' ,$BA['proj_ids']);
-            }
-        })
-        ->groupBy('demand_area')->get();
+        $demandStat = TenantExtraInfo::select(DB::Raw('count(*) as count'), 'demand_area')
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+            })
+            ->whereHas('customer', function ($q) use ($BA) {
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->groupBy('demand_area')->get();
 
         $dict = new DictServices;  // 根据ID 获取字典信息
-        $demandArea = $dict->getByKey(getCompanyIds($this->uid),'demand_area');
+        $demandArea = $dict->getByKey(getCompanyIds($this->uid), 'demand_area');
         $Stat = array();
         foreach ($demandArea as $k => $v) {
             foreach ($demandStat as $ks => $vs) {
                 if ($v['value'] == $vs['demand_area']) {
                     $Stat[$k] = $vs;
                     break;
-                }else{
+                } else {
                     $Stat[$k]['demand_area'] = $v['value'];
                     $Stat[$k]['count'] = 0;
                 }
@@ -268,13 +267,14 @@ class StatController extends BaseController
      *     )
      * )
      */
-    public function getContractStat(Request $request){
+    public function getContractStat(Request $request)
+    {
         // $validatedData = $request->validate([
         //     'start_date'=> 'required|date',
         //     'end_date'=> 'required|date',
         //     // 'proj_id'=> 'array',
         // ]);
-        $thisMonth = date('Y-m-01',time());
+        $thisMonth = date('Y-m-01', time());
         $startDate = getPreYmd($thisMonth, 11);
 
         $endDate = getNextYmd($thisMonth, 1);
@@ -284,31 +284,31 @@ class StatController extends BaseController
             count(distinct(customer_id)) cus_total,
             sum(case rental_price_type when 1 then rental_price*sign_area else rental_price*sign_area*12/365 end) amount,
             sum(sign_area) area, DATE_FORMAT(sign_date,"%Y-%m") as ym'))
-        ->where('contract_state',2)
-        ->where(function ($q) use ($request){
-            $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-            $request->room_type && $q->where('room_type',$request->room_type);
-        })
-        ->where('sign_date','>=',$startDate)
-        ->where('sign_date','<',$endDate)
-        ->groupBy('ym')->get();
+            ->where('contract_state', 2)
+            ->where(function ($q) use ($request) {
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->room_type && $q->where('room_type', $request->room_type);
+            })
+            ->where('sign_date', '>=', $startDate)
+            ->where('sign_date', '<', $endDate)
+            ->groupBy('ym')->get();
 
-        $i= 0;
+        $i = 0;
         $stat = array();
-        while($i<12){
+        while ($i < 12) {
             // Log::info(getNextMonth($startDate,$i)."----".$i);
             foreach ($contract as $k => $v) {
-                if ($v['ym'] == getNextMonth($startDate,$i)){
-                    $stat[$i]['ym']= $v['ym'];
-                    $stat[$i]['contract_total']= $v['contract_total'];
-                    $stat[$i]['cus_total']= $v['cus_total'];
-                    $stat[$i]['area']= numFormat($v['area']);
-                    $stat[$i]['avg_price']= numFormat($v['amount']/$v['area']);
+                if ($v['ym'] == getNextMonth($startDate, $i)) {
+                    $stat[$i]['ym'] = $v['ym'];
+                    $stat[$i]['contract_total'] = $v['contract_total'];
+                    $stat[$i]['cus_total'] = $v['cus_total'];
+                    $stat[$i]['area'] = numFormat($v['area']);
+                    $stat[$i]['avg_price'] = numFormat($v['amount'] / $v['area']);
                     $i++;
                 }
             }
 
-            $stat[$i]['ym']= getNextMonth($startDate,$i);
+            $stat[$i]['ym'] = getNextMonth($startDate, $i);
             $stat[$i]['contract_total'] = 0;
             $stat[$i]['cus_total'] = 0;
             $stat[$i]['area'] = 0.00;
@@ -341,7 +341,8 @@ class StatController extends BaseController
      * )
      */
 
-    public function getStaffKpi(Request $request){
+    public function getStaffKpi(Request $request)
+    {
         // $validatedData = $request->validate([
         //     'start_date'=> 'required|date',
         //     'end_date'=> 'required|date',
@@ -351,60 +352,58 @@ class StatController extends BaseController
         $DA['start_date'] = '2020-01-01';
         $DA['end_date'] = '2020-12-31';
         $dict = new DictServices;
-        $cusState = $dict->getByKeyGroupBy('0,'.$this->company_id,'cus_state');
+        $cusState = $dict->getByKeyGroupBy('0,' . $this->company_id, 'cus_state');
         $State = str2Array($cusState['value']);
         Log::error(json_encode($cusState['value']));
         DB::enableQueryLog();
         $belongPerson = CustomerModel::select(DB::Raw('group_concat(distinct belong_person) as user,count(*) total'))
-            ->where(function ($q) use ($DA){
-                    $q->whereBetween('created_at',[$DA['start_date'],$DA['end_date']]);
-                    isset($DA['proj_ids']) && $q->whereIn('proj_id',$DA['proj_ids']);
-                })
-        ->groupBy('belong_person')
-        ->get()->toArray();
+            ->where(function ($q) use ($DA) {
+                $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
+                isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
+            })
+            ->groupBy('belong_person')
+            ->get()->toArray();
         // return response()->json(DB::getQueryLog());
         $i = 0;
-        $stat_cus = array(['name'=>'']);
+        $stat_cus = array(['name' => '']);
 
         foreach ($belongPerson as $k => &$v) {
             foreach ($State as $ks => $vs) {
-                Log::error($vs.'----'.$v['user']);
-                $cusCount = CustomerModel::where('cus_state',$vs)
-                ->where('belong_person',$v['user'])
-                ->where(function ($q) use ($DA){
-                    $q->whereBetween('created_at',[$DA['start_date'],$DA['end_date']]);
-                    isset($DA['proj_ids']) && $q->whereIn('proj_id',$DA['proj_ids']);
-                })
-                ->count();
+                Log::error($vs . '----' . $v['user']);
+                $cusCount = CustomerModel::where('cus_state', $vs)
+                    ->where('belong_person', $v['user'])
+                    ->where(function ($q) use ($DA) {
+                        $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
+                        isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
+                    })
+                    ->count();
 
                 if ($vs == '成交客户') {
                     $area = ContractModel::selectRaw('sum(sign_area) deal_area')
-                    ->where('room_type',1)
-                    ->where('belong_person',$v['user'])
-                    ->where(function ($q) use ($DA){
-                        $q->whereBetween('sign_date',[$DA['start_date'],$DA['end_date']]);
-                        isset($DA['proj_ids']) && $q->whereIn('proj_id',$DA['proj_ids']);
-                    })
-                    ->first();
+                        ->where('room_type', 1)
+                        ->where('belong_person', $v['user'])
+                        ->where(function ($q) use ($DA) {
+                            $q->whereBetween('sign_date', [$DA['start_date'], $DA['end_date']]);
+                            isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
+                        })
+                        ->first();
                     $v['dealArea']  = $area['deal_area'];
                     $v['deal'] = $cusCount;
-                }else if ($vs == '潜在客户') {
+                } else if ($vs == '潜在客户') {
                     $v['potential'] = $cusCount;
-                }else if($vs == '初次接触'){
+                } else if ($vs == '初次接触') {
                     $v['first'] = $cusCount;
-                }else if($vs == '意向客户'){
+                } else if ($vs == '意向客户') {
                     $v['intention'] = $cusCount;
-                }else if($vs == '流失客户'){
+                } else if ($vs == '流失客户') {
                     $v['lose'] = $cusCount;
                 }
-
             }
-            $v['followCount'] = CustomerFollowModel::whereHas('customer',function ($q) use($DA,$v){
-                $q->whereBetween('created_at',[$DA['start_date'],$DA['end_date']]);
-                isset($DA['proj_ids']) && $q->whereIn('proj_id',$DA['proj_ids']);
-                $q->where('belong_person',$v['user']);
+            $v['followCount'] = Follow::whereHas('customer', function ($q) use ($DA, $v) {
+                $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
+                isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
+                $q->where('belong_person', $v['user']);
             })->count();
-
         }
         return $this->success($belongPerson);
     }
@@ -438,40 +437,40 @@ class StatController extends BaseController
         // $validatedData = $request->validate([
         //     'room_type' => 'required|int|in:1,2',
         // ]);
-        $startDate = date('Y-m',time());
-        $endDate = getNextMonth($startDate,24);
+        $startDate = date('Y-m', time());
+        $endDate = getNextMonth($startDate, 24);
 
         DB::enableQueryLog();
-        $res = ContractBillModel::where('charge_date','>=',$startDate)
-        ->whereHas('contract' ,function ($q)  use($request){
-            $q->where('contract_state',2);
-            $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-            $request->room_type && $q->where('room_type',$request->room_type);
-        })
-        ->select(DB::Raw('count(distinct(cus_id)) cus_count,
+        $res = ContractBillModel::where('charge_date', '>=', $startDate)
+            ->whereHas('contract', function ($q)  use ($request) {
+                $q->where('contract_state', 2);
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->room_type && $q->where('room_type', $request->room_type);
+            })
+            ->select(DB::Raw('count(distinct(cus_id)) cus_count,
             sum(case type when  "租金"  then amount else 0 end) rental_amount,
             sum(case type when  "管理费"  then amount else 0 end) manager_amount,
             DATE_FORMAT(charge_date,"%Y-%m") as ym'))
-        ->groupBy('ym')
-        ->orderBy('ym')
-        ->get();
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->get();
         // return response()->json(DB::getQueryLog());
         // return $res;
-        $i= 0;
+        $i = 0;
         $stat = array();
-        while($i<24){
+        while ($i < 24) {
             foreach ($res as $k => $v) {
-                if ($v['ym'] == getNextMonth($startDate,$i)){
-                    $stat[$i]['ym']= getNextMonth($startDate,$i);
-                    $stat[$i]['rental_amount']= $v['rental_amount'];
-                    $stat[$i]['manager_amount']= $v['manager_amount'];
-                    $stat[$i]['cus_count']= $v['cus_count'];
+                if ($v['ym'] == getNextMonth($startDate, $i)) {
+                    $stat[$i]['ym'] = getNextMonth($startDate, $i);
+                    $stat[$i]['rental_amount'] = $v['rental_amount'];
+                    $stat[$i]['manager_amount'] = $v['manager_amount'];
+                    $stat[$i]['cus_count'] = $v['cus_count'];
                     $i++;
                 }
             }
-            $stat[$i]['ym']= getNextMonth($startDate,$i);
-            $stat[$i]['rental_amount']= 0.00;
-            $stat[$i]['manager_amount']= 0.00;
+            $stat[$i]['ym'] = getNextMonth($startDate, $i);
+            $stat[$i]['rental_amount'] = 0.00;
+            $stat[$i]['manager_amount'] = 0.00;
             $stat[$i]['cus_count'] = 0;
             $i++;
         }
@@ -499,19 +498,18 @@ class StatController extends BaseController
      *     )
      * )
      */
-    public function getMonthReceive(){
+    public function getMonthReceive(Request $request)
+    {
         $data = ContractBillModel::select(DB::Raw('sum(amount) amount ,type
             ,count(distinct cus_id) cus_count'))
-        ->whereHas('contract' ,function ($q)  use($request){
-            $q->where('contract_state',2);
-            $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-            $request->room_type && $q->where('room_type',$request->room_type);
-        })
-        ->whereYear('charge_date',date('Y'))
-        ->whereMonth('charge_date',date('m'))
-        ->groupBy('type')->get();
+            ->whereHas('contract', function ($q)  use ($request) {
+                $q->where('contract_state', 2);
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->room_type && $q->where('room_type', $request->room_type);
+            })
+            ->whereYear('charge_date', date('Y'))
+            ->whereMonth('charge_date', date('m'))
+            ->groupBy('type')->get();
         return $this->success($data);
     }
-
-
 }
