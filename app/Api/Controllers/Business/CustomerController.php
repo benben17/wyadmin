@@ -417,7 +417,7 @@ class CustomerController extends BaseController
         $data = $this->customerService->tenantModel()
             ->with('contacts')
             ->with('extraInfo')
-            ->with('room')
+            ->with('rooms')
             ->find($request->id)->toArray();
 
         $info = new BaseInfoService;

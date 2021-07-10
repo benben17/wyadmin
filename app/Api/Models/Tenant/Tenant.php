@@ -71,7 +71,7 @@ class Tenant extends Model
   {
     return $this->hasMany(Remind::class, 'tenant_id', 'id');
   }
-  public function room()
+  public function rooms()
   {
     return $this->hasMany(TenantRoom::class, 'tenant_id', 'id');
   }

@@ -103,7 +103,7 @@ class ContractBillService
     $bill = array();
     while ($i < $ceil) {
       $bill[$i]['type'] = $DA['fee_type'];
-      // $bill[$i]['price'] = numFormat($DA['price']);
+
       $bill[$i]['price'] = numFormat($DA['price']) . $this->priceUnit($DA['room_type'], $DA['price_type']);
       if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
         // $chargeDate = $DA['startDate'];
@@ -199,8 +199,8 @@ class ContractBillService
           if ($v['free_num'] > 0) {
             $freeMonth = sprintf("%.6f", ($v['free_num'] / (365 / 12)));
           }
-          // $data['freeAmount'] += $v['free_num'] * $dayAmount;
-          $data['freeAmount'] += $v['free_num'] * $monthAmount;
+          $data['freeAmount'] += $v['free_num'] * $dayAmount;
+          // $data['freeAmount'] += $v['free_num'] * $monthAmount;
           $data['remark'] .= "免租" . $v['free_num'] . "天,开始" . $v['start_date'];
         }
       }
