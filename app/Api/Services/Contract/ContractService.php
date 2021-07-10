@@ -8,13 +8,12 @@ use Exception;
 use App\Api\Models\Contract\ContractLog as ContractLogModel;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
 use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Customer\Customer as CustomerModel;
+use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Services\Common\MessageService;
 use App\Api\Models\Contract\ContractBill as ContractBillModel;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
-use App\Api\Models\Common\Contact as ContactModel;
 use App\Enums\AppEnum;
 
 /**
@@ -130,7 +129,7 @@ class ContractService
   /** 合同审核 */
   /**
    * 审核成功后 ，合同状态 contract_state更新为2
-   * 客户状态 cus_state 更新为2
+   * 客户状态 state 更新为2
    * 房源状态 room_state更新为0
    * 更新渠道佣金
    * 给合同跟进人发送系统通知消息
@@ -154,18 +153,12 @@ class ContractService
         if ($DA['audit_state'] == 1) {
           $DA['contract_state'] = 2;  // 审核通过 ，合同状态 为正式合同
           // 更新客户状态 为租户
-          $customer  = CustomerModel::find($contract['customer_id']);
-          $customer->cus_type = 2;   //2 租户 1 客户 3 退租
-          $customer->cus_state = '成交客户';   //2 租户 1 客户 3 退租
+          $customer  = Tenant::find($contract['tenant_id']);
+          $customer->type = 2;   //2 租户 1 客户 3 退租
+          $customer->state = '成交客户';   //2 租户 1 客户 3 退租
           $customer->save();
           // 保存租户联系人
           $user['parent_type']  = AppEnum::Tenant;
-          $contacts = ContactModel::where('parent_type', AppEnum::Customer)->where('parent_id', $customer->id)
-            ->get();
-          $contactData = formatContact($contacts, $tenantId, $user, 1);
-
-          $contact = new ContactModel;
-          $contact->addAll($contactData);
 
           //更新渠道佣金
           $customer['rental_month_amount'] = $contract['rental_month_amount'];
@@ -461,12 +454,12 @@ class ContractService
   }
 
   /** 保存合同免租时间 */
-  public function saveFreeList($DA, $contractId, $cusId)
+  public function saveFreeList($DA, $contractId, $tenantId)
   {
     try {
       $freeperiod  = new ContractFreePeriod();
       $freeperiod->contract_id = $contractId;
-      $freeperiod->cus_id       = $cusId;
+      $freeperiod->tenant_id       = $tenantId;
       $freeperiod->start_date   = $DA['start_date'];
       $freeperiod->free_num     = $DA['free_num'];
       if (isset($DA['end_date'])) {

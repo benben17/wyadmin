@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Models\Contract;
 
 use Illuminate\Database\Eloquent\Model;
@@ -10,8 +11,8 @@ class ContractTemplate extends Model
 {
   protected $table = 'bse_template';
 
-  protected $fillable = ['company_id','name','file_name','file_path','remark','c_uid','u_uid'];
-  protected $hidden = ['deleted_at','updated_at','company_id'];
+  protected $fillable = ['company_id', 'name', 'file_name', 'file_path', 'remark', 'c_uid', 'u_uid'];
+  protected $hidden = ['deleted_at', 'updated_at', 'company_id'];
 
   protected static function boot()
   {

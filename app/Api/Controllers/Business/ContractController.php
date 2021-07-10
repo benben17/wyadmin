@@ -97,8 +97,8 @@ class ContractController extends BaseController
         }
         $map = array();
 
-        if ($request->customer_id && $request->customer_id > 0) {
-            $map['customer_id'] = $request->customer_id;
+        if ($request->tenant_id && $request->tenant_id > 0) {
+            $map['tenant_id'] = $request->tenant_id;
         }
         if ($request->contract_type) {
             $map['contract_type'] = $request->contract_type;
@@ -121,7 +121,7 @@ class ContractController extends BaseController
             ->with('freeList')
             ->with('project:id,proj_name')
             ->where(function ($q) use ($request) {
-                $request->customer_name && $q->where('customer_name', 'like', "%" . $request->customer_name . "%");
+                $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
                 $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
                 $request->sign_end_date && $q->where('sign_date', '<=', $request->sign_end_date);
                 if ($request->contract_state != '') {
@@ -250,7 +250,7 @@ class ContractController extends BaseController
             'sign_date' => 'required|date',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'customer_id' => 'required|numeric',
+            'tenant_id' => 'required|numeric',
             'customer_legal_person' => 'required|String|between:1,64',
             'sign_area' => 'required|numeric|gt:0',
             'bill_day' => 'required|numeric',
@@ -287,17 +287,17 @@ class ContractController extends BaseController
                 if (!empty($freeList)) {
                     foreach ($freeList as $k => $v) {
                         // 保存免租信息
-                        $contractService->saveFreeList($v, $contract->id, $contract->customer_id);
+                        $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
-                $rentalBill = $this->formatBill($DA['rental_bill'], $contract->customer_id, $contract->id);
+                $rentalBill = $this->formatBill($DA['rental_bill'], $contract->tenant_id, $contract->id);
 
                 $bill = new ContractBillModel;
                 $res = $bill->addAll($rentalBill);
-                $managementBill = $this->formatBill($DA['management_bill'], $contract->customer_id, $contract->id);
+                $managementBill = $this->formatBill($DA['management_bill'], $contract->tenant_id, $contract->id);
                 $res = $bill->addAll($managementBill);
                 if ($DA['deposit_bill']) {
-                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->customer_id, $contract->id);
+                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
                     $res = $bill->addAll($deospitBill);
                 }
             });
@@ -443,7 +443,7 @@ class ContractController extends BaseController
                 // 免租 全部删除后全部新增
                 $contractService->delFreeList($DA['id']);
                 foreach ($DA['free_list'] as $k => $v) {
-                    $contractService->saveFreeList($v, $contract->id, $contract->customer_id);
+                    $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                 }
 
                 /** 删除所有的bill账单 */
@@ -451,15 +451,15 @@ class ContractController extends BaseController
                 /** 租金bill账单 */
                 $bill = new ContractBillModel;
                 if (!empty($DA['rental_bill'])) {
-                    $rentalBill = $this->formatBill($DA['rental_bill'], $contract->customer_id, $DA['id']);
+                    $rentalBill = $this->formatBill($DA['rental_bill'], $contract->tenant_id, $DA['id']);
                     $res = $bill->addAll($rentalBill);
                 }
                 if ($DA['management_bill']) {
-                    $managementBill = $this->formatBill($DA['management_bill'], $contract->customer_id, $DA['id']);
+                    $managementBill = $this->formatBill($DA['management_bill'], $contract->tenant_id, $DA['id']);
                     $res = $bill->addAll($managementBill);
                 }
                 if ($DA['deposit_bill']) {
-                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->customer_id, $contract->id);
+                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
                     $res = $bill->addAll($deospitBill);
                 }
             });
@@ -643,7 +643,7 @@ class ContractController extends BaseController
             return $this->error('模版错误，请重新上传模版');
         }
 
-        $parm['fileName'] = $contract['customer_name'] . date('Ymd', time()) . ".docx";
+        $parm['fileName'] = $contract['tenant_name'] . date('Ymd', time()) . ".docx";
         $filePath = "/uploads/" . nowYmd() . "/" . $this->company_id . "/";
         $parm['savePath'] = public_path() . $filePath;
 
@@ -803,8 +803,8 @@ class ContractController extends BaseController
         $contract->end_date = $DA['end_date'];
         $contract->belong_uid = $user->id;
         $contract->belong_person = $user->realname;
-        $contract->customer_id = $DA['customer_id'];
-        $contract->customer_name = $DA['customer_name'];
+        $contract->tenant_id = $DA['tenant_id'];
+        $contract->tenant_name = $DA['tenant_name'];
         $contract->lease_term = $DA['lease_term'];
         $contract->customer_industry = $DA['customer_industry'];
         $contract->customer_sign_person = isset($DA['customer_sign_person']) ? $DA['customer_sign_person'] : "";

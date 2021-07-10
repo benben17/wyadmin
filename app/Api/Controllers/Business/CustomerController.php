@@ -221,11 +221,10 @@ class CustomerController extends BaseController
         ]);
         $DA = $request->toArray();
 
-        // $checkRepeat = Tenant::where(['company_id' => $this->company_id], ['name' => $request->name])->exists();
-        // if ($checkRepeat) {
-        //     return $this->error('客户名称重复');
-        // }
-
+        $checkRepeat = Tenant::where(['company_id' => $this->company_id], ['name' => $request->name])->exists();
+        if ($checkRepeat) {
+            return $this->error('客户名称重复');
+        }
         try {
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();

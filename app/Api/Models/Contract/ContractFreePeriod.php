@@ -21,7 +21,7 @@ class ContractFreePeriod extends Model
   protected $table = 'bse_contract_free_period';
 
   protected $fillable = ['cus_id', 'contract_id', 'free_type', 'start_date', 'end_date', 'free_num', 'is_vaild', 'remark'];
-  protected $hidden = ['deleted_at', 'company_id', 'c_uid', 'u_uid'];
+  protected $hidden = ['deleted_at', 'company_id', 'u_uid'];
 
 
   public function addAll(array $data)
