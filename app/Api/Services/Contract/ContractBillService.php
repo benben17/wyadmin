@@ -2,7 +2,10 @@
 
 namespace App\Api\Services\Contract;
 
+use App\Api\Models\Contract\BillRule;
+use App\Api\Services\Company\FeeTypeService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 /**
@@ -90,86 +93,84 @@ class ContractBillService
    * @param    string     $billType [description]
    * @return   [type]               [description]
    */
-  public function createBill($DA, $billType = 'rental')
+  public function createBill($contractId, $leaseTerm, $uid)
   {
-    if ($billType != 'rental') {
-      unset($DA['free_list']);
-    }
-    $i = 0;
-    $data['total'] = 0;
-    $period  = $DA['period'];
-    // $startDate = $DA['startDate'];
-    $ceil = ceil($DA['lease_term'] / $DA['period']);
-    $bill = array();
-    while ($i < $ceil) {
-      $bill[$i]['type'] = $DA['fee_type'];
+    $data = array();
+    $feeTypeService = new FeeTypeService;
+    $feetype = $feeTypeService->getFeeIds(1, $uid);
+    Log::error(json_encode($feetype) . "费用id");
+    DB::enableQueryLog();
+    $feeList = BillRule::where('contract_id', $contractId)->whereIn('fee_type', $feetype)->get();
+    // return response()->json(DB::getQueryLog());
+    Log::error(json_encode($feeList) . "");
+    foreach ($feeList as $k => $v) {
+      Log::error("创建账单" . $v['id']);
+      $i = 0;
+      $data[$k]['total'] = 0.00;
+      $billNum = ceil($leaseTerm / $v['pay_method']);
+      $bill = array();
 
-      $bill[$i]['price'] = numFormat($DA['price']) . $this->priceUnit($DA['room_type'], $DA['price_type']);
-      if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
-        // $chargeDate = $DA['startDate'];
-        $startDate = $DA['startDate'];
-        $bill[$i]['charge_date'] = $DA['startDate'];
-      } else {
-        // 收费日期根据提前几个月（ahead_pay_month）算出来的
-        $chargeDate = getNextYmd($startDate, $period - $DA['ahead_pay_month']);
-        $startDate = getNextYmd($startDate, $period);
-        $bill[$i]['charge_date'] = date("Y-m-" . $DA['billDay'], strtotime($chargeDate));
-      }
-      // 收款日期，根据合同的收款日走
-      $endDate = getEndNextYmd($startDate, $DA['period']);
-      $bill[$i]['start_date'] = $startDate;
-      if ($i + 1 != $ceil) {  // 最后一个租期
-        $bill[$i]['end_date'] = $endDate;
-        $bill[$i]['amount'] = numFormat($period * $DA['monthAmount']);
-      } else {
-        $bill[$i]['end_date'] = $DA['endDate'];
-        $lastPeriod = $DA['lease_term'] - ($period * $i);
-        $bill[$i]['amount'] = numFormat($lastPeriod * $DA['monthAmount']);
-      }
-      if ($billType == "rental" && isset($DA['free_list'])) {
-        $free = $this->billFree($DA['free_list'], $startDate, $endDate, $DA['monthAmount'], $DA['dayAmount'], $DA['free_type']);
-        if ($free['freeAmount'] > 0) {
-          $bill[$i]['amount'] = numFormat($bill[$i]['amount'] - $free['freeAmount']);
-          $bill[$i]['remark'] = $free['remark'];
+      while ($i < $billNum) {
+
+        $period  = $v['pay_method'];
+        $bill[$i]['type'] = $v['fee_type'];
+        $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
+        if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
+          $startDate = $v['start_date'];
+          $bill[$i]['charge_date'] = $v['start_date'];
+        } else {
+          // 收费日期根据提前几个月（ahead_pay_month）算出来的
+          $chargeDate = getNextYmd($startDate, $period - $v['ahead_pay_month']);
+          $startDate = getNextYmd($startDate, $period);
+          $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime($chargeDate));
         }
+        // 收款日期，根据合同的收款日走
+        $endDate = getEndNextYmd($startDate, $period);
+        $bill[$i]['start_date'] = $startDate;
+        if ($i + 1 != $billNum) {  // 最后一个租期
+          $bill[$i]['end_date'] = $endDate;
+          $bill[$i]['amount'] = numFormat($period * $v['month_amt']);
+        } else {
+          $bill[$i]['end_date'] = $v['end_date'];
+          $lastPeriod = $leaseTerm - ($period * $i);
+          $bill[$i]['amount'] = numFormat($lastPeriod * $v['month_amt']);
+        }
+        $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '至' . $bill[$i]['end_date'];
+        $data[$k]['total'] += $bill[$i]['amount'];
+        $i++;
       }
-      $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '至' . $bill[$i]['end_date'];
-      $data['total'] += $bill[$i]['amount'];
-      $i++;
+
+      $data[$k][$v['fee_type']] = $bill;
     }
-    $data['bill'] = $bill;
+
     return $data;
   }
 
   /**
-   * 押金计算
+   * 各种押金计算
    * @Author   leezhua
    * @DateTime 2020-07-04
    * @param    [type]     $contract [description]
    * @return   [type]               [description]
    */
-  public function createDepositBill($contract)
+  public function createDepositBill($contractId, $uid)
   {
-    $data['bill'] = array();
-    $data['total'] = 0.00;
-    $BA['price'] = "";
-    $BA['charge_date'] = $contract['sign_date'];
-    $BA['start_date'] = $contract['start_date'];
-    $BA['end_date'] = $contract['end_date'];
-    $BA['bill_date'] = $BA['start_date'] . "至" . $BA['end_date'];
-    if ($contract['rental_deposit_month'] > 0 && $contract['rental_deposit_amount'] > 0) {
-      $BA['type'] = "租赁押金";
-      $BA['amount'] = $contract['rental_deposit_amount'];
-      $BA['remark'] = $contract['rental_deposit_month'] . "个月租金";
-      $data['total'] += $BA['amount'];
-      $data['bill'] = array_merge($data['bill'], array($BA));
-    }
-    if ($contract['manager_deposit_month'] > 0 && $contract['manager_deposit_amount'] > 0) {
-      $BA['type'] = "管理押金";
-      $BA['amount'] = $contract['manager_deposit_amount'];
-      $BA['remark'] = $contract['manager_deposit_month'] . "个月管理费";
-      $data['total'] += $BA['amount'];
-      $data['bill'] = array_merge($data['bill'], array($BA));
+    $data = array();
+    $feeTypeService = new FeeTypeService;
+    $feetype = $feeTypeService->getFeeIds(2, $uid);
+    $deposit = BillRule::where('contract_id', $contractId)->whereIn('fee_type', $feetype)->get();
+    if ($deposit) {
+      $data['total'] = 0.00;
+      $i = 0;
+      foreach ($deposit as $k => $v) {
+        $data[$i]['amount']     = $v['amount'];
+        $data[$i]['start_date'] = $v['start_date'];
+        $data[$i]['end_date']   = $v['end_date'];
+        $data[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
+        $data[$i]['remark']     = $v['remark'];
+        $data['total'] += $v['amount'];
+        $i++;
+      }
     }
     return $data;
   }

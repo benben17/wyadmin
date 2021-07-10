@@ -243,6 +243,7 @@ class ContractController extends BaseController
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'tenant_id' => 'required|numeric',
+            'proj_id' => 'required|numeric',
             'customer_legal_person' => 'required|String|between:1,64',
             'sign_area' => 'required|numeric|gt:0',
             'bill_day' => 'required|numeric',
@@ -286,15 +287,7 @@ class ContractController extends BaseController
                         $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
-                $rentalBill = $this->formatBill($DA['rental_bill'], $contract->tenant_id, $contract->id);
-                $bill = new ContractBillModel;
-                $res = $bill->addAll($rentalBill);
-                $managementBill = $this->formatBill($DA['management_bill'], $contract->tenant_id, $contract->id);
-                $res = $bill->addAll($managementBill);
-                if ($DA['deposit_bill']) {
-                    $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
-                    $res = $bill->addAll($deospitBill);
-                }
+
                 $contractService = new ContractService;
                 $contractService->contractLog($contract, $user);
             });
@@ -494,22 +487,22 @@ class ContractController extends BaseController
     public function contractBill(Request $request)
     {
         $validatedData = $request->validate([
-            'increase_show' => 'required|numeric|in:0,1',
-            'manager_show' => 'required|numeric|in:0,1',
-            'sign_date' => 'required|date',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'lease_term' => 'required|numeric',
-            'sign_area' => 'required|numeric|gt:0',
-            'rental_price' => 'required',
-            'rental_month_amount' => 'required',
-            'ahead_pay_month' => 'required|numeric',
-            'pay_method' => 'required|numeric|gt:0',
-            'rental_price_type' => 'required',
-            'free_list' => 'array',
-            'bill_day' => 'required|numeric',
-            'bill_type' => 'required|numeric|in:1,2',
-            'free_type' => 'required|in:1,2',
+            // 'increase_show' => 'required|numeric|in:0,1',
+            // 'manager_show' => 'required|numeric|in:0,1',
+            // 'sign_date' => 'required|date',
+            // 'start_date' => 'required|date',
+            // 'end_date' => 'required|date',
+            // 'lease_term' => 'required|numeric',
+            // 'sign_area' => 'required|numeric|gt:0',
+            // 'rental_price' => 'required',
+            // 'rental_month_amount' => 'required',
+            // 'ahead_pay_month' => 'required|numeric',
+            // 'pay_method' => 'required|numeric|gt:0',
+            // 'rental_price_type' => 'required',
+            // 'free_list' => 'array',
+            // 'bill_day' => 'required|numeric',
+            // 'bill_type' => 'required|numeric|in:1,2',
+            // 'free_type' => 'required|in:1,2',
             // 'room_type' => 'required|in:1,2,3', // 1 房源 2 工位 3 场馆
         ]);
 
@@ -521,46 +514,7 @@ class ContractController extends BaseController
         $contract = $request->toArray();
         $billService = new ContractBillService;
         // 是否有管理费
-        if ($contract['manager_show'] == 1) {
-            if (!$contract['management_month_amount'] || !$contract['management_price']) {
-                return $this->error('管理费月金额或者管理费单价没有设置!');
-            }
-            $parm = $billService->createBillParm($contract, $billType = 'management');
-
-            if ($contract['bill_type'] == 1) {
-                $bill = $billService->createBill($parm, $billType = "management");
-            } else {
-                $bill = $billService->createBillByzhangqi($parm, $billType = "management");
-            }
-            $data['management_bill']    = $bill['bill'];
-            $data['management_total']   = numFormat($bill['total']);
-        } else {
-            $data['management_bill']    = [];
-            $data['management_total']   = 0;
-        }
-        // 租金
-        $parm = $billService->createBillParm($contract, $billType = 'rental');
-        if ($contract['bill_type'] == 1) {
-            $bill = $billService->createBill($parm, $billType = "rental");
-        } else {
-            $bill = $billService->createBillByzhangqi($parm, $billType = "rental");
-        }
-        $data['rental_bill'] = $bill['bill'];
-        $data['rental_total'] = $bill['total'];
-        if ($contract['increase_show'] == 1) {
-            $parm = $billService->createBillParm($contract, $billType = 'rental', true);
-            if ($contract['bill_type'] == 1) {
-                $bill = $billService->createBill($parm, $billType = "rental");
-            } else {
-                $bill = $billService->createBillByzhangqi($parm, $billType = "rental");
-            }
-            $data['rental_bill'] = array_merge($data['rental_bill'], $bill['bill']);
-            $data['rental_total'] = numFormat($data['rental_total'] + $bill['total']);
-        }
-        // 押金
-        $deposit = $billService->createDepositBill($contract);
-        $data['deposit_bill'] = $deposit['bill'];
-        $data['deposit_total'] = numFormat($deposit['total']);
+        $data = $billService->createBill(1, 12, $this->uid);
 
 
         return $this->success($data);
@@ -738,13 +692,14 @@ class ContractController extends BaseController
     }
 
 
-    private function formatBill($data, $cusId, $contractId)
+    private function formatBill($data, $tenantId, $contractId)
     {
-        foreach ($data as $k => $v) {
-            $data[$k]['cus_id'] = $cusId;
-            $data[$k]['contract_id'] = $contractId;
-            $data[$k]['created_at'] = nowTime();
-            $data[$k]['remark'] = isset($v['remark']) ? $v['remark'] : "";
+        foreach ($data as $k => &$v) {
+            $v['cus_id'] = $tenantId;
+            $v['contract_id'] = $contractId;
+            $v['company_id']  = $this->company_id;
+            $v['created_at'] = nowTime();
+            $v['remark'] = isset($v['remark']) ? $v['remark'] : "";
         }
         return $data;
     }

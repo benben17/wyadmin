@@ -2,7 +2,7 @@
 
 namespace App\Api\Services\Tenant;
 
-use App\Api\Models\Tenant\BillRule;
+use App\Api\Models\Contract\BillRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -35,6 +35,10 @@ class BillRuleService
       $rule->area_num    = $DA['area_num'];
       $rule->pay_method  = $DA['pay_method'];
       $rule->bill_date   = $DA['bill_date'];
+      $rule->amount      = $DA['amount'];
+      $rule->month_amt      = $DA['mounth_amt'];
+      $rule->ahead_pay_month = $DA['ahead_pay_month'];
+      $rule->unit_price_label  = $DA['unit_price_label'];
       $rule->remark      = isset($DA['remark']) ? $DA['remark'] : 0;
       $rule->save();
       return true;
@@ -76,11 +80,11 @@ class BillRuleService
   public function formatRuleData($DA, $user, $contractId, $tenantId)
   {
     foreach ($DA as $k => &$v) {
-      $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
       $v['c_uid'] = $user['id'];
       $v['u_uid'] = $user['id'];
       $v['tenant_id'] = $tenantId;
       $v['contract_id'] = $contractId;
+      $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
     }
   }
 }

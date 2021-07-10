@@ -69,4 +69,23 @@ class FeeTypeService
     // return response()->json(DB::getQueryLog());
     // return $res;
   }
+
+  /**
+   * 获取 费用id集合 1 费用 2 押金
+   *
+   * @param integer $type
+   * @return void
+   */
+  public function getFeeIds($type = 1, $uid)
+  {
+    $feeType = FeeType::select(DB::raw('group_concat(id) fee_id'))
+      ->whereIn('company_id', getCompanyIds($uid))
+      ->where('type', $type)
+      ->groupBy('type')->first();
+
+    if ($feeType) {
+      return str2Array($feeType['fee_id']);
+    }
+    return array();
+  }
 }

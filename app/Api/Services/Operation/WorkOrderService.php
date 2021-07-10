@@ -121,7 +121,7 @@ class WorkOrderService
         $BA['tenant_id']    = $order['tenant_id'];
         $BA['tenant_name']  = $order['tenant_name'];
         $BA['type']         = 1; // 收款
-        $BA['fee_type']     = "工程维修费";
+        $BA['fee_type']     = "105";
         $BA['amount']       = $DA['charge_amount'];
         $BA['remark']       = $order['tenant_name'] . "-" . $order['repair_content'];
         $billService = new TenantBillService;
