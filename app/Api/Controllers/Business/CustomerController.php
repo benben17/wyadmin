@@ -222,10 +222,12 @@ class CustomerController extends BaseController
         $DA = $request->toArray();
         $map['company_id'] = $this->company_id;
         $map['name'] = $request->name;
+        DB::enableQueryLog();
         $checkRepeat = Tenant::where($map)->count();
         if ($checkRepeat) {
             return $this->error('客户名称重复');
         }
+        // return response()->json(DB::getQueryLog());
         try {
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();
@@ -259,7 +261,7 @@ class CustomerController extends BaseController
                     $info = new BaseInfoService;
                     $business = $info->save($businessInfo, 1);   // 1 新增
                     if ($business) {
-                        $businessData['business_info_id'] = $business->id;
+                        $businessData['business_id'] = $business->id;
                         $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
                     }
                 }
@@ -282,8 +284,6 @@ class CustomerController extends BaseController
             Log::error($e->getMessage());
             return $this->error('客户保存失败！');
         }
-        /** 调用skyeye */
-        //
     }
 
 
