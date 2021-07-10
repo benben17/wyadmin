@@ -20,6 +20,7 @@ use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Services\Tenant\BillRuleService;
 use App\Api\Services\Tenant\TenantService;
 
 /**
@@ -119,7 +120,6 @@ class ContractController extends BaseController
         $data =  ContractModel::where($map)
             ->with('contractRoom')
             ->with('freeList')
-            ->with('project:id,proj_name')
             ->where(function ($q) use ($request) {
                 $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
                 $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
@@ -134,14 +134,6 @@ class ContractController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
         $data = $this->handleBackData($data);
-        if (!$data['result']) {
-            return $this->success($data);
-        }
-        // return response()->json(DB::getQueryLog());
-        $contractService = new ContractService;
-        foreach ($data['result'] as &$row) {
-            $row['contract_state_label'] = $contractService->getState($row['contract_state']);
-        }
         return $this->success($data);
     }
 
@@ -254,6 +246,7 @@ class ContractController extends BaseController
             'customer_legal_person' => 'required|String|between:1,64',
             'sign_area' => 'required|numeric|gt:0',
             'bill_day' => 'required|numeric',
+            'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
             'rental_bill' => 'array',
@@ -274,10 +267,13 @@ class ContractController extends BaseController
                 if (!$contract) {
                     throw new Exception("failed", 1);
                 }
-                $contractService = new ContractService;
-                $contractService->contractLog($contract, $user);
+                // 租赁规则
+                if ($DA['bill_rule']) {
+                    $ruleService = new BillRuleService;
+                    $ruleService->batchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                }
+                // 房间
                 if (!empty($DA['contract_room'])) {
-                    // 房间
                     $roomList = $this->formatRoom($DA['contract_room'], $contract->id, $DA['proj_id']);
                     $rooms = new ContractRoomModel;
                     $rooms->addAll($roomList);
@@ -299,6 +295,8 @@ class ContractController extends BaseController
                     $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
                     $res = $bill->addAll($deospitBill);
                 }
+                $contractService = new ContractService;
+                $contractService->contractLog($contract, $user);
             });
             return $this->success('创建合同成功！');
         } catch (Exception $e) {
@@ -345,7 +343,6 @@ class ContractController extends BaseController
 
         $contractService = new ContractService;
         $data = $contractService->showContract($contractId);
-        $data['contract_state_lable'] = $contractService->getState($data['contract_state']);
         $data['contract_log'] = $contractService->getContractLogById($contractId);
         // 用于前端显示
         if ($data['rental_deposit_amount'] == '0.00' && $data['rental_deposit_month'] == 0) {
@@ -358,11 +355,6 @@ class ContractController extends BaseController
         } else {
             $data['manager_deposit_show'] = 1;
         }
-        // if ($data['contract_state'] == 2) {
-        //     $tenant = new TenantService;
-        //     $share = $tenant->getShareByContractId($contractId);
-        //     $data['share_list'] = $share;
-        // }
 
         return $this->success($data);
     }
@@ -407,6 +399,7 @@ class ContractController extends BaseController
             'contract_room' => 'array',
             'save_type' => 'required|numeric|in:0,1',
             'free_list' => 'array',
+            'bill_rule' => 'array'
         ]);
         $DA = $request->toArray();
         $res = ContractModel::select('contract_state')->find($DA['id']);
@@ -429,8 +422,6 @@ class ContractController extends BaseController
                 }
 
                 $contractService = new ContractService;
-                $res = $contractService->contractLog($contract, $user);
-
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], 2);
                     DB::enableQueryLog();
@@ -444,9 +435,13 @@ class ContractController extends BaseController
                 foreach ($DA['free_list'] as $k => $v) {
                     $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                 }
-
+                // 租赁规则
+                if ($DA['bill_rule']) {
+                    $ruleService = new BillRuleService;
+                    $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                }
                 /** 删除所有的bill账单 */
-                $delBill = ContractBillModel::where('contract_id', $DA['id'])->delete();
+                ContractBillModel::where('contract_id', $DA['id'])->delete();
                 /** 租金bill账单 */
                 $bill = new ContractBillModel;
                 if (!empty($DA['rental_bill'])) {
@@ -461,6 +456,7 @@ class ContractController extends BaseController
                     $deospitBill = $this->formatBill($DA['deposit_bill'], $contract->tenant_id, $contract->id);
                     $res = $bill->addAll($deospitBill);
                 }
+                $res = $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
         } catch (Exception $e) {
@@ -566,17 +562,6 @@ class ContractController extends BaseController
         $data['deposit_bill'] = $deposit['bill'];
         $data['deposit_total'] = numFormat($deposit['total']);
 
-        /**  测试
-        $contract = ContractModel::with('freeList')->find(46)->toArray();
-        // return $contract;
-        if (!is_array($contract)) {
-            $contract = $contract->toArray();
-        }
-        $parm = $billService->createBillParm($contract,$billType ='rental');
-
-        $bill = $billService->createBillByzhangqi($parm,$billType="rental");
-        return $bill;
-         */
 
         return $this->success($data);
     }

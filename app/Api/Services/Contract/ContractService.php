@@ -24,6 +24,10 @@ use App\Enums\AppEnum;
 class ContractService
 {
 
+  public function model()
+  {
+    return new ContractModel;
+  }
 
   /**
    * 合同查看
@@ -351,7 +355,6 @@ class ContractService
             $v['rental_price'] .= "元/月";
           }
         }
-        $v['contract_state'] = $this->getState($v['contract_state']);
       }
       return $data->toArray();
     } else {
@@ -381,9 +384,6 @@ class ContractService
     $contractLog = ContractLogModel::where('contract_id', $contractId)
       ->orderBy('id', 'desc')->get();
     if ($contractLog) {
-      foreach ($contractLog as &$v) {
-        $v['contract_state_lable'] = $this->getState($v['contract_state']);
-      }
       return $contractLog->toArray();
     }
     return (object)[];
@@ -426,33 +426,7 @@ class ContractService
       return '0.00';
     }
   }
-  /**
-   * 获取合同状态中文名
-   * @Author   leezhua
-   * @DateTime 2020-07-04
-   * @param    [type]     $value [description]
-   * @return   [type]            [description]
-   */
-  public function getState($value)
-  {
-    switch ($value) {
-      case '0':
-        return "待提交";
-        break;
-      case '1':
-        return "待审核";
-        break;
-      case '2':
-        return '正常执行';
-        break;
-      case '98':
-        return '退租合同';
-        break;
-      case '99':
-        return '作废合同';
-        break;
-    }
-  }
+
 
   /** 保存合同免租时间 */
   public function saveFreeList($DA, $contractId, $tenantId)

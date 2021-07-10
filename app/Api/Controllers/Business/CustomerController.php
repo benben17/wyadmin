@@ -336,7 +336,6 @@ class CustomerController extends BaseController
                 $user = auth('api')->user();
                 DB::enableQueryLog();
                 $res = $this->customerService->saveTenant($DA, $user, 2);
-
                 $cusExtra = $this->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $DA['id'];
                 $cusExtra['u_uid'] = $this->uid;

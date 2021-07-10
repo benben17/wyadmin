@@ -56,6 +56,23 @@ class BillRuleService
     }
   }
 
+  /** 批量保存 */
+  public function batchUpdate($DA, $user, $contractId, $tenantId)
+  {
+    try {
+      DB::transaction(function () use ($DA, $user, $contractId, $tenantId) {
+        $this->model()->where('contract_id', $contractId)->delete();
+        $ruleData = formatRuleData($DA, $user, $contractId, $tenantId);
+        $this->model()->addAll($ruleData);
+      });
+      return true;
+    } catch (Exception $th) {
+      throw $th;
+      Log::error("费用规则保存失败." . $th->getMessage());
+      return false;
+    }
+  }
+
   public function formatRuleData($DA, $user, $contractId, $tenantId)
   {
     foreach ($DA as $k => &$v) {

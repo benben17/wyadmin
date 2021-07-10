@@ -31,7 +31,7 @@ class ContractBill extends Model
 
   public function contract()
   {
-    return $this->hasOne('\App\Api\Models\Contract\Contract', 'id', 'contract_id');
+    return $this->hasOne(Contract::class, 'id', 'contract_id');
   }
 
   // protected static function boot()
