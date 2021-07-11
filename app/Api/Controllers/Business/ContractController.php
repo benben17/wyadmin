@@ -461,15 +461,24 @@ class ContractController extends BaseController
         $billService = new ContractBillService;
         $contract = $request->toArray();
         $fee_list = array();
+        $billType1 = true;
+        $billType2 = true;
         foreach ($contract['bill_rule'] as $k => $rule) {
             $feeList = array();
+
             if ($rule['type'] != 1) {
                 continue;
             }
             if ($rule['bill_type'] == 1) {
-                $feeList = $billService->createBill($contract, $this->uid);
+                if ($billType1) {
+                    $feeList = $billService->createBill($contract,  $this->uid);
+                    $billType1 = false;
+                }
             } else if ($rule['bill_type'] == 2) {
-                $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
+                if ($billType2) {
+                    $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
+                    $billType2 = false;
+                }
             }
             if ($feeList) {
                 foreach ($feeList as $k => $v) {
@@ -478,6 +487,7 @@ class ContractController extends BaseController
             }
             $feeList = array();
         }
+
         $deospitBill = $billService->createDepositBill($contract['bill_rule'], $this->uid);
         if ($deospitBill) {
             array_push($fee_list, $deospitBill);

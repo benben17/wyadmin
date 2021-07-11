@@ -80,7 +80,7 @@ class ContractBillService
             $bill[$i]['remark'] = $free['remark'];
           }
         }
-        $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '-' . $bill[$i]['end_date'];
+        $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '-' . formatYmd($bill[$i]['end_date']);
         $data[$k]['total'] += $bill[$i]['amount'];
         $i++;
       }
@@ -200,7 +200,7 @@ class ContractBillService
         if ($v['type'] == $type) {
           $bill[$i]['type']       = $type;
           $bill[$i]['amount']     = isset($v['amount']) ? $v['amount'] : 0.00;
-          $bill[$i]['charge_date'] = $v['start_date'];
+          $bill[$i]['charge_date'] = formatYmd($v['start_date']);
           $bill[$i]['start_date'] = formatYmd($v['start_date']);
           $bill[$i]['end_date']   = formatYmd($v['end_date']);
           $bill[$i]['bill_date']  = formatYmd($v['start_date']) . "至" . formatYmd($v['end_date']);
