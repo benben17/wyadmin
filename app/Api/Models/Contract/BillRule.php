@@ -23,7 +23,7 @@ class BillRule extends Model
     $feeName = getFeeNameById($this->attributes['fee_type']);
     return $feeName['fee_name'];
   }
-  public function addAll(array $data)
+  public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;

@@ -16,15 +16,15 @@ class BillRuleService
     return $model;
   }
 
-  public function save($DA, $uid)
+  public function save($DA, $user)
   {
     try {
       if (isset($DA['id']) || $DA['id'] > 0) {
         $rule = $this->model()->find($DA['id']);
-        $rule->u_uid    = $uid;
+        $rule->u_uid    = $user['id'];
       } else {
         $rule = $this->model();
-        $rule->c_uid    = $uid;
+        $rule->c_uid    = $user['id'];
       }
       $rule->tenant_id   = $DA['tenant_id'];
       $rule->contract_id = $DA['contract_id'];
@@ -35,8 +35,8 @@ class BillRuleService
       $rule->end_date    = $DA['end_date'];
       $rule->area_num    = $DA['area_num'];
       $rule->pay_method  = $DA['pay_method'];
-      $rule->bill_date   = $DA['bill_date'];
-      $rule->amount      = $DA['amount'];
+      $rule->bill_day    = $DA['bill_day'];
+      $rule->amount      = isset($DA['amount']) ? $DA['amount'] : 0.00;
       $rule->month_amt      = $DA['mounth_amt'];
       $rule->ahead_pay_month = $DA['ahead_pay_month'];
       $rule->unit_price_label  = $DA['unit_price_label'];
@@ -52,33 +52,50 @@ class BillRuleService
   public function batchSave($DA, $user, $contractId, $tenantId)
   {
     try {
-      $ruleData = formatRuleData($DA, $user, $contractId, $tenantId);
+      $ruleData = $this->formatRuleData($DA, $user, $contractId, $tenantId);
       return $this->model()->addAll($ruleData);
-    } catch (Exception $th) {
-      throw $th;
-      Log::error("费用规则保存失败." . $th->getMessage());
+    } catch (Exception $e) {
+      throw $e;
+      Log::error("费用规则保存失败." . $e->getMessage());
       return false;
     }
   }
 
-  /** 批量保存 */
+  /**
+   * 合同规则批量更新保存
+   *
+   * @param [type] $DA
+   * @param [type] $user
+   * @param [type] $contractId
+   * @param [type] $tenantId
+   * @return void
+   */
   public function batchUpdate($DA, $user, $contractId, $tenantId)
   {
     try {
       DB::transaction(function () use ($DA, $user, $contractId, $tenantId) {
         $this->model()->where('contract_id', $contractId)->delete();
-        $ruleData = formatRuleData($DA, $user, $contractId, $tenantId);
+        $ruleData = $this->formatRuleData($DA, $user, $contractId, $tenantId);
         $this->model()->addAll($ruleData);
       });
       return true;
-    } catch (Exception $th) {
-      throw $th;
-      Log::error("费用规则保存失败." . $th->getMessage());
+    } catch (Exception $e) {
+      throw $e;
+      Log::error("费用规则保存失败." . $e->getMessage());
       return false;
     }
   }
 
-  public function formatRuleData($DA, $user, $contractId, $tenantId)
+  /**
+   * 格式化规则
+   *
+   * @param [type] $DA 规则数据
+   * @param [type] $user
+   * @param [type] $contractId
+   * @param [type] $tenantId
+   * @return void
+   */
+  function formatRuleData($DA, $user, $contractId, $tenantId)
   {
     try {
       foreach ($DA as $k => &$v) {
