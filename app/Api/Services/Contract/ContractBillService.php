@@ -78,6 +78,7 @@ class ContractBillService
         }
       }
       $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
+      $bill[$i]['bill_num'] = $i + 1;
       $data['total'] += $bill[$i]['amount'];
       $i++;
     }
@@ -132,8 +133,14 @@ class ContractBillService
         // Log::error($days . "最后一期天数");
         $bill[$i]['amount'] = numFormat($rule['month_amt'] * $leaseTerm - $data['total']);
       }
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
+        $free = $this->freeByMonth($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+        if ($free) {
+          $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
+          $bill[$i]['remark'] = $free['remark'];
+        }
+      }
       $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
-
       $bill[$i]['mouth_amt'] = $rule['month_amt'];
       $bill[$i]['fee_type']  = $rule['fee_type'];
       $bill[$i]['bill_num']  = $i + 1;
