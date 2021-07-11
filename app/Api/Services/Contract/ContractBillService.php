@@ -30,63 +30,61 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createBill($contract, int $uid)
+  public function createBill($contract, $rule, int $uid)
   {
     $type = 1; //  费用
     $data = array();
     // Log::error(json_encode($feetype) . "费用id");
     DB::enableQueryLog();
-    $billRule = $contract['bill_rule'];
-    $leaseTerm = $contract['lease_term'];
-    foreach ($billRule as $k => $v) {
-      if ($v['type'] != $type) {
-        continue;
-      }
-      // Log::error("创建账单" . $v['id']);
-      $i = 0;
-      $data[$k]['total'] = 0.00;
-      $billNum = ceil($leaseTerm / $v['pay_method']);
-      $bill = array();
 
-      while ($i < $billNum) {
-        $period  = $v['pay_method'];
-        $bill[$i]['fee_type'] = $v['fee_type'];
-        $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
-        if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
-          $startDate = $v['start_date'];
-          $bill[$i]['charge_date'] = $v['start_date'];
-        } else {
-          // 收费日期根据提前几个月（ahead_pay_month）算出来的
-          $chargeDate = getNextYmd($startDate, $period - $v['ahead_pay_month']);
-          $startDate = getNextYmd($startDate, $period);
-          $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime($chargeDate));
-        }
-        // 收款日期，根据合同的收款日走
-        $endDate = getEndNextYmd($startDate, $period);
-        $bill[$i]['start_date'] = $startDate;
-        if ($i + 1 != $billNum) {
-          $bill[$i]['end_date'] = $endDate;
-          $bill[$i]['amount'] = numFormat($period * $v['month_amt']);
-        } else { // 最后一个租期
-          $bill[$i]['end_date'] = $v['end_date'];
-          $lastPeriod = $leaseTerm - ($period * $i);
-          $bill[$i]['amount'] = numFormat($lastPeriod * $v['month_amt']);
-        }
-        // 如有免租，账单期内减免
-        if ($v['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
-          $free = $this->freeByMonth($contract['free_list'], $v, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
-          if ($free) {
-            $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
-            $bill[$i]['remark'] = $free['remark'];
-          }
-        }
-        $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '-' . formatYmd($bill[$i]['end_date']);
-        $data[$k]['total'] += $bill[$i]['amount'];
-        $i++;
+    $leaseTerm = $contract['lease_term'];
+
+    // Log::error("创建账单" . $rule['id']);
+    $i = 0;
+    $data['total'] = 0.00;
+    $billNum = ceil($leaseTerm / $rule['pay_method']);
+    $bill = array();
+
+    while ($i < $billNum) {
+      $period  = $rule['pay_method'];
+      $bill[$i]['fee_type'] = $rule['fee_type'];
+      $bill[$i]['price'] = $rule['unit_price'] . $rule['unit_price_label'];
+      if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
+        $startDate = formatYmd($rule['start_date']);
+        $bill[$i]['charge_date'] = formatYmd($rule['start_date']);
+      } else {
+        // 收费日期根据提前几个月（ahead_pay_month）算出来的
+        $chargeDate = getNextYmd($startDate, $period - $rule['ahead_pay_month']);
+        $startDate = getNextYmd($startDate, $period);
+        $bill[$i]['charge_date'] = date("Y-m-" . $rule['bill_day'], strtotime($chargeDate));
       }
-      $data[$k]['bill'] = $bill;
-      $data[$k]['fee_type'] =  getFeeNameById($v['fee_type'])['fee_name'];
+      // 收款日期，根据合同的收款日走
+      $endDate = getEndNextYmd($startDate, $period);
+      $bill[$i]['start_date'] = formatYmd($startDate);
+      if ($i + 1 != $billNum) {
+        $bill[$i]['end_date'] = $endDate;
+        $bill[$i]['amount'] = numFormat($period * $rule['month_amt']);
+      } else { // 最后一个租期
+        $bill[$i]['end_date'] = formatYmd($rule['end_date']);
+        $lastPeriod = $leaseTerm - ($period * $i);
+        $bill[$i]['amount'] = numFormat($lastPeriod * $rule['month_amt']);
+      }
+      // 如有免租，账单期内减免
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
+        $free = $this->freeByMonth($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+        if ($free) {
+          $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
+          $bill[$i]['remark'] = $free['remark'];
+        }
+      }
+      $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
+      $data['total'] += $bill[$i]['amount'];
+      $i++;
     }
+    $data['total'] = numFormat($data['total']);
+    $data['bill'] = $bill;
+    $data['fee_type'] =  getFeeNameById($rule['fee_type'])['fee_name'];
+
     return $data;
   }
 
@@ -99,58 +97,54 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createBillziranyue($billRule, int $leaseTerm, int $uid)
+  public function createBillziranyue($contract, $rule, int $uid)
   {
     $type = 1; //  费用
-    $data = array();
     // Log::error(json_encode($feetype) . "费用id");
-    DB::enableQueryLog();
-    foreach ($billRule as $k => $v) {
-      if ($v['type'] != $type) {
-        continue;
-      }
-      // Log::error("创建账单" . $v['id']);
-      $i = 0;
-      $data[$k]['total'] = 0.00;
-      $bill = array();
-      $startDate = formatYmd($v['start_date']);
-      while (strtotime($startDate) < strtotime($v['end_date'])) {
-        $bill[$i]['type'] = $type;
-        $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
-        $bill[$i]['start_date'] = $startDate;
-        // Log::error($startDate);
-        $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime(getPreYmd($startDate, $v['ahead_pay_month'])));
-        $bill[$i]['amount'] = numFormat($v['month_amt'] * $v['pay_method']);
-        $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $v['pay_method'] - 1)));
-        $bill[$i]['end_date'] = $endDate;
-        if (strtotime($startDate) == strtotime($v['start_date'])) {
-          if (date('d', strtotime($startDate)) != "01") {
-            $days =  diffDays($startDate, date('Y-m-t', strtotime($startDate)));
-            // Log::error("第一期账单天数：" . numFormat($v['month_amt'] * ($v['pay_method'] - 1)));
-            $daysAmt = $this->countDaysAmt($v, $days, $uid);
-            $bill[$i]['amount'] = numFormat($daysAmt + ($v['month_amt'] * ($v['pay_method'] - 1)));
-            $bill[$i]['charge_date'] = $startDate;
-          } else {
-            $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime(getPreYmd($startDate, 1)));
-          }
+    $leaseTerm = $contract['lease_term'];
+    $i = 0;
+    $data['total'] = 0.00;
+    $bill = array();
+    $startDate = formatYmd($rule['start_date']);
+    while (strtotime($startDate) < strtotime($rule['end_date'])) {
+      $bill[$i]['type'] = $type;
+      $bill[$i]['price'] = $rule['unit_price'] . $rule['unit_price_label'];
+      $bill[$i]['start_date'] = $startDate;
+      // Log::error($startDate);
+      $bill[$i]['charge_date'] = formatYmd(formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, $rule['ahead_pay_month'])))));
+      $bill[$i]['amount'] = numFormat($rule['month_amt'] * $rule['pay_method']);
+      $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $rule['pay_method'] - 1)));
+      $bill[$i]['end_date'] = formatYmd($endDate);
+      if (strtotime($startDate) == strtotime($rule['start_date'])) {
+        if (date('d', strtotime($startDate)) != "01") {
+          $days =  diffDays($startDate, date('Y-m-t', strtotime($startDate)));
+          // Log::error("第一期账单天数：" . numFormat($rule['month_amt'] * ($rule['pay_method'] - 1)));
+          $daysAmt = $this->countDaysAmt($rule, $days, $uid);
+          $bill[$i]['amount'] = numFormat($daysAmt + ($rule['month_amt'] * ($rule['pay_method'] - 1)));
+          $bill[$i]['charge_date'] = $startDate;
+        } else {
+          $bill[$i]['charge_date'] = formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, 1))));
         }
-        if (strtotime($endDate) > strtotime($v['end_date'])) {
-          $days =  diffDays($startDate,  $v['end_date']);
-          $bill[$i]['end_date'] = $v['end_date'];
-          // Log::error($days . "最后一期天数");
-          $bill[$i]['amount'] = numFormat($v['month_amt'] * $leaseTerm - $data[$k]['total']);
-        }
-        $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
-        $data[$k]['total'] += $bill[$i]['amount'];
-        $bill[$i]['mouth_amt'] = $v['month_amt'];
-        $bill[$i]['fee_type']  = $v['fee_type'];
-        $bill[$i]['bill_num']  = $i + 1;
-        $i++;
-        $startDate = getNextYmd(date('Y-m-01', strtotime($endDate)), 1);
       }
-      $data[$k]['bill'] = $bill;
-      $data[$k]['fee_type'] =  getFeeNameById($v['fee_type'])['fee_name'];
+      if (strtotime($endDate) > strtotime($rule['end_date'])) {
+        $days =  diffDays($startDate,  $rule['end_date']);
+        $bill[$i]['end_date'] = formatYmd($rule['end_date']);
+        // Log::error($days . "最后一期天数");
+        $bill[$i]['amount'] = numFormat($rule['month_amt'] * $leaseTerm - $data['total']);
+      }
+      $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
+
+      $bill[$i]['mouth_amt'] = $rule['month_amt'];
+      $bill[$i]['fee_type']  = $rule['fee_type'];
+      $bill[$i]['bill_num']  = $i + 1;
+      $data['total'] += $bill[$i]['amount'];
+      $i++;
+      $startDate = getNextYmd(date('Y-m-01', strtotime($endDate)), 1);
     }
+    $data['total'] = numFormat($data['total']);
+    $data['bill'] = $bill;
+    $data['fee_type'] =  getFeeNameById($rule['fee_type'])['fee_name'];
+
     return $data;
   }
 
@@ -211,7 +205,7 @@ class ContractBillService
           $i++;
         }
         if ($bill) {
-          $data['total'] = $total;
+          $data['total'] = numFormat($total);
           $data['bill'] = $bill;
           $data['fee_type'] = '押金';
         }

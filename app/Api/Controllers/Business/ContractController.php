@@ -464,31 +464,17 @@ class ContractController extends BaseController
         $billService = new ContractBillService;
         $contract = $request->toArray();
         $fee_list = array();
-        $billType1 = true;
-        $billType2 = true;
         foreach ($contract['bill_rule'] as $k => $rule) {
             $feeList = array();
-
             if ($rule['type'] != 1) {
                 continue;
             }
-            if ($rule['bill_type'] == 1) {
-                if ($billType1) {
-                    $feeList = $billService->createBill($contract,  $this->uid);
-                    $billType1 = false;
-                }
-            } else if ($rule['bill_type'] == 2) {
-                if ($billType2) {
-                    $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
-                    $billType2 = false;
-                }
+            if ($rule['bill_type'] == 1) {  // 正常账期
+                $feeList = $billService->createBill($contract, $rule, $this->uid);
+            } else if ($rule['bill_type'] == 2) { // 自然月账期
+                $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
             }
-            if ($feeList) {
-                foreach ($feeList as $k => $v) {
-                    array_push($fee_list, $v);
-                }
-            }
-            $feeList = array();
+            array_push($fee_list, $feeList);
         }
         $deospitBill = $billService->createDepositBill($contract['bill_rule'], $this->uid);
         if ($deospitBill) {
