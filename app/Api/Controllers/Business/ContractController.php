@@ -242,7 +242,7 @@ class ContractController extends BaseController
             'end_date' => 'required|date',
             'tenant_id' => 'required|numeric',
             'proj_id' => 'required|numeric',
-            'customer_legal_person' => 'required|String|between:1,64',
+            'tenant_legal_person' => 'required|String|between:1,64',
             'sign_area' => 'required|numeric|gt:0',
             'bill_day' => 'required|numeric',
             'bill_rule' => 'array',
@@ -256,11 +256,7 @@ class ContractController extends BaseController
                 $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
-                if ($DA['save_type'] == 1) {
-                    $DA['contract_state'] = 1;
-                } else {
-                    $DA['contract_state'] = 0;
-                }
+                $DA['contract_state'] = 0;
                 $contract = $this->saveContract($DA); //格式化并保存
                 if (!$contract) {
                     throw new Exception("failed", 1);
@@ -758,9 +754,9 @@ class ContractController extends BaseController
         $contract->tenant_id = $DA['tenant_id'];
         $contract->tenant_name = $DA['tenant_name'];
         $contract->lease_term = $DA['lease_term'];
-        $contract->customer_industry = $DA['customer_industry'];
-        $contract->customer_sign_person = isset($DA['customer_sign_person']) ? $DA['customer_sign_person'] : "";
-        $contract->customer_legal_person = isset($DA['customer_legal_person']) ? $DA['customer_legal_person'] : "";
+        $contract->industry = $DA['industry'];
+        $contract->tenant_sign_person = isset($DA['tenant_sign_person']) ? $DA['tenant_sign_person'] : "";
+        $contract->tenant_legal_person = isset($DA['tenant_legal_person']) ? $DA['tenant_legal_person'] : "";
         $contract->sign_area = $DA['sign_area'];
         $contract->rental_deposit_amount = isset($DA['rental_deposit_amount']) ? $DA['rental_deposit_amount'] : 0.00;
         $contract->rental_deposit_month = isset($DA['rental_deposit_month']) ? $DA['rental_deposit_month'] : 0;
@@ -771,13 +767,13 @@ class ContractController extends BaseController
         $contract->increase_year = isset($DA['increase_year']) ? $DA['increase_year'] : 0;
         $contract->bill_day = $DA['bill_day'];
         $contract->bill_type = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
-        $contract->ahead_pay_month = $DA['ahead_pay_month'];
-        $contract->rental_price = $DA['rental_price'];
-        $contract->rental_price_type = $DA['rental_price_type'];
+        $contract->ahead_pay_month = isset($DA['ahead_pay_month']) ? $DA['ahead_pay_month'] : "";
+        $contract->rental_price = isset($DA['rental_price']) ? $DA['rental_price'] : 0.00;
+        $contract->rental_price_type = isset($DA['rental_price_type']) ? $DA['rental_price_type'] : 1;
         $contract->management_price = isset($DA['management_price']) ? $DA['management_price'] : 0.00;
         $contract->management_month_amount = isset($DA['management_month_amount']) ? $DA['management_month_amount'] : 0;
-        $contract->pay_method = $DA['pay_method'];
-        $contract->rental_month_amount = $DA['rental_month_amount'];
+        // $contract->pay_method = $DA['pay_method'];
+        $contract->rental_month_amount = isset($DA['rental_month_amount']) ? $DA['rental_month_amount'] : 0.00;
         $contract->rental_account_name = isset($DA['rental_account_name']) ? $DA['rental_account_name'] : "";
         $contract->rental_account_number = isset($DA['rental_account_number']) ? $DA['rental_account_number'] : "";
         $contract->rental_bank_name = isset($DA['rental_bank_name']) ? $DA['rental_bank_name'] : "";
