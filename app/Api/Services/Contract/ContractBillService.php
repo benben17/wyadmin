@@ -193,9 +193,11 @@ class ContractBillService
   public function createDepositBill($contractId, $uid, $type = 2)
   {
     $data = array();
+    $total = 0.00;
     $feeTypeService = new FeeTypeService;
     $feetype = $feeTypeService->getFeeIds($type, $uid);
     $deposit = BillRule::where('contract_id', $contractId)->whereIn('fee_type', $feetype)->get();
+    $bill = array();
     if ($deposit) {
       $data['total'] = 0.00;
       $i = 0;
@@ -209,11 +211,14 @@ class ContractBillService
         $bill[$i]['remark']     = $v['remark'];
         $bill[$i]['fee_type']   = $v['fee_type'];
         $bill[$i]['fee_type_label']   = $v['fee_type_label'];
-        $data['total'] += $v['amount'];
+        $total += $v['amount'];
         $i++;
       }
-      $data['bill'] = $bill;
-      $data['fee_type'] = '押金';
+      if ($bill && $total > 0) {
+        $data['total'] = $total;
+        $data['bill'] = $bill;
+        $data['fee_type'] = '押金';
+      }
     }
     return $data;
   }
