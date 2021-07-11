@@ -77,16 +77,38 @@ class ContractService
     $feeBill = array();
     foreach ($types as $k => $v) {
       $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
-
-      $feeBill[$k]['bill'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
-        ->whereIn('fee_type', $feeTypeIds)
-        ->get();
-      $feeBill[$k]['total'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
-        ->whereIn('fee_type', $feeTypeIds)
-        ->sum('amount');
-      $v == 1 &&  $feeBill[$k]['fee_label'] = '费用';
-      $v == 2 &&  $feeBill[$k]['fee_label'] = '押金';
-      $v == 3 &&  $feeBill[$k]['fee_label'] = '其他费用';
+      $i = 0;
+      if ($v == 1) {
+        foreach ($feeTypeIds as $k1 => $v1) {
+          $bill = $this->contractBillModel()->where('type', $v)
+            ->where('contract_id', $contractId)
+            ->whereIn('fee_type', str2Array($v1))
+            ->get();
+          $total = $this->contractBillModel()->selectRaw('sum(amount) amount,fee_type')
+            ->where('type', $v)->where('contract_id', $contractId)
+            ->whereIn('fee_type', str2Array($v1))
+            ->first();
+          if ($bill && $total['amount'] > 0) {
+            Log::error($v1 . "--------");
+            $feeBill[$k][$i]['bill'] = $bill;
+            $feeBill[$k][$i]['total'] = $total['amount'];
+            $feeBill[$k][$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
+            $i++;
+          } else {
+            continue;
+          }
+        }
+      } else {
+        $feeBill[$k]['bill'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+          ->whereIn('fee_type', $feeTypeIds)
+          ->get();
+        $feeBill[$k]['total'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+          ->whereIn('fee_type', $feeTypeIds)
+          ->sum('amount');
+        $v == 1 &&  $feeBill[$k]['fee_label'] = '费用';
+        $v == 2 &&  $feeBill[$k]['fee_label'] = '押金';
+        $v == 3 &&  $feeBill[$k]['fee_label'] = '其他费用';
+      }
     }
     return $feeBill;
   }
