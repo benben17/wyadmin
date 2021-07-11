@@ -244,6 +244,7 @@ class ContractController extends BaseController
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
+            'bills' => 'array',
         ]);
         $DA = $request->toArray();
         $contractId = 0;
@@ -276,6 +277,8 @@ class ContractController extends BaseController
                         $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
+                // 保存合同账单
+                $contractService->saveContractBill($contract['bills'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];
             }, 2);
@@ -487,7 +490,6 @@ class ContractController extends BaseController
             }
             $feeList = array();
         }
-
         $deospitBill = $billService->createDepositBill($contract['bill_rule'], $this->uid);
         if ($deospitBill) {
             array_push($fee_list, $deospitBill);
@@ -520,36 +522,13 @@ class ContractController extends BaseController
      */
     public function saveContractBill(Request $request)
     {
-        $validatedData = $request->validate([
-            'contract_id' => 'required',
-        ]);
+        // $validatedData = $request->validate([
+        //     'contract_id' => 'required',
+        // ]);
+        $DA = $request->toArray();
         try {
-            DB::transaction(function () use ($request) {
-                $billService = new ContractBillService;
-                $contractService = new ContractService;
-                $feeList = array();
-                $contract = $contractService->model()->find($request->contract_id);
-                if ($contract->bill_type == 1) {
-                    $feeList = $billService->createBill($contract, $contract['lease_term'], $this->uid);
-                } else if ($contract->bill_type == 2) {
-                    $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
-                }
-                $deospitBill = array();
-                $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
-                // 删除已有数据
-                $contractService->contractBillModel()->where('contract_id', $contract['id'])
-                    ->where("proj_id", $request->proj_id)->delete();
-                // return $this->success($feeList);
-                if ($feeList) {
-                    foreach ($feeList as $k => $v) {
-                        $contractService->saveContractBill($v['bill'], $this->user, $contract->proj_id, $contract['id'], $contract['tenant_id']);
-                    }
-                }
-                if ($deospitBill) {
-                    Log::error(json_encode($deospitBill));
-                    $contractService->saveContractBill($deospitBill['bill'], $this->user, $contract->proj_id, $contract['id'], $contract['tenant_id']);
-                }
-            }, 3);
+            $contractService = new ContractService;
+            $contractService->saveContractBill($DA['bills'], $this->user, $DA['proj_id'], $DA['id'], $DA['tenant_id']);
             return $this->success('合同账单保存成功。');
         } catch (\Throwable $th) {
             return $this->error("合同账单保存失败！");
