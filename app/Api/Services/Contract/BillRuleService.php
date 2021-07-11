@@ -97,18 +97,32 @@ class BillRuleService
    */
   function formatRuleData($DA, $user, $contractId, $tenantId)
   {
+    $data = array();
     try {
-      foreach ($DA as $k => &$v) {
-        $v['c_uid'] = $user['id'];
-        $v['u_uid'] = $user['id'];
-        $v['tenant_id'] = $tenantId;
-        $v['contract_id'] = $contractId;
-        $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
+      foreach ($DA as $k => $v) {
+        $data[$k]['c_uid'] = $user['id'];
+        $data[$k]['u_uid'] = $user['id'];
+        $data[$k]['tenant_id'] = $tenantId;
+        $data[$k]['contract_id'] = $contractId;
+        $data[$k]['fee_type']    = $DA['fee_type'];
+        $data[$k]['unit_price']  = $DA['unit_price'];
+        $data[$k]['price_type']  = $DA['price_type'];
+        $data[$k]['start_date']  = $DA['start_date'];
+        $data[$k]['end_date']    = $DA['end_date'];
+        $data[$k]['area_num']    = $DA['area_num'];
+        $data[$k]['pay_method']  = $DA['pay_method'];
+        $data[$k]['bill_day']    = $DA['bill_day'];
+        $data[$k]['amount']      = isset($DA['amount']) ? $DA['amount'] : 0.00;
+        $data[$k]['month_amt']      = $DA['mounth_amt'];
+        $data[$k]['ahead_pay_month'] = $DA['ahead_pay_month'];
+        $data[$k]['unit_price_label']  = isset($DA['unit_price_label']) ? $DA['unit_price_label'] : "";
+        $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+        $data[$k]['created_at']  = nowTime();
       }
     } catch (Exception $th) {
       Log::error('格式化账单规则失败' . $th->getMessage());
       throw $th;
     }
-    return $DA;
+    return $data;
   }
 }
