@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Log;
 
 use App\Api\Models\Common\Maintain as MaintainModel;
 use App\Api\Models\Channel\Channel as  ChannelModel;
-use App\Api\Models\Customer\Customer as CustomerModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Operation\Supplier as SupplierModel;
 use App\Api\Models\Operation\PubRelations as RelationsModel;
@@ -127,7 +126,7 @@ class BseMaintain
         if ($parentType == AppEnum::Channel) {
             $res = ChannelModel::select('channel_name as name')->find($MainId);
         } else if ($parentType == AppEnum::Customer) {
-            $res = CustomerModel::select('cus_name as name')->find($MainId);
+            $res = TenantModel::select('name as name')->find($MainId);
         } else if ($parentType == AppEnum::Supplier) {
             $res = SupplierModel::select('name as name')->find($MainId);
         } else if ($parentType == AppEnum::Relationship) {

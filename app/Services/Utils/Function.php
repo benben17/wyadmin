@@ -220,10 +220,16 @@ function diffDays($date1, $date2)
  * @param [type] $months 几个月之后
  * @return void
  */
-function getNextMonth($ymd, $months)
+function getNextMonth(String $ymd, $months)
 {
     $months = intval($months);
     return date('Y-m', strtotime("+" . $months . "months", strtotime($ymd)));
+}
+
+function getYmdPlusMonths(String $ymd, $months)
+{
+    $months = intval($months);
+    return date('Y-m-d', strtotime("+" . $months . "months", strtotime($ymd)));
 }
 
 /*date函数会给月和日补零，所以最终用unix时间戳来校验*/

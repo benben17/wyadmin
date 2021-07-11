@@ -6,6 +6,7 @@ use App\Api\Models\Contract\BillRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use PhpParser\Node\Stmt\TryCatch;
 
 class BillRuleService
 {
@@ -79,12 +80,18 @@ class BillRuleService
 
   public function formatRuleData($DA, $user, $contractId, $tenantId)
   {
-    foreach ($DA as $k => &$v) {
-      $v['c_uid'] = $user['id'];
-      $v['u_uid'] = $user['id'];
-      $v['tenant_id'] = $tenantId;
-      $v['contract_id'] = $contractId;
-      $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
+    try {
+      foreach ($DA as $k => &$v) {
+        $v['c_uid'] = $user['id'];
+        $v['u_uid'] = $user['id'];
+        $v['tenant_id'] = $tenantId;
+        $v['contract_id'] = $contractId;
+        $v['remark'] = isset($DA['remark']) ? $DA['remark'] : 0;
+      }
+    } catch (Exception $th) {
+      Log::error('格式化账单规则失败' . $th->getMessage());
+      throw $th;
     }
+    return $DA;
   }
 }

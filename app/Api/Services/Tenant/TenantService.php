@@ -8,14 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Operation\Invoice as InvoiceModel;
-use App\Api\Models\Contract\ContractFreePeriod;
+use App\Api\Models\Tenant\Invoice;
 use App\Api\Services\Company\VariableService;
-use App\Api\Models\Contract\Contract;
-use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Contract\ContractRoom;
-use App\Api\Models\Tenant\TenantContractFree;
-use App\Api\Models\Customer\Customer as CustomerModel;
-use App\Api\Services\Contract\ContractService;
 use App\Enums\AppEnum;
 
 /**
@@ -122,9 +116,9 @@ class TenantService
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
-        $invoice = InvoiceModel::find($DA['id']);
+        $invoice = Invoice::find($DA['id']);
       } else {
-        $invoice = new InvoiceModel;
+        $invoice = new Invoice;
         $invoice->tenant_id   = $DA['tenant_id'];
         $invoice->company_id  = $DA['company_id'];
         $invoice->proj_id     = $DA['proj_id'];

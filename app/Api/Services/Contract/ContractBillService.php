@@ -113,9 +113,8 @@ class ContractBillService
       $bill = array();
 
       while ($i < $billNum) {
-
         $period  = $v['pay_method'];
-        $bill[$i]['type'] = $v['fee_type'];
+        $bill[$i]['fee_type'] = $v['fee_type'];
         $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
         if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
           $startDate = $v['start_date'];
@@ -169,17 +168,19 @@ class ContractBillService
         $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
         $bill[$i]['start_date'] = $startDate;
         Log::error($startDate);
-        $endDate = date("Y-m-t", strtotime($startDate));
-        $bill[$i]['end_date'] = $endDate;
+
         $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime($startDate));
-        $bill[$i]['amount'] = numFormat($v['month_amt']);
+        $bill[$i]['amount'] = numFormat($v['month_amt'] * $v['pay_method']);
+        $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $v['pay_method'] - 1)));
+        $bill[$i]['end_date'] = $endDate;
         if (strtotime($startDate) == strtotime($v['start_date'])) {
-
           if (date('d', strtotime($startDate)) != "01") {
-
             $days =  diffDays($startDate, $endDate);
             Log::error("第一期账单天数：" . $days);
-            $bill[$i]['amount'] = numFormat($v['month_amt'] / 30 * $days);
+            $bill[$i]['amount'] = $this->countDaysAmt($v, $days);
+            $bill[$i]['charge_date'] = $startDate;
+          } else {
+            $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime(getPreYmd($startDate, 1)));
           }
         }
         if (strtotime($endDate) > strtotime($v['end_date'])) {
@@ -191,15 +192,36 @@ class ContractBillService
         $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '至' . $bill[$i]['end_date'];
         $data[$k]['total'] += $bill[$i]['amount'];
         $bill[$i]['mouth_amt'] = $v['month_amt'];
+        $bill[$i]['fee_type']  = $v['fee_type'];
         $bill[$i]['bill_num']  = $i + 1;
         $i++;
-        $startDate = getNextYmd(date('Y-m-01', strtotime($startDate)), 1);
+        $startDate = getNextYmd(date('Y-m-01', strtotime($endDate)), 1);
       }
       $data[$k]['bill'] = $bill;
       $data[$k]['fee_type'] =  $v['fee_type_label'];
     }
     return $data;
   }
+
+  /**
+   * 根据不同单价计算金额
+   *
+   * @param [type] $rules
+   * @param [type] $days
+   * @return void
+   */
+  private function countDaysAmt($rules, int $days)
+  {
+    if (!$rules) {
+      return 0.00;
+    }
+    if ($rules['price_type'] == 2) {
+      return numFormat($rules['unit_price'] * $days * $rules['area_num']);
+    } else if ($rules['price_type'] == 1) {
+      return numFormat($rules['month_amt'] * 12 / 365 * $days);
+    }
+  }
+
   /**
    * 各种押金计算
    * @Author   leezhua
@@ -224,7 +246,7 @@ class ContractBillService
         $bill[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
         $bill[$i]['remark']     = $v['remark'];
         $bill[$i]['fee_type']   = $v['fee_type'];
-        $bill[$i]['fee_type_label']   = $v['fee_type'];
+        $bill[$i]['fee_type_label']   = $v['fee_type_label'];
         $data['total'] += $v['amount'];
         $i++;
       }
@@ -295,7 +317,6 @@ class ContractBillService
     } else {
       $remainder = $period - $remainder;
     }
-
     $ceil = ceil($DA['lease_term'] / $period);
     $bill = array();
 

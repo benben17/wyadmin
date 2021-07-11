@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
@@ -10,7 +11,6 @@ use App\Api\Controllers\BaseController;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\Customer\Customer as CustomerModel;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Building\BuildingService;
 
@@ -21,16 +21,16 @@ use App\Api\Services\Building\BuildingService;
 class StationController extends BaseController
 {
 
-	public function __construct()
-	{
-		// Token 验证
-		// $this->middleware('jwt.api.auth');
-		$this->uid  = auth()->payload()->get('sub');
-		if(!$this->uid){
-	        return $this->error('用户信息错误');
-	    }
-	    $this->company_id = getCompanyId($this->uid);
-	}
+    public function __construct()
+    {
+        // Token 验证
+        // $this->middleware('jwt.api.auth');
+        $this->uid  = auth()->payload()->get('sub');
+        if (!$this->uid) {
+            return $this->error('用户信息错误');
+        }
+        $this->company_id = getCompanyId($this->uid);
+    }
 
     /**
      * @OA\Post(
@@ -53,82 +53,82 @@ class StationController extends BaseController
      *         description=""
      *     )
      * )
-    */
-	public function index(Request $request){
-		$pagesize = $request->input('pagesize');
-		if(!$pagesize || $pagesize <1){
-			$pagesize = config('per_size');
-		}
-        if($pagesize == '-1'){
+     */
+    public function index(Request $request)
+    {
+        $pagesize = $request->input('pagesize');
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('per_size');
+        }
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
-		$map= array();
+        $map = array();
 
-		if ($request->build_id) {
-			$map['build_id'] = $request->build_id;
-			if ($request->build_floor_id) {
-				$map['floor_id'] = $request->floor_id;
-			}
-		}
-		if($request->channel_state){
-			$map['channel_state'] = $request->channel_state;
-		}
-		if($request->room_state){ //1 空闲  0 在租
-			$map['room_state'] = $request->room_state;
-		}
-        if ($request->room_type){ // 1 房间 2 工位
+        if ($request->build_id) {
+            $map['build_id'] = $request->build_id;
+            if ($request->build_floor_id) {
+                $map['floor_id'] = $request->floor_id;
+            }
+        }
+        if ($request->channel_state) {
+            $map['channel_state'] = $request->channel_state;
+        }
+        if ($request->room_state) { //1 空闲  0 在租
+            $map['room_state'] = $request->room_state;
+        }
+        if ($request->room_type) { // 1 房间 2 工位
             $map['room_type'] = $request->room_type;
-        }else{
+        } else {
             $map['room_type'] = 2;
         }
 
         // 排序字段
-        if($request->input('orderBy')){
+        if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
-        }else{
+        } else {
             $orderBy = 'created_at';
         }
         // 排序方式desc 倒叙 asc 正序
-        if($request->input('order')){
+        if ($request->input('order')) {
             $order = $request->input('order');
-        }else{
+        } else {
             $order = 'desc';
         }
-		DB::enableQueryLog();
-		$result = RoomModel::where($map)
-        ->where(function ($q) use($request){
-            $request->room_no && $q->where('room_no','like','%'.$request->room_no.'%');
-            $request->is_vaild && $q->where('is_vaild',$request->is_vaild);
-            $request->station_no && $q->where('station_no','like','%'.$request->station_no.'%');
-
-        })
-        ->whereHas('building',function ($q) use ($request){
-            $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-        })
-		->with('building:id,proj_name,build_no,proj_id')
-		->with('floor:id,floor_no')
-		->orderBy($orderBy,$order)
-		->paginate($pagesize)->toArray();
+        DB::enableQueryLog();
+        $result = RoomModel::where($map)
+            ->where(function ($q) use ($request) {
+                $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
+                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->station_no && $q->where('station_no', 'like', '%' . $request->station_no . '%');
+            })
+            ->whereHas('building', function ($q) use ($request) {
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->with('building:id,proj_name,build_no,proj_id')
+            ->with('floor:id,floor_no')
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
 
         $data = RoomModel::select(DB::Raw('sum(case room_state when 1 then 1 else 0 end) free_count,count(*) total_count'))
-        ->where(function ($q) use($request){
-            $request->room_no && $q->where('room_no','like','%'.$request->room_no.'%');
-            $request->is_vaild && $q->where('is_vaild',$request->is_vaild);
-            $request->station_no && $q->where('station_no','like','%'.$request->station_no.'%');
-        })
-        ->whereHas('building',function ($q) use ($request){
-            $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-        })
-        ->where($map)
-        ->first();
-		// return response()->json(DB::getQueryLog());
+            ->where(function ($q) use ($request) {
+                $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
+                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->station_no && $q->where('station_no', 'like', '%' . $request->station_no . '%');
+            })
+            ->whereHas('building', function ($q) use ($request) {
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->where($map)
+            ->first();
+        // return response()->json(DB::getQueryLog());
         $result = $this->handleBackData($result);
 
         $contract = new ContractService;
         $buildService  = new BuildingService;
         if ($data['free_count']) {
-            $freeRate = numFormat($data['free_count'] / $data['total_count'] *100);
-        }else{
+            $freeRate = numFormat($data['free_count'] / $data['total_count'] * 100);
+        } else {
             $freeRate = '0.00';
             $data['free_count'] = 0;
         }
@@ -138,15 +138,17 @@ class StationController extends BaseController
 
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
         Log::error($avgPrice);
-        $stat = array(  ['title'=>'空闲工位','value'=>$data['free_count']],
-                        ['title'=>'总工位','value'=>$data['total_count']],
-                        ['title'=>'空闲率','value'=>$freeRate.'%'],
-                        ['title'=>'在租平均单价','value'=>$avgPrice.'元/天']);
+        $stat = array(
+            ['title' => '空闲工位', 'value' => $data['free_count']],
+            ['title' => '总工位', 'value' => $data['total_count']],
+            ['title' => '空闲率', 'value' => $freeRate . '%'],
+            ['title' => '在租平均单价', 'value' => $avgPrice . '元/天']
+        );
         $result['stat'] = $stat;
-       	return $this->success($result);
-	}
+        return $this->success($result);
+    }
 
-	/**
+    /**
      * @OA\Post(
      *     path="/api/business/building/station/add",
      *     tags={"房源"},
@@ -188,9 +190,10 @@ class StationController extends BaseController
      *         description=""
      *     )
      * )
-    */
-	public function store(Request $request){
-		$validatedData = $request->validate([
+     */
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
             // 'proj_id' =>'required|min:1',
             'build_id' => 'required|numeric|gt:0',
             'floor_id' => 'required|numeric|gt:0',
@@ -200,7 +203,7 @@ class StationController extends BaseController
 
         $building = BuildingModel::whereId($request->build_id)->exists();
         if (!$building) {
-        	return $this->error('楼宇不存在');
+            return $this->error('楼宇不存在');
         }
 
         $data = $request->toArray();
@@ -208,16 +211,15 @@ class StationController extends BaseController
         foreach ($data['station_list'] as $k => $v) {
             $data['station_no'] = $v['station_no'];
             $res = $this->saveStation($data);
-            if(!$res){
-               $fail_msg .= $v."|";
+            if (!$res) {
+                $fail_msg .= $v . "|";
             }
         }
-        if($fail_msg){
+        if ($fail_msg) {
             $fail_msg .= '工位编号重复';
         }
-        return $this->success('工位保存成功.'.$fail_msg);
-
-	}
+        return $this->success('工位保存成功.' . $fail_msg);
+    }
 
 
     /**
@@ -262,10 +264,11 @@ class StationController extends BaseController
      *         description=""
      *     )
      * )
-    */
-    public function update(Request $request){
+     */
+    public function update(Request $request)
+    {
         $validatedData = $request->validate([
-            'id' =>'required|numeric|gt:0',
+            'id' => 'required|numeric|gt:0',
             'build_id' => 'required|numeric|gt:0',
             'floor_id' => 'required|numeric|gt:0',
             'room_type' => 'required|numeric|in:1,2',
@@ -275,9 +278,9 @@ class StationController extends BaseController
 
 
         $data = $request->toArray();
-        $res = $this->saveStation($data,2);
+        $res = $this->saveStation($data, 2);
 
-        if($res){
+        if ($res) {
             return $this->success('工位保存成功。');
         }
         return $this->error('工位保存失败！');
@@ -316,22 +319,24 @@ class StationController extends BaseController
      *         description=""
      *     )
      * )
-    */
-    public function enable(Request $request){
+     */
+    public function enable(Request $request)
+    {
         $validatedData = $request->validate([
-            'Ids' =>'required|array',
+            'Ids' => 'required|array',
             'is_vaild' => 'required|numeric|in:0,1',
         ]);
         $data['is_vaild'] = $request->is_vaild;
-        $res = RoomModel::whereIn('id',$request->Ids)->update($data);
-        if($res){
+        $res = RoomModel::whereIn('id', $request->Ids)->update($data);
+        if ($res) {
             return $this->success('工位禁用启用成功。');
         }
         return $this->error('工位禁用启用失败！');
     }
 
-    private function saveStation($DA,$type=1){
-        $res = $this->checkReapet($DA,$type);
+    private function saveStation($DA, $type = 1)
+    {
+        $res = $this->checkReapet($DA, $type);
         if ($res) {
             return 0;
         }
@@ -340,7 +345,7 @@ class StationController extends BaseController
             $station->c_uid = $this->uid;
             $station->company_id = $this->company_id;
             $station->room_area = 1;   // 工位面积默认为1 不显示，合同处理单价的时候做处理
-        }else{
+        } else {
             $station = RoomModel::find($DA['id']);
             $station->u_uid = $this->uid;
         }
@@ -350,29 +355,30 @@ class StationController extends BaseController
         $station->room_no = $DA['room_no'];
         $station->room_state = $DA['room_state'];
         $station->room_type = 2;   // 工位2 房源1
-        $station->station_no = isset($DA['station_no']) ? $DA['station_no'] :0;
-        $station->room_measure_area = isset($DA['room_measure_area']) ?$DA['room_measure_area']:0;
-        $station->room_trim_state = isset($DA['room_trim_state']) ?$DA['room_trim_state'] :"";
-        $station->room_price = isset($DA['room_price']) ? $DA['room_price']:0.00;
-        $station->room_tags = isset($DA['room_tags'])?$DA['room_tags']:"";
-        $station->channel_state = isset($DA['channel_state']) ? $DA['channel_state'] :0;
-        Log::error($DA['rentable_date']."000000");
-        if(isset($DA['rentable_date']) && isDate($DA['rentable_date'])){
+        $station->station_no = isset($DA['station_no']) ? $DA['station_no'] : 0;
+        $station->room_measure_area = isset($DA['room_measure_area']) ? $DA['room_measure_area'] : 0;
+        $station->room_trim_state = isset($DA['room_trim_state']) ? $DA['room_trim_state'] : "";
+        $station->room_price = isset($DA['room_price']) ? $DA['room_price'] : 0.00;
+        $station->room_tags = isset($DA['room_tags']) ? $DA['room_tags'] : "";
+        $station->channel_state = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
+        Log::error($DA['rentable_date'] . "000000");
+        if (isset($DA['rentable_date']) && isDate($DA['rentable_date'])) {
             $station->rentable_date = $DA['rentable_date'];
         }
-        $station->remark = isset($DA['remark']) ? $DA['remark'] :"";
+        $station->remark = isset($DA['remark']) ? $DA['remark'] : "";
         $res = $station->save();
         return $res;
     }
 
-    private function checkReapet($DA,$type = 1){
+    private function checkReapet($DA, $type = 1)
+    {
         $map['build_id']    = $DA['build_id'];
         $map['room_no']     = $DA['room_no'];
         $map['station_no']  = $DA['station_no'];
         $map['floor_id']    = $DA['floor_id'];
         if ($type != 1) {
-            $res = RoomModel::where($map)->where('id','!=',$DA['id'])->exists();
-        }else{
+            $res = RoomModel::where($map)->where('id', '!=', $DA['id'])->exists();
+        } else {
             $res = RoomModel::where($map)->exists();
         }
 
