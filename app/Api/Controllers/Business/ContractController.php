@@ -9,17 +9,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Api\Controllers\BaseController;
-
 use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
-
-use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\TenantService;
+
 
 /**
  * 合同管理
@@ -250,9 +246,9 @@ class ContractController extends BaseController
             'free_list' => 'array',
         ]);
         $DA = $request->toArray();
-
+        $contractId = 0;
         try {
-            DB::transaction(function () use ($DA) {
+            DB::transaction(function () use ($DA, &$contractId) {
                 $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
@@ -281,10 +277,12 @@ class ContractController extends BaseController
                     }
                 }
                 $contractService->contractLog($contract, $user);
+                $contractId = $contract['id'];
             }, 2);
-            return $this->success('创建合同成功！');
+
+            return $this->success(['id' => $contractId], '创建合同成功！');
         } catch (Exception $e) {
-            Log::error($e);
+            Log::error("创建合同失败！" . $e->getMessage());
             return $this->error("创建合同失败！");
         }
     }
@@ -741,7 +739,7 @@ class ContractController extends BaseController
         } else {
             $contract->contract_no = $DA['contract_no'];
         }
-        $contract->free_type = isset($DA['free_type']) ? $DA['free_type'] : 1;
+        $contract->free_type = isset($DA['free_type']) ? $DA['free_type'] : 0;
         $contract->proj_id = $DA['proj_id'];
         $contract->contract_state = $DA['contract_state'];
         $contract->contract_type =  $DA['contract_type'];
