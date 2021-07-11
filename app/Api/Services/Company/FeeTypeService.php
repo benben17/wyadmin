@@ -76,11 +76,13 @@ class FeeTypeService
    * @param integer $type
    * @return void
    */
-  public function getFeeIds($type = 1, $uid)
+  public function getFeeIds($type, $uid)
   {
     $feeType = FeeType::select(DB::raw('group_concat(id) fee_id,type'))
       ->whereIn('company_id', getCompanyIds($uid))
-      ->where('type', $type)
+      ->where(function ($q) use ($type) {
+        $q->where('type', $type);
+      })
       ->groupBy('type')->first();
 
     if ($feeType) {

@@ -11,9 +11,10 @@ use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Services\Common\MessageService;
-use App\Api\Models\Contract\ContractBill as ContractBillModel;
+use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
+use App\Api\Services\Company\FeeTypeService;
 use App\Enums\AppEnum;
 
 /**
@@ -33,6 +34,10 @@ class ContractService
   {
     return new ContractFreePeriod;
   }
+  public function contractBillModel()
+  {
+    return new ContractBill;
+  }
 
   /**
    * 合同查看
@@ -42,7 +47,7 @@ class ContractService
    * @param     $show [true 查看主合同信息以及账单信息 false 只查看主合同信息]
    * @return   [array]                 [合同以及账单信息根据所需返回]
    */
-  public function showContract($contractId, $bill = true)
+  public function showContract($contractId, $uid, $bill = true)
   {
     $data = ContractModel::with('contractRoom')
       ->with('freeList')
@@ -51,43 +56,40 @@ class ContractService
       return $data;
     }
     // return response()->json(DB::getQueryLog());
-    $billType = ContractBillModel::select('type', DB::Raw('sum(amount) as amount'))
-      ->where('contract_id', $contractId)
-      ->groupBy('type')->get()->toArray();
-    $data = $data + ['rental_bill' => [], 'rental_total' => 0, 'management_bill' => [], 'management_total' => 0, 'deposit_bill' => [], 'deposit_total' => 0];
-    foreach ($billType as $k => $v) {
-      if ($v['type'] == '租金') {
-        $data['rental_total'] = $v['amount'];
-        $data['rental_bill']  = $this->getBillByType($contractId, $v['type']);;
-      } else if ($v['type'] == '管理费') {
-        $data['management_total'] = $v['amount'];
-        $data['management_bill'] = $this->getBillByType($contractId, $v['type']);
-      } else if ($v['type'] == '租赁押金' || $v['type'] == '管理押金') {
-        $data['deposit_total'] += $v['amount'];
-        $type = ['租赁押金', '管理押金'];
-        $data['deposit_bill'] = $this->getBillByType($contractId, $type);
-      }
-    }
+
+    $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1, 2, 3), $uid);
     return $data;
   }
 
   /**
-   * 根据合同账单类型获取账单信息
-   * @Author   leezhua
-   * @DateTime 2020-07-05
-   * @param    [type]     $contractId [description]
-   * @param    [type]     $billType   [description]
-   * @return   [type]                 [description]
+   * 获取合同账单明细
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param array $types
+   *
+   * @return void
    */
-  public function getBillByType($contractId, $billType)
+  public function getContractBillDetail($contractId, array $types, $uid)
   {
+    $feeTypeService = new FeeTypeService;
 
-    is_array($billType) || $billType = str2Array($billType);
-    return ContractBillModel::where('contract_id', $contractId)
-      ->whereIn('type', $billType)
-      ->get();
+    $feeBill = array();
+    foreach ($types as $k => $v) {
+      $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
+
+      $feeBill[$k]['bill'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        ->whereIn('fee_type', $feeTypeIds)
+        ->get();
+      $feeBill[$k]['total'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        ->whereIn('fee_type', $feeTypeIds)
+        ->sum('amount');
+      $v == 1 &&  $feeBill[$k]['fee_label'] = '费用';
+      $v == 2 &&  $feeBill[$k]['fee_label'] = '押金';
+      $v == 3 &&  $feeBill[$k]['fee_label'] = '其他费用';
+    }
+    return $feeBill;
   }
-
   //合同日志保存
   public function saveLog($DA)
   {
@@ -158,7 +160,6 @@ class ContractService
 
     try {
       DB::transaction(function () use ($DA, $user) {
-        $contractId = $DA['id'];
         $contract = ContractModel::find($DA['id']);
         if ($DA['audit_state'] == 1) {
           $DA['contract_state'] = 2;  // 审核通过 ，合同状态 为正式合同
@@ -167,7 +168,7 @@ class ContractService
           $customer->type = 2;   //2 租户 1 客户 3 退租
           $customer->state = '成交客户';   //2 租户 1 客户 3 退租
           $customer->save();
-          // 保存租户联系人
+
           $user['parent_type']  = AppEnum::Tenant;
 
           //更新渠道佣金
@@ -193,9 +194,10 @@ class ContractService
         // 更新合同状态
         $contract->contract_state = $DA['contract_state'];
         $contract->save();
-
-        // 写入合同日志
-        $DA['remark'] .= $msgContent;
+        // 同步费用信息
+        $bills =
+          // 写入合同日志
+          $DA['remark'] .= $msgContent;
         $this->saveLog($DA);
         // 给合同提交人发送系统通知消息
         $msgContent .= '</br>' . $DA['remark'];
@@ -459,5 +461,47 @@ class ContractService
   {
     $res = ContractFreePeriod::where('contract_id', $contractId)->delete();
     return $res;
+  }
+  /**
+   * 保存合同账单
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param [type] $DA
+   * @param [type] $user
+   * @param [type] $projId
+   * @param [type] $contractId
+   *
+   * @return void
+   */
+  public function saveContractBill($DA, $user, $projId, $contractId, $tenantId)
+  {
+    try {
+      if ($DA) {
+        $data = array();
+        foreach ($DA as $k => $v) {
+          $data[$k]['company_id']  = $user['company_id'];
+          $data[$k]['proj_id']     = $projId;
+          $data[$k]['contract_id'] = $contractId;
+          $data[$k]['tenant_id']   = $tenantId;
+          $data[$k]['type']        = $v['type']; // 1 收款 2 付款
+          $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
+          $data[$k]['price']       = isset($v['price']) ? $v['price'] : "";
+          $data[$k]['amount']      = $v['amount'];
+          $data[$k]['bill_date']   = $v['bill_date'];
+          $data[$k]['charge_date']   = $v['charge_date'];
+          $data[$k]['start_date']   = $v['start_date'];
+          $data[$k]['end_date']    = $v['end_date'];
+          $data[$k]['c_uid']       = $user['id'];
+          $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+        }
+        $res = $this->contractBillModel()->addAll($data);
+        return true;
+      }
+    } catch (Exception $e) {
+      Log::error("保存合同账单失败，详细信息：" . $e->getMessage());
+      throw $e;
+      return false;
+    }
   }
 }

@@ -11,16 +11,14 @@ use Illuminate\Validation\Rule;
 use App\Api\Controllers\BaseController;
 
 use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Contract\ContractBill as ContractBillModel;
+use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
-use App\Api\Models\Contract\ContractLog as ContractLogModel;
-use App\Api\Models\Company\BankAccount as bankAccountModel;
 
 use App\Api\Models\Contract\ContractFreePeriod;
+use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\BillRuleService;
 use App\Api\Services\Tenant\TenantService;
 
 /**
@@ -330,20 +328,8 @@ class ContractController extends BaseController
         $contractId = $request->id;
 
         $contractService = new ContractService;
-        $data = $contractService->showContract($contractId);
+        $data = $contractService->showContract($contractId, $this->uid);
         $data['contract_log'] = $contractService->getContractLogById($contractId);
-        // 用于前端显示
-        if ($data['rental_deposit_amount'] == '0.00' && $data['rental_deposit_month'] == 0) {
-            $data['rental_deposit_show'] = 0;
-        } else {
-            $data['rental_deposit_show'] = 1;
-        }
-        if ($data['manager_deposit_amount'] == '0.00' && $data['manager_deposit_month'] == 0) {
-            $data['manager_deposit_show'] = 0;
-        } else {
-            $data['manager_deposit_show'] = 1;
-        }
-
         return $this->success($data);
     }
 
@@ -447,12 +433,12 @@ class ContractController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"contractId" },
-     *      @OA\Property(property="contractId",type="int",
+     *          required={"contract_id" },
+     *      @OA\Property(property="contract_id",type="int",
      *       description="合同id")
      *     ),
      *       example={
-     *              "contractId": ""
+     *              "contract_id": ""
      *           }
      *       )
      *     ),
@@ -465,11 +451,11 @@ class ContractController extends BaseController
     public function contractBill(Request $request)
     {
         $validatedData = $request->validate([
-            'contractId' => 'required',
+            'contract_id' => 'required|numeric|gt:0',
         ]);
         $billService = new ContractBillService;
-        $contractService = new  ContractService;
-        $contract = $contractService->model()->find($request->contractId);
+        $contractService = new ContractService;
+        $contract = $contractService->model()->find($request->contract_id);
         if ($contract->bill_type == 1) {
             $fee_list = $billService->createBill($contract, $contract['lease_term'], $this->uid);
         } else if ($contract->bill_type == 2) {
@@ -479,6 +465,67 @@ class ContractController extends BaseController
         $data['fee_list'] = $fee_list;
         $data['deospit_list'] = $deospitBill;
         return $this->success($data);
+    }
+    /**
+     * @OA\Post(
+     *     path="/api/business/contract/bill/save",
+     *     tags={"合同"},
+     *     summary="合同账单保存",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id" },
+     *      @OA\Property(property="contract_id",type="int",description="合同id"),
+     *     ),
+     *       example={
+     *              "contract_id": "1"
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function saveContractBill(Request $request)
+    {
+        $validatedData = $request->validate([
+            'contract_id' => 'required',
+        ]);
+        try {
+            DB::transaction(function () use ($request) {
+                $billService = new ContractBillService;
+                $contractService = new ContractService;
+                $feeList = array();
+                $contract = $contractService->model()->find($request->contract_id);
+                if ($contract->bill_type == 1) {
+                    $feeList = $billService->createBill($contract, $contract['lease_term'], $this->uid);
+                } else if ($contract->bill_type == 2) {
+                    $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
+                }
+                $deospitBill = array();
+                $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
+                // 删除已有数据
+                $contractService->contractBillModel()->where('contract_id', $contract['id'])
+                    ->where("proj_id", $request->proj_id)->delete();
+                // return $this->success($feeList);
+                if ($feeList) {
+                    foreach ($feeList as $k => $v) {
+                        $contractService->saveContractBill($v['bill'], $this->user, $contract->proj_id, $contract['id'], $contract['tenant_id']);
+                    }
+                }
+                if ($deospitBill) {
+                    Log::error(json_encode($deospitBill));
+                    $contractService->saveContractBill($deospitBill['bill'], $this->user, $contract->proj_id, $contract['id'], $contract['tenant_id']);
+                }
+            }, 3);
+            return $this->success('合同账单保存成功。');
+        } catch (\Throwable $th) {
+            return $this->error("合同账单保存失败！");
+        }
     }
     /**
      * @OA\Post(

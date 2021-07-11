@@ -34,7 +34,7 @@ class TenantBillDetail extends Model
     $proj = getProjById($this->attributes['proj_id']);
     return $proj['proj_name'];
   }
-  public function addAll(array $data)
+  public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;

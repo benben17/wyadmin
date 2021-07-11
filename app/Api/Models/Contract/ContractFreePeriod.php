@@ -17,7 +17,7 @@ class ContractFreePeriod extends Model
    *
    * @var string
    */
-
+  use SoftDeletes;
   protected $table = 'bse_contract_free_period';
 
   protected $fillable = ['cus_id', 'contract_id', 'free_type', 'start_date', 'end_date', 'free_num', 'is_vaild', 'remark'];

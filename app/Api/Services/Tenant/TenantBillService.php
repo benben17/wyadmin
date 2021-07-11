@@ -60,10 +60,20 @@ class TenantBillService
       return false;
     }
   }
-  // 批量保存账单信息
-  public function saveAllBillDetail(array $DA, $user)
+  /**
+   * 批量保存账单信息
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param array $DA
+   * @param [type] $user
+   * @param [type] $projId
+   *
+   * @return void
+   */
+  public function saveAllBillDetail(array $DA, $user, int $projId)
   {
-    $data = $this->formatBillDetail($DA, $user);
+    $data = $this->formatBillDetail($DA, $user, $projId);
     return $this->BillDetailModel()->addAll($data);
   }
 
@@ -131,53 +141,39 @@ class TenantBillService
    */
   public function createBill($tenantId = 0, $month = "")
   {
-    $tenants = TenantShareModel::whereHas('contract', function ($q) {
-      $q->where('contract_state', 2);
-    })
-      ->where(function ($q) use ($tenantId, $month) {
-        if ($tenantId > 0) {
-          $q->where('tenant_id', $tenantId);
-        }
-        if ($month) {
-          $q->whereMonth('bill_month', dateFormat('m', $month)); // changed
-          $q->whereYear('bill_month', dateFormat('Y', $month)); //
-        }
-      })
-      ->with('contract')->get();
-    // return $tenants;
-    foreach ($tenants as $k => $tenant) {
-      $contract = $tenant->contract;
-      if ($contract['rental_price_type'] == 1) {
-        $month_rental_amount = numFormat(($tenant->rental_num * $contract['rental_price'] * 365) / 12);
-      } else {
-        $month_rental_amount = numFormat($tenant->rental_num * $contract['rental_price']);
-      }
-      $month_manager_amount = numFormat(($tenant->rental_num * $contract['management_price'] * 365) / 12);
 
-      // 水费
-      $energy = new EnergyService;
-      $water = $energy->getMeterRecord($tenantId, $month);
-      return $water;
-    }
+    return false;
   }
 
-  public function formatBillDetail(array $DA, $user)
+  /**
+   * 格式化账单明细
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param array $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
+  private function formatBillDetail(array $DA, $user, int $projId)
   {
+    $data = array();
     if ($DA && $user) {
       foreach ($DA as $k => &$v) {
-        $v['company_id']  = $user['company_id'];
-        $v['proj_id']     = $v['proj_id'];
-        $v['tenant_id']   = $v['tenant_id'];
-        $v['tenant_name'] = $v['tenant_name'];
-        $v['type']        = $v['type']; // 1 收款 2 付款
-        $v['fee_type']    = $v['fee_type']; // 费用类型
-        $v['amount']      = $v['amount'];
-        $v['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
-        $v['c_uid']       = $user['id'];
+        $data[$k]['company_id']  = $user['company_id'];
+        $data[$k]['proj_id']     = $projId;
+        $data[$k]['contract_id'] = $v['contract_id'];
+        $data[$k]['tenant_id']   = $v['tenant_id'];
+        $data[$k]['tenant_name'] = $v['tenant_name'];
+        $data[$k]['type']        = $v['type']; // 1 收款 2 付款
+        $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
+        $data[$k]['amount']      = $v['amount'];
+        $data[$k]['c_uid']       = $user['id'];
+        $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
       }
-      return $DA;
     } else {
       return false;
     }
+    return $data;
   }
 }

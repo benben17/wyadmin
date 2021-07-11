@@ -199,6 +199,7 @@ Route::group(['prefix' => 'business/contract'], function () {
     Route::post('show', '\App\Api\Controllers\Business\ContractController@show');
     //合同账单
     Route::post('bill/create', '\App\Api\Controllers\Business\ContractController@contractBill');
+    Route::post('bill/save', '\App\Api\Controllers\Business\ContractController@saveContractBill');
     //合同模版
     Route::post('word', '\App\Api\Controllers\Business\ContractController@contractWord');
     // 合同附件
