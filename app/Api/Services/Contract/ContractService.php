@@ -29,6 +29,11 @@ class ContractService
     return new ContractModel;
   }
 
+  public function freeModel()
+  {
+    return new ContractFreePeriod;
+  }
+
   /**
    * 合同查看
    * @Author   leezhua

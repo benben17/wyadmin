@@ -140,8 +140,8 @@ function amountToCny($num)
 /** 保留两位小数 并格式化数据输出 */
 function numFormat($num)
 {
-    $num =  sprintf("%.2f", $num);
-    return number_format($num, '2', ".", "");
+    return  sprintf("%.2f", round($num, 2));
+    // return number_format($num, 2, ",", "");
 }
 
 /** 通过开始日期获取几个月之后的日期 ，并减去一天（合同需要） */

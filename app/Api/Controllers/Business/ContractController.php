@@ -295,8 +295,6 @@ class ContractController extends BaseController
         }
     }
 
-
-
     /**
      * @OA\Post(
      *     path="/api/business/contract/show",
@@ -473,9 +471,9 @@ class ContractController extends BaseController
         $contractService = new  ContractService;
         $contract = $contractService->model()->find($request->contractId);
         if ($contract->bill_type == 1) {
-            $fee_list = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+            $fee_list = $billService->createBill($contract, $contract['lease_term'], $this->uid);
         } else if ($contract->bill_type == 2) {
-            $fee_list = $billService->createBillziranyue($contract['id'], $contract['lease_term'], $this->uid);
+            $fee_list = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
         }
         $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
         $data['fee_list'] = $fee_list;

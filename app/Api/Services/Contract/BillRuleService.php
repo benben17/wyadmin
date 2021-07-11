@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Services\Tenant;
+namespace App\Api\Services\Contract;
 
 use App\Api\Models\Contract\BillRule;
 use Illuminate\Support\Facades\DB;
@@ -124,5 +124,17 @@ class BillRuleService
       throw $th;
     }
     return $data;
+  }
+
+  /**
+   * 获取租金规则，会有免租的事情处理
+   *
+   * @param [int] $contractId
+   * @return 对象
+   */
+  public function getRentRule($contractId)
+  {
+    $rentRule = $this->model()->where('contract_id', $contractId)->where('fee_type', 101)->first();
+    return $rentRule;
   }
 }
