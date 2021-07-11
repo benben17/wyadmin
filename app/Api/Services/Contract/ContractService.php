@@ -268,8 +268,7 @@ class ContractService
   /** 通过客户id 获取客户合同信息 */
   public function getByContractID($contractId)
   {
-    $contract = ContractModel::select('rental_price', 'rental_price_type', 'rental_month_amount', 'management_price', 'management_month_amount', 'sign_date', 'pay_method', 'start_date', 'end_date', 'lease_term', 'sign_area', 'free_type', 'room_type', 'manager_show', 'rental_deposit_month', 'manager_deposit_amount', 'customer_id', 'id', 'contract_no')
-      ->find($contractId);
+    $contract = ContractModel::find($contractId);
     if ($contract) {
       return $contract->toArray();
     } else {
@@ -349,23 +348,6 @@ class ContractService
       ->select('start_date', 'end_date', 'room_type', 'contract_state', 'customer_name', 'sign_date', 'rental_price', 'rental_price_type')
       ->get();
     if ($data) {
-      foreach ($data as $k => &$v) {
-        // Log::error($v['room_type']);
-        if ($v['rental_price_type'] == 1) {
-          if ($v['room_type'] == 1) {
-            $v['rental_price'] .= "元/㎡·天";
-          } else {
-            $v['rental_price'] .= "元/天";
-          }
-        } else if ($v['rental_price_type'] == 2) {
-
-          if ($v['room_type'] == 1) {
-            $v['rental_price'] .= "元/㎡·月";
-          } else {
-            $v['rental_price'] .= "元/月";
-          }
-        }
-      }
       return $data->toArray();
     } else {
       return (object)[];
@@ -438,7 +420,17 @@ class ContractService
   }
 
 
-  /** 保存合同免租时间 */
+  /**
+   * 保存合同免租列表
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param [type] $DA
+   * @param [type] $contractId
+   * @param [type] $tenantId
+   *
+   * @return void
+   */
   public function saveFreeList($DA, $contractId, $tenantId)
   {
     try {
@@ -453,8 +445,8 @@ class ContractService
       $freeperiod->save();
       return true;
     } catch (Exception $e) {
-      Log::error($e->getMessage());
-      throw new Exception("系统错误");
+      Log::error("保存免租时间失败:" . $e->getMessage());
+      throw new Exception("保存免租时间失败");
       return false;
     }
   }
@@ -462,8 +454,7 @@ class ContractService
   /** 删除免租时间 */
   public function delFreeList($contractId)
   {
-    $res = ContractFreePeriod::where('contract_id', $contractId)->delete();
-    return $res;
+    return ContractFreePeriod::where('contract_id', $contractId)->delete();
   }
   /**
    * 保存合同账单
@@ -487,7 +478,7 @@ class ContractService
           $data[$k]['proj_id']     = $projId;
           $data[$k]['contract_id'] = $contractId;
           $data[$k]['tenant_id']   = $tenantId;
-          $data[$k]['type']        = $v['type']; // 1 收款 2 付款
+          $data[$k]['type']        = isset($v['type']) ? $v['type'] : 1; // 1 收款 2 付款
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
           $data[$k]['price']       = isset($v['price']) ? $v['price'] : "";
           $data[$k]['amount']      = $v['amount'];
