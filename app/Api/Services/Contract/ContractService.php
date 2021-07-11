@@ -75,9 +75,10 @@ class ContractService
     $feeTypeService = new FeeTypeService;
 
     $feeBill = array();
+    $i = 0;
     foreach ($types as $k => $v) {
       $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
-      $i = 0;
+
       if ($v == 1) {
         foreach ($feeTypeIds as $k1 => $v1) {
           $bill = $this->contractBillModel()->where('type', $v)
@@ -90,24 +91,26 @@ class ContractService
             ->first();
           if ($bill && $total['amount'] > 0) {
             Log::error($v1 . "--------");
-            $feeBill[$k][$i]['bill'] = $bill;
-            $feeBill[$k][$i]['total'] = $total['amount'];
-            $feeBill[$k][$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
+            $feeBill[$i]['bill'] = $bill;
+            $feeBill[$i]['total'] = $total['amount'];
+            $feeBill[$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
             $i++;
-          } else {
-            continue;
           }
         }
       } else {
-        $feeBill[$k]['bill'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        $bill = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
           ->whereIn('fee_type', $feeTypeIds)
           ->get();
-        $feeBill[$k]['total'] = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        $total = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
           ->whereIn('fee_type', $feeTypeIds)
           ->sum('amount');
-        $v == 1 &&  $feeBill[$k]['fee_label'] = '费用';
-        $v == 2 &&  $feeBill[$k]['fee_label'] = '押金';
-        $v == 3 &&  $feeBill[$k]['fee_label'] = '其他费用';
+        if ($total && $bill) {
+          $feeBill[$i]['bill'] = $bill;
+          $feeBill[$i]['total']  = $total;
+          $v == 2 &&  $feeBill[$i]['fee_label'] = '押金';
+          $v == 3 &&  $feeBill[$i]['fee_label'] = '其他费用';
+          $i++;
+        }
       }
     }
     return $feeBill;
