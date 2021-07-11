@@ -27,4 +27,6 @@ final class AppEnum extends Enum
   const workorderProcess  = 3;   // 处理
   const workorderClose    = 4;   // 关闭
   const workorderRate     = 5;   //评价
+
+  const rentFeeType       = 101;    // 租金规则
 }

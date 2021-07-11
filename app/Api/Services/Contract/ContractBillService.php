@@ -6,6 +6,7 @@ use App\Api\Models\Contract\BillRule;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Company\FeeTypeService;
 use App\Api\Services\Contract\BillRuleService;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -29,16 +30,18 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createBill($contract, int $leaseTerm, int $uid, $type = 1)
+  public function createBill($contract, int $uid)
   {
+    $type = 1; //  费用
     $data = array();
-    $feeTypeService = new FeeTypeService;
-    $feetype = $feeTypeService->getFeeIds($type, $uid);
     // Log::error(json_encode($feetype) . "费用id");
     DB::enableQueryLog();
-    $feeList = BillRule::where('contract_id', $contract['id'])->whereIn('fee_type', $feetype)->get();
-
-    foreach ($feeList as $k => $v) {
+    $billRule = $contract['bill_rule'];
+    $leaseTerm = $contract['lease_term'];
+    foreach ($billRule as $k => $v) {
+      if ($v['type'] != $type) {
+        continue;
+      }
       // Log::error("创建账单" . $v['id']);
       $i = 0;
       $data[$k]['total'] = 0.00;
@@ -47,7 +50,7 @@ class ContractBillService
 
       while ($i < $billNum) {
         $period  = $v['pay_method'];
-        $bill[$i]['fee_type'] = $type;
+        $bill[$i]['fee_type'] = $v['fee_type'];
         $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
         if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
           $startDate = $v['start_date'];
@@ -70,8 +73,8 @@ class ContractBillService
           $bill[$i]['amount'] = numFormat($lastPeriod * $v['month_amt']);
         }
         // 如有免租，账单期内减免
-        if ($contract['free_type']) {
-          $free = $this->freeByMonth($contract['id'], $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+        if ($v['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
+          $free = $this->freeByMonth($contract['free_list'], $v, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
           if ($free) {
             $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
             $bill[$i]['remark'] = $free['remark'];
@@ -82,9 +85,8 @@ class ContractBillService
         $i++;
       }
       $data[$k]['bill'] = $bill;
-      $data[$k]['fee_type'] =  $v['fee_type_label'];
+      $data[$k]['fee_type'] =  getFeeNameById($v['fee_type'])['fee_name'];
     }
-
     return $data;
   }
 
@@ -97,28 +99,26 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createBillziranyue($contract, int $leaseTerm, int $uid, $type = 1)
+  public function createBillziranyue($billRule, int $leaseTerm, int $uid)
   {
+    $type = 1; //  费用
     $data = array();
-    $feeTypeService = new FeeTypeService;
-    $feetype = $feeTypeService->getFeeIds($type, $uid);
     // Log::error(json_encode($feetype) . "费用id");
     DB::enableQueryLog();
-    $feeList = BillRule::where('contract_id', $contract['id'])->whereIn('fee_type', $feetype)->get();
-    // return response()->json(DB::getQueryLog());
-    // Log::error(json_encode($feeList) . "");
-    foreach ($feeList as $k => $v) {
+    foreach ($billRule as $k => $v) {
+      if ($v['type'] != $type) {
+        continue;
+      }
       // Log::error("创建账单" . $v['id']);
       $i = 0;
       $data[$k]['total'] = 0.00;
       $bill = array();
-      $startDate = $v['start_date'];
+      $startDate = formatYmd($v['start_date']);
       while (strtotime($startDate) < strtotime($v['end_date'])) {
         $bill[$i]['type'] = $type;
         $bill[$i]['price'] = $v['unit_price'] . $v['unit_price_label'];
         $bill[$i]['start_date'] = $startDate;
         // Log::error($startDate);
-
         $bill[$i]['charge_date'] = date("Y-m-" . $v['bill_day'], strtotime(getPreYmd($startDate, $v['ahead_pay_month'])));
         $bill[$i]['amount'] = numFormat($v['month_amt'] * $v['pay_method']);
         $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $v['pay_method'] - 1)));
@@ -128,7 +128,6 @@ class ContractBillService
             $days =  diffDays($startDate, date('Y-m-t', strtotime($startDate)));
             // Log::error("第一期账单天数：" . numFormat($v['month_amt'] * ($v['pay_method'] - 1)));
             $daysAmt = $this->countDaysAmt($v, $days, $uid);
-
             $bill[$i]['amount'] = numFormat($daysAmt + ($v['month_amt'] * ($v['pay_method'] - 1)));
             $bill[$i]['charge_date'] = $startDate;
           } else {
@@ -141,8 +140,7 @@ class ContractBillService
           // Log::error($days . "最后一期天数");
           $bill[$i]['amount'] = numFormat($v['month_amt'] * $leaseTerm - $data[$k]['total']);
         }
-
-        $bill[$i]['bill_date'] =  $bill[$i]['start_date'] . '-' . $bill[$i]['end_date'];
+        $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
         $data[$k]['total'] += $bill[$i]['amount'];
         $bill[$i]['mouth_amt'] = $v['month_amt'];
         $bill[$i]['fee_type']  = $v['fee_type'];
@@ -151,7 +149,7 @@ class ContractBillService
         $startDate = getNextYmd(date('Y-m-01', strtotime($endDate)), 1);
       }
       $data[$k]['bill'] = $bill;
-      $data[$k]['fee_type'] =  $v['fee_type_label'];
+      $data[$k]['fee_type'] =  getFeeNameById($v['fee_type'])['fee_name'];
     }
     return $data;
   }
@@ -170,7 +168,6 @@ class ContractBillService
     if (!$rules) {
       return $amount;
     }
-
     $yearDays = getVariable(getCompanyId($uid), 'year_days');
     if ($rules['price_type'] == 1) {
       $amount = numFormat($rules['unit_price'] * $days * $rules['area_num']);
@@ -190,34 +187,34 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createDepositBill($contractId, $uid, $type = 2)
+  public function createDepositBill($billRules)
   {
+    $type = 2;
     $data = array();
     $total = 0.00;
-    $feeTypeService = new FeeTypeService;
-    $feetype = $feeTypeService->getFeeIds($type, $uid);
-    $deposit = BillRule::where('contract_id', $contractId)->whereIn('fee_type', $feetype)->get();
     $bill = array();
-    if ($deposit) {
-      $data['total'] = 0.00;
+    if ($billRules) {
       $i = 0;
-      foreach ($deposit as $k => $v) {
-        $bill[$i]['type']       = $type;
-        $bill[$i]['amount']     = $v['amount'];
-        $bill[$i]['charge_date'] = $v['start_date'];
-        $bill[$i]['start_date'] = $v['start_date'];
-        $bill[$i]['end_date']   = $v['end_date'];
-        $bill[$i]['bill_date']  = $v['start_date'] . "至" . $v['end_date'];
-        $bill[$i]['remark']     = $v['remark'];
-        $bill[$i]['fee_type']   = $v['fee_type'];
-        $bill[$i]['fee_type_label']   = $v['fee_type_label'];
-        $total += $v['amount'];
-        $i++;
-      }
-      if ($bill && $total > 0) {
-        $data['total'] = $total;
-        $data['bill'] = $bill;
-        $data['fee_type'] = '押金';
+      foreach ($billRules as $k => $v) {
+        Log::error($v['type'] . "---------" . $type);
+        if ($v['type'] == $type) {
+          $bill[$i]['type']       = $type;
+          $bill[$i]['amount']     = isset($v['amount']) ? $v['amount'] : 0.00;
+          $bill[$i]['charge_date'] = $v['start_date'];
+          $bill[$i]['start_date'] = formatYmd($v['start_date']);
+          $bill[$i]['end_date']   = formatYmd($v['end_date']);
+          $bill[$i]['bill_date']  = formatYmd($v['start_date']) . "至" . formatYmd($v['end_date']);
+          $bill[$i]['remark']     = isset($v['remark']) ? $v['remark'] : "";
+          $bill[$i]['fee_type']   = $v['fee_type'];
+          $bill[$i]['fee_type_label']   = getFeeNameById($v['fee_type'])['fee_name'];
+          $total += $bill[$i]['amount'];
+          $i++;
+        }
+        if ($bill) {
+          $data['total'] = $total;
+          $data['bill'] = $bill;
+          $data['fee_type'] = '押金';
+        }
       }
     }
     return $data;
@@ -361,18 +358,14 @@ class ContractBillService
    * @param string $freeRemark
    * @return void
    */
-  private function freeByMonth($contractId, String $billStart, String $billEnd, $freeType, $uid)
+  private function freeByMonth($freeList, $rentRule, String $billStart, String $billEnd, $freeType, $uid)
   {
     $free_num = 0;
     $free_amt = 0.00;
     $freeRemark = "";
-    $freeList = ContractFreePeriod::where('contract_id', $contractId)->get();
     if (!$freeList) {
       return false;
     }
-    $ruleService = new BillRuleService;
-    $rentRule = $ruleService->getRentRule($contractId);
-
     foreach ($freeList as $k => $v) {
       if (strtotime($v['start_date']) >= strtotime($billStart) && strtotime($v['start_date']) < strtotime($billEnd)) {
         Log::error($billStart . "开始时间" . $billEnd . "结束时间");

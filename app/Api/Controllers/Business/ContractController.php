@@ -445,25 +445,44 @@ class ContractController extends BaseController
     public function contractBill(Request $request)
     {
         $validatedData = $request->validate([
-            'contract_id' => 'required|numeric|gt:0',
+            'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
+            'sign_date' => 'required|date',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'tenant_id' => 'required|numeric',
+            'proj_id' => 'required|numeric',
+            'tenant_legal_person' => 'required|String|between:1,64',
+            'sign_area' => 'required|numeric|gt:0',
+            // 'bill_day' => 'required|numeric',
+            'bill_rule' => 'array',
+            'contract_room' => 'array',
+            'free_list' => 'array',
         ]);
         $billService = new ContractBillService;
-        $contractService = new ContractService;
-        $contract = $contractService->model()->find($request->contract_id);
-        if ($contract->bill_type == 1) {
-            $fee_list = $billService->createBill($contract, $contract['lease_term'], $this->uid);
-        } else if ($contract->bill_type == 2) {
-            $fee_list = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
+        $contract = $request->toArray();
+        $fee_list = array();
+        foreach ($contract['bill_rule'] as $k => $rule) {
+            $feeList = array();
+            if ($rule['type'] != 1) {
+                continue;
+            }
+            if ($rule['bill_type'] == 1) {
+                $feeList = $billService->createBill($contract, $this->uid);
+            } else if ($rule['bill_type'] == 2) {
+                $feeList = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
+            }
+            if ($feeList) {
+                foreach ($feeList as $k => $v) {
+                    array_push($fee_list, $v);
+                }
+            }
+            $feeList = array();
         }
-        $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
-        $data = array();
-        foreach ($fee_list as $k => $v) {
-            array_push($data, $v);
+        $deospitBill = $billService->createDepositBill($contract['bill_rule'], $this->uid);
+        if ($deospitBill) {
+            array_push($fee_list, $deospitBill);
         }
-
-        array_push($data, $deospitBill);
-        // $data['deospit_list'] = $deospitBill;
-        return $this->success($data);
+        return $this->success($fee_list);
     }
     /**
      * @OA\Post(

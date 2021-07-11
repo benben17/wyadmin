@@ -151,6 +151,19 @@ function getEndNextYmd($ymd, $months)
     $ymd =  date("Y-m-d", strtotime("+" . $months . "months", strtotime($ymd)));
     return date("Y-m-d", strtotime("-1days", strtotime($ymd)));
 }
+/**
+ * 格式化日期
+ *
+ * @Author leezhua
+ * @DateTime 2021-07-11
+ * @param String $date
+ *
+ * @return string
+ */
+function formatYmd(String $date): string
+{
+    return date('Y-m-d', strtotime($date));
+}
 
 function getNextYmd($ymd, $months)
 {
