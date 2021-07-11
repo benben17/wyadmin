@@ -85,14 +85,14 @@ class ContractService
             ->where('contract_id', $contractId)
             ->whereIn('fee_type', str2Array($v1))
             ->get();
-          $total = $this->contractBillModel()->selectRaw('sum(amount) amount,fee_type')
-            ->where('type', $v)->where('contract_id', $contractId)
+          $total = $this->contractBillModel()->where('type', $v)
+            ->where('contract_id', $contractId)
             ->whereIn('fee_type', str2Array($v1))
-            ->first();
-          if ($bill && $total['amount'] > 0) {
+            ->sum('amount');
+          if ($bill && $total) {
             Log::error($v1 . "--------");
             $feeBill[$i]['bill'] = $bill;
-            $feeBill[$i]['total'] = $total['amount'];
+            $feeBill[$i]['total'] = $total;
             $feeBill[$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
             $i++;
           }

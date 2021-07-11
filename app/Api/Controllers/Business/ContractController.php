@@ -462,8 +462,13 @@ class ContractController extends BaseController
             $fee_list = $billService->createBillziranyue($contract, $contract['lease_term'], $this->uid);
         }
         $deospitBill = $billService->createDepositBill($contract['id'], $this->uid);
-        $data['fee_list'] = $fee_list;
-        $data['deospit_list'] = $deospitBill;
+        $data = array();
+        foreach ($fee_list as $k => $v) {
+            array_push($data, $v);
+        }
+
+        array_push($data, $deospitBill);
+        // $data['deospit_list'] = $deospitBill;
         return $this->success($data);
     }
     /**
