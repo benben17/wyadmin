@@ -244,7 +244,7 @@ class ContractController extends BaseController
             'proj_id' => 'required|numeric',
             'tenant_legal_person' => 'required|String|between:1,64',
             'sign_area' => 'required|numeric|gt:0',
-            'bill_day' => 'required|numeric',
+            // 'bill_day' => 'required|numeric',
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
@@ -765,7 +765,7 @@ class ContractController extends BaseController
         }
         $contract->increase_rate = isset($DA['increase_rate']) ? $DA['increase_rate'] : 0;
         $contract->increase_year = isset($DA['increase_year']) ? $DA['increase_year'] : 0;
-        $contract->bill_day = $DA['bill_day'];
+        $contract->bill_day = isset($DA['bill_day']) ? $DA['bill_day'] : 0;
         $contract->bill_type = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
         $contract->ahead_pay_month = isset($DA['ahead_pay_month']) ? $DA['ahead_pay_month'] : "";
         $contract->rental_price = isset($DA['rental_price']) ? $DA['rental_price'] : 0.00;
