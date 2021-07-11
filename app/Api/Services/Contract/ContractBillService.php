@@ -172,11 +172,11 @@ class ContractBillService
     }
 
     $yearDays = getVariable(getCompanyId($uid), 'year_days');
-    if ($rules['price_type'] == 1) {
+    if ($rules['unit_price_type'] == 1) {
       $amount = numFormat($rules['unit_price'] * $days * $rules['area_num']);
       // Log::info($amount);
       // Log::error("info:" . $rules['unit_price'] . "-" . $rules['area_num'] . "-" . $days);
-    } else if ($rules['price_type'] == 2) {
+    } else if ($rules['unit_price_type'] == 2) {
       $amount = numFormat($rules['month_amt'] * 12 / $yearDays * $days);
     }
     return $amount;
@@ -256,7 +256,7 @@ class ContractBillService
 
     while ($i <= $ceil) {
       // $bill[$i]['price'] = numFormat($DA['price'])." 元/㎡·天";
-      $bill[$i]['price'] = numFormat($DA['price']) . $this->priceUnit($DA['room_type'], $DA['price_type']);
+      $bill[$i]['price'] = numFormat($DA['price']) . $this->priceUnit($DA['room_type'], $DA['unit_price_type']);
       if ($i == 0) {
         // $chargeDate  = $DA['startDate'];
         $startDate = $DA['startDate'];

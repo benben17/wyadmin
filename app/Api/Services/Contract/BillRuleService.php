@@ -30,7 +30,7 @@ class BillRuleService
       $rule->contract_id = $DA['contract_id'];
       $rule->fee_type    = $DA['fee_type'];
       $rule->unit_price  = $DA['unit_price'];
-      $rule->price_type  = $DA['price_type'];
+      $rule->unit_price_type  = $DA['unit_price_type'];
       $rule->start_date  = $DA['start_date'];
       $rule->end_date    = $DA['end_date'];
       $rule->area_num    = $DA['area_num'];
@@ -107,7 +107,7 @@ class BillRuleService
         $data[$k]['contract_id'] = $contractId;
         $data[$k]['fee_type']    = $v['fee_type'];
         $data[$k]['unit_price']  = $v['unit_price'];
-        $data[$k]['price_type']  = $v['price_type'];
+        $data[$k]['unit_price_type']  = $v['unit_price_type'];
         $data[$k]['start_date']  = $v['start_date'];
         $data[$k]['end_date']    = $v['end_date'];
         $data[$k]['area_num']    = $v['area_num'];

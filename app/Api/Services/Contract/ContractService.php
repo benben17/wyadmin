@@ -289,28 +289,6 @@ class ContractService
       ->whereIn('id', $contractIds)
       ->get();
     if ($contract) {
-      foreach ($contract as $k => &$v) {
-        if ($v['rental_price_type'] == 1) {
-          $v['rental_price'] = $v['rental_price'] . '天/㎡';
-        } else if ($v['rental_price_type'] == 2) {
-          $v['rental_price'] = $v['rental_price'] . '月/㎡';
-        }
-        if ($v['room_type'] == 1) {
-          $v['sign_area']     = $v['sign_area'] . '㎡';
-          $v['room_type_label']     = '房源';
-        } else if ($v['room_type'] == 2) {
-          $v['sign_area']             = intval($v['sign_area']) . '个';
-          $v['room_type_label']       = '工位';
-        }
-        $room = $this->getContractRoomByCusId($v['id']);
-        if ($room) {
-          $v['build_floor']   = $room['build_floor'];
-          $v['room_no']       = $room['room_no'];
-        } else {
-          $v['build_floor']   = "";
-          $v['room_no']       = "";
-        }
-      }
       return $contract;
     } else {
       return array();
