@@ -1278,10 +1278,10 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "contractId"
+                                    "contract_id"
                                 ],
                                 "properties": {
-                                    "contractId": {
+                                    "contract_id": {
                                         "description": "合同id",
                                         "type": "int"
                                     }
@@ -1289,7 +1289,43 @@
                                 "type": "object"
                             },
                             "example": {
-                                "contractId": ""
+                                "contract_id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/bill/save": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同账单保存",
+                "operationId": "App\\Api\\Controllers\\Business\\ContractController::saveContractBill",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": "1"
                             }
                         }
                     }
