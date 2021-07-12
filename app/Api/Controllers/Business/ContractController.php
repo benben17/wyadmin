@@ -112,8 +112,8 @@ class ContractController extends BaseController
         }
         DB::enableQueryLog();
         $data =  ContractModel::where($map)
-            ->with('contractRoom')
-            ->with('freeList')
+            // ->with('contractRoom')
+            // ->with('freeList')
             ->where(function ($q) use ($request) {
                 $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
                 $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
@@ -242,9 +242,11 @@ class ContractController extends BaseController
             'sign_area' => 'required|numeric|gt:0',
             // 'bill_day' => 'required|numeric',
             'bill_rule' => 'array',
+            'deposit_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
             'fee_bill' => 'array',
+            'deposit_bill' => 'array'
         ]);
         $DA = $request->toArray();
         $contractId = 0;
@@ -256,12 +258,17 @@ class ContractController extends BaseController
                 $DA['contract_state'] = 0;
                 $contract = $this->saveContract($DA); //格式化并保存
                 if (!$contract) {
-                    throw new Exception("failed", 1);
+                    throw new Exception("合同保存失败", 1);
                 }
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
                     $ruleService->batchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                }
+                // 押金规则
+                if ($DA['deposit_rule']) {
+                    $ruleService = new BillRuleService;
+                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
                 // 房间
                 if (!empty($DA['contract_room'])) {
@@ -282,6 +289,9 @@ class ContractController extends BaseController
                     throw new Exception("无账单数据");
                 }
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                if ($DA['deposit_bill']) {
+                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                }
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];
             }, 2);
@@ -329,7 +339,9 @@ class ContractController extends BaseController
 
         $contractService = new ContractService;
         $data = $contractService->showContract($contractId, $this->uid);
-        $data['contract_log'] = $contractService->getContractLogById($contractId);
+        if ($data) {
+            $data['contract_log'] = $contractService->getContractLogById($contractId);
+        }
         return $this->success($data);
     }
 
@@ -415,8 +427,18 @@ class ContractController extends BaseController
                     $ruleService = new BillRuleService;
                     $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
+                // 押金规则
+                if ($DA['deposit_rule']) {
+                    $ruleService = new BillRuleService;
+                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
+                }
+                // 保存费用账单
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
-                $res = $contractService->contractLog($contract, $user);
+                // 保存押金账单
+                if ($DA['deposit_bill']) {
+                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                }
+                $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
         } catch (Exception $e) {

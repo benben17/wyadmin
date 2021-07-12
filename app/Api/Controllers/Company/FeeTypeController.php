@@ -67,7 +67,8 @@ class FeeTypeController extends BaseController
     DB::enableQueryLog();
 
     $companyIds = getCompanyIds($this->uid);
-    $data = $this->feeService->model()->whereIn('company_id', $companyIds)
+    $data = $this->feeService->model()
+      ->whereIn('company_id', $companyIds)
       ->orderBy($orderBy, $order)->get()->toArray();
     // return response()->json(DB::getQueryLog());
     return $this->success($data);

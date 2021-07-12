@@ -15,6 +15,7 @@ use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Company\FeeTypeService;
+use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
 
 /**
@@ -52,12 +53,13 @@ class ContractService
     $data = ContractModel::with('contractRoom')
       ->with('freeList')
       ->with('billRule')
-      ->find($contractId)
-      ->toarray();
-    if (!$bill) {
-      return $data;
+      ->with('depositRule')
+      ->find($contractId);
+    if ($data && $bill) {
+      $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1), $uid);
+      $data['deposit_bill'] = $this->getContractBillDetail($contractId, array(2), $uid);
     }
-    $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1, 2, 3), $uid);
+
     return $data;
   }
 
@@ -115,7 +117,15 @@ class ContractService
     }
     return $feeBill;
   }
-  //合同日志保存
+  /**
+   * 保存合同审核日志
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-12
+   * @param [type] $DA
+   *
+   * @return void
+   */
   public function saveLog($DA)
   {
     $contractLog = new ContractLogModel;
@@ -189,40 +199,33 @@ class ContractService
         if ($DA['audit_state'] == 1) {
           $DA['contract_state'] = 2;  // 审核通过 ，合同状态 为正式合同
           // 更新客户状态 为租户
-          $customer  = Tenant::find($contract['tenant_id']);
-          $customer->type = 2;   //2 租户 1 客户 3 退租
-          $customer->state = '成交客户';   //2 租户 1 客户 3 退租
-          $customer->save();
-
-          $user['parent_type']  = AppEnum::Tenant;
-
-          //更新渠道佣金
-          $customer['rental_month_amount'] = $contract['rental_month_amount'];
-          $customer['contract_id'] = $DA['id'];
-          $channel = new ChannelService;
-          $res = $channel->saveBrokerage($customer);
-          if (!$res) {
-            throw new Exception("佣金更新失败");
-          }
+          $tenant  = Tenant::find($contract['tenant_id']);
+          $tenant->type = 2;   //2 租户 1 客户 3 退租
+          $tenant->state = '成交客户';
+          $tenant->save();
           // 更新房间信息
           $contractRoom = ContractRoomModel::selectRaw('group_concat(room_id) as room_id')->where('contract_id', $DA['id'])->first();
           Log::info($contractRoom);
           $roomService = new BuildingService;
-          $res = $roomService->updateRoomState($contractRoom['room_id'], 0);
-          $msgContent =  $contract['customer_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "审核完成。";
+          $roomService->updateRoomState($contractRoom['room_id'], 0);
+          $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "审核完成。";
           $msgTitle = '合同审核通过';
+          // 同步押金信息到 tenant_bill_detail
+          $bills = ContractBill::where('contract_id', $contract['id'])->where('type', 2)->get();
+          if ($bills) {
+            $tenantBillService  = new TenantBillService;
+            $tenantBillService->batchSaveBillDetail($bills, $user, $contract['proj_id']);
+          }
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
-          $msgContent =  $contract['customer_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";
+          $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";
           $msgTitle = '合同审核不通过!';
         }
         // 更新合同状态
         $contract->contract_state = $DA['contract_state'];
         $contract->save();
-        // 同步费用信息
-        $bills =
-          // 写入合同日志
-          $DA['remark'] .= $msgContent;
+        // 写入合同日志
+        $DA['remark'] .= $msgContent;
         $this->saveLog($DA);
         // 给合同提交人发送系统通知消息
         $msgContent .= '</br>' . $DA['remark'];
@@ -247,7 +250,7 @@ class ContractService
   {
     if ($DA['contract_state'] == 1) {
       $DA['title'] = "待审核";
-      $DA['remark'] = $user->realname . '在' . nowTime() . '提交' . $DA['title'];
+      $DA['remark'] = $user->realname . '在' . nowTime() . '提交' . $DA['title'] . "等待审核";
     } else {
       $DA['title'] = "保存合同";
       $DA['remark'] = $user->realname . '在' . nowTime() . $DA['title'];
@@ -341,7 +344,6 @@ class ContractService
    */
   public function getContractByRoomId($roomId)
   {
-
     $data = ContractModel::whereHas('contractRoom', function ($q) use ($roomId) {
       $q->where('room_id', $roomId);
     })
@@ -360,7 +362,7 @@ class ContractService
   {
     try {
       $msg = new MessageService;
-      $DA['company_id']   =  $user['company_id'];
+      $DA['company_id']   = $user['company_id'];
       $DA['title']        = $title;
       $DA['content']      = $content;
       $DA['receive_uid']  = $receiveUid;

@@ -199,12 +199,11 @@ class ContractBillService
     if ($billRules) {
       $i = 0;
       foreach ($billRules as $k => $v) {
-        Log::error($v['type'] . "---------" . $type);
         if ($v['type'] == $type) {
           $bill[$i]['type']       = $type;
-          $bill[$i]['price']     = isset($v['price']) ? $v['price'] : 0.00;
+          $bill[$i]['price']      = isset($v['price']) ? $v['price'] : 0.00;
           $bill[$i]['amount']     = isset($v['amount']) ? $v['amount'] : 0.00;
-          $bill[$i]['charge_date'] = formatYmd($v['start_date']);
+          $bill[$i]['charge_date'] = isset($v['charge_date']) ? $v['charge_date'] : $v['start_date'];
           $bill[$i]['start_date'] = formatYmd($v['start_date']);
           $bill[$i]['end_date']   = formatYmd($v['end_date']);
           $bill[$i]['bill_date']  = formatYmd($v['start_date']) . "至" . formatYmd($v['end_date']);

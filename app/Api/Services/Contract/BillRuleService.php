@@ -16,38 +16,6 @@ class BillRuleService
     return $model;
   }
 
-  public function save($DA, $user)
-  {
-    try {
-      if (isset($DA['id']) || $DA['id'] > 0) {
-        $rule = $this->model()->find($DA['id']);
-        $rule->u_uid    = $user['id'];
-      } else {
-        $rule = $this->model();
-        $rule->c_uid    = $user['id'];
-      }
-      $rule->tenant_id   = $DA['tenant_id'];
-      $rule->contract_id = $DA['contract_id'];
-      $rule->fee_type    = $DA['fee_type'];
-      $rule->unit_price  = $DA['unit_price'];
-      $rule->price_type  = $DA['price_type'];
-      $rule->start_date  = $DA['start_date'];
-      $rule->end_date    = $DA['end_date'];
-      $rule->area_num    = $DA['area_num'];
-      $rule->pay_method  = $DA['pay_method'];
-      $rule->bill_day    = $DA['bill_day'];
-      $rule->amount      = isset($DA['amount']) ? $DA['amount'] : 0.00;
-      $rule->month_amt      = $DA['mounth_amt'];
-      $rule->ahead_pay_month = $DA['ahead_pay_month'];
-      $rule->unit_price_label  = $DA['unit_price_label'];
-      $rule->remark      = isset($DA['remark']) ? $DA['remark'] : 0;
-      $rule->save();
-      return true;
-    } catch (Exception $e) {
-      Log::errror("租户账单规则写入失败" . $e->getMessage());
-      return false;
-    }
-  }
   /** 批量保存 */
   public function batchSave($DA, $user, $contractId, $tenantId)
   {
@@ -106,17 +74,25 @@ class BillRuleService
         $data[$k]['tenant_id'] = $tenantId;
         $data[$k]['contract_id'] = $contractId;
         $data[$k]['type']        = $v['type'];
-        $data[$k]['fee_type']    = $v['fee_type'];
-        $data[$k]['unit_price']  = $v['unit_price'];
-        $data[$k]['price_type']  = $v['price_type'];
-        $data[$k]['start_date']  = $v['start_date'];
-        $data[$k]['end_date']    = $v['end_date'];
-        $data[$k]['area_num']    = $v['area_num'];
-        $data[$k]['pay_method']  = $v['pay_method'];
-        $data[$k]['bill_day']    = $v['bill_day'];
+        $data[$k]['fee_type']    = isset($v['fee_type']) ? $v['fee_type'] : 1;
+        $data[$k]['unit_price']  = isset($v['unit_price']) ? $v['unit_price'] : 0.00;
+        $data[$k]['price_type']  = isset($v['price_type']) ? $v['price_type'] : 0;
+        if ($v['start_date']) {
+          $data[$k]['start_date']  = $v['start_date'];
+        }
+
+        if ($v['end_date']) {
+          $data[$k]['end_date']    = $v['end_date'];
+        }
+        if ($v['charge_date']) {
+          $data[$k]['charge_date']    = $v['charge_date'];
+        }
+        $data[$k]['area_num']    = isset($v['area_num']) ? $v['area_num'] : 0.00;
+        $data[$k]['pay_method']  = isset($v['pay_method']) ? $v['pay_method'] : 0;
+        $data[$k]['bill_day']    = isset($v['bill_day']) ? $v['bill_day'] : 0;
         $data[$k]['amount']      = isset($v['amount']) ? $v['amount'] : 0.00;
-        $data[$k]['month_amt']      = $v['month_amt'];
-        $data[$k]['ahead_pay_month'] = $v['ahead_pay_month'];
+        $data[$k]['month_amt']      = isset($v['month_amt']) ? $v['month_amt'] : 0.00;
+        $data[$k]['ahead_pay_month'] = isset($v['ahead_pay_month']) ? $v['ahead_pay_month'] : 0;
         $data[$k]['unit_price_label']  = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
         $data[$k]['remark']      = isset($v['remark']) ? $v['remark'] : "";
         $data[$k]['created_at']  = nowTime();

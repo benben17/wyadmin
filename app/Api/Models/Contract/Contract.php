@@ -43,7 +43,11 @@ class Contract extends Model
 
   public function billRule()
   {
-    return $this->hasMany(BillRule::class, 'contract_id', 'id');
+    return $this->hasMany(BillRule::class, 'contract_id', 'id')->where('type', 1);
+  }
+  public function depositRule()
+  {
+    return $this->hasMany(BillRule::class, 'contract_id', 'id')->where('type', 2);
   }
 
   public function contractLog()
@@ -82,7 +86,23 @@ class Contract extends Model
     }
   }
 
+  public function getRentalPriceAttribute()
+  {
+    $billRule = BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 101)->first();
+    if ($billRule) {
+      return $billRule->unit_price . $billRule->unit_price_label;
+    }
+    return 0.00;
+  }
 
+  public function getManagementPriceAttribute()
+  {
+    $billRule = BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 102)->first();
+    if ($billRule) {
+      return $billRule->unit_price . $billRule->unit_price_label;
+    }
+    return 0.00;
+  }
   protected static function boot()
   {
     parent::boot();

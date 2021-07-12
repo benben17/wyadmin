@@ -71,7 +71,7 @@ class TenantBillService
    *
    * @return void
    */
-  public function saveAllBillDetail(array $DA, $user, int $projId)
+  public function batchSaveBillDetail(array $DA, $user, int $projId)
   {
     $data = $this->formatBillDetail($DA, $user, $projId);
     return $this->BillDetailModel()->addAll($data);
@@ -165,7 +165,7 @@ class TenantBillService
         $data[$k]['contract_id'] = $v['contract_id'];
         $data[$k]['tenant_id']   = $v['tenant_id'];
         $data[$k]['tenant_name'] = $v['tenant_name'];
-        $data[$k]['type']        = $v['type']; // 1 收款 2 付款
+        $data[$k]['type']        = $v['type']; // 1 费用 2 押金
         $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
         $data[$k]['amount']      = $v['amount'];
         $data[$k]['c_uid']       = $user['id'];

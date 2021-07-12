@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Company;
 
 use JWTAuth;
@@ -12,16 +13,15 @@ use App\Api\Models\Company\CompanyDictType as DictTypeModel;
 class DictController extends BaseController
 {
 
-	public function __construct()
-	{
+    public function __construct()
+    {
 
-		$this->uid  = auth()->payload()->get('sub');
-		if(!$this->uid){
-	        return $this->error('用户信息错误');
-	    }
-	    $this->company_id = getCompanyId($this->uid);
-
-	}
+        $this->uid  = auth()->payload()->get('sub');
+        if (!$this->uid) {
+            return $this->error('用户信息错误');
+        }
+        $this->company_id = getCompanyId($this->uid);
+    }
     /**
      * @OA\Post(
      *     path="/api/company/dict/list",
@@ -49,29 +49,29 @@ class DictController extends BaseController
      *         description=""
      *     )
      * )
-    */
-	public function index(Request $request){
+     */
+    public function index(Request $request)
+    {
         $validatedData = $request->validate([
-           'dict_key' => 'required|String|min:1'
+            'dict_key' => 'required|String|min:1'
         ]);   //
 
-        $map=array();
-        if($request->is_vaild){
+        $map = array();
+        if ($request->is_vaild) {
             $map['is_vaild'] = $request->input('is_vaild');
         }
 
         DB::enableQueryLog();
-        $data = DictModel::where('dict_key',$request->dict_key)
-        ->where($map)
-        ->whereIn('company_id',getCompanyIds($this->uid))
-        ->orderBy('dict_key')
-        ->get()->toArray();
+        $data = DictModel::where('dict_key', $request->dict_key)
+            ->where($map)
+            ->whereIn('company_id', getCompanyIds($this->uid))
+            ->orderBy('dict_key')
+            ->get()->toArray();
         // $DA[$v] = $data;
         // return response()->json(DB::getQueryLog());
 
-		return $this->success($data);
-
-	}
+        return $this->success($data);
+    }
 
     /**
      * @OA\Post(
@@ -97,17 +97,18 @@ class DictController extends BaseController
      *     )
      * )
      */
-    public function dictType(){
+    public function dictType()
+    {
         // return $companyIds;
         DB::enableQueryLog();
         $data = DictTypeModel::get()->toArray();
         // return response()->json(DB::getQueryLog());
-        if($data){
+        if ($data) {
             return $this->success($data);
         }
         return $this->error('获取数据失败');
     }
-        /**
+    /**
      * @OA\Post(
      *     path="/api/company/dict/add",
      *     tags={"系统业务字典"},
@@ -140,8 +141,9 @@ class DictController extends BaseController
      *     )
      * )
      */
-	public function store(Request $request){
-		$validatedData = $request->validate([
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
             'dict_key' => 'required|String|max:64',
             'dict_value' => 'required|String|max:256',
         ]);
@@ -150,8 +152,8 @@ class DictController extends BaseController
         $map['dict_key']    = $data['dict_key'];
         $map['dict_value']  = $data['dict_value'];
         $checkDict = DictModel::where($map)->exists();
-        if($checkDict){
-        	return $this->error('数据重复');
+        if ($checkDict) {
+            return $this->error('数据重复');
         }
         $dict = new DictModel;
         $dict->company_id = $this->company_id;
@@ -162,12 +164,12 @@ class DictController extends BaseController
         $res = $dict->save();
 
         if ($res) {
-        	return $this->success('数据添加成功');
-        }else{
-        	return $this->error('数据添加失败');
+            return $this->success('数据添加成功');
+        } else {
+            return $this->error('数据添加失败');
         }
-	}
-     /**
+    }
+    /**
      * @OA\Post(
      *     path="/api/company/dict/edit",
      *     tags={"系统业务字典"},
@@ -205,9 +207,10 @@ class DictController extends BaseController
      *     )
      * )
      */
-	public function update(Request $request){
-		$validatedData = $request->validate([
-			'id'	=> 'required|min:1',
+    public function update(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id'    => 'required|min:1',
             'dict_key' => 'required|String|max:64',
             'dict_value' => 'required|String|max:256',
         ]);
@@ -219,19 +222,19 @@ class DictController extends BaseController
         $map['dict_value'] = $data['dict_value'];
         // DB::enableQueryLog();
         $checkDict = DictModel::where($map)
-        ->where('id','!=',$request['id'])->exists();
+            ->where('id', '!=', $request['id'])->exists();
 
         // return response()->json(DB::getQueryLog());
-        if($checkDict){
-        	return $this->error('数据重复');
+        if ($checkDict) {
+            return $this->error('数据重复');
         }
-        $dict = DictModel::where('id',$request['id'])->update($data);
+        $dict = DictModel::where('id', $request['id'])->update($data);
         if ($dict) {
-        	return $this->success('数据更新成功');
-        }else{
-        	return $this->error('数据更新失败');
+            return $this->success('数据更新成功');
+        } else {
+            return $this->error('数据更新失败');
         }
-	}
+    }
 
     /**
      * @OA\Post(
@@ -256,21 +259,22 @@ class DictController extends BaseController
      *         description=""
      *     )
      * )
-    */
-	public function delete(Request $request){
-		$validatedData = $request->validate([
-			'id'	=> 'required|array',
-		]);
-		$data = $request->toArray();
+     */
+    public function delete(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id'    => 'required|array',
+        ]);
+        $data = $request->toArray();
         $map['company_id'] = $this->company_id;
-		$res = DictModel::where($map)->whereId($request->id)->delete();
-		if($res){
-			return $this->success('删除成功。');
-		}else{
-			return $this->error('删除失败！');
-		}
-	}
-     /**
+        $res = DictModel::where($map)->whereId($request->id)->delete();
+        if ($res) {
+            return $this->success('删除成功。');
+        } else {
+            return $this->error('删除失败！');
+        }
+    }
+    /**
      * @OA\Post(
      *     path="/api/company/dict/enable",
      *     tags={"系统业务字典"},
@@ -303,19 +307,19 @@ class DictController extends BaseController
      *     )
      * )
      */
-    public function enable(Request $request){
+    public function enable(Request $request)
+    {
         $validatedData = $request->validate([
             'Ids'    => 'array',
             'is_vaild' =>  'required|in:0,1',
         ]);
         $data['is_vaild'] = $request['is_vaild'];
-        $res = DictModel::whereIn('id',$request['dictIds'])
-        ->update($data);
+        $res = DictModel::whereIn('id', $request['dictIds'])
+            ->update($data);
         if ($res) {
             return $this->success('更新成功！');
-        }else{
+        } else {
             return $this->error('更新失败');
         }
     }
-
 }
