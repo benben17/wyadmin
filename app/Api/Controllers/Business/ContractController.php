@@ -290,7 +290,7 @@ class ContractController extends BaseController
                 }
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 if ($DA['deposit_bill']) {
-                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
                 }
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];
