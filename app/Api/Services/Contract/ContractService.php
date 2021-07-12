@@ -51,7 +51,9 @@ class ContractService
   {
     $data = ContractModel::with('contractRoom')
       ->with('freeList')
-      ->find($contractId)->toarray();
+      ->with('billRule')
+      ->find($contractId)
+      ->toarray();
     if (!$bill) {
       return $data;
     }

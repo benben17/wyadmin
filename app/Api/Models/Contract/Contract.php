@@ -40,6 +40,11 @@ class Contract extends Model
     return $this->hasMany(ContractBill::class, 'contract_id', 'id');
   }
 
+  public function billRule()
+  {
+    return $this->hasMany(BillRule::class, 'contract_id', 'id');
+  }
+
   public function contractLog()
   {
     return $this->hasMany(ContractLog::class, 'contract_id', 'id');
