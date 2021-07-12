@@ -489,6 +489,7 @@ class ContractController extends BaseController
         ]);
         $billService = new ContractBillService;
         $contract = $request->toArray();
+        $data = array();
         $fee_list = array();
         foreach ($contract['bill_rule'] as $k => $rule) {
             $feeList = array();
@@ -499,17 +500,26 @@ class ContractController extends BaseController
                 $feeList = $billService->createBill($contract, $rule, $this->uid);
             } else if ($rule['bill_type'] == 2) { // 自然月账期
                 $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
+            } else if ($rule['bill_type'] == 3) { // 只有租金走账期顺延
+                if ($rule['fee_type'] == 101) {
+                    $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
+                } else {
+                    $feeList = $billService->createBill($contract, $rule, $this->uid);
+                }
             }
             array_push($fee_list, $feeList);
+        }
+        if ($fee_list) {
+            $data['fee_bill']  = $fee_list;
         }
         if ($contract['deposit_rule']) {
             $deospitBill = $billService->createDepositBill($contract['deposit_rule'], $this->uid);
             if ($deospitBill) {
-                array_push($fee_list, $deospitBill);
+                $data['deposit_bill'] = $deospitBill;
             }
         }
 
-        return $this->success($fee_list);
+        return $this->success($data);
     }
     /**
      * @OA\Post(

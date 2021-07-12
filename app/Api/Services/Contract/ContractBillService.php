@@ -281,7 +281,7 @@ class ContractBillService
           } else { // 管理费不免 要加上免租时间的 管理费 账单周期+ 免租时间（月）
             $bill[$i]['amount'] = numFormat($DA['monthAmount'] * ($period + $free['free_num']));
           }
-        } else {
+        } else if ($freeType == 2) {
           // 按天免租 获取免租后账单的结束日期
           // 开始时间 周期 免租列表 0 合同结束时间
           $free = $this->endDateByDays($startDate, $period, $DA['free_list'], 0, $DA['endDate']);
