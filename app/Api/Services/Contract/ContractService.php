@@ -100,10 +100,12 @@ class ContractService
           }
         }
       } else {
-        $bill = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        $bill = $this->contractBillModel()->where('type', $v)
+          ->where('contract_id', $contractId)
           ->whereIn('fee_type', $feeTypeIds)
           ->get();
-        $total = $this->contractBillModel()->where('type', $v)->where('contract_id', $contractId)
+        $total = $this->contractBillModel()->where('type', $v)
+          ->where('contract_id', $contractId)
           ->whereIn('fee_type', $feeTypeIds)
           ->sum('amount');
         if ($total && $bill) {
@@ -470,12 +472,12 @@ class ContractService
    *
    * @return void
    */
-  public function saveContractBill($feeBill, $user, $projId, $contractId, $tenantId)
+  public function saveContractBill($feeBill, $user, $projId, $contractId, $tenantId, $type = 1)
   {
     try {
       // 先删除
       // Log::error("bill" . json_encode($feeBill));
-      $this->contractBillModel()->where('contract_id', $contractId)->delete();
+      $this->contractBillModel()->where('contract_id', $contractId)->where('type', $type)->delete();
       foreach ($feeBill as $key => $bill) {
         $data = array();
         foreach ($bill['bill'] as $k => $v) {

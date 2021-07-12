@@ -418,10 +418,13 @@ class ContractController extends BaseController
                     $rooms->addAll($roomList);
                 }
                 // 免租 全部删除后全部新增
-                $contractService->delFreeList($DA['id']);
-                foreach ($DA['free_list'] as $k => $v) {
-                    $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
+                if ($DA['free_type']) {
+                    $contractService->delFreeList($DA['id']);
+                    foreach ($DA['free_list'] as $k => $v) {
+                        $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
+                    }
                 }
+
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
@@ -436,7 +439,7 @@ class ContractController extends BaseController
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 // 保存押金账单
                 if ($DA['deposit_bill']) {
-                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
                 }
                 $contractService->contractLog($contract, $user);
             });
