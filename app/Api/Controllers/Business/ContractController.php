@@ -278,6 +278,9 @@ class ContractController extends BaseController
                     }
                 }
                 // 保存合同账单
+                if (!$DA['fee_bill']) {
+                    throw new Exception("无账单数据");
+                }
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];

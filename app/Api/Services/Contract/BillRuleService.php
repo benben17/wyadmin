@@ -105,6 +105,7 @@ class BillRuleService
         $data[$k]['u_uid'] = $user['id'];
         $data[$k]['tenant_id'] = $tenantId;
         $data[$k]['contract_id'] = $contractId;
+        $data[$k]['type']        = $v['type'];
         $data[$k]['fee_type']    = $v['fee_type'];
         $data[$k]['unit_price']  = $v['unit_price'];
         $data[$k]['price_type']  = $v['price_type'];
