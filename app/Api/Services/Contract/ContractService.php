@@ -57,8 +57,6 @@ class ContractService
     if (!$bill) {
       return $data;
     }
-    // return response()->json(DB::getQueryLog());
-
     $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1, 2, 3), $uid);
     return $data;
   }
@@ -92,7 +90,7 @@ class ContractService
             ->whereIn('fee_type', str2Array($v1))
             ->sum('amount');
           if ($bill && $total) {
-            Log::error($v1 . "--------");
+            // Log::error($v1 . "--------");
             $feeBill[$i]['bill'] = $bill;
             $feeBill[$i]['total'] = $total;
             $feeBill[$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
@@ -470,34 +468,35 @@ class ContractService
    *
    * @return void
    */
-  public function saveContractBill($DA, $user, $projId, $contractId, $tenantId)
+  public function saveContractBill($feeBill, $user, $projId, $contractId, $tenantId)
   {
     try {
-      if ($DA) {
-        // 先删除
-        $this->contractBillModel()->where('contract_id', $contractId)->delete();
-        foreach ($DA as $key => $bill) {
-          $data = array();
-          foreach ($bill['bill'] as $k => $v) {
-            $data[$k]['company_id']  = $user['company_id'];
-            $data[$k]['proj_id']     = $projId;
-            $data[$k]['contract_id'] = $contractId;
-            $data[$k]['tenant_id']   = $tenantId;
-            $data[$k]['type']        = isset($v['type']) ? $v['type'] : 1; // 1 收款 2 付款
-            $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
-            $data[$k]['price']       = isset($v['price']) ? $v['price'] : "";
-            $data[$k]['amount']      = $v['amount'];
-            $data[$k]['bill_date']   = $v['bill_date'];
-            $data[$k]['charge_date']   = $v['charge_date'];
-            $data[$k]['start_date']   = $v['start_date'];
-            $data[$k]['end_date']    = $v['end_date'];
-            $data[$k]['c_uid']       = $user['id'];
-            $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
-          }
-          $this->contractBillModel()->addAll($data);
+      // 先删除
+      // Log::error("bill" . json_encode($feeBill));
+      $this->contractBillModel()->where('contract_id', $contractId)->delete();
+      foreach ($feeBill as $key => $bill) {
+        $data = array();
+        foreach ($bill['bill'] as $k => $v) {
+          $data[$k]['company_id']  = $user['company_id'];
+          $data[$k]['proj_id']     = $projId;
+          $data[$k]['contract_id'] = $contractId;
+          $data[$k]['tenant_id']   = $tenantId;
+          $data[$k]['type']        = isset($v['type']) ? $v['type'] : 1; // 1 收款 2 付款
+          $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
+          $data[$k]['price']       = isset($v['price']) ? $v['price'] : "";
+          $data[$k]['unit_price_label'] = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
+          $data[$k]['amount']      = $v['amount'];
+          $data[$k]['bill_date']   = $v['bill_date'];
+          $data[$k]['charge_date'] = $v['charge_date'];
+          $data[$k]['start_date']  = $v['start_date'];
+          $data[$k]['end_date']    = $v['end_date'];
+          $data[$k]['c_uid']       = $user['id'];
+          $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
         }
-        return true;
+        $this->contractBillModel()->addAll($data);
       }
+
+      return true;
     } catch (Exception $e) {
       Log::error("保存合同账单失败，详细信息：" . $e->getMessage());
       throw $e;

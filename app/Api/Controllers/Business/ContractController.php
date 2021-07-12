@@ -278,7 +278,7 @@ class ContractController extends BaseController
                     }
                 }
                 // 保存合同账单
-                $contractService->saveContractBill($contract['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];
             }, 2);
@@ -412,7 +412,7 @@ class ContractController extends BaseController
                     $ruleService = new BillRuleService;
                     $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
-                $contractService->saveContractBill($contract['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $res = $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');

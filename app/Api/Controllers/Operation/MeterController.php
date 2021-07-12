@@ -101,10 +101,11 @@ class MeterController extends BaseController
       $order = 'desc';
     }
     $currentDate = date('Y-m-01');
-    $data = $this->meterService->meterModel()->where($map)
+    $data = $this->meterService->meterModel()
+      ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+        // $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
