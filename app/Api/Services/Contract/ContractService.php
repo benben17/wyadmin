@@ -492,6 +492,7 @@ class ContractService
           $data[$k]['end_date']    = $v['end_date'];
           $data[$k]['c_uid']       = $user['id'];
           $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+          $data[$k]['created_at']  = nowTime();
         }
         $this->contractBillModel()->addAll($data);
       }

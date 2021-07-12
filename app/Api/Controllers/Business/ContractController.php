@@ -124,7 +124,7 @@ class ContractController extends BaseController
                 }
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
-            })
+            })->withCount('contractRoom')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
         $data = $this->handleBackData($data);

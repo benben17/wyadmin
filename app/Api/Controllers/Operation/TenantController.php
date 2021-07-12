@@ -299,7 +299,7 @@ class TenantController extends BaseController
         // return response()->json(DB::getQueryLog());
         if ($data) {
             $data = $data->toArray();
-            $info = new CustomerInfoService;
+            $info = new BaseInfoService;
             $business_info  = $info->getById($data['business_id']);
             if (empty($business_info)) {
                 $business_info = (object)[];
