@@ -474,7 +474,8 @@ class ContractService
   {
     try {
       if ($DA) {
-
+        // 先删除
+        $this->contractBillModel()->where('contract_id', $contractId)->delete();
         foreach ($DA as $key => $bill) {
           $data = array();
           foreach ($bill['bill'] as $k => $v) {
@@ -495,7 +496,6 @@ class ContractService
           }
           $this->contractBillModel()->addAll($data);
         }
-
         return true;
       }
     } catch (Exception $e) {
