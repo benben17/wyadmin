@@ -88,7 +88,7 @@ class AuthController extends BaseController
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
             'nickname' => $nickname,
-            'days' => getVariable($user['company_id'], 'days')
+            'days' => getVariable($user['company_id'], 'year_days')
         ];
 
         // 获取用户系统权限，当用户is admin 的时候返回空
