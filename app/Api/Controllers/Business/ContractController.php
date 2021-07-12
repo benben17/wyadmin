@@ -232,6 +232,7 @@ class ContractController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'save_type' => 'required|in:0,1', // 0 只保存 1 保存并提交
             'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
             'sign_date' => 'required|date',
             'start_date' => 'required|date',
@@ -249,6 +250,11 @@ class ContractController extends BaseController
             'deposit_bill' => 'array'
         ]);
         $DA = $request->toArray();
+        if ($DA['save_type']) {
+            $DA['contract_state'] = 1;
+        } else {
+            $DA['contract_state'] = 0;
+        }
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
