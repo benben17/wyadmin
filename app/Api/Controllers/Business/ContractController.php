@@ -244,7 +244,7 @@ class ContractController extends BaseController
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
-            'bills' => 'array',
+            'fee_bill' => 'array',
         ]);
         $DA = $request->toArray();
         $contractId = 0;
@@ -278,7 +278,7 @@ class ContractController extends BaseController
                     }
                 }
                 // 保存合同账单
-                $contractService->saveContractBill($contract['bills'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                $contractService->saveContractBill($contract['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $contractService->contractLog($contract, $user);
                 $contractId = $contract['id'];
             }, 2);
@@ -370,7 +370,8 @@ class ContractController extends BaseController
             'contract_room' => 'array',
             'save_type' => 'required|numeric|in:0,1',
             'free_list' => 'array',
-            'bill_rule' => 'array'
+            'bill_rule' => 'array',
+            'fee_bill' => 'array'
         ]);
         $DA = $request->toArray();
         $res = ContractModel::select('contract_state')->find($DA['id']);
@@ -411,7 +412,7 @@ class ContractController extends BaseController
                     $ruleService = new BillRuleService;
                     $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
-
+                $contractService->saveContractBill($contract['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 $res = $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
