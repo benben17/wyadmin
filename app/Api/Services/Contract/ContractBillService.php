@@ -48,7 +48,8 @@ class ContractBillService
     while ($i < $billNum) {
       $period  = $rule['pay_method'];
       $bill[$i]['fee_type'] = $rule['fee_type'];
-      $bill[$i]['price'] = $rule['unit_price'] . $rule['unit_price_label'];
+      $bill[$i]['price'] = $rule['unit_price'];
+      $bill[$i]['unit_price_label']  = $rule['unit_price_label'];
       if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
         $startDate = formatYmd($rule['start_date']);
         $bill[$i]['charge_date'] = formatYmd($rule['start_date']);
@@ -109,7 +110,8 @@ class ContractBillService
     $startDate = formatYmd($rule['start_date']);
     while (strtotime($startDate) < strtotime($rule['end_date'])) {
       $bill[$i]['type'] = $type;
-      $bill[$i]['price'] = $rule['unit_price'] . $rule['unit_price_label'];
+      $bill[$i]['price'] = $rule['unit_price'];
+      $bill[$i]['unit_price_label']  = $rule['unit_price_label'];
       $bill[$i]['start_date'] = $startDate;
       // Log::error($startDate);
       $bill[$i]['charge_date'] = formatYmd(formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, $rule['ahead_pay_month'])))));
@@ -200,6 +202,7 @@ class ContractBillService
         Log::error($v['type'] . "---------" . $type);
         if ($v['type'] == $type) {
           $bill[$i]['type']       = $type;
+          $bill[$i]['price']     = isset($v['price']) ? $v['price'] : 0.00;
           $bill[$i]['amount']     = isset($v['amount']) ? $v['amount'] : 0.00;
           $bill[$i]['charge_date'] = formatYmd($v['start_date']);
           $bill[$i]['start_date'] = formatYmd($v['start_date']);
