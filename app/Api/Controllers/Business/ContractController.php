@@ -513,9 +513,10 @@ class ContractController extends BaseController
             $data['fee_bill']  = $fee_list;
         }
         if ($contract['deposit_rule']) {
+            $data['deposit_bill'] = array();
             $deospitBill = $billService->createDepositBill($contract['deposit_rule'], $this->uid);
             if ($deospitBill) {
-                $data['deposit_bill'] = $deospitBill;
+                array_push($data['deposit_bill'], $deospitBill);
             }
         }
 

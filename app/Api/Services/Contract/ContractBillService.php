@@ -232,86 +232,67 @@ class ContractBillService
    * @param    string     $billType [description]
    * @return   [type]               [description]
    */
-  public function createBillByzhangqi($DA, $billType = "rental")
+  public function createBillByzhangqi($DA, $rule, $billType = "rental")
   {
     $i = 0;
     $data['total'] = 0;
     $period  = $DA['period'];
     // $startDate = $DA['startDate'];
-    $totalFreeNum = $this->freeCount($DA);    // 获取免租总时长
     $freeType = $DA['free_type'];
-    if ($freeType != 1) {
-      $totalFreeNum = sprintf("%.6f", ($totalFreeNum / (365 / 12)));
-    }
-    Log::info('total_free_num' . $totalFreeNum);
-    // $remainder = $freeNum % $period; // 取余数，计算最后一个账期减多少个月
-    $remainder = sprintf("%.6f", fmod(($DA['lease_term'] - $totalFreeNum), $period));
-    if ($remainder == 0) {
-      $remainder = 0;
-    } else {
-      $remainder = $period - $remainder;
-    }
+
     $ceil = ceil($DA['lease_term'] / $period);
     $bill = array();
 
     while ($i <= $ceil) {
-      // $bill[$i]['price'] = numFormat($DA['price'])." 元/㎡·天";
-      $bill[$i]['price'] = numFormat($DA['price']) . $this->priceUnit($DA['room_type'], $DA['price_type']);
+      $bill[$i]['type'] = 1;
+      $bill[$i]['fee_type'] = $rule['fee_type'];
+      $bill[$i]['price'] = numFormat($rule['unit_price']) . $rule['unit_price_label'];
       if ($i == 0) {
         // $chargeDate  = $DA['startDate'];
         $startDate = $DA['startDate'];
         $bill[$i]['charge_date'] = $DA['startDate'];
       } else {
         $startDate = $endDate;
-        $chargeDate = getPreYmd($endDate, $DA['ahead_pay_month']);
-        $bill[$i]['charge_date'] = date("Y-m-" . $DA['billDay'], strtotime($chargeDate));
+        $chargeDate = getPreYmd($endDate, $rule['ahead_pay_month']);
+        $bill[$i]['charge_date'] = date("Y-m-" . $rule['bill_day'], strtotime($chargeDate));
       }
 
       $endDate = getNextYmd($startDate, $period);
       if (!empty($DA['free_list'])) {
         if ($freeType == 1) { // 免租类型为1 的时候 按月免租
-          $free = $this->endDateByMonth($startDate, $period, $DA['free_list'], 0, $DA['endDate']);
+          $free = $this->endDateByMonth($startDate, $period, $DA['free_list'], 0, $rule['end_date']);
           $endDate = $free['end_date'];
           Log::info('$free[free_num]' . $free['free_num']);
-          if ($billType == "rental") { //管理费不免，有免租期要加上
-            $bill[$i]['amount'] = numFormat($DA['monthAmount'] * $period);
-            if ($free['free_num'] > 0) {
-              $bill[$i]['remark'] = $free['remark'];
-            }
-          } else { // 管理费不免 要加上免租时间的 管理费 账单周期+ 免租时间（月）
-            $bill[$i]['amount'] = numFormat($DA['monthAmount'] * ($period + $free['free_num']));
+          $bill[$i]['amount'] = numFormat($DA['month_amt'] * $period);
+          if ($free['free_num'] > 0) {
+            $bill[$i]['remark'] = $free['remark'];
           }
         } else if ($freeType == 2) {
           // 按天免租 获取免租后账单的结束日期
           // 开始时间 周期 免租列表 0 合同结束时间
-          $free = $this->endDateByDays($startDate, $period, $DA['free_list'], 0, $DA['endDate']);
+          $free = $this->endDateByDays($startDate, $period, $DA['free_list'], 0, $rule['end_date']);
           // 天转换成月
-          $free['free_num'] = sprintf("%.4f", ($free['free_num'] / 30.5));
+          // $free['free_num'] = sprintf("%.4f", ($free['free_num'] / (365 / 12)));
           Log::info('$free[free_num]' . $free['free_num']);
           $endDate = $free['end_date'];
-          if ($billType == "rental") {
-            $bill[$i]['amount'] = numFormat($DA['monthAmount'] * $period);
-            if ($free['free_num'] > 0) {
-              $bill[$i]['remark'] = $free['remark'];
-            }
-          } else { // 管理费不免，有免租期要加上 帐期内的管理费。加 免租天数* 管理费日单价
-            $bill[$i]['amount'] = numFormat($DA['monthAmount'] * ($period + $free['free_num']));
+          $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period);
+          if ($free['free_num'] > 0) {
+            $bill[$i]['remark'] = $free['remark'];
           }
         }
       } else { // 免租列表为空的时候正常计算
-        $bill[$i]['amount'] = numFormat($DA['monthAmount'] * $period);
+        $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period);
       }
-
       $bill[$i]['start_date'] = $startDate;
-      $bill[$i]['type'] = $DA['fee_type'];
-      if ($endDate >= $DA['endDate']) {  //如果账单结束日期大于或者等于合同日期的时候 处理最后一个账单 并跳出
-        $bill[$i]['end_date'] = $DA['endDate'];   // 结束日期为合同结束日期
+      if ($endDate >= $rule['end_date']) {  //如果账单结束日期大于或者等于合同日期的时候 处理最后一个账单 并跳出
+        $bill[$i]['end_date'] = $rule['endDate'];   // 结束日期为合同结束日期
+        // 按月 最后一个帐期 总金额 - 之前账单金额
         if ($freeType == 1) {
-          // 按月 最后一个帐期 一个帐期的月数 减去免租期的月（remainder 除以 帐期取余数） 在乘以 月租金
-          $bill[$i]['amount'] = numFormat($DA['monthAmount'] * ($period - $remainder));
-        } else {
-          // 按天。不计算是否跨帐期 直接减肥所有的免租的天数，最后一个帐期的金额可能为负数，需要手工更新
-          $bill[$i]['amount'] = numFormat($DA['monthAmount'] * ($period - $remainder));
+          $freeMonth = $free['free_num'];
+          $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeMonth));
+        } else { // 按天免租
+          // 
+          $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period - $free['free_num']);
         }
         $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
         $data['total'] += $bill[$i]['amount'];
@@ -325,6 +306,7 @@ class ContractBillService
       $i++;
     }
     $data['bill'] = $bill;
+    $data['fee_type'] = getFeeNameById($rule['fee_type'])['fee_name'];
     return $data;
   }
 
@@ -468,7 +450,7 @@ class ContractBillService
    *
    * @return void
    */
-  private function endDateByMonth($startDate, $period, $freeList, $months, $signEndDate, $freeRemark = "")
+  private function endDateByMonth(String $startDate, $period, $freeList, int $months, $signEndDate, $freeRemark = "")
   {
 
     if ($period == 0) {
@@ -477,16 +459,6 @@ class ContractBillService
       $endDate = getNextYmd($startDate, $period);
     }
     $endDate = getNextYmd($endDate, $months);
-
-    $free = explode(".", $months);
-    // 免租是小数的
-    if (sizeof($free) > 1 && $free[1] > 0) {
-      $intger = intval($months); //整数bai部du分zhi
-      $month  = $months - $intger;
-      $days   = round((365 / 12) * $month);
-      $endDate = getNextYmdByDay($endDate, $days);
-    }
-
     $free_num = 0;
     foreach ($freeList as $k => &$v) {
       if (strtotime($v['start_date']) >= strtotime($startDate) && strtotime($v['start_date']) < strtotime($endDate) && strtotime($endDate) < strtotime($signEndDate)) {
