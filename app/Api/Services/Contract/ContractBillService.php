@@ -71,8 +71,8 @@ class ContractBillService
         $bill[$i]['amount'] = numFormat($lastPeriod * $rule['month_amt']);
       }
       // 如有免租，账单期内减免
-      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
-        $free = $this->freeByMonth($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $contract['free_list']) {
+        $free = $this->freeRental($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
           $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
           $bill[$i]['remark'] = $free['remark'];
@@ -135,8 +135,8 @@ class ContractBillService
         // Log::error($days . "最后一期天数");
         $bill[$i]['amount'] = numFormat($rule['month_amt'] * $leaseTerm - $data['total']);
       }
-      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && !$contract['free_list']) {
-        $free = $this->freeByMonth($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $contract['free_list']) {
+        $free = $this->freeRental($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
           $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
           $bill[$i]['remark'] = $free['remark'];
@@ -361,7 +361,7 @@ class ContractBillService
    * @param string $freeRemark
    * @return void
    */
-  private function freeByMonth($freeList, $rentRule, String $billStart, String $billEnd, $freeType, $uid)
+  private function freeRental($freeList, $rentRule, String $billStart, String $billEnd, $freeType, $uid)
   {
     $free_num = 0;
     $free_amt = 0.00;
@@ -442,7 +442,7 @@ class ContractBillService
    *
    * @return void
    */
-  private function freeCount($DA)
+  private function freeCount($DA): int
   {
     $freeNum = 0;
     foreach ($DA['free_list'] as $k => $v) {
@@ -452,5 +452,54 @@ class ContractBillService
       }
     }
     return $freeNum;
+  }
+
+  /**
+   * 顺延账期 ，免租
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-12
+   * @param [type] $startDate
+   * @param [type] $period
+   * @param [type] $freeList
+   * @param [type] $months
+   * @param [type] $signEndDate
+   * @param string $freeRemark
+   *
+   * @return void
+   */
+  private function endDateByMonth($startDate, $period, $freeList, $months, $signEndDate, $freeRemark = "")
+  {
+
+    if ($period == 0) {
+      $endDate = $startDate;
+    } else {
+      $endDate = getNextYmd($startDate, $period);
+    }
+    $endDate = getNextYmd($endDate, $months);
+
+    $free = explode(".", $months);
+    // 免租是小数的
+    if (sizeof($free) > 1 && $free[1] > 0) {
+      $intger = intval($months); //整数bai部du分zhi
+      $month  = $months - $intger;
+      $days   = round((365 / 12) * $month);
+      $endDate = getNextYmdByDay($endDate, $days);
+    }
+
+    $free_num = 0;
+    foreach ($freeList as $k => &$v) {
+      if (strtotime($v['start_date']) >= strtotime($startDate) && strtotime($v['start_date']) < strtotime($endDate) && strtotime($endDate) < strtotime($signEndDate)) {
+        Log::error($startDate . "开始时间" . $endDate . "结束时间" . '合同结束时间：' . $signEndDate);
+        $free_num   += $v['free_num'];
+        $months     += $v['free_num'];
+        $freeRemark .= "免租" . $v['free_num'] . "个月|开始时间" . $v['start_date'];
+      }
+    }
+    // Log::info(response()->json(DB::getQueryLog()));
+    if ($free_num == 0) {
+      return ['end_date' => $endDate, 'free_num' => $months, 'remark' => $freeRemark];
+    }
+    return $this->endDateByMonth($endDate, 0, $freeList, $free_num, $signEndDate, $freeRemark);
   }
 }

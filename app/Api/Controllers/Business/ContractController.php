@@ -502,10 +502,13 @@ class ContractController extends BaseController
             }
             array_push($fee_list, $feeList);
         }
-        $deospitBill = $billService->createDepositBill($contract['bill_rule'], $this->uid);
-        if ($deospitBill) {
-            array_push($fee_list, $deospitBill);
+        if ($contract['deposit_rule']) {
+            $deospitBill = $billService->createDepositBill($contract['deposit_rule'], $this->uid);
+            if ($deospitBill) {
+                array_push($fee_list, $deospitBill);
+            }
         }
+
         return $this->success($fee_list);
     }
     /**
