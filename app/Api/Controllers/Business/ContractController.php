@@ -66,6 +66,11 @@ class ContractController extends BaseController
      *          property="sign_end_date",
      *          type="date",
      *          description="签订结束日期"
+     *       ),
+     *       @OA\Property(
+     *          property="contract_state",
+     *          type="string",
+     *          description="合同状态 0 待提交 1 待审核 2 已审核执行合同 98 退租 99  作废"
      *       )
      *
      *     ),

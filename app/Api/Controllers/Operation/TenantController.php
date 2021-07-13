@@ -80,6 +80,7 @@ class TenantController extends BaseController
         $map['type'] = 2;
         DB::enableQueryLog();
         $result = $this->tenantService->tenantModel()->where($map)
+            ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -291,7 +292,7 @@ class TenantController extends BaseController
         ]);
         DB::enableQueryLog();
         $data = $this->tenantService->tenantModel()
-            ->with('tenantContact')
+            // ->with('tenantContact')
             ->with('contract')
             ->with('tenantShare')
             ->with('invoice')

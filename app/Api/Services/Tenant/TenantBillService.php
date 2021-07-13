@@ -42,7 +42,7 @@ class TenantBillService
   public function saveBillDetail($DA, $user)
   {
     try {
-      $billDetail = $this->BillDetailModel();
+      $billDetail = $this->billDetailModel();
       $billDetail->company_id  = $user['company_id'];
       $billDetail->proj_id     = $DA['proj_id'];
       $billDetail->tenant_id   = $DA['tenant_id'];
@@ -71,10 +71,14 @@ class TenantBillService
    *
    * @return void
    */
-  public function batchSaveBillDetail(array $DA, $user, int $projId)
+  public function batchSaveBillDetail($DA, $user, int $projId)
   {
+    if (!is_array($DA)) {
+      $DA = $DA->toArray();
+    }
     $data = $this->formatBillDetail($DA, $user, $projId);
-    return $this->BillDetailModel()->addAll($data);
+    Log::error('格式化账单成功');
+    return $this->billDetailModel()->addAll($data);
   }
 
   /** 
@@ -83,7 +87,7 @@ class TenantBillService
   public function saveBill($DA)
   {
     try {
-      $bill = $this->BillModel();
+      $bill = $this->billModel();
       $bill->tenant_id   = $DA['tenant_id'];
       $bill->tenant_name = $DA['tenant_name'];
       $bill->type        = $DA['type']; // 1 收款 2 付款
@@ -112,7 +116,7 @@ class TenantBillService
   public function billAudit($DA)
   {
     try {
-      $bill = $this->BillModel()->find($DA['id']);
+      $bill = $this->billModel()->find($DA['id']);
       if (!$bill->audit_uid) {
         Log::error("已审核的账单不允许重复审核");
         return false;
@@ -158,22 +162,32 @@ class TenantBillService
   private function formatBillDetail(array $DA, $user, int $projId)
   {
     $data = array();
-    if ($DA && $user) {
-      foreach ($DA as $k => &$v) {
-        $data[$k]['company_id']  = $user['company_id'];
-        $data[$k]['proj_id']     = $projId;
-        $data[$k]['contract_id'] = $v['contract_id'];
-        $data[$k]['tenant_id']   = $v['tenant_id'];
-        $data[$k]['tenant_name'] = $v['tenant_name'];
-        $data[$k]['type']        = $v['type']; // 1 费用 2 押金
-        $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
-        $data[$k]['amount']      = $v['amount'];
-        $data[$k]['c_uid']       = $user['id'];
-        $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+    try {
+      if ($DA && $user) {
+        foreach ($DA as $k => &$v) {
+          $data[$k]['company_id']  = $user['company_id'];
+          $data[$k]['proj_id']     = $projId;
+          $data[$k]['contract_id'] = $v['contract_id'];
+          $data[$k]['tenant_id']   = $v['tenant_id'];
+          if (!isset($v['tenant_name']) || !$v['tenant_name']) {
+            $tenant = TenantModel::select('name')->find($v['tenant_id']);
+            $tenantName = $tenant['name'];
+          } else {
+            $tenantName = $v['tenant_name'];
+          }
+          $data[$k]['tenant_name'] = $tenantName;
+          $data[$k]['type']        = $v['type']; // 1 费用 2 押金
+          $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
+          $data[$k]['amount']      = $v['amount'];
+          $data[$k]['bill_date']   = $v['charge_date'];
+          $data[$k]['c_uid']       = $user['id'];
+          $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+        }
       }
-    } else {
-      return false;
+      return $data;
+    } catch (Exception $th) {
+      Log::error("格式化，租户账单失败" . $th->getMessage());
+      throw $th;
     }
-    return $data;
   }
 }

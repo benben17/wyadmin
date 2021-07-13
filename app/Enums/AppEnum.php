@@ -29,4 +29,6 @@ final class AppEnum extends Enum
   const workorderRate     = 5;   //评价
 
   const rentFeeType       = 101;    // 租金规则
+
+  const TenantType = 2;
 }

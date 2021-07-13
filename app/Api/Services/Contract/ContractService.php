@@ -130,22 +130,22 @@ class ContractService
    */
   public function saveLog($DA)
   {
-    $contractLog = new ContractLogModel;
-    $contractLog->contract_id = $DA['id'];
-    $contractLog->title       = $DA['title'];
-    // $contractLog->type = isset($DA['type'];
-    $contractLog->contract_state = $DA['contract_state'];
-    if (isset($DA['audit_state']) && !empty($DA['audit_state'])) {
-      $contractLog->audit_state = $DA['audit_state'];
-    };
-    $contractLog->remark      = $DA['remark'];
-    $contractLog->c_uid       = $DA['c_uid'];
-    $contractLog->c_username  = $DA['c_username'];
-    $res = $contractLog->save();
-    if ($res) {
-      return $contractLog;
-    } else {
-      return $res;
+    try {
+      $contractLog = new ContractLogModel;
+      $contractLog->contract_id = $DA['id'];
+      $contractLog->title       = $DA['title'];
+      // $contractLog->type = isset($DA['type'];
+      $contractLog->contract_state = $DA['contract_state'];
+      if (isset($DA['audit_state']) && !empty($DA['audit_state'])) {
+        $contractLog->audit_state = $DA['audit_state'];
+      };
+      $contractLog->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+      $contractLog->c_uid       = $DA['c_uid'];
+      $contractLog->c_username  = $DA['c_username'];
+      $contractLog->save();
+      return true;
+    } catch (Exception $th) {
+      Log::error("保存合同日志失败" . $th->getMessage());
     }
   }
 
@@ -227,15 +227,14 @@ class ContractService
         $contract->contract_state = $DA['contract_state'];
         $contract->save();
         // 写入合同日志
-        $DA['remark'] .= $msgContent;
+        $DA['remark'] = $msgContent;
         $this->saveLog($DA);
         // 给合同提交人发送系统通知消息
-        $msgContent .= '</br>' . $DA['remark'];
         $this->sendMsg($msgTitle, $msgContent, $user, $contract['belong_uid']);
       });
       return true;
     } catch (Exception $e) {
-      log::error("audit" . $e->getMessage());
+      log::error("audit" . $e);
       return false;
     }
   }
@@ -250,19 +249,18 @@ class ContractService
    */
   public function contractLog($DA, $user)
   {
-    if ($DA['contract_state'] == 1) {
-      $DA['title'] = "待审核";
-      $DA['remark'] = $user->realname . '在' . nowTime() . '提交' . $DA['title'] . "等待审核";
-    } else {
-      $DA['title'] = "保存合同";
-      $DA['remark'] = $user->realname . '在' . nowTime() . $DA['title'];
-    }
-    $DA['c_uid'] = $user->id;
-    $DA['c_username'] = $user->realname;
-    // $DA['type'] = 2;
-
     try {
-      $res = $this->saveLog($DA);
+      if ($DA['contract_state'] == 1) {
+        $DA['title'] = "待审核";
+        $DA['remark'] = $user->realname . '在' . nowTime() . '提交' . $DA['title'] . "等待审核";
+      } else {
+        $DA['title'] = "保存合同";
+        $DA['remark'] = $user->realname . '在' . nowTime() . $DA['title'];
+      }
+      $DA['c_uid'] = $user->id;
+      $DA['c_username'] = $user->realname;
+      // $DA['type'] = 2;
+      $this->saveLog($DA);
       return true;
     } catch (Exception $e) {
       throw new Exception("合同日志保存失败", 1);
@@ -370,7 +368,7 @@ class ContractService
       $DA['receive_uid']  = $receiveUid;
       $msg->contractMsg($DA);
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("发送通知消息失败" . $e->getMessage());
     }
   }
 
