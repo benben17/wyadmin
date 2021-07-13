@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -80,6 +81,13 @@ class BillDetailController extends BaseController
     } else {
       $order = 'desc';
     }
+
+    // $ok =  FeeType::where('type', 1)
+    //   ->with('feeStat')
+    //   ->get();
+
+    // return $ok;
+
     $data = $this->billService->billDetailModel()
       ->where($map)
       ->where('type', AppEnum::feeType)

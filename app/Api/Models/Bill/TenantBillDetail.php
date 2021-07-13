@@ -17,7 +17,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at'];
 
-  protected $appends = ['fee_name', 'c_user', 'proj_name', 'status_label'];
+  protected $appends = ['fee_name', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
 
   public function getFeeNameAttribute()
   {
@@ -28,6 +28,11 @@ class TenantBillDetail extends Model
   {
     $user = getUserByUid($this->attributes['c_uid']);
     return $user['realname'];
+  }
+  public function getUnreceiveAmountAttribute()
+  {
+
+    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount']);
   }
   public function getProjNameAttribute()
   {

@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Company;
 
+use App\Api\Models\Bill\TenantBillDetail;
 use Illuminate\Database\Eloquent\Model;
 // use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -32,5 +33,9 @@ class FeeType extends Model
         return '年费用';
       }
     }
+  }
+  public function feeStat()
+  {
+    return $this->hasOne(TenantBillDetail::class, 'fee_type', 'id');
   }
 }
