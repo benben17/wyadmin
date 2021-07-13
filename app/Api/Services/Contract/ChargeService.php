@@ -41,7 +41,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
-      $charge->charge_type = isset($BA['charge_type']) ? $BA['charge_type'] : 1;
+      $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 1;
       $charge->charge_date = $BA['charge_date'];
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
       $chargeRes = $charge->save();

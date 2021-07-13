@@ -10,20 +10,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  *
  */
-class TenantBill extends Model
+class ReceiveBill extends Model
 {
 
   use SoftDeletes;
-  protected $table = 'bse_tenant_bill';
+  protected $table = 'bse_recevie_bill';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id'];
 
 
   /** 账单详细 */
-  public function billDetail()
+  public function tenantBillDetail()
   {
     return $this->hasMany(TenantBillDetail::class, 'bill_id', 'id');
   }
+
 
   protected static function boot()
   {

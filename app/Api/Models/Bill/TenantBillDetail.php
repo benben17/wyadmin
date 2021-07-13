@@ -34,11 +34,20 @@ class TenantBillDetail extends Model
     $proj = getProjById($this->attributes['proj_id']);
     return $proj['proj_name'];
   }
+
+
+  public function receiveBill()
+  {
+    return $this->hasMany(ReceiveBill::class, 'bill_id', 'id');
+  }
+
+
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;
   }
+
 
   protected static function boot()
   {

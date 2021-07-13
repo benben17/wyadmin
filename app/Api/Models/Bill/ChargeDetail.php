@@ -7,7 +7,7 @@ use App\Api\Scopes\CompanyScope;
 
 class ChargeDetail extends Model
 {
-  protected $table = 'bse_charge_detail';
+  protected $table = 'bse_charge_log';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id'];
   protected $appends = ['type_label'];

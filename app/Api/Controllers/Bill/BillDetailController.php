@@ -57,7 +57,7 @@ class BillDetailController extends BaseController
    * )
    */
 
-  public function billDetailList(Request $request)
+  public function list(Request $request)
   {
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
@@ -82,6 +82,7 @@ class BillDetailController extends BaseController
     }
     $data = $this->billService->billDetailModel()
       ->where($map)
+      ->where('type', AppEnum::feeType)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);

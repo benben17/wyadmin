@@ -31,4 +31,7 @@ final class AppEnum extends Enum
   const rentFeeType       = 101;    // 租金规则
 
   const TenantType = 2;
+
+  const feeType  = 1;
+  const depositFeeType = 2; // 押金类型
 }
