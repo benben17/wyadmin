@@ -79,23 +79,29 @@ class TenantController extends BaseController
         } else {
             $order = 'desc';
         }
-        $map['type'] = 2;
+
         DB::enableQueryLog();
-        $result = $this->tenantService->tenantModel()->where($map)
+
+        $result = $this->tenantService->tenantModel()
+            ->where($map)
             ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
+                $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
-            ->with('rooms')
             ->withCount('maintain')
+            ->withCount('contract')
+            ->with(['contractStat'  => function ($q) {
+                $q->select(DB::Raw('sum(sign_area) total_area,tenant_id'));
+                $q->where('room_type', 1);
+                $q->groupBy('tenant_id');
+            }])
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
 
         $data = $this->handleBackData($result);
-        // return $data;
-
         return $this->success($data);
     }
 
@@ -169,7 +175,7 @@ class TenantController extends BaseController
                     $business = $info->save($businessInfo, 1);   // 1 新增
                     if ($business) {
                         $businessData['business_id'] = $business->id;
-                        $update = $this->tenantService->tenantModel()->whereId($tenantId)->update($businessData);
+                        $this->tenantService->tenantModel()->whereId($tenantId)->update($businessData);
                     }
                 }
             });

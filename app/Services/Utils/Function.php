@@ -37,7 +37,7 @@ function companyConfig($id)
  * @return   [type]                []
  */
 
-function formatContact($contacts, $parentId, $userinfo, $type = 1)
+function formatContact($contacts, $parentId, $userinfo, $type = 1): array
 {
     if (empty($contacts) || empty($parentId) || empty($userinfo)) {
         return false;

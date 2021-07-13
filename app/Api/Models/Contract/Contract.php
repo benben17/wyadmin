@@ -31,6 +31,11 @@ class Contract extends Model
     return $this->hasMany(ContractFreePeriod::class, 'contract_id', 'id');
   }
 
+  public function tenant()
+  {
+    return $this->belongsTo(Tenant::class, 'id', 'tenant_id');
+  }
+
   public function project()
   {
     return $this->hasOne('App\Api\Models\Project', 'id', 'proj_id');
