@@ -93,8 +93,11 @@ class TenantController extends BaseController
             ->withCount('maintain')
             ->withCount('contract')
             ->with(['contractStat'  => function ($q) {
-                $q->select(DB::Raw('sum(sign_area) total_area,tenant_id'));
+                $q->select(DB::Raw('id,sum(sign_area) total_area,tenant_id '));
                 $q->where('room_type', 1);
+                $q->wherehas('billRule', function ($subQuery) {
+                    $subQuery->where('fee_type', AppEnum::rentFeeType);
+                });
                 $q->groupBy('tenant_id');
             }])
             ->orderBy($orderBy, $order)
@@ -407,47 +410,6 @@ class TenantController extends BaseController
             return $this->success("删除分摊租户成功");
         } else {
             return $this->error("删除分摊租户失败");
-        }
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/operation/tenant/sync",
-     *     tags={"租户"},
-     *     summary="招商信息同步到租户",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"contract_id"},
-     *       @OA\Property(
-     *          property="contract_id",
-     *          type="int",
-     *          description="招商合同id"
-     *       )
-     *     ),
-     *       example={"contract_id":1}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-
-    public function tenantSync(Request $request)
-    {
-        $validatedData = $request->validate([
-            'contract_id' => 'required|numeric|gt:0', // 招商合同id
-        ]);
-
-        $res = $this->tenantService->tenantSync($request->contract_id, $this->user);
-        if ($res) {
-            return $this->success("同步完成。");
-        } else {
-            return $this->error("同步失败！");
         }
     }
 }

@@ -213,7 +213,7 @@ class ContractService
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "审核完成。";
           $msgTitle = '合同审核通过';
           // 同步押金信息到 tenant_bill_detail
-          $bills = ContractBill::where('contract_id', $contract['id'])->where('type', 2)->get();
+          $bills = ContractBill::where('contract_id', $contract['id'])->get();
           if ($bills) {
             $tenantBillService  = new TenantBillService;
             $tenantBillService->batchSaveBillDetail($bills, $user, $contract['proj_id']);

@@ -94,7 +94,7 @@ class Contract extends Model
   public function getRentalPriceAttribute()
   {
     if ($this->getRental()) {
-      return $this->getRental()->unit_price . $this->getRental()->unit_price_label;
+      return $this->getRental()->unit_price;
     }
     return 0.00;
   }
