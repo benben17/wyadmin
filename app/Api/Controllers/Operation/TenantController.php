@@ -9,7 +9,9 @@ use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Tenant\BaseInfo;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Services\CustomerInfoService;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantService;
@@ -85,6 +87,7 @@ class TenantController extends BaseController
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
+            ->with('rooms')
             ->withCount('maintain')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
@@ -248,7 +251,7 @@ class TenantController extends BaseController
                     $businessInfo = $DA['business_info'];
                     $businessInfo['business_id'] = $DA['business_id'];
                     $businessInfo['name'] = $DA['name'];
-                    $info = new CustomerInfoService;
+                    $info = new BaseInfoService;
                     $business = $info->save($businessInfo, 2);
                 }
             });
@@ -290,25 +293,19 @@ class TenantController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|min:1',
         ]);
-        DB::enableQueryLog();
+
         $data = $this->tenantService->tenantModel()
-            // ->with('tenantContact')
             ->with('contract')
             ->with('tenantShare')
             ->with('invoice')
+            ->with('business')
             ->find($request->id);
+
+        DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
         if ($data) {
-            $data = $data->toArray();
-            $info = new BaseInfoService;
-            $business_info  = $info->getById($data['business_id']);
-            if (empty($business_info)) {
-                $business_info = (object)[];
-            }
-            $data['business_info'] = $business_info;
-            if (!$data['invoice']) {
-                $data['invoice'] = (object)array();
-            }
+            $contractService = new ContractService;
+            $data['rooms'] = $contractService->getRoomsByTenantId($data['id']);
         }
         return $this->success($data);
     }

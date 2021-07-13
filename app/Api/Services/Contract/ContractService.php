@@ -297,24 +297,7 @@ class ContractService
     }
   }
 
-  /**
-   * [getContractRoomByCusId description]
-   * @Author   leezhua
-   * @DateTime 2020-07-21
-   * @param    [type]     $contractId [description]
-   * @return   [type]                 [description]
-   */
-  public function getContractRoomByCusId($contractId)
-  {
-    $room = ContractRoomModel::selectRaw('concat_ws("-", build_no, floor_no) as build_floor, group_concat(room_no) room_no')
-      ->where('contract_id', $contractId)
-      ->groupBy('contract_id')->first();
-    if ($room) {
-      return $room->toArray();
-    } else {
-      return array();
-    }
-  }
+
   /**
    * [getRoomByContractId description]
    * @Author   leezhua
@@ -505,5 +488,21 @@ class ContractService
       throw $e;
       return false;
     }
+  }
+
+  /**
+   * 通过租户id获取合同房间
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-13
+   * @param [type] $tenantId
+   *
+   * @return void
+   */
+  public function getRoomsByTenantId($tenantId)
+  {
+    return ContractRoomModel::whereHas('contract', function ($q) use ($tenantId) {
+      $q->where('tenant_id', $tenantId);
+    })->get();
   }
 }

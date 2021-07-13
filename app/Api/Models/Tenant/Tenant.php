@@ -4,6 +4,7 @@ namespace App\Api\Models\Tenant;
 
 use App\Api\Models\Common\Maintain;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Contract\ContractRoom;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Project;
@@ -72,10 +73,7 @@ class Tenant extends Model
   {
     return $this->hasMany(Remind::class, 'tenant_id', 'id');
   }
-  public function rooms()
-  {
-    return $this->hasMany(TenantRoom::class, 'tenant_id', 'id');
-  }
+
   public function extraInfo()
   {
     return $this->hasOne(ExtraInfo::class, 'tenant_id', 'id');
