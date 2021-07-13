@@ -17,7 +17,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at'];
 
-  protected $appends = ['fee_name', 'c_user', 'proj_name'];
+  protected $appends = ['fee_name', 'c_user', 'proj_name', 'status_label'];
 
   public function getFeeNameAttribute()
   {
@@ -33,6 +33,10 @@ class TenantBillDetail extends Model
   {
     $proj = getProjById($this->attributes['proj_id']);
     return $proj['proj_name'];
+  }
+  public function getStatusLabelAttribute()
+  {
+    return $this->attributes['status'] ?  '已结清' : "未结清";
   }
 
 

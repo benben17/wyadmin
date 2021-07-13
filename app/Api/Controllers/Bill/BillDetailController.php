@@ -9,9 +9,8 @@ use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Contract\ContractService;
+
 use App\Api\Services\Tenant\TenantBillService;
-use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
 /**
@@ -66,7 +65,9 @@ class BillDetailController extends BaseController
       $pagesize = config('export_rows');
     }
     $map = array();
-
+    if ($request->tenant_name) {
+      $map['tenant_name'] = $request->tenant_name;
+    }
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -82,6 +83,10 @@ class BillDetailController extends BaseController
     $data = $this->billService->billDetailModel()
       ->where($map)
       ->where('type', AppEnum::feeType)
+      ->where(function ($q) use ($request) {
+        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+      })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
