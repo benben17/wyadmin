@@ -93,6 +93,7 @@ class TenantBillService
       $bill->type        = $DA['type']; // 1 收款 2 付款
       $bill->fee_type    = $DA['fee_type']; // 费用类型
       $bill->bank_id      = $DA['bank_id'];
+
       $bill->charge_amount = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;;
       $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
@@ -179,8 +180,9 @@ class TenantBillService
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
           $data[$k]['amount']      = $v['amount'];
-          $data[$k]['bill_date']   = $v['charge_date'];
+          $data[$k]['charge_date'] = $v['charge_date'];
           $data[$k]['c_uid']       = $user['id'];
+          $data[$k]['duration_date'] = isset($DA['bill_date']) ? $DA['bill_date'] : "";  // 收款区间
           $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
         }
       }

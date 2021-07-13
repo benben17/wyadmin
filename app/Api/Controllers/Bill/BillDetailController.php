@@ -29,7 +29,6 @@ class BillDetailController extends BaseController
     }
     $this->company_id = getCompanyId($this->uid);
     $this->user = auth('api')->user();
-    $this->parent_type = AppEnum::Tenant;
     $this->billService = new TenantBillService;
   }
 
