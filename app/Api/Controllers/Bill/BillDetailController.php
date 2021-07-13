@@ -36,7 +36,7 @@ class BillDetailController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/detail/list",
+   *     path="/api/operation/tenant/bill/fee/list",
    *     tags={"费用"},
    *     summary="费用详细列表",
    *    @OA\RequestBody(

@@ -747,19 +747,6 @@ class ContractController extends BaseController
     }
 
 
-    private function formatBill($data, $tenantId, $contractId)
-    {
-        foreach ($data as $k => &$v) {
-            $v['tenant_id']    = $tenantId;
-            $v['contract_id'] = $contractId;
-            $v['company_id']  = $this->company_id;
-            $v['created_at'] = nowTime();
-            $v['remark'] = isset($v['remark']) ? $v['remark'] : "";
-        }
-        return $data;
-    }
-
-
     /**
      * 格式化合同
      * @Author   leezhua

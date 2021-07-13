@@ -28,8 +28,10 @@ class ContractRoom extends Model
 
   public function getContractNoAttribute()
   {
-    $contractId = $this->attributes['contract_id'];
-    return Contract::select('contract_no')->find($contractId)['contract_no'];
+    if (isset($this->attributes['contract_id'])) {
+      $contractId = $this->attributes['contract_id'];
+      return Contract::select('contract_no')->find($contractId)['contract_no'];
+    }
   }
 
   public function addAll(array $data)
