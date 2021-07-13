@@ -81,23 +81,37 @@ class BillDetailController extends BaseController
     } else {
       $order = 'desc';
     }
+    $map['type'] =  AppEnum::feeType;
 
-    // $ok =  FeeType::where('type', 1)
-    //   ->with('feeStat')
-    //   ->get();
 
-    // return $ok;
 
-    $data = $this->billService->billDetailModel()
+    $result = $this->billService->billDetailModel()
       ->where($map)
-      ->where('type', AppEnum::feeType)
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($data);
+
+    $feeStat =  FeeType::selectRaw('fee_name,id,type')->where('type', 1)
+      ->whereIn('company_id', getCompanyIds($this->uid))->get();
+
+    foreach ($feeStat as $k => &$v) {
+      $map['fee_type'] = $v['id'];
+      $count = $this->billService->billDetailModel()->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+        ->where($map)
+        ->where(function ($q) use ($request) {
+          $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+          $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        })->groupBy('fee_type')->first();
+      Log::error($count['total_amt']);
+      $v['total_amt'] =  $count['total_amt'] ? $count['total_amt'] : 0.00;
+      $v['receive_amt'] =  $count['receive_amt'] ? $count['receive_amt'] : 0.00;
+      $v['unreceive_amt'] = $count['total_amt'] - $count['receive_amt'];
+    }
+    $data = $this->handleBackData($result);
+    $data['stat'] = $feeStat;
     return $this->success($data);
   }
 }
