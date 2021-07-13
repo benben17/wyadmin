@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Models\Operation\Invoice as InvoiceModel;
 use App\Api\Models\Tenant\Invoice;
 use App\Api\Services\Company\VariableService;
 use App\Enums\AppEnum;
@@ -41,14 +40,11 @@ class TenantService
       $tenant->u_uid         = $user['id'];
       $tenant->name          = $DA['name'];
       $tenant->parent_id     = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
-      $tenant->checkin_time  = isset($DA['checkin_time']) ? $DA['checkin_time'] : "";
-      $tenant->heating_area  = isset($DA['heating_area']) ? $DA['heating_area'] : 0.00;
-      $tenant->heating_amount = isset($DA['heating_amount']) ? $DA['heating_amount'] : 0.00;
+      $tenant->checkin_date  = isset($DA['checkin_date']) ? $DA['checkin_date'] : "";
       $tenant->business_id   = isset($DA['business_id']) ? $DA['business_id'] : 0;  // 工商信息id
       $tenant->industry      = isset($DA['industry']) ? $DA['industry'] : "";  // 行业
       $tenant->level         = isset($DA['level']) ? $DA['level'] : "";  // 租户级别
       $tenant->worker_num    = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
-      // $tenant->pay_method    = isset($DA['pay_method']) ? $DA['pay_method'] : 0;  // 收款方式
       $tenant->nature        = isset($DA['nature']) ? $DA['nature'] : "";
       $tenant->remark        = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $tenant->save();
@@ -140,35 +136,6 @@ class TenantService
     }
   }
 
-
-
-  private function formatFree($DA, $user, $contractId)
-  {
-    $BA = array();
-    foreach ($DA as $k => $v) {
-      $BA[$k]['company_id'] = $user['company_id'];
-      $BA[$k]['c_uid']      = $user['id'];
-      $BA[$k]['created_at'] = nowTime();
-      $BA[$k]['tenant_id'] = $DA['tenant_id'];
-      $BA[$k]['contract_id'] = $contractId;
-      $BA[$k]['start_date'] = $DA['start_date'];
-      $BA[$k]['end_date']   = $DA['end_date'];
-      $BA[$k]['free_num']   = $DA['free_num'];
-      $BA[$k]['remark']   = isset($DA['remark']) ? $DA['remark'] : "";
-    }
-    return $BA;
-  }
-
-
-
-
-
-  /** 根据客户ID 获取客户发票信息 */
-  public function getInvoice($tenantId)
-  {
-    $invoice = InvoiceModel::where('tenant_id', $tenantId)->first();
-    return $invoice;
-  }
 
 
   /**

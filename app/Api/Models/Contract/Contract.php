@@ -88,20 +88,36 @@ class Contract extends Model
 
   public function getRentalPriceAttribute()
   {
-    $billRule = BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 101)->first();
-    if ($billRule) {
-      return $billRule->unit_price . $billRule->unit_price_label;
+    if ($this->getRental()) {
+      return $this->getRental()->unit_price . $this->getRental()->unit_price_label;
     }
     return 0.00;
   }
 
-  public function getManagementPriceAttribute()
+  public function getRentalMonthAmountAttribute()
   {
-    $billRule = BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 102)->first();
-    if ($billRule) {
-      return $billRule->unit_price . $billRule->unit_price_label;
+
+    if ($this->getRental()) {
+      return $this->getRental()->month_amt;
     }
     return 0.00;
+  }
+
+  private function getRental()
+  {
+    return BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 101)->first();
+  }
+  public function getManagementPriceAttribute()
+  {
+
+    if ($this->getMenage()) {
+      return $this->getMenage()->unit_price . $this->getMenage()->unit_price_label;
+    }
+    return 0.00;
+  }
+  private function getMenage()
+  {
+    return BillRule::where('contract_id', $this->attributes['id'])->where('fee_type', 102)->first();
   }
   protected static function boot()
   {

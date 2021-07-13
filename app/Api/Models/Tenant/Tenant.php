@@ -20,12 +20,12 @@ class Tenant extends Model
   protected $fillable = [];
   protected $hidden = ['updated_at', 'company_id', 'deleted_at'];
 
-  protected $appends = ['on_rent_label'];
+  protected $appends = ['status_label'];
 
-  public function getOnRentLabelAttribute()
+  public function getStatusLabelAttribute()
   {
-    if (isset($this->attributes['on_rent'])) {
-      $onRent = $this->attributes['on_rent'];
+    if (isset($this->attributes['status'])) {
+      $onRent = $this->attributes['status'];
       if ($onRent) {
         return '在租';
       } else {
@@ -48,7 +48,8 @@ class Tenant extends Model
   // 联系人
   public function contacts()
   {
-    return $this->hasMany('App\Api\Models\Common\Contact', 'parent_id', 'id')->where('parent_type', $this->parentType);
+    return $this->hasMany('App\Api\Models\Common\Contact', 'parent_id', 'id')
+      ->where('parent_type', $this->parentType);
   }
 
   // 工商信息
