@@ -36,7 +36,7 @@ class InvoiceController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/invoice/list",
+   *     path="/api/operation/tenant/invoice/list",
    *     tags={"发票"},
    *     summary="发票列表",
    *    @OA\RequestBody(
@@ -91,7 +91,7 @@ class InvoiceController extends BaseController
   }
   /**
    * @OA\Post(
-   *     path="/api/operation/invoice/add",
+   *     path="/api/operation/tenant/invoice/add",
    *     tags={"发票"},
    *     summary="发票新增",
    *    @OA\RequestBody(
@@ -145,7 +145,7 @@ class InvoiceController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/invoice/edit",
+   *     path="/api/operation/tenant/invoice/edit",
    *     tags={"发票"},
    *     summary="发票更新",
    *    @OA\RequestBody(
@@ -195,7 +195,7 @@ class InvoiceController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/invoice/show",
+   *     path="/api/operation/tenant/invoice/show",
    *     tags={"发票"},
    *     summary="发票查看",
    *    @OA\RequestBody(
