@@ -102,7 +102,7 @@ class Tenant extends Model
 
   public function tenantRooms()
   {
-    return $this->hasMany(tenantRoom::class, 'tenant_id', 'id');
+    return $this->hasMany(TenantRoom::class, 'tenant_id', 'id');
   }
   protected static function boot()
   {
