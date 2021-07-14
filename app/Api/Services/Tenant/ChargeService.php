@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Api\Services\Contract;
+namespace App\Api\Services\Tenant;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Bill\Charge;
+use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\ChargeDetail;
 
 class ChargeService
@@ -15,9 +16,9 @@ class ChargeService
     $model = new Charge;
     return $model;
   }
-  public function detailModel()
+  public function chargeBillRecord()
   {
-    $model = new ChargeDetail;
+    $model = new ChargeBillRecord;
     return $model;
   }
 
@@ -56,14 +57,15 @@ class ChargeService
 
   public function detailSave($DA, $user)
   {
-    $detail = $this->detailModel();
+    $detail = $this->chargeBillRecord();
     $detail->charge_id  = $DA['charge_id'];
     $detail->amount     = $DA['amount'];
     $detail->type       = $DA['type'];
-    $detail->bill_id    = isset($DA['bill_id']) ? $DA['bill_id'] : 0;
-    $detail->bill_name  = isset($DA['bill_name']) ? $DA['bill_name'] : "";
+    $detail->fee_type       = $DA['fee_type'];
+    $detail->bill_detail_id    = isset($DA['bill_detail_id']) ? $DA['bill_detail_id'] : 0;
     $detail->remark     = isset($DA['remark']) ? $DA['remark'] : "";
     $detail->c_uid      = $user['id'];
+    $detail->c_username = $user['realname'];
     $detail->u_uid      = $user['id'];
     $res = $detail->save();
     return $res;

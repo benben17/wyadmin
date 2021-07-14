@@ -5,9 +5,9 @@ namespace App\Api\Models\Bill;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 
-class ChargeDetail extends Model
+class ChargeBillRecord extends Model
 {
-  protected $table = 'bse_charge_log';
+  protected $table = 'bse_charge_bill_record';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id'];
   protected $appends = ['type_label'];

@@ -7,7 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Contract\ChargeService;
+use App\Api\Services\Tenant\ChargeService;
 
 class ChargeController extends BaseController
 {
@@ -37,11 +37,9 @@ class ChargeController extends BaseController
    *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
    *       @OA\Property(property="start_date",type="date",description="开始时间"),
    *       @OA\Property(property="end_date",type="date",description="结束时间"),
-   *       @OA\Property(property="charge_type",type="String",description="充值类型 数组"),
-   *       @OA\Property(property="audit_status",type="String",description="1待审核2已审核3 拒绝"),
    *        @OA\Property(property="proj_ids",type="list",description="")
    *     ),
-   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":"","audit_status":"1,2,3"}
+   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -81,8 +79,6 @@ class ChargeController extends BaseController
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
-        $request->charge_type && $q->whereIn('charge_type',  $request->charge_type);
-        $request->audit_status && $q->whereIn('audit_status', str2Array($request->audit_status));
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->with('detail')
@@ -105,12 +101,11 @@ class ChargeController extends BaseController
    *          schema="UserModel",
    *          required={"tenant_id,amount,charge_date","charge_type"},
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
-   *       @OA\Property(property="amount",type="double",description="充值金额"),
-   *       @OA\Property(property="charge_type",type="int",description="费用类型"),
+   *       @OA\Property(property="amount",type="double",description="收款金额"),
    *       @OA\Property(property="charge_date",type="date",description="充值日期"),
    *       @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),
-   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","charge_type":""}
+   *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -125,23 +120,22 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
-      'charge_type' => 'required',
       'proj_id'    => 'required|numeric|gt:0',
       'charge_date'    => 'required|date',
     ]);
 
     $res = $this->charge->save($request->toArray(), $this->user);
     if (!$res) {
-      return $this->error("充值失败！");
+      return $this->error("收款失败！");
     }
-    return $this->success("充值成功。");
+    return $this->success("收款成功。");
   }
 
   /**
    * @OA\Post(
    *     path="/api/operation/charge/edit",
-   *     tags={"预充值"},
-   *     summary="预充值编辑",
+   *     tags={"收款"},
+   *     summary="收款编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -153,7 +147,7 @@ class ChargeController extends BaseController
    *       @OA\Property(property="amount",type="double",description="充值金额"),
    *       @OA\Property(property="charge_type",type="int",description="费用类型"),
    *       @OA\Property(property="charge_date",type="date",description="充值日期"),
-   * @OA\Property(property="proj_id",type="int",description="项目id")
+   *      @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),
    *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","proj_id":""}
    *       )
@@ -175,7 +169,8 @@ class ChargeController extends BaseController
       'charge_date' => 'required|date',
     ]);
 
-    $count = $this->charge->model()->where('audit_status', '!=', 2)->where('id', $request->id)->count();
+    $count = $this->charge->model()->whereDoesntHave('chargeBillRecord')
+      ->where('id', $request->id)->count();
     if (!$count) {
       return $this->error("不允许修改！");
     }
@@ -255,10 +250,13 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'ids' => 'required|array',
     ]);
-
-    $res = $this->charge->model()->where('audit_status', '!=', 2)->whereIn('id', $request->ids)->delete();
+    DB::enableQueryLog();
+    $res = $this->charge->model()
+      ->whereDoesntHave('chargeBillRecord')
+      ->whereIn('id', $request->ids)->delete();
+    // return response()->json(DB::getQueryLog());
     if (!$res) {
-      return $this->error("删除失败！");
+      return $this->error("有核销记录不允许删除！");
     }
     return $this->success("删除成功。");
   }
@@ -291,7 +289,7 @@ class ChargeController extends BaseController
     ]);
 
     $data = $this->charge->model()
-      ->with('detail')
+      ->with('chargeBillRecord')
       ->find($request->id);
     return $this->success($data);
   }

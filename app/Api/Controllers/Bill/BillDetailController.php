@@ -182,9 +182,11 @@ class BillDetailController extends BaseController
     if (!$billDetail) {
       return $this->error("未发现数据");
     }
-    $receiveService = new TenantReceiveService;
-    $receive = $receiveService->model()->whereId($request->bill_detail_id)->sum('amount');
-    $receiveAmt =  
-    if()
+    // $receiveService = new TenantReceiveService;
+    // // $receive = $receiveService->model()->whereId($request->bill_detail_id)->sum('amount');
+    // // $receiveAmt =  $receive + $request->receive_amount;
+    // if ($request->receive_amount > $billDetail['unreceive_amount']) {
+    //   return $this->error("收款金额不允许大于未收金额");
+    // }
   }
 }

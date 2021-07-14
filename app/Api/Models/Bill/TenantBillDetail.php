@@ -44,19 +44,15 @@ class TenantBillDetail extends Model
     return $this->attributes['status'] ?  '已结清' : "未结清";
   }
 
-
-  public function receiveBill()
+  public function chargeBillRecord()
   {
-    return $this->hasMany(ReceiveBill::class, 'bill_detail_id', 'id');
+    return $this->hasMany(ChargeBillRecord::class, 'bill_detail_id', 'id');
   }
-
-
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;
   }
-
 
   protected static function boot()
   {
