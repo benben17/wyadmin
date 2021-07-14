@@ -72,13 +72,17 @@ class ChargeService
     $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'];
     if ($unreceiveAmt > $verifyAmt) {
       $detailBill['receive_amount'] = $detailBill['amount'];
-      $detailBill['receive_date'] = $verifyDate;
       $detailBill['status'] = 1;
+      // 收入
       $chargeBill['unverify_amount'] = $chargeBill['unverify_amount'] - $unreceiveAmt;
+      // 记录
       $billRecord['amount'] = $unreceiveAmt;
     } else if ($unreceiveAmt == $verifyAmt) {
-    }
+      $detailBill['receive_amount'] = $detailBill['amount'];
 
+      $detailBill['status'] = 1;
+    }
+    $detailBill['receive_date'] = $verifyDate;
     $billRecord['charge_id']      = $chargeBill['id'];
     $billRecord['bill_detail_id'] = $detailBill['id'];
     $billRecord['type']           = $detailBill['type'];

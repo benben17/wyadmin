@@ -15,6 +15,7 @@ use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
+use App\Enums\AppEnum;
 
 /**
  * parent_type 联系人类型 1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -494,7 +495,7 @@ class PubSelectController extends BaseController
 			->where(function ($q) use ($request) {
 				$q->where('parent_id', 0);
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-				$q->where('on_rent', 1);
+				$q->where('type', AppEnum::TenantType);
 			})
 			->orderBy('name', 'asc')
 			->get()->toArray();
