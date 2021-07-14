@@ -147,7 +147,7 @@ class InvoiceController extends BaseController
    * @OA\Post(
    *     path="/api/operation/invoice/edit",
    *     tags={"发票"},
-   *     summary="发票新增",
+   *     summary="发票更新",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -190,6 +190,49 @@ class InvoiceController extends BaseController
     } catch (Exception $th) {
       Log::error("发票保存失败" . $th);
       return $this->error("发票保存失败");
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/invoice/show",
+   *     tags={"发票"},
+   *     summary="发票查看",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *        @OA\Property(property="id",type="int",description="发票记录id")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function show(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'         => 'required|numeric',
+    ]);
+    try {
+      // $DA = $request->toArray();
+      $data = $this->invoiceService->invoiceRecordModel()->find($request->id);
+      if ($data) {
+        $billService = new TenantBillService;
+        $billDetail = $billService->billDetailModel()->whereIn('id', $data['bill_detail_id'])->get();
+        $data['bill_detail'] = $billDetail;
+      }
+      return $this->success($data);
+    } catch (Exception $th) {
+      Log::error("查看失败" . $th);
+      return $this->error("查看失败");
     }
   }
 }

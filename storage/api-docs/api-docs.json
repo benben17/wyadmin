@@ -206,7 +206,7 @@
         "/api/operation/bill/list": {
             "post": {
                 "tags": [
-                    "租户"
+                    "账单"
                 ],
                 "summary": "租户列表",
                 "requestBody": {
@@ -286,11 +286,11 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "bill_detail_id"
+                                    "id"
                                 ],
                                 "properties": {
-                                    "bill_detail_id": {
-                                        "description": "客户名称",
+                                    "id": {
+                                        "description": "费用 id",
                                         "type": "int"
                                     }
                                 },
@@ -307,13 +307,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/fee/receive": {
+        "/api/operation/tenant/bill/fee/verify": {
             "post": {
                 "tags": [
                     "费用"
                 ],
                 "summary": "费用收款",
-                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::billVerify",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::verify",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -589,6 +589,196 @@
                             "example": {
                                 "ids": "1"
                             }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/invoice/list": {
+            "post": {
+                "tags": [
+                    "发票"
+                ],
+                "summary": "发票列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "pagesize",
+                                    "orderBy",
+                                    "order"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "客户名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/invoice/add": {
+            "post": {
+                "tags": [
+                    "发票"
+                ],
+                "summary": "发票新增",
+                "operationId": "App\\Api\\Controllers\\Bill\\InvoiceController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "invoce_id",
+                                    "amount",
+                                    "invoice_no",
+                                    "status",
+                                    "bill_detail_id"
+                                ],
+                                "properties": {
+                                    "invoce_id": {
+                                        "description": "发票titleID",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "开票金额",
+                                        "type": "float"
+                                    },
+                                    "invoice_no": {
+                                        "description": "发票no",
+                                        "type": "String"
+                                    },
+                                    "status": {
+                                        "description": "0未开 1 已开",
+                                        "type": "int"
+                                    },
+                                    "bill_detail_id": {
+                                        "description": "费用id集合多个id逗号隔开",
+                                        "type": "String"
+                                    },
+                                    "invoice_type": {
+                                        "description": "发票类型",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/invoice/edit": {
+            "post": {
+                "tags": [
+                    "发票"
+                ],
+                "summary": "发票更新",
+                "operationId": "App\\Api\\Controllers\\Bill\\InvoiceController::edit",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "invoce_id",
+                                    "amount",
+                                    "invoice_no",
+                                    "status",
+                                    "bill_detail_id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "发票记录id",
+                                        "type": "int"
+                                    },
+                                    "invoce_id": {
+                                        "description": "发票titleID",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "开票金额",
+                                        "type": "float"
+                                    },
+                                    "invoice_no": {
+                                        "description": "发票no",
+                                        "type": "String"
+                                    },
+                                    "status": {
+                                        "description": "0未开 1 已开",
+                                        "type": "int"
+                                    },
+                                    "bill_detail_id": {
+                                        "description": "费用id集合多个id逗号隔开",
+                                        "type": "String"
+                                    },
+                                    "invoice_type": {
+                                        "description": "发票类型",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/invoice/show": {
+            "post": {
+                "tags": [
+                    "发票"
+                ],
+                "summary": "发票查看",
+                "operationId": "App\\Api\\Controllers\\Bill\\InvoiceController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "发票记录id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
                         }
                     }
                 },
