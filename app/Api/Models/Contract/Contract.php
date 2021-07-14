@@ -23,12 +23,12 @@ class Contract extends Model
   protected $appends = ['state_label', 'proj_name'];
   public function contractRoom()
   {
-    return $this->hasMany(ContractRoom::class, 'contract_id', 'id');
+    return $this->hasMany(ContractRoom::class, 'id', 'contract_id');
   }
 
   public function freeList()
   {
-    return $this->hasMany(ContractFreePeriod::class, 'contract_id', 'id');
+    return $this->hasMany(ContractFreePeriod::class, 'id', 'contract_id');
   }
 
   public function tenant()
