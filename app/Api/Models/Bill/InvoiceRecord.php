@@ -17,10 +17,17 @@ class InvoiceRecord extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['status_label'];
+  protected $appends = ['status_label', 'c_user'];
   public function getStatusLabelAttribute()
   {
     return $this->attributes['status'] ? "已开" : "未开";
+  }
+  public function getCUserAttribute()
+  {
+    if (isset($this->attributes['status'])) {
+      $user = getUserByUid($this->attributes['c_uid']);
+      return $user['realname'];
+    }
   }
   public function BillDetail()
   {
