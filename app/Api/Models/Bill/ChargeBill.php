@@ -19,30 +19,35 @@ class ChargeBill extends Model
   protected $appends = ['tenant_name', 'c_name', 'type_label', 'bank_name'];
   public function getTenantNameAttribute()
   {
-    $tenantId = $this->attributes['tenant_id'];
-    $tenant = Tenant::select('name')->find($tenantId);
-    return $tenant['name'];
+    if (isset($this->attributes['tenant_id'])) {
+      $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
+      return $tenant['name'];
+    };
   }
 
   public function getTypeLabelAttribute()
   {
-    if ($this->attributes['type'] == 1) {
-      return "收入";
-    } else if ($this->attributes['type'] == 1) {
-      return "支出";
+    if (isset($this->attributes['type'])) {
+      if ($this->attributes['type'] == 1) {
+        return "收入";
+      } else if ($this->attributes['type'] == 2) {
+        return "支出";
+      }
     }
   }
   public function getcNameAttribute()
   {
-    $c_uid = $this->attributes['c_uid'];
-    $user = \App\Models\User::select('realname')->find($c_uid);
-    return $user['realname'];
+    if (isset($this->attributes['c_uid'])) {
+      $user = \App\Models\User::select('realname')->find($this->attributes['c_uid']);
+      return $user['realname'];
+    }
   }
   public function getBankNameAttribute()
   {
-    $bankId = $this->attributes['bank_id'];
-    $bank =  BankAccount::select('account_name')->find($bankId);
-    return $bank['account_name'];
+    if (isset($this->attributes['bank_id'])) {
+      $bank =  BankAccount::select('account_name')->find($this->attributes['bank_id']);
+      return $bank['account_name'];
+    }
   }
   public function chargeBillRecord()
   {
