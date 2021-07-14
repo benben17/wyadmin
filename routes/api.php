@@ -343,6 +343,7 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     //租户账单详细
     Route::post('fee/list', '\App\Api\Controllers\Bill\BillDetailController@list');
     Route::post('fee/show', '\App\Api\Controllers\Bill\BillDetailController@show');
+    Route::post('fee/verify', '\App\Api\Controllers\Bill\BillDetailController@verify');
 });
 
 // 设备设施

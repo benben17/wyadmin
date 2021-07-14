@@ -42,6 +42,8 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type       = $BA['type'];
+      $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
+      $charge->unverify_amount = isset($BA['unverify_amount']) ? $BA['unverify_amount'] : 0.00;
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 1;
       $charge->charge_date = $BA['charge_date'];
@@ -84,22 +86,26 @@ class ChargeService
         } else if ($unreceiveAmt == $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['amount'];
           $detailBill['status'] = 1;
+          // 收入
           $chargeBill['unverify_amount'] = 0.00;
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+          $billRecord['amount'] = $unreceiveAmt;
         } elseif ($unreceiveAmt > $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detailBill['status'] = 0;
           $chargeBill['unverify_amount'] = 0.00;
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+          $billRecord['amount'] = $verifyAmt;
         }
-        $detailBill['receive_date'] = $verifyDate;
+        $detailBill['receive_date']   = $verifyDate;
         $billRecord['charge_id']      = $chargeBill['id'];
         $billRecord['bill_detail_id'] = $detailBill['id'];
         $billRecord['type']           = $detailBill['type'];
         $billRecord['fee_type']       = $detailBill['fee_type'];
+        $billRecord['verify_date'] = $verifyDate;
         $billService = new TenantBillService;
-        $billService->billDetailModel()->save($detailBill);
-        $this->model()->save($chargeBill);  //更新 收款
+        $billService->saveBillDetail($detailBill, $user);
+        $this->save($chargeBill, $user);  //更新 收款
         $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
       }, 3);
       return true;
@@ -119,6 +125,7 @@ class ChargeService
       $billRecord->amount     = $DA['amount'];
       $billRecord->type       = $DA['type'];
       $billRecord->fee_type   = $DA['fee_type'];
+      $billRecord->verify_date = $DA['verify_date'];
       $billRecord->remark     = isset($DA['remark']) ? $DA['remark'] : "";
       $billRecord->c_uid      = $user['id'];
       $billRecord->c_username = $user['realname'];

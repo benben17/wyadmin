@@ -40,7 +40,13 @@ class TenantBillService
   public function saveBillDetail($DA, $user)
   {
     try {
-      $billDetail = $this->billDetailModel();
+      if (isset($DA['id']) && $DA['id'] > 0) {
+        $billDetail = $this->billDetailModel()->find($DA['id']);
+        $billDetail->u_uid       = $user['id'];
+      } else {
+        $billDetail = $this->billDetailModel();
+        $billDetail->c_uid       = $user['id'];
+      }
       $billDetail->company_id  = $user['company_id'];
       $billDetail->proj_id     = $DA['proj_id'];
       $billDetail->tenant_id   = $DA['tenant_id'];
@@ -48,10 +54,15 @@ class TenantBillService
       $billDetail->type        = $DA['type']; // 1 收款 2 付款
       $billDetail->fee_type    = $DA['fee_type']; // 费用类型
       $billDetail->amount      = $DA['amount'];
+      $billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
+      if (isset($DA['receive_date'])) {
+        $billDetail->receive_date = $DA['receive_date'];
+      }
+      $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
       $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $billDetail->c_uid       = $user['id'];
-      $res = $billDetail->save();
-      return $res;
+
+
+      return $billDetail->save();
     } catch (Exception $e) {
       Log::error($e->getMessage());
       throw new Exception("账单详细保存失败");

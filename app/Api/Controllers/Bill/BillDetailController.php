@@ -148,7 +148,7 @@ class BillDetailController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/fee/receive",
+   *     path="/api/operation/tenant/bill/fee/verify",
    *     tags={"费用"},
    *     summary="费用收款",
    *    @OA\RequestBody(
@@ -171,7 +171,7 @@ class BillDetailController extends BaseController
    *     )
    * )
    */
-  public function billVerify(Request $request)
+  public function verify(Request $request)
   {
     $validatedData = $request->validate([
       'bill_detail_id' => 'required|numeric|gt:0',
@@ -190,7 +190,7 @@ class BillDetailController extends BaseController
     }
 
     $chargeService = new ChargeService;
-    $res =  $chargeService->detailBillVerify($billDetail, $request->verify_date, $chargeBill, $this->user);
+    $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_date, $this->user);
     if ($res) {
       return $this->success("核销成功");
     } else {
