@@ -6,12 +6,14 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Bill\ReceiveBill;
 use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Tenant\TenantReceiveService;
 use App\Enums\AppEnum;
 
 /**
@@ -81,31 +83,30 @@ class BillDetailController extends BaseController
     } else {
       $order = 'desc';
     }
+    if (!$request->start_date) {
+      $request->start_date = date('Y-01-01', strtotime(nowYmd()));
+    }
+    if (!$request->end_date) {
+      $request->end_date = date('Y-12-30', strtotime(nowYmd()));
+    }
     $map['type'] =  AppEnum::feeType;
-
-
-
-    $result = $this->billService->billDetailModel()
+    $subQuery = $this->billService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-      })
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
+        $request->start_date && $q->where('charge_date', '>=', $request->start_date);
+        $request->end_date && $q->where('charge_date', '>=', $request->end_date);
+      });
+
+    $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
 
     $feeStat =  FeeType::selectRaw('fee_name,id,type')->where('type', 1)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
-
     foreach ($feeStat as $k => &$v) {
-      $map['fee_type'] = $v['id'];
-      $count = $this->billService->billDetailModel()->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-        ->where($map)
-        ->where(function ($q) use ($request) {
-          $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-          $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        })->groupBy('fee_type')->first();
-      Log::error($count['total_amt']);
+      $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+        ->where('fee_type', $v['id'])
+        ->groupBy('fee_type')->first();
       $v['total_amt'] =  $count['total_amt'] ? $count['total_amt'] : 0.00;
       $v['receive_amt'] =  $count['receive_amt'] ? $count['receive_amt'] : 0.00;
       $v['unreceive_amt'] = $count['total_amt'] - $count['receive_amt'];
@@ -113,5 +114,77 @@ class BillDetailController extends BaseController
     $data = $this->handleBackData($result);
     $data['stat'] = $feeStat;
     return $this->success($data);
+  }
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/fee/show",
+   *     tags={"费用"},
+   *     summary="费用收款",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"bill_detail_id"},
+   *       @OA\Property(property="bill_detail_id",type="int",description="客户名称")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function show(Request $request)
+  {
+    $data = $this->billService->billDetailModel()
+      ->with('receiveBill')
+      ->find($request->bill_detail_id);
+    return $this->success($data);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/fee/receive",
+   *     tags={"费用"},
+   *     summary="费用收款",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"bill_detail_id","receive_amount","receive_date"},
+   *       @OA\Property(property="bill_detail_id",type="int",description="客户名称"),
+   *       @OA\Property(property="receive_amount",type="float",description="收款金额"),
+   *       @OA\Property(property="receive_date",type="date",description="收款日期"),
+   *       @OA\Property(property="bank_no",type="String",description="银行流水号"),
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function billReceive(Request $request)
+  {
+    $validatedData = $request->validate([
+      'bill_detail_id' => 'required|numeric|gt:0',
+      'receive_amount' => 'required|gt:0',
+      'receive_date' => 'required|date',
+    ]);
+
+    $billDetail = $this->billService->billDetailModel()->find($request->bill_detail_id);
+    if (!$billDetail) {
+      return $this->error("未发现数据");
+    }
+    $receiveService = new TenantReceiveService;
+    $receive = $receiveService->model()->whereId($request->bill_detail_id)->sum('amount');
+    $receiveAmt =  
+    if()
   }
 }

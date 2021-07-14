@@ -340,7 +340,9 @@ Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
 //租户账单
 Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('list', '\App\Api\Controllers\Bill\BillController@list');
+    //租户账单详细
     Route::post('fee/list', '\App\Api\Controllers\Bill\BillDetailController@list');
+    Route::post('fee/show', '\App\Api\Controllers\Bill\BillDetailController@show');
 });
 
 // 设备设施

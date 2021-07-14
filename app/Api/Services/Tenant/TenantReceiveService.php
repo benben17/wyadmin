@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Tenant;
 
+use App\Api\Models\Bill\ReceiveBill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -13,19 +14,14 @@ use App\Api\Services\Energy\EnergyService;
 /**
  *   租户账单服务
  */
-class TenantBillService
+class TenantReceiveService
 {
 
-  /** 账单详情 */
-  public function billDetailModel()
+
+  // 收款
+  public function model()
   {
-    $model = new BillDetailModel;
-    return $model;
-  }
-  // 账单
-  public function billModel()
-  {
-    $model = new BillModel;
+    $model = new ReceiveBill;
     return $model;
   }
 
@@ -37,21 +33,21 @@ class TenantBillService
    * @param    [type]     $DA [description]
    * @return   [type]         [description]
    */
-  public function saveBillDetail($DA, $user)
+  public function save($DA, $user)
   {
     try {
-      $billDetail = $this->billDetailModel();
-      $billDetail->company_id  = $user['company_id'];
-      $billDetail->proj_id     = $DA['proj_id'];
-      $billDetail->tenant_id   = $DA['tenant_id'];
-      $billDetail->tenant_name = $DA['tenant_name'];
-      $billDetail->type        = $DA['type']; // 1 收款 2 付款
-      $billDetail->fee_type    = $DA['fee_type']; // 费用类型
-      $billDetail->amount      = $DA['amount'];
-      $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $billDetail->c_uid       = $user['id'];
-      $res = $billDetail->save();
-      return $res;
+      $receive = $this->model();
+      $receive->company_id  = $user['company_id'];
+      $receive->proj_id     = $DA['proj_id'];
+      $receive->tenant_id   = $DA['tenant_id'];
+      // $receive->tenant_name = $DA['tenant_name'];
+      // $billDetail->type        = $DA['type']; // 1 收款 2 付款
+      $receive->fee_type    = $DA['fee_type']; // 费用类型
+      $receive->receive_date    = $DA['receive_date']; // 费用类型
+      $receive->amount      = $DA['amount'];
+      $receive->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+      $receive->c_uid       = $user['id'];
+      return $receive->save();
     } catch (Exception $e) {
       Log::error($e->getMessage());
       throw new Exception("账单详细保存失败");
@@ -131,6 +127,8 @@ class TenantBillService
       return false;
     }
   }
+
+
 
   /**
    * [创建账单]

@@ -15,7 +15,7 @@ class TenantBillDetail extends Model
   use SoftDeletes;
   protected $table = 'bse_tenant_bill_detail';
   protected $fillable = [];
-  protected $hidden = ['company_id', 'deleted_at'];
+  protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
   protected $appends = ['fee_name', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
 
@@ -47,7 +47,7 @@ class TenantBillDetail extends Model
 
   public function receiveBill()
   {
-    return $this->hasMany(ReceiveBill::class, 'bill_id', 'id');
+    return $this->hasMany(ReceiveBill::class, 'bill_detail_id', 'id');
   }
 
 
