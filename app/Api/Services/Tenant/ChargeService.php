@@ -29,11 +29,12 @@ class ChargeService
       // DB::transaction(function () use ($user, $BA) {
       if (isset($BA['id']) && $BA['id'] > 0) {
         $charge         = $this->model()->where('id', $BA['id'])->first();
+        $charge->unverify_amount = isset($BA['unverify_amount']) ? $BA['unverify_amount'] : 0.00;
         $charge->u_uid  = $user['id'];
       } else {
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
-        $charge->verify_amount = $BA['amount'];
+        $charge->unverify_amount = $BA['amount'];
         $charge->flow_no = getFlowNo();
       }
       $charge->company_id  = $user['company_id'];
@@ -42,7 +43,7 @@ class ChargeService
       $charge->proj_id     = $BA['proj_id'];
       $charge->type       = $BA['type'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
-      $charge->unverify_amount = isset($BA['unverify_amount']) ? $BA['unverify_amount'] : 0.00;
+
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
       $charge->bank_id    = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
