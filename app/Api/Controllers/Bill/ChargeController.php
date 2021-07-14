@@ -148,6 +148,7 @@ class ChargeController extends BaseController
    *       @OA\Property(property="amount",type="double",description="充值金额"),
    *       @OA\Property(property="charge_type",type="int",description="费用类型"),
    *       @OA\Property(property="charge_date",type="date",description="充值日期"),
+   *       @OA\Property(property="type",type="string",description="1收入、2 支出"),
    *      @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),
    *       example={"tenant_id":1,"tenant_name":"2","amount":"","charge_date":"","proj_id":""}

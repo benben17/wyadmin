@@ -203,6 +203,402 @@
                 }
             }
         },
+        "/api/operation/bill/list": {
+            "post": {
+                "tags": [
+                    "租户"
+                ],
+                "summary": "租户列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "pagesize",
+                                    "orderBy",
+                                    "order"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "客户名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/fee/list": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "费用详细列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "pagesize",
+                                    "orderBy",
+                                    "order"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "客户名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/fee/show": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "费用收款",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "bill_detail_id"
+                                ],
+                                "properties": {
+                                    "bill_detail_id": {
+                                        "description": "客户名称",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/fee/receive": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "费用收款",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::billVerify",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "bill_detail_id",
+                                    "charge_id",
+                                    "verify_date"
+                                ],
+                                "properties": {
+                                    "bill_detail_id": {
+                                        "description": "客户名称",
+                                        "type": "int"
+                                    },
+                                    "charge_id": {
+                                        "description": "收款单ID",
+                                        "type": "float"
+                                    },
+                                    "verify_date": {
+                                        "description": "核销日期",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/list": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "start_date": {
+                                        "description": "开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "结束时间",
+                                        "type": "date"
+                                    },
+                                    "proj_ids": {
+                                        "description": "",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": "1",
+                                "tenant_name": "",
+                                "start_date": "",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/add": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值新增",
+                "operationId": "App\\Api\\Controllers\\Bill\\ChargeController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id,amount,charge_date",
+                                    "charge_type"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "收款金额",
+                                        "type": "double"
+                                    },
+                                    "charge_date": {
+                                        "description": "充值日期",
+                                        "type": "date"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": 1,
+                                "tenant_name": "2",
+                                "amount": "",
+                                "charge_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/edit": {
+            "post": {
+                "tags": [
+                    "收款"
+                ],
+                "summary": "收款编辑",
+                "operationId": "App\\Api\\Controllers\\Bill\\ChargeController::edit",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id,amount,charge_date",
+                                    "id",
+                                    "charge_type"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "充值金额",
+                                        "type": "double"
+                                    },
+                                    "charge_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
+                                    },
+                                    "charge_date": {
+                                        "description": "充值日期",
+                                        "type": "date"
+                                    },
+                                    "type": {
+                                        "description": "1收入、2 支出",
+                                        "type": "string"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": 1,
+                                "tenant_name": "2",
+                                "amount": "",
+                                "charge_date": "",
+                                "proj_id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/del": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值删除",
+                "operationId": "App\\Api\\Controllers\\Bill\\ChargeController::del",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "ids"
+                                ],
+                                "properties": {
+                                    "ids": {
+                                        "description": "id集合",
+                                        "type": "List"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "[1,2]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/show": {
+            "post": {
+                "tags": [
+                    "预充值"
+                ],
+                "summary": "预充值详细",
+                "operationId": "App\\Api\\Controllers\\Bill\\ChargeController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/building/list": {
             "post": {
                 "tags": [
@@ -1101,6 +1497,10 @@
                                     "sign_end_date": {
                                         "description": "签订结束日期",
                                         "type": "date"
+                                    },
+                                    "contract_state": {
+                                        "description": "合同状态 0 待提交 1 待审核 2 已审核执行合同 98 退租 99  作废",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -5038,305 +5438,6 @@
                 }
             }
         },
-        "/api/operation/charge/list": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值列表",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "tenant_id"
-                                ],
-                                "properties": {
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    },
-                                    "pagesize": {
-                                        "description": "行数",
-                                        "type": "int"
-                                    },
-                                    "tenant_name": {
-                                        "description": "租户名称",
-                                        "type": "String"
-                                    },
-                                    "start_date": {
-                                        "description": "开始时间",
-                                        "type": "date"
-                                    },
-                                    "end_date": {
-                                        "description": "结束时间",
-                                        "type": "date"
-                                    },
-                                    "charge_type": {
-                                        "description": "充值类型 数组",
-                                        "type": "String"
-                                    },
-                                    "audit_status": {
-                                        "description": "1待审核2已审核3 拒绝",
-                                        "type": "String"
-                                    },
-                                    "proj_ids": {
-                                        "description": "",
-                                        "type": "list"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_id": "1",
-                                "tenant_name": "",
-                                "start_date": "",
-                                "end_date": "",
-                                "audit_status": "1,2,3"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/charge/add": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值新增",
-                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::store",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "tenant_id,amount,charge_date",
-                                    "charge_type"
-                                ],
-                                "properties": {
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    },
-                                    "amount": {
-                                        "description": "充值金额",
-                                        "type": "double"
-                                    },
-                                    "charge_type": {
-                                        "description": "费用类型",
-                                        "type": "int"
-                                    },
-                                    "charge_date": {
-                                        "description": "充值日期",
-                                        "type": "date"
-                                    },
-                                    "proj_id": {
-                                        "description": "项目id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_id": 1,
-                                "tenant_name": "2",
-                                "amount": "",
-                                "charge_date": "",
-                                "charge_type": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/charge/edit": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值编辑",
-                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::edit",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "tenant_id,amount,charge_date",
-                                    "id",
-                                    "charge_type"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "id",
-                                        "type": "int"
-                                    },
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    },
-                                    "amount": {
-                                        "description": "充值金额",
-                                        "type": "double"
-                                    },
-                                    "charge_type": {
-                                        "description": "费用类型",
-                                        "type": "int"
-                                    },
-                                    "charge_date": {
-                                        "description": "充值日期",
-                                        "type": "date"
-                                    },
-                                    "proj_id": {
-                                        "description": "项目id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_id": 1,
-                                "tenant_name": "2",
-                                "amount": "",
-                                "charge_date": "",
-                                "proj_id": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/charge/audit": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值审核",
-                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::audit",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "充值ID",
-                                        "type": "int"
-                                    },
-                                    "audit_status": {
-                                        "description": "3 拒绝2通过",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": 1,
-                                "audit_status": "2"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/charge/del": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值删除",
-                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::del",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "ids"
-                                ],
-                                "properties": {
-                                    "ids": {
-                                        "description": "id集合",
-                                        "type": "List"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "ids": "[1,2]"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/charge/show": {
-            "post": {
-                "tags": [
-                    "预充值"
-                ],
-                "summary": "预充值详细",
-                "operationId": "App\\Api\\Controllers\\Operation\\ChargeController::show",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "ids": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/operation/equipment/list": {
             "post": {
                 "tags": [
@@ -7533,113 +7634,6 @@
                 }
             }
         },
-        "/api/operation/tenant/contract/list": {
-            "post": {
-                "tags": [
-                    "租户"
-                ],
-                "summary": "租户合同列表",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "pagesize",
-                                    "orderBy",
-                                    "order"
-                                ],
-                                "properties": {
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": []
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/contract/edit": {
-            "post": {
-                "tags": [
-                    "租户"
-                ],
-                "summary": "租户合同列表",
-                "operationId": "App\\Api\\Controllers\\Operation\\TenantContractController::edit",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "pagesize",
-                                    "orderBy",
-                                    "order"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "合同ID",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": []
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/contract/add": {
-            "post": {
-                "tags": [
-                    "租户"
-                ],
-                "summary": "租户合同列表",
-                "operationId": "App\\Api\\Controllers\\Operation\\TenantContractController::add",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "pagesize",
-                                    "orderBy",
-                                    "order"
-                                ],
-                                "properties": {
-                                    "tenant_id": {
-                                        "description": "租户ID",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": []
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/operation/tenant/list": {
             "post": {
                 "tags": [
@@ -7884,42 +7878,6 @@
                             },
                             "example": {
                                 "id": 1
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/sync": {
-            "post": {
-                "tags": [
-                    "租户"
-                ],
-                "summary": "招商信息同步到租户",
-                "operationId": "App\\Api\\Controllers\\Operation\\TenantController::tenantSync",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_id"
-                                ],
-                                "properties": {
-                                    "contract_id": {
-                                        "description": "招商合同id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_id": 1
                             }
                         }
                     }

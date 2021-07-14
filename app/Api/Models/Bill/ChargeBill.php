@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Charge extends Model
+class ChargeBill extends Model
 {
 
   use SoftDeletes;
-  protected $table = 'bse_charge';
+  protected $table = 'bse_charge_bill';
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
