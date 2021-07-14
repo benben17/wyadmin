@@ -19,7 +19,7 @@ class InvoiceRecord extends Model
   protected $appends = ['status_label'];
   public function getStatusLabelAttribute()
   {
-    return $this->attributes['tenant_id'] ? "未开" : "已开";
+    return $this->attributes['status'] ? "已开" : "未开";
   }
   public function BillDetail()
   {
