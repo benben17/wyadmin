@@ -38,7 +38,7 @@ class InvoiceService
       $invoiceRecord->amount         = $DA['amount'];
       $invoiceRecord->invoice_no     = isset($DA['invoice_no']) ? $DA['invoice_no'] : "";
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
-      $invoiceRecord->tax_point      = $DA['tax_point'];
+      $invoiceRecord->tax_rate       = $DA['tax_rate'];
       $invoiceRecord->invoice_type   = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
       $invoiceRecord->status         = $DA['status'];
       $invoiceRecord->save();

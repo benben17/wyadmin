@@ -188,18 +188,51 @@ class EnergyService
         $data['u_uid']      = $user['id'];
         $DA['remark']       = '解绑租户';
         $this->meterModel()->whereId($DA['id'])->update($data);
-
-        $res = $this->saveMeterLog($DA, $user);
-        if (!$res) {
-          throw new Exception("保存日志失败");
-        }
+        $this->saveMeterLog($DA, $user);
       });
       return true;
     } catch (Exception $e) {
+      throw new Exception("保存日志失败");
       Log::error($e);
       return false;
     }
   }
+
+
+  /**
+   * 合同审核时，自动绑定到租户
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-14
+   * @param int $tenantIds
+   * @param int $contractId
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function bindTenant(int $tenantId, int $contractId, $user)
+  {
+    try {
+      DB::transaction(function () use ($tenantId, $contractId, $user) {
+        $data['tenant_id']  =  $tenantId;
+        $data['u_uid']      = $user['id'];
+        $meterIds = array();
+        $this->meterModel()->whereIn('id', $meterIds)->update($data);
+        // foreach ($meterIds as $k => $v) {
+        //   $DA['remark']  = '绑定租户';
+        //   $DA['id']      = $v;
+        //   $DA['tenant_id'] = $tenantId;
+        //   $this->saveMeterLog($DA, $user);
+        // }
+      });
+      return true;
+    } catch (Exception $e) {
+      throw new Exception("租户绑定失败" . $e);
+      Log::error($e);
+      return false;
+    }
+  }
+
   /** 获取最近一次的抄表记录 */
   public function getNewMeterRecord($meterId)
   {
@@ -314,9 +347,9 @@ class EnergyService
     return $res;
   }
 
-  private function  saveMeterLog($DA, $user)
+  private function saveMeterLog($DA, $user)
   {
-    $meterLog = new  MeterLogModel;
+    $meterLog = new MeterLogModel;
     if (isset($DA['tenant_id'])) {
       if ($DA['tenant_id'] == 0  || empty($DA['tenant_id'])) {
         $meterLog->tenant_id   = 0;
