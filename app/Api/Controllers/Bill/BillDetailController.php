@@ -87,7 +87,7 @@ class BillDetailController extends BaseController
       $request->start_date = date('Y-01-01', strtotime(nowYmd()));
     }
     if (!$request->end_date) {
-      $request->end_date = date('Y-12-30', strtotime(nowYmd()));
+      $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     }
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
@@ -96,8 +96,8 @@ class BillDetailController extends BaseController
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->start_date && $q->where('charge_date', '<=', $request->start_date);
-        $request->end_date && $q->where('charge_date', '>=', $request->end_date);
+        $request->start_date && $q->where('charge_date', '>=', $request->start_date);
+        $request->end_date && $q->where('charge_date', '<=', $request->end_date);
       });
 
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
@@ -144,6 +144,7 @@ class BillDetailController extends BaseController
     $data = $this->billService->billDetailModel()
       ->with('chargeBillRecord')
       ->with('invoiceRecord')
+      ->with('contract:id,contract_no')
       ->find($request->id);
     // return response()->json(DB::getQueryLog());
     return $this->success($data);

@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Api\Models\Contract\Contract;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -49,6 +50,11 @@ class TenantBillDetail extends Model
     if (isset($this->attributes['status'])) {
       return $this->attributes['status'] ?  '已结清' : "未结清";
     }
+  }
+
+  public function contract()
+  {
+    return $this->belongsTo(Contract::class, 'contract_id', 'id');
   }
 
   public function invoiceRecord()
