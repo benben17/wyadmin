@@ -15,6 +15,7 @@ use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Company\FeeTypeService;
+use App\Api\Services\Energy\EnergyService;
 use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
 
@@ -218,6 +219,8 @@ class ContractService
             $tenantBillService  = new TenantBillService;
             $tenantBillService->batchSaveBillDetail($bills, $user, $contract['proj_id']);
           }
+          $energyService = new EnergyService;
+          $energyService->bindTenant($tenant['id'], $contract['id'], $user);
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";

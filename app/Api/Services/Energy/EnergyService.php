@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Energy;
 
+use App\Api\Models\Contract\ContractRoom;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -204,26 +205,31 @@ class EnergyService
    *
    * @Author leezhua
    * @DateTime 2021-07-14
-   * @param int $tenantIds
-   * @param int $contractId
+   * @param int $tenantId
+   * @param array $meterIds
    * @param [type] $user
    *
    * @return void
    */
-  public function bindTenant(int $tenantId, int $contractId, $user)
+  public function bindTenant($tenantId, int $contractId, $user)
   {
     try {
-      DB::transaction(function () use ($tenantId, $contractId, $user) {
+      DB::transaction(function () use ($contractId, $tenantId, $user) {
+        $contractRoom = ContractRoom::selectRaw('GROUP_CONCAT(room_id) room_ids')
+          ->where('contract_id', $contractId)->groupBy('contract_id')->first();
+
         $data['tenant_id']  =  $tenantId;
         $data['u_uid']      = $user['id'];
-        $meterIds = array();
-        $this->meterModel()->whereIn('id', $meterIds)->update($data);
-        // foreach ($meterIds as $k => $v) {
-        //   $DA['remark']  = '绑定租户';
-        //   $DA['id']      = $v;
-        //   $DA['tenant_id'] = $tenantId;
-        //   $this->saveMeterLog($DA, $user);
-        // }
+
+        // $meterIds = array();
+        $this->meterModel()->whereIn('room_id', $contractRoom['room_ids'])->update($data);
+        $meter = $this->meterModel()->selectRaw('GROUP_CONCAT(id) ids')->whereIn('room_id', $contractRoom['room_ids'])->first();
+        foreach ($meter['ids'] as $k => $v) {
+          $DA['remark']  = '绑定租户';
+          $DA['id']      = $v;
+          $DA['tenant_id'] = $tenantId;
+          $this->saveMeterLog($DA, $user);
+        }
       });
       return true;
     } catch (Exception $e) {
