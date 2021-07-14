@@ -101,7 +101,7 @@ class BillDetailController extends BaseController
       });
 
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
-    return response()->json(DB::getQueryLog());
+    // return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')->where('type', 1)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
     foreach ($feeStat as $k => &$v) {
