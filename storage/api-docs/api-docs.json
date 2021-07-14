@@ -599,7 +599,7 @@
                 }
             }
         },
-        "/api/operation/invoice/list": {
+        "/api/operation/tenant/invoice/list": {
             "post": {
                 "tags": [
                     "发票"
@@ -634,7 +634,7 @@
                 }
             }
         },
-        "/api/operation/invoice/add": {
+        "/api/operation/tenant/invoice/add": {
             "post": {
                 "tags": [
                     "发票"
@@ -692,7 +692,7 @@
                 }
             }
         },
-        "/api/operation/invoice/edit": {
+        "/api/operation/tenant/invoice/edit": {
             "post": {
                 "tags": [
                     "发票"
@@ -755,7 +755,7 @@
                 }
             }
         },
-        "/api/operation/invoice/show": {
+        "/api/operation/tenant/invoice/show": {
             "post": {
                 "tags": [
                     "发票"
