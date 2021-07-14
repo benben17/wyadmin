@@ -188,5 +188,13 @@ class BillDetailController extends BaseController
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
     }
+
+    $chargeService = new ChargeService;
+    $res =  $chargeService->detailBillVerify($billDetail, $request->verify_date, $chargeBill, $this->user);
+    if ($res) {
+      return $this->success("核销成功");
+    } else {
+      return $this->error("核销失败");
+    }
   }
 }

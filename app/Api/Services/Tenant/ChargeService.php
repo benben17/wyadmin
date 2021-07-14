@@ -8,6 +8,7 @@ use Exception;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\ChargeDetail;
+use App\Api\Models\Bill\TenantBillDetail;
 
 class ChargeService
 {
@@ -66,29 +67,47 @@ class ChargeService
    *
    * @return void
    */
-  public  function detailBillVerify($detailBill, array $chargeBill, $verifyDate, $user)
+  public  function detailBillVerify(array $detailBill, array $chargeBill, $verifyDate, $user)
   {
-    $verifyAmt = $chargeBill['unverify_amount'];
-    $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'];
-    if ($unreceiveAmt > $verifyAmt) {
-      $detailBill['receive_amount'] = $detailBill['amount'];
-      $detailBill['status'] = 1;
-      // 收入
-      $chargeBill['unverify_amount'] = $chargeBill['unverify_amount'] - $unreceiveAmt;
-      // 记录
-      $billRecord['amount'] = $unreceiveAmt;
-    } else if ($unreceiveAmt == $verifyAmt) {
-      $detailBill['receive_amount'] = $detailBill['amount'];
-
-      $detailBill['status'] = 1;
+    try {
+      DB::transaction(function () use ($detailBill,  $chargeBill, $verifyDate, $user) {
+        $verifyAmt = $chargeBill['unverify_amount'];
+        $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'];
+        if ($unreceiveAmt < $verifyAmt) {
+          $detailBill['receive_amount'] = $detailBill['amount'];
+          $detailBill['status'] = 1;
+          // 收入
+          $chargeBill['unverify_amount'] = $chargeBill['unverify_amount'] - $unreceiveAmt;
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+          // 记录
+          $billRecord['amount'] = $unreceiveAmt;
+        } else if ($unreceiveAmt == $verifyAmt) {
+          $detailBill['receive_amount'] = $detailBill['amount'];
+          $detailBill['status'] = 1;
+          $chargeBill['unverify_amount'] = 0.00;
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+        } elseif ($unreceiveAmt > $verifyAmt) {
+          $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
+          $detailBill['status'] = 0;
+          $chargeBill['unverify_amount'] = 0.00;
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+        }
+        $detailBill['receive_date'] = $verifyDate;
+        $billRecord['charge_id']      = $chargeBill['id'];
+        $billRecord['bill_detail_id'] = $detailBill['id'];
+        $billRecord['type']           = $detailBill['type'];
+        $billRecord['fee_type']       = $detailBill['fee_type'];
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->save($detailBill);
+        $this->model()->save($chargeBill);  //更新 收款
+        $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
+      }, 3);
+      return true;
+    } catch (Exception $th) {
+      Log::error("核销失败" . $th);
+      throw $th;
+      return false;
     }
-    $detailBill['receive_date'] = $verifyDate;
-    $billRecord['charge_id']      = $chargeBill['id'];
-    $billRecord['bill_detail_id'] = $detailBill['id'];
-    $billRecord['type']           = $detailBill['type'];
-    $billRecord['fee_type']       = $detailBill['fee_type'];
-    $this->model()->save($chargeBill);  //更新 收款
-    $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
   }
 
   public function chargeBillRecordSave($DA, $user)
