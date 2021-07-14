@@ -6,7 +6,6 @@ use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\ChargeService;
 
 class ChargeController extends BaseController
@@ -17,7 +16,7 @@ class ChargeController extends BaseController
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
-    $this->charge = new ChargeService;
+    $this->chargeService = new ChargeService;
     $this->user = auth('api')->user();
   }
 
@@ -73,7 +72,7 @@ class ChargeController extends BaseController
       $order = 'desc';
     }
     DB::enableQueryLog();
-    $data = $this->charge->model()
+    $data = $this->chargeService->model()
       ->where(function ($q) use ($request) {
         $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
@@ -125,7 +124,7 @@ class ChargeController extends BaseController
       'charge_date'    => 'required|date',
     ]);
 
-    $res = $this->charge->save($request->toArray(), $this->user);
+    $res = $this->chargeService->save($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("收款失败！");
     }
@@ -172,12 +171,12 @@ class ChargeController extends BaseController
       'charge_date' => 'required|date',
     ]);
 
-    $count = $this->charge->model()->whereHas('chargeBillRecord')
+    $count = $this->chargeService->model()->whereHas('chargeBillRecord')
       ->where('id', $request->id)->count();
     if (!$count) {
       return $this->error("不允许修改！");
     }
-    $res = $this->charge->save($request->toArray(), $this->user);
+    $res = $this->chargeService->save($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("更新失败！");
     }
@@ -214,7 +213,7 @@ class ChargeController extends BaseController
       'ids' => 'required|array',
     ]);
     DB::enableQueryLog();
-    $res = $this->charge->model()
+    $res = $this->chargeService->model()
       ->whereDoesntHave('chargeBillRecord')
       ->whereIn('id', $request->ids)->delete();
     // return response()->json(DB::getQueryLog());
@@ -251,7 +250,7 @@ class ChargeController extends BaseController
       'id' => 'required',
     ]);
 
-    $data = $this->charge->model()
+    $data = $this->chargeService->model()
       ->with('chargeBillRecord')
       ->find($request->id);
     return $this->success($data);

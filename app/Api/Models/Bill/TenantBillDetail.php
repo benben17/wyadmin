@@ -17,9 +17,9 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['fee_name', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
+  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
 
-  public function getFeeNameAttribute()
+  public function getFeeTypeLabelAttribute()
   {
     $fee = getFeeNameById($this->attributes['fee_type']);
     return $fee['fee_name'];

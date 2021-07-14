@@ -7,10 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Services\Sys\UserServices;
-use App\Api\Services\Weixin\WeiXinServices;
-
+use Exception;
 
 class AuthController extends BaseController
 {
@@ -184,7 +182,7 @@ class AuthController extends BaseController
             }
             return $this->success($result);
         } catch (Exception $e) {
-            return $this->error($e . getMessage());
+            return $this->error($e->getMessage());
         }
     }
 
