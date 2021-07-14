@@ -6,12 +6,14 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\InvoiceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
+use Exception;
 
 /**
  * 租户账单
@@ -31,12 +33,7 @@ class InvoiceController extends BaseController
     $this->invoiceService = new InvoiceService;
   }
 
-  public function createBill(Request $request)
-  {
-    if (!$request->tenantId) {
-      $tenantId = 0;
-    }
-  }
+
   /**
    * @OA\Post(
    *     path="/api/operation/invoice/list",
@@ -130,5 +127,69 @@ class InvoiceController extends BaseController
       'proj_id'    => 'required|numeric|gt:0',
       'bill_detail_id' => 'required|String',
     ]);
+    try {
+      $DA = $request->toArray();
+      DB::transaction(function () use ($DA) {
+        $invoice = $this->invoiceService->save($DA, $this->user);
+        $billService = new TenantBillService;
+        $billService->billDetailModel()
+          ->whereIn('id', str2Array($DA['bill_detail_id']))
+          ->update(['invoice_id'], $invoice['id']);
+      });
+      return $this->success("发票保存成功.");
+    } catch (Exception $th) {
+      Log::error("发票保存失败" . $th);
+      return $this->error("发票保存失败");
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/invoice/edit",
+   *     tags={"发票"},
+   *     summary="发票新增",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","invoce_id","amount","invoice_no","status","bill_detail_id"},
+   *        @OA\Property(property="id",type="int",description="发票记录id"),
+   *       @OA\Property(property="invoce_id",type="int",description="发票titleID"),
+   *       @OA\Property(property="amount",type="float",description="开票金额"),
+   *       @OA\Property(property="invoice_no",type="String",description="发票no"),
+   *       @OA\Property(property="status",type="int",description="0未开 1 已开"),
+   *       @OA\Property(property="bill_detail_id",type="String",description="费用id集合多个id逗号隔开"),
+   *       @OA\Property(property="invoice_type",type="String",description="发票类型")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function edit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'         => 'required|numeric',
+      'invoce_id'  => 'required|numeric|gt:0',
+      'invoice_no' => 'required|numeric|gt:0',
+      'status'     => 'requird|in:0,1',
+      'amount'     => 'required',
+      'proj_id'    => 'required|numeric|gt:0',
+      'bill_detail_id' => 'required|String',
+    ]);
+    try {
+      $DA = $request->toArray();
+      $this->invoiceService->save($DA, $this->user);
+      return $this->success("发票保存成功.");
+    } catch (Exception $th) {
+      Log::error("发票保存失败" . $th);
+      return $this->error("发票保存失败");
+    }
   }
 }

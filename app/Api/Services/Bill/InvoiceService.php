@@ -41,9 +41,11 @@ class InvoiceService
       $invoiceRecord->tax_point      = $DA['tax_point'];
       $invoiceRecord->invoice_type   = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
       $invoiceRecord->status         = $DA['status'];
-      return $invoiceRecord->save();
+      $invoiceRecord->save();
+      return $invoiceRecord;
     } catch (Exception $e) {
       Log::error('保存发票失败' . $e);
+      throw new Exception("发票保存失败" . $e);
       return false;
     }
   }
