@@ -10,11 +10,10 @@ use App\Api\Controllers\BaseController;
 
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Tenant\Tenant as CustomerModel;
-use App\Api\Models\Tenant\ExtraInf;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+use App\Api\Models\Tenant\Tenant;
 
 /**
  * 渠道管理
@@ -104,7 +103,7 @@ class ChannelController extends BaseController
             ->with('channelContact')
             ->withCount('customer')
             ->withCount(['customer as cus_deal_count' => function ($q) {
-                $q->where('cus_state', '成交客户');
+                $q->where('state', '成交客户');
             }])
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
@@ -135,7 +134,7 @@ class ChannelController extends BaseController
                 $v['cus_count'] = 0;
             } else {
                 $Ids = explode(",", $channel['Ids']);
-                $v['cus_count'] = CustomerModel::whereIn('channel_id', $Ids)->count();
+                $v['cus_count'] = Tenant::whereIn('channel_id', $Ids)->count();
             }
             $cusCount += $v['cus_count'];
             $channelTotal += $v['count'];
@@ -192,7 +191,7 @@ class ChannelController extends BaseController
             $pagesize = config("per_size");
         }
         DB::enableQueryLog();
-        $data = CustomerModel::with('extraInfo:cus_id,demand_area')
+        $data = Tenant::with('extraInfo:tenant_id,demand_area')
             ->withCount(['brokerageLog as brokerage_amount' => function ($q) {
                 $q->select(DB::Raw('sum(brokerage_amount)'));
             }])
