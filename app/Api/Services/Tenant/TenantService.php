@@ -108,7 +108,7 @@ class TenantService
    * @param    [array]     $DA [description]
    * @return   [布尔]         [description]
    */
-  public function saveInvoice($DA)
+  public function saveInvoice($DA, $user)
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
@@ -116,7 +116,7 @@ class TenantService
       } else {
         $invoice = new Invoice;
         $invoice->tenant_id   = $DA['tenant_id'];
-        $invoice->company_id  = $DA['company_id'];
+        $invoice->company_id  = $user['company_id'];
         $invoice->proj_id     = $DA['proj_id'];
       }
       $invoice->title         = $DA['title'];

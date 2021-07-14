@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 use Exception;
 
@@ -131,12 +132,14 @@ class InvoiceController extends BaseController
     try {
       $DA = $request->toArray();
       DB::transaction(function () use ($DA) {
-        $invoice = $this->invoiceService->invoiceModel()->findOrFail($DA['invoice_id']);
-        $invoiceRecord = $this->invoiceService->save($DA, $invoice, $this->user);
+
+        $invoiceRecord = $this->invoiceService->save($DA, $this->user);
         $billService = new TenantBillService;
         $billService->billDetailModel()
           ->whereIn('id', str2Array($DA['bill_detail_id']))
           ->update(['invoice_id'], $invoiceRecord['id']);
+        $tenantService = new TenantService;
+        $tenantService->saveInvoice($DA, $this->user);
       });
       return $this->success("发票保存成功.");
     } catch (Exception $th) {
@@ -187,9 +190,13 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-      $invoice = $this->invoiceService->invoiceModel()->findOrFail($DA['invoice_id']);
-      $this->invoiceService->save($DA, $invoice, $this->user);
-      return $this->success("发票保存成功.");
+      DB::transaction(function () use ($DA) {
+        $this->invoiceService->save($DA, $this->user);
+        $tenantService = new TenantService;
+        $tenantService->saveInvoice($DA, $this->user);
+        $this->success("发票保存成功.");
+      }, 3);
+      return true;
     } catch (Exception $th) {
       Log::error("发票保存失败" . $th);
       return $this->error("发票保存失败");

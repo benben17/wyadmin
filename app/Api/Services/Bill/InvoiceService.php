@@ -46,12 +46,12 @@ class InvoiceService
       }
       $invoiceRecord->open_person  = isset($DA['open_person']) ? $DA['open_person'] : "";
       $invoiceRecord->status       = $DA['status'];
-      $invoiceRecord->title        = $invoice['title'];
-      $invoiceRecord->bank_name    = $invoice['bank_name'];
-      $invoiceRecord->account_name = $invoice['account_name'];
-      $invoiceRecord->tax_number   = $invoice['tax_number'];
-      $invoiceRecord->addr         = $invoice['addr'];
-      $invoiceRecord->tel_number   = $invoice['tel_number'];
+      $invoiceRecord->title        = $DA['title'];
+      $invoiceRecord->bank_name    = $DA['bank_name'];
+      $invoiceRecord->account_name = $DA['account_name'];
+      $invoiceRecord->tax_number   = $DA['tax_number'];
+      $invoiceRecord->addr         = $DA['addr'];
+      $invoiceRecord->tel_number   = $DA['tel_number'];
       $invoiceRecord->save();
       return $invoiceRecord;
     } catch (Exception $e) {

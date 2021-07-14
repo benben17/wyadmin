@@ -167,7 +167,7 @@ class TenantController extends BaseController
                     $DA['invoice']['tenant_id']  = $tenantId;
                     $DA['invoice']['company_id'] = $this->company_id;
                     $DA['invoice']['proj_id']    = $DA['proj_id'];
-                    $this->tenantService->saveInvoice($DA['invoice']);
+                    $this->tenantService->saveInvoice($DA['invoice'], $this->user);
                 }
                 // 工商信息
 
@@ -252,7 +252,7 @@ class TenantController extends BaseController
                 // 更新发票信息
                 if ($DA['invoice']) {
                     $DA['invoice']['tenant_id'] = $DA['id'];
-                    $this->tenantService->saveInvoice($DA['invoice']);
+                    $this->tenantService->saveInvoice($DA['invoice'], $this->user);
                 }
 
                 // 更新工商信息
