@@ -139,6 +139,8 @@ class InvoiceController extends BaseController
           ->whereIn('id', str2Array($DA['bill_detail_id']))
           ->update(['invoice_id'], $invoiceRecord['id']);
         $tenantService = new TenantService;
+        $data = $DA;
+        $data['id'] = $DA['invoice_id'];
         $tenantService->saveInvoice($DA, $this->user);
       });
       return $this->success("发票保存成功.");
@@ -193,6 +195,8 @@ class InvoiceController extends BaseController
       DB::transaction(function () use ($DA) {
         $this->invoiceService->save($DA, $this->user);
         $tenantService = new TenantService;
+        $data = $DA;
+        $data['id'] = $DA['invoice_id'];
         $tenantService->saveInvoice($DA, $this->user);
         $this->success("发票保存成功.");
       }, 3);
