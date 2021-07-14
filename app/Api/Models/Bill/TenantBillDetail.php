@@ -21,27 +21,34 @@ class TenantBillDetail extends Model
 
   public function getFeeTypeLabelAttribute()
   {
-    $fee = getFeeNameById($this->attributes['fee_type']);
-    return $fee['fee_name'];
+    if (isset($this->attributes['fee_type'])) {
+      $fee = getFeeNameById($this->attributes['fee_type']);
+      return $fee['fee_name'];
+    }
   }
   public function getCUserAttribute()
   {
-    $user = getUserByUid($this->attributes['c_uid']);
-    return $user['realname'];
+    if (isset($this->attributes['c_uid'])) {
+      $user = getUserByUid($this->attributes['c_uid']);
+      return $user['realname'];
+    }
   }
   public function getUnreceiveAmountAttribute()
   {
-
     return numFormat($this->attributes['amount'] - $this->attributes['receive_amount']);
   }
   public function getProjNameAttribute()
   {
-    $proj = getProjById($this->attributes['proj_id']);
-    return $proj['proj_name'];
+    if (isset($this->attributes['proj_id'])) {
+      $proj = getProjById($this->attributes['proj_id']);
+      return $proj['proj_name'];
+    }
   }
   public function getStatusLabelAttribute()
   {
-    return $this->attributes['status'] ?  '已结清' : "未结清";
+    if (isset($this->attributes['status'])) {
+      return $this->attributes['status'] ?  '已结清' : "未结清";
+    }
   }
 
   public function chargeBillRecord()

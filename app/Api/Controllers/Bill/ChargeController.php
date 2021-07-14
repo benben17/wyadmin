@@ -251,7 +251,9 @@ class ChargeController extends BaseController
     ]);
 
     $data = $this->chargeService->model()
-      ->with('chargeBillRecord')
+      ->with(['chargeBillRecord' => function ($q) {
+        $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
+      }])
       ->find($request->id);
     return $this->success($data);
   }
