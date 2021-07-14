@@ -388,12 +388,12 @@ Route::group(['prefix' => 'operation/supplier'], function () {
 });
 // 预充值管理
 Route::group(['prefix' => 'operation/charge'], function () {
-    Route::post('/list', '\App\Api\Controllers\Operation\ChargeController@list');
-    Route::post('/add', '\App\Api\Controllers\Operation\ChargeController@store');
-    Route::post('/edit', '\App\Api\Controllers\Operation\ChargeController@edit');
-    Route::post('/del', '\App\Api\Controllers\Operation\ChargeController@del');
-    Route::post('/show', '\App\Api\Controllers\Operation\ChargeController@show');
-    Route::post('/audit', '\App\Api\Controllers\Operation\ChargeController@audit');
+    Route::post('/list', '\App\Api\Controllers\Bill\ChargeController@list');
+    Route::post('/add', '\App\Api\Controllers\Bill\ChargeController@store');
+    Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
+    Route::post('/del', '\App\Api\Controllers\Bill\ChargeController@del');
+    Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
+    Route::post('/audit', '\App\Api\Controllers\Bill\ChargeController@audit');
 });
 
 Route::group(['prefix' => 'wx'], function () {

@@ -188,4 +188,19 @@ class TenantBillService
       throw $th;
     }
   }
+
+  /**
+   * 账单核销
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-14
+   * @param [type] $detailBill
+   * @param [type] $chargeBill
+   * @param [type] $verifyDate
+   *
+   * @return void
+   */
+  public  function detailBillVerify($detailBill, $chargeBill, $verifyDate)
+  {
+  }
 }

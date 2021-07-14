@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Controllers\Operation;
+namespace App\Api\Controllers\Bill;
 
 use App\Api\Controllers\BaseController;
 use JWTAuth;
@@ -81,7 +81,6 @@ class ChargeController extends BaseController
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->with('detail')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());

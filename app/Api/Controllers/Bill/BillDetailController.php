@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\ReceiveBill;
 use App\Api\Models\Company\FeeType;
+use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -155,11 +156,11 @@ class BillDetailController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"bill_detail_id","receive_amount","receive_date"},
+   *          required={"bill_detail_id","charge_id","verify_date"},
    *       @OA\Property(property="bill_detail_id",type="int",description="客户名称"),
-   *       @OA\Property(property="receive_amount",type="float",description="收款金额"),
-   *       @OA\Property(property="receive_date",type="date",description="收款日期"),
-   *       @OA\Property(property="bank_no",type="String",description="银行流水号"),
+   *       @OA\Property(property="charge_id",type="float",description="收款单ID"),
+   *       @OA\Property(property="verify_date",type="date",description="核销日期"),
+   *      
    *     ),
    *       example={}
    *       )
@@ -170,23 +171,22 @@ class BillDetailController extends BaseController
    *     )
    * )
    */
-  public function billReceive(Request $request)
+  public function billVerify(Request $request)
   {
     $validatedData = $request->validate([
       'bill_detail_id' => 'required|numeric|gt:0',
-      'receive_amount' => 'required|gt:0',
-      'receive_date' => 'required|date',
+      'charge_id' => 'required|gt:0',
+      'verify_date' => 'required|date',
     ]);
 
     $billDetail = $this->billService->billDetailModel()->find($request->bill_detail_id);
     if (!$billDetail) {
-      return $this->error("未发现数据");
+      return $this->error("未发账单现数据！");
     }
-    // $receiveService = new TenantReceiveService;
-    // // $receive = $receiveService->model()->whereId($request->bill_detail_id)->sum('amount');
-    // // $receiveAmt =  $receive + $request->receive_amount;
-    // if ($request->receive_amount > $billDetail['unreceive_amount']) {
-    //   return $this->error("收款金额不允许大于未收金额");
-    // }
+    $chargeService = new ChargeService;
+    $chargeBill =  $chargeService->model()->find($request->charge_id);
+    if (!$chargeBill) {
+      return $this->error("未发现充值数据！");
+    }
   }
 }
