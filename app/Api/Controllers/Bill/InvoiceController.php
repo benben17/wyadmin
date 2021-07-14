@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\InvoiceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +17,7 @@ use App\Enums\AppEnum;
  * 租户账单
  */
 
-class BillController extends BaseController
+class InvoiceController extends BaseController
 {
 
   function __construct()
@@ -27,8 +28,7 @@ class BillController extends BaseController
     }
     $this->company_id = getCompanyId($this->uid);
     $this->user = auth('api')->user();
-    $this->parent_type = AppEnum::Tenant;
-    $this->billService = new TenantBillService;
+    $this->invoiceService = new InvoiceService;
   }
 
   public function createBill(Request $request)
@@ -39,9 +39,9 @@ class BillController extends BaseController
   }
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/list",
-   *     tags={"账单"},
-   *     summary="租户列表",
+   *     path="/api/operation/invoice/list",
+   *     tags={"发票"},
+   *     summary="发票列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -83,7 +83,7 @@ class BillController extends BaseController
       $order = 'desc';
     }
     DB::enableQueryLog();
-    $data = $this->billService->billModel()
+    $data = $this->invoiceService->invoiceRecordModel()
       ->where($map)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -92,11 +92,43 @@ class BillController extends BaseController
     $data = $this->handleBackData($data);
     return $this->success($data);
   }
+  /**
+   * @OA\Post(
+   *     path="/api/operation/invoice/add",
+   *     tags={"发票"},
+   *     summary="发票新增",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"invoce_id","amount","invoice_no","status","bill_detail_id"},
+   *       @OA\Property(property="invoce_id",type="int",description="发票titleID"),
+   *       @OA\Property(property="amount",type="float",description="开票金额"),
+   *       @OA\Property(property="invoice_no",type="String",description="发票no"),
+   *       @OA\Property(property="status",type="int",description="0未开 1 已开"),
+   *       @OA\Property(property="bill_detail_id",type="String",description="费用id集合多个id逗号隔开"),
+   *       @OA\Property(property="invoice_type",type="String",description="发票类型")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
 
-  public function billDetailList(Request $request)
+  public function store(Request $request)
   {
-    $billDetail = new TenantBillService;
-    $data = $billDetail->billDetailModel()->get();
-    return $this->success($data);
+    $validatedData = $request->validate([
+      'invoce_id'        => 'required|numeric|gt:0',
+      'invoice_no' => 'required|numeric|gt:0',
+      'status'      => 'requird|in:0,1',
+      'amount'    => 'required',
+      'proj_id'    => 'required|numeric|gt:0',
+      'bill_detail_id' => 'required|String',
+    ]);
   }
 }

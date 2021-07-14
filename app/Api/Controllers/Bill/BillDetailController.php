@@ -14,7 +14,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Tenant\TenantBillService;
-use App\Api\Services\Tenant\TenantReceiveService;
 use App\Enums\AppEnum;
 
 /**
@@ -90,18 +89,19 @@ class BillDetailController extends BaseController
     if (!$request->end_date) {
       $request->end_date = date('Y-12-30', strtotime(nowYmd()));
     }
+    DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
     $subQuery = $this->billService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->start_date && $q->where('charge_date', '>=', $request->start_date);
+        $request->start_date && $q->where('charge_date', '<=', $request->start_date);
         $request->end_date && $q->where('charge_date', '>=', $request->end_date);
       });
 
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
-
+    return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')->where('type', 1)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
     foreach ($feeStat as $k => &$v) {
@@ -126,8 +126,8 @@ class BillDetailController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"bill_detail_id"},
-   *       @OA\Property(property="bill_detail_id",type="int",description="客户名称")
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="费用 id")
    *     ),
    *       example={}
    *       )
@@ -140,9 +140,12 @@ class BillDetailController extends BaseController
    */
   public function show(Request $request)
   {
+    DB::enableQueryLog();
     $data = $this->billService->billDetailModel()
-      ->with('receiveBill')
-      ->find($request->bill_detail_id);
+      ->with('chargeBillRecord')
+      ->with('invoiceRecord')
+      ->find($request->id);
+    // return response()->json(DB::getQueryLog());
     return $this->success($data);
   }
 
