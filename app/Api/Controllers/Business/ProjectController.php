@@ -74,18 +74,18 @@ class ProjectController extends BaseController
         // return "ok";
         $pagesize = $request->input('pagesize');
         if (!$pagesize || $pagesize < 1) {
-           $pagesize = config('per_size');
+            $pagesize = config('per_size');
         }
-        if($pagesize == '-1'){
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
 
         $map = array();
-        if ($request->proj_province_id && $request->proj_province_id>0) {
+        if ($request->proj_province_id && $request->proj_province_id > 0) {
             $map['proj_province_id'] = $request->input('proj_province_id');
         }
 
-        if ($request->input('city_id') && $request->input('city_id')>0) {
+        if ($request->input('city_id') && $request->input('city_id') > 0) {
             $map['proj_city_id'] = $request->input('city_id');
         }
 
@@ -107,44 +107,45 @@ class ProjectController extends BaseController
         DB::enableQueryLog();
         // 获取项目信息
         $data = ProjectModel::where($map)
-        ->where(function ($q) use($request){
-            $request->proj_name && $q->where('proj_name','like','%'.$request->proj_name.'%');
-            $request->proj_ids && $q->whereIn('id',$request->proj_ids);
-
-        })
-        ->orderBy($orderBy,$order)
-        ->paginate($pagesize)->toArray();
+            ->where(function ($q) use ($request) {
+                $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
+                $request->proj_ids && $q->whereIn('id', $request->proj_ids);
+            })
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
 
         $data = $this->handleBackData($data);
         //通过项目获取房间信息 并进行数据合并
 
         foreach ($data['result'] as $k => &$v) {
-            $result =  BuildingModel::where('proj_id',$v['id'])
-            ->withCount(['buildRoom'  => function ($q) use($subMap){
-                $q->where($subMap);
-            }])
-            // 统计空闲房间
-            ->withCount(['buildRoom as free_room_count' =>function ($q) use($subMap){
-                $q->where($subMap);
-                $q->where('room_state',1);
-            }])
-            //统计管理房间面积
-            ->withCount(['buildRoom as total_area' =>function ($q)  use($subMap){
-                $q->select(DB::raw("sum(room_area)"));
-                $q->where($subMap);
-            }])
-            //统计空闲房间面积
-            ->withCount(['buildRoom as free_area' =>function ($q) use($subMap){
-                $q->select(DB::raw("sum(room_area)"));
-                $q->where('room_state',1);
-                $q->where($subMap);
-            }])->get()->toArray();
+            $result =  BuildingModel::where('proj_id', $v['id'])
+                ->withCount(['buildRoom'  => function ($q) use ($subMap) {
+                    $q->where($subMap);
+                }])
+                // 统计空闲房间
+                ->withCount(['buildRoom as free_room_count' => function ($q) use ($subMap) {
+                    $q->where($subMap);
+                    $q->where('room_state', 1);
+                }])
+                //统计管理房间面积
+                ->withCount(['buildRoom as total_area' => function ($q)  use ($subMap) {
+                    $q->select(DB::raw("sum(room_area)"));
+                    $q->where($subMap);
+                }])
+                //统计空闲房间面积
+                ->withCount(['buildRoom as free_area' => function ($q) use ($subMap) {
+                    $q->select(DB::raw("sum(room_area)"));
+                    $q->where('room_state', 1);
+                    $q->where($subMap);
+                }])->get()->toArray();
 
-            $DA = array('total_room_count'=>0, // 总的房源数
-                        'free_room_count'=>0, //空闲房源数
-                        'manager_area'=>0.00,  // 管理面积（所有房源面积总和）
-                        'free_area' =>0.00);  // 空闲面积
-            foreach($result as $kr=>$vr){
+            $DA = array(
+                'total_room_count' => 0, // 总的房源数
+                'free_room_count' => 0, //空闲房源数
+                'manager_area' => 0.00,  // 管理面积（所有房源面积总和）
+                'free_area' => 0.00
+            );  // 空闲面积
+            foreach ($result as $kr => $vr) {
                 $DA['total_room_count'] += $vr['build_room_count'];
                 $DA['free_room_count']  += $vr['free_room_count'];
                 $DA['manager_area']     += $vr['total_area'];
@@ -266,7 +267,7 @@ class ProjectController extends BaseController
         $projCheck = ProjectModel::where($map)
             ->where('id', '!=', $request['id'])->count();
         if ($projCheck > 0) {
-            return $this->error($DA['proj_name'] . '项目名称重复');
+            return $this->error($data['proj_name'] . '项目名称重复');
         }
 
         $DA = $this->formatProj($data);
@@ -314,7 +315,7 @@ class ProjectController extends BaseController
             'id'    => 'required|int',
         ]);
 
-        $checkBuilding = BuildingModel::where('proj_id',$request->id)->exists();
+        $checkBuilding = BuildingModel::where('proj_id', $request->id)->exists();
         if ($checkBuilding) {
             return $this->error('项目下有楼宇不允许删除！');
         }
@@ -364,20 +365,20 @@ class ProjectController extends BaseController
         DB::enableQueryLog();
         $data = ProjectModel::with('building')->find($request->id)->toArray();
         // return $data;
-        $rooms =  BuildingModel::where('proj_id',$request->id)
+        $rooms =  BuildingModel::where('proj_id', $request->id)
 
-        ->withCount('buildRoom')
-        ->withCount(['buildRoom as free_room_count' =>function ($q){
-            $q->where('room_state',1);
-        }])
-        ->withCount(['buildRoom as manager_area' =>function ($q){
-            $q->select(DB::raw("sum(room_area)"));
-        }])
-        ->withCount(['buildRoom as free_area' =>function ($q){
-            $q->select(DB::raw("sum(room_area)"));
-            $q->where('room_state',1);
-        }])
-        ->get()->toArray();
+            ->withCount('buildRoom')
+            ->withCount(['buildRoom as free_room_count' => function ($q) {
+                $q->where('room_state', 1);
+            }])
+            ->withCount(['buildRoom as manager_area' => function ($q) {
+                $q->select(DB::raw("sum(room_area)"));
+            }])
+            ->withCount(['buildRoom as free_area' => function ($q) {
+                $q->select(DB::raw("sum(room_area)"));
+                $q->where('room_state', 1);
+            }])
+            ->get()->toArray();
         // return $rooms;
         $room_count = 0;
         $free_room = 0;
@@ -389,48 +390,49 @@ class ProjectController extends BaseController
             $manager_area += $v['manager_area'];
             $free_area += $v['free_area'];
         }
-        $data['room_count']= $room_count;
-        $data['free_room']= $free_room;
-        $data['manager_area']= $manager_area;
-        $data['free_area']= $free_area;
+        $data['room_count'] = $room_count;
+        $data['free_room'] = $free_room;
+        $data['manager_area'] = $manager_area;
+        $data['free_area'] = $free_area;
 
         // dump(response()->json(DB::getQueryLog()));
 
         return $this->success($data);
-
     }
 
 
     /**
      *  格式化传入数据
      */
-    private function formatProj($data){
+    private function formatProj($data)
+    {
         $DA['proj_name'] = $data['proj_name'];
-        $DA['proj_type'] = isset($data['proj_type']) ? $data['proj_type'] :"";
-        $DA['proj_logo'] = isset($data['proj_logo']) ? $data['proj_logo'] :"";
-        if (isset($data['proj_province_id']) && $data['proj_province_id'] >0){
+        $DA['proj_type'] = isset($data['proj_type']) ? $data['proj_type'] : "";
+        $DA['proj_logo'] = isset($data['proj_logo']) ? $data['proj_logo'] : "";
+        if (isset($data['proj_province_id']) && $data['proj_province_id'] > 0) {
             $res = AreaModel::find($data['proj_province_id']);
             $DA['proj_province'] = $res->name;
             $DA['proj_province_id'] = $data['proj_province_id'];
         }
-        if (isset($data['proj_city_id']) && $data['proj_city_id']>0){
+        if (isset($data['proj_city_id']) && $data['proj_city_id'] > 0) {
             $res = AreaModel::find($data['proj_city_id']);
             $DA['proj_city'] = $res->name;
             $DA['proj_city_id'] = $data['proj_city_id'];
         }
-        if (isset($data['proj_district_id']) && $data['proj_district_id']>0 ){
+        if (isset($data['proj_district_id']) && $data['proj_district_id'] > 0) {
             $res = AreaModel::find($data['proj_district_id']);
             $DA['proj_district'] = $res->name;
             $DA['proj_district_id'] = $data['proj_district_id'];
         }
-
-        $DA['proj_addr'] = isset($data['proj_addr']) ? $data['proj_addr'] :"";
-        $DA['proj_occupy'] = isset($data['proj_occupy']) ? $data['proj_occupy'] :0;
-        $DA['proj_buildarea'] = isset($data['proj_buildarea']) ? $data['proj_buildarea'] :0;
-        $DA['proj_usablearea'] = isset($data['proj_usablearea']) ? $data['proj_usablearea'] :0;
-        $DA['proj_far'] = isset($data['proj_far']) ? $data['proj_far'] :"";
-        $DA['proj_pic'] = isset($data['proj_pic']) ? $data['proj_pic'] :"";
-        $DA['is_vaild'] = isset($data['is_vaild']) ? $data['is_vaild'] :1;
+        $DA['water_price'] = isset($data['water_price']) ? $data['water_price'] : "0.00";
+        $DA['electric_price'] = isset($data['electric_price']) ? $data['electric_price'] : "0.00";
+        $DA['proj_addr'] = isset($data['proj_addr']) ? $data['proj_addr'] : "";
+        $DA['proj_occupy'] = isset($data['proj_occupy']) ? $data['proj_occupy'] : 0;
+        $DA['proj_buildarea'] = isset($data['proj_buildarea']) ? $data['proj_buildarea'] : 0;
+        $DA['proj_usablearea'] = isset($data['proj_usablearea']) ? $data['proj_usablearea'] : 0;
+        $DA['proj_far'] = isset($data['proj_far']) ? $data['proj_far'] : "";
+        $DA['proj_pic'] = isset($data['proj_pic']) ? $data['proj_pic'] : "";
+        $DA['is_vaild'] = isset($data['is_vaild']) ? $data['is_vaild'] : 1;
         return $DA;
     }
 }
