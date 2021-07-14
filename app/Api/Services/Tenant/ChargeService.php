@@ -34,6 +34,7 @@ class ChargeService
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
         $charge->verify_amount = $BA['amount'];
+        $charge->flow_no = getFlowNo();
       }
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
@@ -119,6 +120,7 @@ class ChargeService
   {
     try {
       $billRecord = $this->chargeBillRecord();
+      $billRecord->flow_no    = getFlowNo();
       $billRecord->charge_id  = $DA['charge_id'];
       $billRecord->bill_detail_id = isset($DA['bill_detail_id']) ? $DA['bill_detail_id'] : 0;
       $billRecord->amount     = $DA['amount'];
