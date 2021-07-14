@@ -28,15 +28,12 @@ class ChargeService
     try {
       // DB::transaction(function () use ($user, $BA) {
       if (isset($BA['id']) && $BA['id'] > 0) {
-        $charge         = $this->model()
-          ->where('id', $BA['id'])->first();
-        if (!$charge) {
-          return false;
-        }
+        $charge         = $this->model()->where('id', $BA['id'])->first();
         $charge->u_uid  = $user['id'];
       } else {
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
+        $charge->verify_amount = $BA['amount'];
       }
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
