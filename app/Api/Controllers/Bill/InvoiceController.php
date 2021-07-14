@@ -131,11 +131,12 @@ class InvoiceController extends BaseController
     try {
       $DA = $request->toArray();
       DB::transaction(function () use ($DA) {
-        $invoice = $this->invoiceService->save($DA, $this->user);
+        $invoice = $this->invoiceService->invoiceModel()->findOrFail($DA['invoice_id']);
+        $invoiceRecord = $this->invoiceService->save($DA, $invoice, $this->user);
         $billService = new TenantBillService;
         $billService->billDetailModel()
           ->whereIn('id', str2Array($DA['bill_detail_id']))
-          ->update(['invoice_id'], $invoice['id']);
+          ->update(['invoice_id'], $invoiceRecord['id']);
       });
       return $this->success("发票保存成功.");
     } catch (Exception $th) {
@@ -186,7 +187,8 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-      $this->invoiceService->save($DA, $this->user);
+      $invoice = $this->invoiceService->invoiceModel()->findOrFail($DA['invoice_id']);
+      $this->invoiceService->save($DA, $invoice, $this->user);
       return $this->success("发票保存成功.");
     } catch (Exception $th) {
       Log::error("发票保存失败" . $th);

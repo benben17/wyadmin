@@ -23,7 +23,7 @@ class InvoiceService
     return new InvoiceRecord;
   }
 
-  public function invoiceRecordSave($DA, $user)
+  public function invoiceRecordSave($DA, $invoice, $user)
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
@@ -36,6 +36,7 @@ class InvoiceService
       }
       $invoiceRecord->proj_id        = $DA['proj_id'];
       $invoiceRecord->amount         = $DA['amount'];
+      $invoiceRecord->invoice_id     = $DA['invoice_id'];
       $invoiceRecord->invoice_no     = isset($DA['invoice_no']) ? $DA['invoice_no'] : "";
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
       $invoiceRecord->tax_rate       = $DA['tax_rate'];
@@ -43,8 +44,14 @@ class InvoiceService
       if (isset($DA['invoice_date'])) {
         $invoiceRecord->invoice_date    = $DA['invoice_date'];
       }
-      $invoiceRecord->open_person    = isset($DA['open_person']) ? $DA['open_person'] : "";
-      $invoiceRecord->status         = $DA['status'];
+      $invoiceRecord->open_person  = isset($DA['open_person']) ? $DA['open_person'] : "";
+      $invoiceRecord->status       = $DA['status'];
+      $invoiceRecord->title        = $invoice['title'];
+      $invoiceRecord->bank_name    = $invoice['bank_name'];
+      $invoiceRecord->account_name = $invoice['account_name'];
+      $invoiceRecord->tax_number   = $invoice['tax_number'];
+      $invoiceRecord->addr         = $invoice['addr'];
+      $invoiceRecord->tel_number   = $invoice['tel_number'];
       $invoiceRecord->save();
       return $invoiceRecord;
     } catch (Exception $e) {
