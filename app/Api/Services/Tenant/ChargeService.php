@@ -45,7 +45,8 @@ class ChargeService
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
       $charge->unverify_amount = isset($BA['unverify_amount']) ? $BA['unverify_amount'] : 0.00;
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
-      $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 1;
+      $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
+      $charge->bank_id    = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
       $charge->charge_date = $BA['charge_date'];
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
       $chargeRes = $charge->save();

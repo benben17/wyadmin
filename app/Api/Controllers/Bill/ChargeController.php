@@ -172,7 +172,7 @@ class ChargeController extends BaseController
       'charge_date' => 'required|date',
     ]);
 
-    $count = $this->charge->model()->whereDoesntHave('chargeBillRecord')
+    $count = $this->charge->model()->whereHas('chargeBillRecord')
       ->where('id', $request->id)->count();
     if (!$count) {
       return $this->error("不允许修改！");
