@@ -70,37 +70,4 @@ class ChargeService
     $res = $detail->save();
     return $res;
   }
-
-  /**
-   * 充值审核
-   *
-   * @param [int] $chargeId
-   * @param [Array] $user
-   * @param [int] $auditStatus
-   * @return void
-   */
-  public function audit($chargeId, $user, $auditStatus)
-  {
-    $charge = $this->model()->find($chargeId);
-    try {
-      DB::transaction(function () use ($user, $charge, $auditStatus) {
-        $charge->audit_uid = $user['id'];
-        $charge->audit_user = $user['realname'];
-        $charge->audit_status = $auditStatus;
-        $charge->audit_time = nowTime();
-        $charge->save();
-        if ($auditStatus == 2) {
-          $detail['charge_id']    = $charge->id;
-          $detail['type']         = 1;
-          $detail['amount']       = $charge->amount;
-          $detail['remark']       = "预充审核通过";
-          $this->detailSave($detail, $user);
-        }
-      });
-      return true;
-    } catch (Exception $e) {
-      Log::error($e);
-      return false;
-    }
-  }
 }

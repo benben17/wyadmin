@@ -34,4 +34,9 @@ final class AppEnum extends Enum
 
   const feeType  = 1;
   const depositFeeType = 2; // 押金类型
+
+
+  // charge
+  const chargeIncome = 1;  // 收入
+  const chargePay  = 2;    // 支出
 }

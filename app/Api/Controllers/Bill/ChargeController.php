@@ -81,6 +81,7 @@ class ChargeController extends BaseController
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
+      ->withCount('chargeBillRecord')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
@@ -119,6 +120,7 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
+      'type'      => 'requird|in:1,2', // 1 收入 2 支出
       'proj_id'    => 'required|numeric|gt:0',
       'charge_date'    => 'required|date',
     ]);
@@ -163,6 +165,7 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'id'        => 'required|numeric|gt:0',
       'tenant_id' => 'required|numeric|gt:0',
+      'type'      => 'requird|in:1,2', // 1 收入 2 支出
       'amount'    => 'required',
       'proj_id'    => 'required|numeric|gt:0',
       'charge_date' => 'required|date',
@@ -179,47 +182,7 @@ class ChargeController extends BaseController
     }
     return $this->success("更新成功。");
   }
-  /**
-   * @OA\Post(
-   *     path="/api/operation/charge/audit",
-   *     tags={"预充值"},
-   *     summary="预充值审核",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"id"},
-   *       @OA\Property(property="id",type="int",description="充值ID"),
-   *       @OA\Property(property="audit_status",type="int",description="3 拒绝2通过")
-   *     ),
-   *       example={"id":1,"audit_status":"2"}
-   *       )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description=""
-   *     )
-   * )
-   */
 
-  public function audit(Request $request)
-  {
-    $validatedData = $request->validate([
-      'id'           => 'required|numeric|gt:0',
-      'audit_status' => 'required|numeric|in:2,3',
-    ]);
-    $charge = $this->charge->model()->where('id', $request->id)->where('audit_status', '!=', 2)->first();
-    if (!$charge) {
-      Log::error("不符合");
-      return $this->error("不符合审核!");
-    }
-    $res = $this->charge->audit($request->id, $this->user, $request->audit_status);
-    if ($res) {
-      return $this->success("审核完成.");
-    }
-    return $this->error("审核失败!");
-  }
 
   /**
    * @OA\Post(

@@ -393,7 +393,6 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
     Route::post('/del', '\App\Api\Controllers\Bill\ChargeController@del');
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
-    Route::post('/audit', '\App\Api\Controllers\Bill\ChargeController@audit');
 });
 
 Route::group(['prefix' => 'wx'], function () {
