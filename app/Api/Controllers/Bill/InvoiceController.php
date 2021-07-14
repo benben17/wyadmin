@@ -224,10 +224,11 @@ class InvoiceController extends BaseController
     ]);
     try {
       // $DA = $request->toArray();
-      $data = $this->invoiceService->invoiceRecordModel()->find($request->id);
+      $data = $this->invoiceService->invoiceRecordModel()
+        ->with('tenantInvoice')->find($request->id);
       if ($data) {
         $billService = new TenantBillService;
-        $billDetail = $billService->billDetailModel()->whereIn('id', $data['bill_detail_id'])->get();
+        $billDetail = $billService->billDetailModel()->whereIn('id', str2Array($data['bill_detail_id']))->get();
         $data['bill_detail'] = $billDetail;
       }
       return $this->success($data);
