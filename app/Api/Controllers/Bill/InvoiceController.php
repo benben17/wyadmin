@@ -82,6 +82,7 @@ class InvoiceController extends BaseController
     DB::enableQueryLog();
     $data = $this->invoiceService->invoiceRecordModel()
       ->where($map)
+      ->with('tenantInvoice')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());

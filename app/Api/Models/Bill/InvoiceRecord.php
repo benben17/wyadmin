@@ -3,6 +3,7 @@
 namespace App\Api\Models\Bill;
 
 use App\Api\Models\Company\BankAccount;
+use App\Api\Models\Tenant\Invoice;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
@@ -25,6 +26,12 @@ class InvoiceRecord extends Model
   {
     return $this->hasMany(TenantBillDetail::class, 'invoice_id', 'id');
   }
+
+  public function tenantInvoice()
+  {
+    return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
+  }
+
   protected static function boot()
   {
     parent::boot();
