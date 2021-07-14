@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\ReceiveBill;
 use App\Api\Models\Company\FeeType;
+use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -140,14 +141,23 @@ class BillDetailController extends BaseController
    */
   public function show(Request $request)
   {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
+
+    ]);
     DB::enableQueryLog();
     $data = $this->billService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('charge:id,charge_date,flow_no,amount,c_uid');
       }])
-      ->with('invoiceRecord')
       ->with('contract:id,contract_no')
       ->find($request->id);
+    $invoiceService = new InvoiceService;
+    $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
+    if (!$invoiceRecord) {
+      $invoiceRecord =   (object)array();
+    }
+    $data['invoice_record'] = $invoiceRecord;
     // return response()->json(DB::getQueryLog());
     return $this->success($data);
   }
