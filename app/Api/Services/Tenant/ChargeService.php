@@ -103,6 +103,7 @@ class ChargeService
         $billRecord['bill_detail_id'] = $detailBill['id'];
         $billRecord['type']           = $detailBill['type'];
         $billRecord['fee_type']       = $detailBill['fee_type'];
+        $billRecord['proj_id']        = $detailBill['proj_id'];
         $billRecord['verify_date'] = $verifyDate;
         $billService = new TenantBillService;
         $billService->saveBillDetail($detailBill, $user);
@@ -123,6 +124,8 @@ class ChargeService
       $billRecord = $this->chargeBillRecord();
       $billRecord->flow_no    = getFlowNo();
       $billRecord->charge_id  = $DA['charge_id'];
+      $billRecord->company_id  = $user['company_id'];
+      $billRecord->proj_id  = $DA['proj_id'];
       $billRecord->bill_detail_id = isset($DA['bill_detail_id']) ? $DA['bill_detail_id'] : 0;
       $billRecord->amount     = $DA['amount'];
       $billRecord->type       = $DA['type'];

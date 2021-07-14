@@ -15,7 +15,7 @@ class TenantBillDetail extends Model
   use SoftDeletes;
   protected $table = 'bse_tenant_bill_detail';
   protected $fillable = [];
-  protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
+  protected $hidden = ['deleted_at', 'updated_at'];
 
   protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
 
