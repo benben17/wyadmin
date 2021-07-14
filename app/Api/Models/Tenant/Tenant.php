@@ -100,6 +100,10 @@ class Tenant extends Model
     return $this->hasOne(Contract::class, 'tenant_id', 'id');
   }
 
+  public function tenantRooms()
+  {
+    return $this->hasMany(tenantRoom::class, 'tenant_id', 'id');
+  }
   protected static function boot()
   {
     parent::boot();

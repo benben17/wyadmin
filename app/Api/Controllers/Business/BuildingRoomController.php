@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\Tenant\Tenant as CustomerModel;
+use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Building\BuildingService;
 
@@ -165,10 +165,10 @@ class BuildingRoomController extends BaseController
             ->find($request->id)->toArray();
         DB::enableQueryLog();
 
-        $customer = CustomerModel::whereHas('rooms', function ($q) use ($request) {
+        $customer = TenantModel::whereHas('tenantRooms', function ($q) use ($request) {
             $q->where('room_id', $request->id);
         })
-            ->select('cus_name', 'state', 'belong_person', 'cus_industry', 'created_at')
+            ->select('name', 'state', 'belong_person', 'industry', 'created_at')
             ->get();
         $data['customer'] = $customer;
         $contract = new ContractService;

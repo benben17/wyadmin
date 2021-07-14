@@ -264,7 +264,7 @@ class StatController extends BaseController
         // return $startDate.'+++++++'.$endDate;
         // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
         $contract = ContractModel::select(DB::Raw('count(*) contract_total,
-            count(distinct(customer_id)) cus_total,
+            count(distinct(tenant_id)) cus_total,
             sum(case rental_price_type when 1 then rental_price*sign_area else rental_price*sign_area*12/365 end) amount,
             sum(sign_area) area, DATE_FORMAT(sign_date,"%Y-%m") as ym'))
             ->where('contract_state', 2)
