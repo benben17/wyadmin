@@ -168,7 +168,7 @@ class BuildingRoomController extends BaseController
         $customer = CustomerModel::whereHas('rooms', function ($q) use ($request) {
             $q->where('room_id', $request->id);
         })
-            ->select('cus_name', 'cus_state', 'belong_person', 'cus_industry', 'created_at')
+            ->select('cus_name', 'state', 'belong_person', 'cus_industry', 'created_at')
             ->get();
         $data['customer'] = $customer;
         $contract = new ContractService;

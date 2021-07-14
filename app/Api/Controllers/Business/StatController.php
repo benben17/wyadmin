@@ -95,21 +95,21 @@ class StatController extends BaseController
         $room['rental_rate'] =  sprintf("%01.2f", $room['free_area'] / $room['manager_area'] * 100);
         //统计客户
         DB::enableQueryLog();
-        $customer = $this->customerService->tenantModel()->select('cus_state', DB::Raw('count(*) as cus_count'))
+        $customer = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($request) {
                 $q->whereIn('proj_id', $request->proj_ids);
             })
             ->where('created_at', '>', $thisYear)
-            ->groupBy('cus_state')->get();
+            ->groupBy('state')->get();
 
         // return response()->json(DB::getQueryLog());
-        $channel = $this->customerService->tenantModel()->select('channel_id', 'cus_state', DB::Raw('count(*) as cus_count'))
+        $channel = $this->customerService->tenantModel()->select('channel_id', 'state', DB::Raw('count(*) as cus_count'))
             ->with('channel:id,channel_type')
             ->where(function ($q) use ($request) {
                 $q->whereIn('proj_id', $request->proj_ids);
             })
             ->where('created_at', '>', $thisYear)
-            ->groupBy('channel_id', 'cus_state')->get();
+            ->groupBy('channel_id', 'state')->get();
 
 
         $BA['room'] = $room;
@@ -153,41 +153,32 @@ class StatController extends BaseController
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
         $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
         /** 统计每种状态下的客户  */
-        $customerByState = $this->customerService->tenantModel()->select('cus_state', DB::Raw('count(*) as cus_count'))
+        $customerByState = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 if (!empty($BA['proj_ids'])) {
                     $q->whereIn('proj_id', $BA['proj_ids']);
                 }
             })
-            ->groupBy('cus_state')->get();
+            ->groupBy('state')->get();
 
         // return response()->json(DB::getQueryLog());
         // 按照行业进行客户统计
-        $customerByIndustry = $this->customerService->tenantModel()->select('cus_industry', DB::Raw('count(*) as cus_count'))
+        DB::enableQueryLog();
+        $customerByIndustry = $this->customerService->tenantModel()->select('industry', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                if (!empty($BA['proj_name'])) {
-                    $q->whereIn('proj_name', $BA['proj_name']);
-                }
-                if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
-                }
+                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
-            ->groupBy('cus_industry')->get();
-
+            ->groupBy('industry')->get();
+        // return response()->json(DB::getQueryLog());
         // 按照渠道统计统计每种渠道带来的客户
         $customerByChannel = $this->customerService->tenantModel()->select('channel_id', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                if (!empty($BA['proj_name'])) {
-                    $q->whereIn('proj_name', $BA['proj_name']);
-                }
-                if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
-                }
+                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -196,9 +187,8 @@ class StatController extends BaseController
         $customerByChannelDeal = $this->customerService->tenantModel()->select('channel_id', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                $q->where('cus_state', '成交客户');
-                $BA['proj_name'] && $q->whereIn('proj_name', $BA['proj_name']);
-                $BA['proj_ids'] && $q->whereIn('proj_id', $BA['proj_ids']);
+                $q->where('state', '成交客户');
+                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -208,10 +198,8 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
             })
-            ->whereHas('customer', function ($q) use ($BA) {
-                if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
-                }
+            ->whereHas('tenant', function ($q) use ($BA) {
+                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->groupBy('demand_area')->get();
 
@@ -366,7 +354,7 @@ class StatController extends BaseController
             foreach ($State as $ks => $vs) {
                 Log::error($vs . '----' . $v['user']);
                 $cusCount = $this->customerService->tenantModel()
-                    ->where('cus_state', $vs)
+                    ->where('state', $vs)
                     ->where('belong_person', $v['user'])
                     ->where(function ($q) use ($DA) {
                         $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);

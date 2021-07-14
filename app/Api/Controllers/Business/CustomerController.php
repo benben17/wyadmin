@@ -12,13 +12,10 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Tenant\BaseInfo;
 use App\Api\Models\Tenant\ExtraInfo;
-use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\CustomerService;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Tenant\BaseInfoService;
-use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
 /**

@@ -7,13 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Api\Controllers\BaseController;
-
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Common\Contact as ContactModel;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
 use App\Api\Models\Tenant\Tenant;
+use App\Enums\AppEnum;
+use Exception;
 
 /**
  * 渠道管理
@@ -30,7 +31,6 @@ class ChannelController extends BaseController
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
-        $this->parent_type = 1;
         $this->user = auth('api')->user();
     }
     /**
@@ -196,7 +196,6 @@ class ChannelController extends BaseController
                 $q->select(DB::Raw('sum(brokerage_amount)'));
             }])
             ->where('channel_id', $request->channel_id)
-            // ->select('id','cus_name','cus_state','channel_id')
             ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
@@ -256,7 +255,7 @@ class ChannelController extends BaseController
                 $result = channelModel::Create($channel);
                 if ($result &&  $request->channel_contact) {
                     $channel_id = $result->id;
-                    $userinfo['parent_type'] = $this->parent_type;
+                    $userinfo['parent_type'] = AppEnum::Channel;
                     $contacts = formatContact($request->channel_contact, $channel_id, $userinfo);
                     if ($contacts) {
                         $contact = new ContactModel;
@@ -432,7 +431,7 @@ class ChannelController extends BaseController
             DB::transaction(function () use ($request) {
                 $data = $request->toArray();
                 $userinfo = auth('api')->user();
-                $userinfo['parent_type'] = $this->parent_type;
+                $userinfo['parent_type'] = AppEnum::Channel;
                 $channel = $this->formatChannel($data, 2); //编辑传入值
                 //更新渠道
                 DB::enableQueryLog();

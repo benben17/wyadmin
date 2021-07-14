@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Tenant;
 
+use App\Api\Models\Channel\Channel;
 use App\Api\Models\Common\Maintain;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Contract\ContractRoom;
@@ -87,6 +88,11 @@ class Tenant extends Model
   public function contract()
   {
     return $this->hasMany(Contract::class, 'tenant_id', 'id');
+  }
+
+  public function channel()
+  {
+    return $this->hasMany(Channel::class,  'id', 'tenant_id');
   }
 
   public function contractStat()

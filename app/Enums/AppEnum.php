@@ -8,7 +8,7 @@ use MyCLabs\Enum\Enum;
 final class AppEnum extends Enum
 {
   const Channel       = 1;  //  渠道
-  const Customer      = 2;  //  客户
+  // const Customer      = 2;  //  客户
   const Supplier      = 3;  //  供应商
   const Relationship  = 4;  // 公共关系
   const Tenant        = 5;  // 租户
