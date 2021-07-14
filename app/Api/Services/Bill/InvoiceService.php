@@ -40,6 +40,10 @@ class InvoiceService
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
       $invoiceRecord->tax_rate       = $DA['tax_rate'];
       $invoiceRecord->invoice_type   = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
+      if (isset($DA['invoice_date'])) {
+        $invoiceRecord->invoice_date    = $DA['invoice_date'];
+      }
+      $invoiceRecord->open_person    = isset($DA['open_person']) ? $DA['open_person'] : "";
       $invoiceRecord->status         = $DA['status'];
       $invoiceRecord->save();
       return $invoiceRecord;
