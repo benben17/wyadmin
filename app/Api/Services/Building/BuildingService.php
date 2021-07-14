@@ -8,6 +8,7 @@ use Exception;
 
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
+use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\Contract\ContractService;
 
@@ -98,7 +99,7 @@ class BuildingService
   public function formatData($data)
   {
     foreach ($data as $k => &$v) {
-      $num = TenantRoom::select(DB::Raw('ifnull(count(*),0) count'))
+      $num = ContractRoom::select(DB::Raw('ifnull(count(*),0) count'))
         ->where('room_id', $v['id'])
         ->first();
       $v['view_num']  = $num['count'];

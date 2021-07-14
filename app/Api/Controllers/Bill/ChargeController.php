@@ -120,7 +120,7 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'tenant_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
-      'type'      => 'requird|in:1,2', // 1 收入 2 支出
+      'type'      => 'required|in:1,2', // 1 收入 2 支出
       'proj_id'    => 'required|numeric|gt:0',
       'charge_date'    => 'required|date',
     ]);

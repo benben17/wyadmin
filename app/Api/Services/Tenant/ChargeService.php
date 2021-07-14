@@ -28,7 +28,8 @@ class ChargeService
     try {
       // DB::transaction(function () use ($user, $BA) {
       if (isset($BA['id']) && $BA['id'] > 0) {
-        $charge         = $this->model()->where('audit_status', '!=', 2)->where('id', $BA['id'])->first();
+        $charge         = $this->model()
+          ->where('id', $BA['id'])->first();
         if (!$charge) {
           return false;
         }
@@ -53,7 +54,7 @@ class ChargeService
       // });
       return $chargeRes;
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("保存收款失败:" . $e);
       return false;
     }
   }
