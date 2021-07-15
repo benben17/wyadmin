@@ -38,4 +38,8 @@ final class AppEnum extends Enum
   // charge
   const chargeIncome = 1;  // 收入
   const chargePay  = 2;    // 支出
+
+
+  const chargeVerify  = 1;
+  const chargeUnVerify  = 0;
 }

@@ -9,6 +9,7 @@ use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\ChargeDetail;
 use App\Api\Models\Bill\TenantBillDetail;
+use App\Enums\AppEnum;
 
 class ChargeService
 {
@@ -48,6 +49,7 @@ class ChargeService
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
       $charge->bank_id    = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
       $charge->charge_date = $BA['charge_date'];
+      $charge->status      = isset($BA['status']) ? $BA['status'] : 0;
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
       $chargeRes = $charge->save();
       // });
@@ -82,6 +84,7 @@ class ChargeService
           // 收入
           $chargeBill['unverify_amount'] = $chargeBill['unverify_amount'] - $unreceiveAmt;
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+          $chargeBill['status'] = AppEnum::chargeUnVerify;
           // 记录
           $billRecord['amount'] = $unreceiveAmt;
         } else if ($unreceiveAmt == $verifyAmt) {
@@ -90,12 +93,14 @@ class ChargeService
           // 收入
           $chargeBill['unverify_amount'] = 0.00;
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+          $chargeBill['status'] = AppEnum::chargeVerify;
           $billRecord['amount'] = $unreceiveAmt;
         } elseif ($unreceiveAmt > $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detailBill['status'] = 0;
           $chargeBill['unverify_amount'] = 0.00;
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+          $chargeBill['status'] = AppEnum::chargeVerify;
           $billRecord['amount'] = $verifyAmt;
         }
         $detailBill['receive_date']   = $verifyDate;

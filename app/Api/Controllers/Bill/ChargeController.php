@@ -75,6 +75,9 @@ class ChargeController extends BaseController
     if ($request->type) {
       $map['type'] = $request->type;
     }
+    if (isset($request->status) && $request->status) {
+      $map['status'] = $request->status;
+    }
     DB::enableQueryLog();
     $data = $this->chargeService->model()
       ->where($map)

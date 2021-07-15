@@ -16,13 +16,18 @@ class ChargeBill extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['tenant_name', 'c_name', 'type_label', 'bank_name'];
+  protected $appends = ['tenant_name', 'c_name', 'type_label', 'bank_name', 'status_label'];
   public function getTenantNameAttribute()
   {
     if (isset($this->attributes['tenant_id'])) {
       $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
       return $tenant['name'];
     };
+  }
+
+  public function getStatusLabelAttribute()
+  {
+    return $this->attributes['status'] ? "已核销" : "未核销";
   }
 
   public function getTypeLabelAttribute()
