@@ -82,7 +82,7 @@ class BillDetailController extends BaseController
     if (!$request->start_date) {
       $request->start_date = date('Y-01-01', strtotime(nowYmd()));
     }
-    if (isset($request->status)) {
+    if (isset($request->status) && $request->status) {
       $map['status'] = $request->status;
     }
     $request->end_date = date('Y-m-t', strtotime(nowYmd()));
