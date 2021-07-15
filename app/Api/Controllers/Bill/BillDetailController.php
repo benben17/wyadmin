@@ -31,8 +31,6 @@ class BillDetailController extends BaseController
     $this->user = auth('api')->user();
     $this->billService = new TenantBillService;
   }
-
-
   /**
    * @OA\Post(
    *     path="/api/operation/tenant/bill/fee/list",
@@ -66,8 +64,8 @@ class BillDetailController extends BaseController
       $pagesize = config('export_rows');
     }
     $map = array();
-    if ($request->tenant_name) {
-      $map['tenant_name'] = $request->tenant_name;
+    if ($request->tenant_id) {
+      $map['tenant_id'] = $request->tenant_id;
     }
     // 排序字段
     if ($request->input('orderBy')) {
@@ -84,9 +82,7 @@ class BillDetailController extends BaseController
     if (!$request->start_date) {
       $request->start_date = date('Y-01-01', strtotime(nowYmd()));
     }
-
     $request->end_date = date('Y-m-t', strtotime(nowYmd()));
-
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
     $subQuery = $this->billService->billDetailModel()
@@ -97,7 +93,6 @@ class BillDetailController extends BaseController
         $request->start_date && $q->where('charge_date', '>=', $request->start_date);
         $request->end_date && $q->where('charge_date', '<=', $request->end_date);
       });
-
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')
