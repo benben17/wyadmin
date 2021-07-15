@@ -27,7 +27,9 @@ class ChargeBill extends Model
 
   public function getStatusLabelAttribute()
   {
-    return $this->attributes['status'] ? "已核销" : "未核销";
+    if (isset($this->attributes['status'])) {
+      return $this->attributes['status'] ? "已核销" : "未核销";
+    }
   }
 
   public function getTypeLabelAttribute()
