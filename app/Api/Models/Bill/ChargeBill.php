@@ -16,7 +16,7 @@ class ChargeBill extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['tenant_name', 'c_name', 'type_label', 'bank_name', 'status_label'];
+  protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label'];
   public function getTenantNameAttribute()
   {
     if (isset($this->attributes['tenant_id'])) {
@@ -40,7 +40,7 @@ class ChargeBill extends Model
       }
     }
   }
-  public function getcNameAttribute()
+  public function getcUserAttribute()
   {
     if (isset($this->attributes['c_uid'])) {
       $user = \App\Models\User::select('realname')->find($this->attributes['c_uid']);
