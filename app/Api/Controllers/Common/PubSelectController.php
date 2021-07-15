@@ -15,6 +15,7 @@ use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
+use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
 
@@ -681,6 +682,47 @@ class PubSelectController extends BaseController
 			->where(function ($q) use ($request) {
 				$request->fee_type && $q->where('fee_type', $request->fee_type);
 				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id);
+				isset($request->status) && $q->where('status', $request->status);
+			})
+			->where($where)->get();
+		return $this->success($data);
+	}
+
+	/**
+	 * @OA\Post(
+	 *     path="/api/pub/tenant/charge/bill",
+	 *     tags={"选择公用接口"},
+	 *     summary="查询未核销完的收款费用",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"proj_id","tenant_id"},
+	 *  				@OA\Property(property="proj_id",type="int",description="项目ID"),
+	 * 				@OA\Property(property="tenant_id",type="int",description="租户id"),
+	 *     ),
+	 *       example={}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function getChargeBill(Request $request)
+	{
+		$validatedData = $request->validate([
+			'proj_id' => 'required',
+			'tenant_id' => 'required',
+		]);
+		$service = new ChargeService;
+		$where['proj_id'] = $request->proj_id;
+		$where['tenant_id'] = $request->tenant_id;
+		$data = $service->model()
+			->where(function ($q) use ($request) {
+				$q->where('unverify_amount', '>', '0.00');
 			})
 			->where($where)->get();
 		return $this->success($data);

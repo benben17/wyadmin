@@ -265,6 +265,7 @@ Route::group(['prefix' => 'pub/'], function () {
     Route::post('equipment/getAll', '\App\Api\Controllers\Common\PubSelectController@equipmentList');
     Route::post('feetype/getAll', '\App\Api\Controllers\Common\PubSelectController@feetypeList');
     Route::post('tenant/bill/detail', '\App\Api\Controllers\Common\PubSelectController@getBillDetail');
+    Route::post('tenant/charge/bill', '\App\Api\Controllers\Common\PubSelectController@getChargeBill');
 });
 
 // 公司收款账户
