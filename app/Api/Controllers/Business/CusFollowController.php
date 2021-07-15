@@ -103,7 +103,6 @@ class CusFollowController extends BaseController
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($result);
-
     return $this->success($data);
   }
   /**

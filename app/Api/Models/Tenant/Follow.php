@@ -17,8 +17,8 @@ class Follow extends Model
    */
   protected $table = 'bse_tenant_follow';
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'updated_at'];
-  protected $fillable = ['company_id', 'cus_id', 'cus_follow_type', 'cus_state', 'cus_follow_record', 'cus_follow_time', 'cus_feedback', 'cus_contact_id', 'cus_loss_reason', 'cus_contact_user', 'follow_usrename', 'c_uid', 'u_uid', 'remark'];
-  protected $appends = ['follow_type_label'];
+  protected $fillable = [];
+  protected $appends = ['follow_type_label', 'tenant_name'];
 
   public function tenant()
   {
@@ -28,9 +28,12 @@ class Follow extends Model
   {
     return $this->hasOne(User::class, 'id', 'c_uid');
   }
-
-
-
+  public function getTenantNameAttribute()
+  {
+    if (isset($this->attributes['tenant_id'])) {
+      $tenant = Tenant::select('name')->find($this->attributes['tenant_id'])['name'];
+    }
+  }
   public function getFollowTypeLabelAttribute()
   {
     switch ($this->attributes['follow_type']) {
