@@ -124,7 +124,7 @@ class InvoiceController extends BaseController
     $validatedData = $request->validate([
       'invoce_id'        => 'required|numeric|gt:0',
       'invoice_no' => 'required|numeric|gt:0',
-      'status'      => 'requird|in:0,1',
+      'status'      => 'required|in:0,1',
       'amount'    => 'required',
       'proj_id'    => 'required|numeric|gt:0',
       'bill_detail_id' => 'required|String',
@@ -185,7 +185,7 @@ class InvoiceController extends BaseController
       'id'         => 'required|numeric',
       'invoce_id'  => 'required|numeric|gt:0',
       'invoice_no' => 'required|numeric|gt:0',
-      'status'     => 'requird|in:0,1',
+      'status'     => 'required|in:0,1',
       'amount'     => 'required',
       'proj_id'    => 'required|numeric|gt:0',
       'bill_detail_id' => 'required|String',
