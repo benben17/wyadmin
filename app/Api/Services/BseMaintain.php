@@ -121,16 +121,16 @@ class BseMaintain
         return $maintain;
     }
 
-    public function getParentName($MainId, $parentType)
+    public function getParentName($parentId, $parentType)
     {
         if ($parentType == AppEnum::Channel) {
-            $res = ChannelModel::select('channel_name as name')->find($MainId);
+            $res = ChannelModel::select('channel_name as name')->find($parentId);
         } else if ($parentType == AppEnum::Supplier) {
-            $res = SupplierModel::select('name as name')->find($MainId);
+            $res = SupplierModel::select('name as name')->find($parentId);
         } else if ($parentType == AppEnum::Relationship) {
-            $res = RelationsModel::select('name as name')->find($MainId);
+            $res = RelationsModel::select('name as name')->find($parentId);
         } else if ($parentType == AppEnum::Tenant) {
-            $res = TenantModel::select('name as name')->find($MainId);
+            $res = TenantModel::select('name as name')->find($parentId);
         }
         return $res['name'];
     }
