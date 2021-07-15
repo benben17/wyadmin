@@ -682,6 +682,6 @@ class PubSelectController extends BaseController
 				$request->fee_type && $q->where('fee_type', $request->fee_type);
 			})
 			->where($where)->get();
-		return $data;
+		return $this->success($data);
 	}
 }
