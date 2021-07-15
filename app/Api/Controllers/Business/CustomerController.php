@@ -214,7 +214,7 @@ class CustomerController extends BaseController
             'channel_id' => 'required|numeric|gt:0',
             'contacts' => 'array',
             'extra_info' => 'array',
-            'rooms' => 'array'
+            'tenant_rooms' => 'array'
         ]);
         $DA = $request->toArray();
         $map['company_id'] = $this->company_id;
@@ -246,8 +246,8 @@ class CustomerController extends BaseController
                     $contact->addAll($contacts);
                 }
                 // 房间
-                if (!empty($DA['rooms']) && $DA['rooms']) {
-                    $roomList = $this->formatRoom($DA['rooms'], $res->id, $DA['room_type']);
+                if (!empty($DA['tenant_rooms']) && $DA['tenant_rooms']) {
+                    $roomList = $this->formatRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -350,9 +350,9 @@ class CustomerController extends BaseController
                     Log::error("联系人" . $res);
                 }
                 // 房间
-                if ($DA['rooms'] && !empty($DA['rooms'])) {
+                if ($DA['tenant_rooms'] && !empty($DA['tenant_rooms'])) {
                     $res = TenantRoom::where('tenant_id', $DA['id'])->delete();  // 删除
-                    $roomList = $this->formatRoom($DA['rooms'], $DA['id'], $DA['room_type']);
+                    $roomList = $this->formatRoom($DA['tenant_rooms'], $DA['id'], $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
