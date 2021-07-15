@@ -15,6 +15,7 @@ use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
+use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
 
 /**
@@ -639,5 +640,42 @@ class PubSelectController extends BaseController
 			->orderBy('id', 'asc')
 			->get()->toArray();
 		return $this->success($data);
+	}
+
+	/**
+	 * @OA\Post(
+	 *     path="/api/pub/tenant/bill/detail",
+	 *     tags={"选择公用接口"},
+	 *     summary="查询未开发费用数据",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"proj_id","tenant_id"},
+	 *  				@OA\Property(property="proj_id",type="int",description="项目ID"),
+	 * 				@OA\Property(property="tenant_id",type="int",description="租户id"),
+	 *     ),
+	 *       example={}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function getBillDetail(Request $request)
+	{
+		$validatedData = $request->validate([
+			'proj_id' => 'required',
+			'tenant_id' => 'required',
+		]);
+		$service = new TenantBillService;
+		$where['proj_id'] = $request->proj_id;
+		$where['tenant_id'] = $request->tenant_id;
+		$where['invoice_id'] = 0;
+		$data = $service->billDetailModel()->where($where)->get();
+		return $data;
 	}
 }
