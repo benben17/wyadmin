@@ -31,7 +31,8 @@ class Follow extends Model
   public function getTenantNameAttribute()
   {
     if (isset($this->attributes['tenant_id'])) {
-      $tenant = Tenant::select('name')->find($this->attributes['tenant_id'])['name'];
+      $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
+      return $tenant['name'];
     }
   }
   public function getFollowTypeLabelAttribute()
