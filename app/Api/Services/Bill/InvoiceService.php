@@ -23,7 +23,7 @@ class InvoiceService
     return new InvoiceRecord;
   }
 
-  public function invoiceRecordSave($DA, $invoice, $user)
+  public function invoiceRecordSave($DA, $user)
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
@@ -31,12 +31,11 @@ class InvoiceService
         $invoiceRecord->u_uid = $user['id'];
       } else {
         $invoiceRecord = $this->invoiceRecordModel();
-        $invoiceRecord->company_id = $user['company_id'];
-        $invoiceRecord->c_uid = $user['id'];
+        $invoiceRecord->company_id   = $user['company_id'];
+        $invoiceRecord->c_uid        = $user['id'];
       }
       $invoiceRecord->proj_id        = $DA['proj_id'];
       $invoiceRecord->amount         = $DA['amount'];
-      $invoiceRecord->invoice_id     = $DA['invoice_id'];
       $invoiceRecord->invoice_no     = isset($DA['invoice_no']) ? $DA['invoice_no'] : "";
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
       $invoiceRecord->tax_rate       = $DA['tax_rate'];

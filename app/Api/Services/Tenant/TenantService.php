@@ -111,6 +111,7 @@ class TenantService
   public function saveInvoice($DA, $user)
   {
     try {
+
       if (isset($DA['id']) && $DA['id'] > 0) {
         $invoice = Invoice::find($DA['id']);
       } else {
@@ -127,10 +128,10 @@ class TenantService
       $invoice->tel_number    = isset($DA['tel_number']) ? $DA['tel_number'] : "";
       $invoice->invoice_type  = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
       $res = $invoice->save();
-      // Log::error($invoice);
+      // Log::error(response()->json(DB::getQueryLog()));
       return $res;
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("发票保存失败" . $e->getMessage());
       throw new Exception("发票保存失败");
       return false;
     }

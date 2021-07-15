@@ -122,8 +122,7 @@ class InvoiceController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'invoce_id'        => 'required|numeric|gt:0',
-      'invoice_no' => 'required|numeric|gt:0',
+      'invoice_no' => 'required',
       'status'      => 'required|in:0,1',
       'amount'    => 'required',
       'proj_id'    => 'required|numeric|gt:0',
@@ -133,15 +132,11 @@ class InvoiceController extends BaseController
       $DA = $request->toArray();
       DB::transaction(function () use ($DA) {
 
-        $invoiceRecord = $this->invoiceService->save($DA, $this->user);
+        $invoiceRecord = $this->invoiceService->invoiceRecordSave($DA, $this->user);
         $billService = new TenantBillService;
         $billService->billDetailModel()
           ->whereIn('id', str2Array($DA['bill_detail_id']))
-          ->update(['invoice_id'], $invoiceRecord['id']);
-        $tenantService = new TenantService;
-        $data = $DA;
-        $data['id'] = $DA['invoice_id'];
-        $tenantService->saveInvoice($DA, $this->user);
+          ->update(['invoice_id' => $invoiceRecord->id]);
       });
       return $this->success("发票保存成功.");
     } catch (Exception $th) {
@@ -183,7 +178,6 @@ class InvoiceController extends BaseController
   {
     $validatedData = $request->validate([
       'id'         => 'required|numeric',
-      'invoce_id'  => 'required|numeric|gt:0',
       'invoice_no' => 'required|numeric|gt:0',
       'status'     => 'required|in:0,1',
       'amount'     => 'required',
@@ -192,14 +186,9 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-      DB::transaction(function () use ($DA) {
-        $this->invoiceService->save($DA, $this->user);
-        $tenantService = new TenantService;
-        $data = $DA;
-        $data['id'] = $DA['invoice_id'];
-        $tenantService->saveInvoice($DA, $this->user);
-        $this->success("发票保存成功.");
-      }, 3);
+      $this->invoiceService->save($DA, $this->user);
+      $this->success("发票保存成功.");
+
       return true;
     } catch (Exception $th) {
       Log::error("发票保存失败" . $th);
@@ -237,8 +226,7 @@ class InvoiceController extends BaseController
     ]);
     try {
       // $DA = $request->toArray();
-      $data = $this->invoiceService->invoiceRecordModel()
-        ->with('tenantInvoice')->find($request->id);
+      $data = $this->invoiceService->invoiceRecordModel()->find($request->id);
       if ($data) {
         $billService = new TenantBillService;
         $billDetail = $billService->billDetailModel()->whereIn('id', str2Array($data['bill_detail_id']))->get();
