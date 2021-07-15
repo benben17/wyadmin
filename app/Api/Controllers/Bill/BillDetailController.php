@@ -82,6 +82,9 @@ class BillDetailController extends BaseController
     if (!$request->start_date) {
       $request->start_date = date('Y-01-01', strtotime(nowYmd()));
     }
+    if (isset($request->status)) {
+      $map['status'] = $request->status;
+    }
     $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
@@ -96,7 +99,7 @@ class BillDetailController extends BaseController
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')
-      ->where('type', 1)
+      ->where('type', AppEnum::feeType)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
     // 统计每种类型费用的应收/实收/未收
     foreach ($feeStat as $k => &$v) {
