@@ -90,14 +90,14 @@ class InvoiceController extends BaseController
       $map['status'] = $request->status;
     }
     DB::enableQueryLog();
-    $data = $this->invoiceService->invoiceRecordModel()
+    $subQuery = $this->invoiceService->invoiceRecordModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->start_date && $q->where('invoice_date', '>=', $request->start_date);
-        $request->end_date && $q->where('invoice_date', '>=', $request->end_date);
+        $request->end_date && $q->where('invoice_date', '<=', $request->end_date);
       })
-      ->where($map)
-      ->orderBy($orderBy, $order)
+      ->where($map);
+    $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
 
