@@ -59,6 +59,7 @@ class ChargeController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
+    $map = array();
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -71,8 +72,12 @@ class ChargeController extends BaseController
     } else {
       $order = 'desc';
     }
+    if ($request->type) {
+      $map['type'] = $request->type;
+    }
     DB::enableQueryLog();
     $data = $this->chargeService->model()
+      ->where($map)
       ->where(function ($q) use ($request) {
         $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
