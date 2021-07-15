@@ -172,10 +172,9 @@ class BillDetailController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"bill_detail_id","charge_id","verify_date"},
+   *          required={"bill_detail_id","charge_id"},
    *       @OA\Property(property="bill_detail_id",type="int",description="账单费用id"),
    *       @OA\Property(property="charge_id",type="float",description="收款单ID"),
-   *       @OA\Property(property="verify_date",type="date",description="核销日期"),
    *      
    *     ),
    *       example={}
@@ -191,8 +190,7 @@ class BillDetailController extends BaseController
   {
     $validatedData = $request->validate([
       'bill_detail_id' => 'required|numeric|gt:0',
-      'charge_id' => 'required|gt:0',
-      'verify_date' => 'required|date',
+      'charge_id' => 'required|gt:0'
     ]);
 
     $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
@@ -207,9 +205,9 @@ class BillDetailController extends BaseController
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
     }
-
+    $verifyDate = nowYmd();
     $chargeService = new ChargeService;
-    $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_date, $this->user);
+    $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $verifyDate, $this->user);
     if ($res) {
       return $this->success("核销成功");
     } else {
