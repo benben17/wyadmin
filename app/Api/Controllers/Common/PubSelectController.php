@@ -656,7 +656,6 @@ class PubSelectController extends BaseController
 	 *          required={"proj_id","tenant_id"},
 	 *  				@OA\Property(property="proj_id",type="int",description="项目ID"),
 	 * 				@OA\Property(property="tenant_id",type="int",description="租户id"),
-	 * 				@OA\Property(property="fee_type",type="int",description="费用类型id"),
 	 *     ),
 	 *       example={}
 	 *       )
@@ -678,13 +677,18 @@ class PubSelectController extends BaseController
 		$where['tenant_id'] = $request->tenant_id;
 		$where['type'] = 1;
 		// $where['invoice_id'] = 0;
-		$data = $service->billDetailModel()
+		$query = $service->billDetailModel()
 			->where(function ($q) use ($request) {
 				$request->fee_type && $q->where('fee_type', $request->fee_type);
 				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id);
 				isset($request->status) && $q->where('status', $request->status);
 			})
-			->where($where)->get();
+			->where($where);
+		if ($request->verify) {
+			$data = $query->with('chargeBillRecord')->get();
+		} else {
+			$data = $query->get();
+		}
 		return $this->success($data);
 	}
 

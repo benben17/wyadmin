@@ -326,7 +326,7 @@
                                 ],
                                 "properties": {
                                     "bill_detail_id": {
-                                        "description": "客户名称",
+                                        "description": "账单费用id",
                                         "type": "int"
                                     },
                                     "charge_id": {
@@ -4644,9 +4644,44 @@
                                     "tenant_id": {
                                         "description": "租户id",
                                         "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/pub/tenant/charge/bill": {
+            "post": {
+                "tags": [
+                    "选择公用接口"
+                ],
+                "summary": "查询未核销完的收款费用",
+                "operationId": "App\\Api\\Controllers\\Common\\PubSelectController::getChargeBill",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "proj_id",
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "int"
                                     },
-                                    "fee_type": {
-                                        "description": "费用类型id",
+                                    "tenant_id": {
+                                        "description": "租户id",
                                         "type": "int"
                                     }
                                 },

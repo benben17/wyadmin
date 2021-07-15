@@ -173,7 +173,7 @@ class BillDetailController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"bill_detail_id","charge_id","verify_date"},
-   *       @OA\Property(property="bill_detail_id",type="int",description="客户名称"),
+   *       @OA\Property(property="bill_detail_id",type="int",description="账单费用id"),
    *       @OA\Property(property="charge_id",type="float",description="收款单ID"),
    *       @OA\Property(property="verify_date",type="date",description="核销日期"),
    *      
@@ -195,7 +195,7 @@ class BillDetailController extends BaseController
       'verify_date' => 'required|date',
     ]);
 
-    $billDetail = $this->billService->billDetailModel()->find($request->bill_detail_id);
+    $billDetail = $this->billService->billDetailModel()->where('status', 0)->find($request->bill_detail_id);
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
