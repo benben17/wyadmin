@@ -125,8 +125,6 @@ class BseMaintain
     {
         if ($parentType == AppEnum::Channel) {
             $res = ChannelModel::select('channel_name as name')->find($MainId);
-        } else if ($parentType == AppEnum::Customer) {
-            $res = TenantModel::select('name as name')->find($MainId);
         } else if ($parentType == AppEnum::Supplier) {
             $res = SupplierModel::select('name as name')->find($MainId);
         } else if ($parentType == AppEnum::Relationship) {

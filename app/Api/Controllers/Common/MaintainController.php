@@ -130,7 +130,8 @@ class MaintainController extends BaseController
         $maintain = $maintainService->maintainModel()->where($map)
             ->with('createUser:id,realname')
             ->where(function ($q) use ($request) {
-                $request->parent_type && $q->whereIn('parent_type', str2Array($request->parent_type));
+                $request->parent_type && $q->where('parent_type', $request->parent_type);
+                $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
                 if ($request->start_time) {
                     $q->where('maintain_date', '>=', $request->start_time);
                 }
@@ -140,7 +141,6 @@ class MaintainController extends BaseController
                 if (!$this->user['is_admin']) {
                     $q->where('role_id', $this->user['role_id']);
                 }
-                $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
