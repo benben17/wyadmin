@@ -86,6 +86,9 @@ class InvoiceController extends BaseController
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
     }
+    if (isset($request->status) && $request->status != "") {
+      $map['status'] = $request->status;
+    }
     DB::enableQueryLog();
     $data = $this->invoiceService->invoiceRecordModel()
       ->where(function ($q) use ($request) {
