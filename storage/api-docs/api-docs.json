@@ -4620,6 +4620,49 @@
                 }
             }
         },
+        "/api/pub/tenant/bill/detail": {
+            "post": {
+                "tags": [
+                    "选择公用接口"
+                ],
+                "summary": "查询未开发费用数据",
+                "operationId": "App\\Api\\Controllers\\Common\\PubSelectController::getBillDetail",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "proj_id",
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "fee_type": {
+                                        "description": "费用类型id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/common/remark/list": {
             "post": {
                 "tags": [
