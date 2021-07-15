@@ -46,9 +46,12 @@ class InvoiceController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"pagesize","orderBy","order"},
-   *       @OA\Property(property="name",type="String",description="客户名称")
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="start_date",type="date",description="开票开始时间"),
+   *        @OA\Property(property="end_date",type="date",description="开票结束时间"),
+   *        @OA\Property(property="proj_ids",type="list",description="项目id集合"),
    *     ),
-   *       example={}
+   *       example={"tenant_id":"0","start_date":"","end_date":"","proj_ids":"[]"}
    *       )
    *     ),
    *     @OA\Response(
@@ -80,8 +83,16 @@ class InvoiceController extends BaseController
     } else {
       $order = 'desc';
     }
+    if ($request->tenant_id) {
+      $map['tenant_id'] = $request->tenant_id;
+    }
     DB::enableQueryLog();
     $data = $this->invoiceService->invoiceRecordModel()
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->start_date && $q->where('invoice_date', '>=', $request->start_date);
+        $request->end_date && $q->where('invoice_date', '>=', $request->end_date);
+      })
       ->where($map)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();

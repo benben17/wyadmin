@@ -6,13 +6,10 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\Bill\ReceiveBill;
 use App\Api\Models\Company\FeeType;
 use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Tenant\TenantBillService;
 use App\Enums\AppEnum;
@@ -87,9 +84,9 @@ class BillDetailController extends BaseController
     if (!$request->start_date) {
       $request->start_date = date('Y-01-01', strtotime(nowYmd()));
     }
-    if (!$request->end_date) {
-      $request->end_date = date('Y-m-t', strtotime(nowYmd()));
-    }
+
+    $request->end_date = date('Y-m-t', strtotime(nowYmd()));
+
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
     $subQuery = $this->billService->billDetailModel()
@@ -103,8 +100,10 @@ class BillDetailController extends BaseController
 
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
-    $feeStat =  FeeType::selectRaw('fee_name,id,type')->where('type', 1)
+    $feeStat =  FeeType::selectRaw('fee_name,id,type')
+      ->where('type', 1)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
+    // 统计每种类型费用的应收/实收/未收
     foreach ($feeStat as $k => &$v) {
       $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
         ->where('fee_type', $v['id'])

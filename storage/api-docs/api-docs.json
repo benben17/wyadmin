@@ -321,8 +321,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "bill_detail_id",
-                                    "charge_id",
-                                    "verify_date"
+                                    "charge_id"
                                 ],
                                 "properties": {
                                     "bill_detail_id": {
@@ -332,10 +331,6 @@
                                     "charge_id": {
                                         "description": "收款单ID",
                                         "type": "float"
-                                    },
-                                    "verify_date": {
-                                        "description": "核销日期",
-                                        "type": "date"
                                     }
                                 },
                                 "type": "object"
@@ -616,14 +611,31 @@
                                     "order"
                                 ],
                                 "properties": {
-                                    "name": {
-                                        "description": "客户名称",
-                                        "type": "String"
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "start_date": {
+                                        "description": "开票开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "开票结束时间",
+                                        "type": "date"
+                                    },
+                                    "proj_ids": {
+                                        "description": "项目id集合",
+                                        "type": "list"
                                     }
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "tenant_id": "0",
+                                "start_date": "",
+                                "end_date": "",
+                                "proj_ids": "[]"
+                            }
                         }
                     }
                 },
