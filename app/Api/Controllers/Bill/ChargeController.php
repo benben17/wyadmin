@@ -75,7 +75,7 @@ class ChargeController extends BaseController
     if ($request->type) {
       $map['type'] = $request->type;
     }
-    if (isset($request->status) && $request->status) {
+    if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
     DB::enableQueryLog();
@@ -91,7 +91,7 @@ class ChargeController extends BaseController
       ->withCount('chargeBillRecord')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
+    return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
     return $this->success($data);
   }

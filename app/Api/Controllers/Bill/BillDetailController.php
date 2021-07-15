@@ -195,9 +195,8 @@ class BillDetailController extends BaseController
       return $this->error("未发账单现数据！");
     }
     $chargeService = new ChargeService;
-    $chargeBill =  $chargeService->model()->where(function ($q) {
-      $q->where('unverify_amount', '>', 0.00);
-    })
+    $chargeBill =  $chargeService->model()
+      ->where('status', AppEnum::chargeUnVerify)
       ->findOrFail($request->charge_id);
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
