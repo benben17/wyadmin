@@ -195,12 +195,15 @@ class BillDetailController extends BaseController
       'verify_date' => 'required|date',
     ]);
 
-    $billDetail = $this->billService->billDetailModel()->where('status', 0)->find($request->bill_detail_id);
+    $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
     $chargeService = new ChargeService;
-    $chargeBill =  $chargeService->model()->find($request->charge_id);
+    $chargeBill =  $chargeService->model()->where(function ($q) {
+      $q->where('unverify_amount', '>', 0.00);
+    })
+      ->findOrFail($request->charge_id);
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
     }
