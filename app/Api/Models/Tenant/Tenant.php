@@ -27,12 +27,13 @@ class Tenant extends Model
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      $onRent = $this->attributes['status'];
-      if ($onRent) {
-        return '在租';
-      } else {
-        return '非在租';
-      }
+      return $this->attributes['status'] ? '在租' : '退租';
+    }
+  }
+  public function getProjNameAttribute()
+  {
+    if (isset($this->attributes['proj_id'])) {
+      return getProjById($this->attributes['proj_id'])['proj_name'];
     }
   }
   public function tenantShare()

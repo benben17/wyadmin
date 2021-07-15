@@ -35,6 +35,7 @@ class TenantService
         $tenant->c_uid       = $user['id'];
         $tenant->company_id  = $user['company_id'];
         $tenant->proj_id     = $DA['proj_id'];
+        // $tenant->proj_id     = $DA['proj_name'];
         $tenant->tenant_no   = $this->getTenantNo($user['company_id']);
       }
       $tenant->u_uid         = $user['id'];
@@ -47,6 +48,7 @@ class TenantService
       $tenant->worker_num    = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
       $tenant->nature        = isset($DA['nature']) ? $DA['nature'] : "";
       $tenant->remark        = isset($DA['remark']) ? $DA['remark'] : "";
+      $tenant->tags          = isset($DA['tags']) ? $DA['tags'] : "";
       $res = $tenant->save();
       if ($res) {
         return $tenant;
