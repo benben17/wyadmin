@@ -35,6 +35,7 @@ class InvoiceService
         $invoiceRecord->c_uid        = $user['id'];
       }
       $invoiceRecord->proj_id        = $DA['proj_id'];
+      $invoiceRecord->tenant_id      = $DA['tenant_id'];
       $invoiceRecord->amount         = $DA['amount'];
       $invoiceRecord->invoice_no     = isset($DA['invoice_no']) ? $DA['invoice_no'] : "";
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];

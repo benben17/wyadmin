@@ -17,7 +17,7 @@ class InvoiceRecord extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['status_label', 'c_user'];
+  protected $appends = ['status_label', 'c_user', 'tenant_name'];
   public function getStatusLabelAttribute()
   {
     return $this->attributes['status'] ? "已开" : "未开";
@@ -27,6 +27,13 @@ class InvoiceRecord extends Model
     if (isset($this->attributes['status'])) {
       $user = getUserByUid($this->attributes['c_uid']);
       return $user['realname'];
+    }
+  }
+  public function getTenantNameAttribute()
+  {
+    if (isset($this->attributes['tenant_id'])) {
+      $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
+      return $tenant['realname'];
     }
   }
   public function BillDetail()

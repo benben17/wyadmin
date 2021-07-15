@@ -83,7 +83,6 @@ class InvoiceController extends BaseController
     DB::enableQueryLog();
     $data = $this->invoiceService->invoiceRecordModel()
       ->where($map)
-      ->with('tenantInvoice')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
@@ -186,7 +185,7 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-      $this->invoiceService->save($DA, $this->user);
+      $this->invoiceService->invoiceRecordSave($DA, $this->user);
       $this->success("发票保存成功.");
 
       return true;
