@@ -680,7 +680,7 @@ class PubSelectController extends BaseController
 		$data = $service->billDetailModel()
 			->where(function ($q) use ($request) {
 				$request->fee_type && $q->where('fee_type', $request->fee_type);
-				$request->invoice_id && $q->where('invoice_id', $request->invoice_id);
+				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id);
 			})
 			->where($where)->get();
 		return $this->success($data);
