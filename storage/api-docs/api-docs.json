@@ -346,6 +346,130 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/fee/add": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "新增费用",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "charge_date",
+                                    "amount",
+                                    "tenant_id",
+                                    "fee_type",
+                                    "proj_id"
+                                ],
+                                "properties": {
+                                    "charge_date": {
+                                        "description": "收款日期",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "收款金额",
+                                        "type": "float"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名字",
+                                        "type": "string"
+                                    },
+                                    "fee_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "bill_detail": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/fee/edit": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "费用编辑",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillDetailController::edit",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "charge_date",
+                                    "amount",
+                                    "tenant_id",
+                                    "fee_type",
+                                    "proj_id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "费用ID",
+                                        "type": "int"
+                                    },
+                                    "charge_date": {
+                                        "description": "收款日期",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "收款金额",
+                                        "type": "float"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名字",
+                                        "type": "string"
+                                    },
+                                    "fee_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "bill_detail": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/charge/list": {
             "post": {
                 "tags": [

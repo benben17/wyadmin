@@ -210,4 +210,97 @@ class BillDetailController extends BaseController
       return $this->error("核销失败");
     }
   }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/fee/add",
+   *     tags={"费用"},
+   *     summary="新增费用",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"charge_date","amount","tenant_id","fee_type","proj_id"},
+   *       @OA\Property(property="charge_date",type="int",description="收款日期"),
+   *       @OA\Property(property="amount",type="float",description="收款金额"),
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="tenant_name",type="string",description="租户名字"),
+   *       @OA\Property(property="fee_type",type="int",description="费用类型"),
+   *       @OA\Property(property="proj_id",type="int",description="项目ID"),
+   *      
+   *     ),
+   *       example={"bill_detail":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function store(Request $request)
+  {
+    $validatedData = $request->validate([
+      'charge_date' => 'required|date',
+      'tenant_id' => 'required',
+      'proj_id' => 'required',
+      'amount' => 'required',
+      'fee_type' => 'required',
+    ]);
+
+    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
+    if (!$res) {
+      return $this->error("新增费用失败!");
+    }
+    return $this->success("新增费用成功");
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/fee/edit",
+   *     tags={"费用"},
+   *     summary="费用编辑",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"charge_date","amount","tenant_id","fee_type","proj_id"},
+   *       @OA\Property(property="id",type="int",description="费用ID"),
+   *       @OA\Property(property="charge_date",type="int",description="收款日期"),
+   *       @OA\Property(property="amount",type="float",description="收款金额"),
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="tenant_name",type="string",description="租户名字"),
+   *       @OA\Property(property="fee_type",type="int",description="费用类型"),
+   *       @OA\Property(property="proj_id",type="int",description="项目ID"),
+   *      
+   *     ),
+   *       example={"bill_detail":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function edit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|date',
+      'charge_date' => 'required|date',
+      'tenant_id' => 'required',
+      'proj_id' => 'required',
+      'amount' => 'required',
+      'fee_type' => 'required',
+    ]);
+
+    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
+    if (!$res) {
+      return $this->error("编辑费用失败!");
+    }
+    return $this->success("编辑费用成功");
+  }
 }
