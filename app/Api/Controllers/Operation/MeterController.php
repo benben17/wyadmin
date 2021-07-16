@@ -541,7 +541,7 @@ class MeterController extends BaseController
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave')
+      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
@@ -549,6 +549,7 @@ class MeterController extends BaseController
       $v['meter_no'] = $v['meter']['meter_no'];
       $v['proj_name'] = $v['meter']['proj_name'];
       $v['is_virtual'] = $v['meter']['is_virtual'];
+      $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
         $used = abs($v['used_value'] - $v['pre_used_value']) / $v['pre_used_value'] * 100;
         Log::error($used);
