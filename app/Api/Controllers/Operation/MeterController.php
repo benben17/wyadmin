@@ -427,7 +427,7 @@ class MeterController extends BaseController
       'Ids' => 'required|array',
     ]);
     $DA = $request->toArray();
-    $res = $this->meterService->editMeterRecord($DA['Ids'], $this->uid);
+    $res = $this->meterService->editMeterRecord($DA['Ids'], $this->user);
     if ($res) {
       return $this->success('审核成功.');
     } else {

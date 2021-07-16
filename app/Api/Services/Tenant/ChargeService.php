@@ -77,7 +77,7 @@ class ChargeService
     try {
       DB::transaction(function () use ($detailBill,  $chargeBill, $verifyDate, $user) {
         $verifyAmt = $chargeBill['unverify_amount'];
-        $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'];
+        $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt < $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['amount'];
           $detailBill['status'] = 1;

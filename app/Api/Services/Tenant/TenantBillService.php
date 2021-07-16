@@ -51,17 +51,16 @@ class TenantBillService
       $billDetail->proj_id     = $DA['proj_id'];
       $billDetail->tenant_id   = $DA['tenant_id'];
       $billDetail->tenant_name = $DA['tenant_name'];
-      $billDetail->type        = $DA['type']; // 1 收款 2 付款
+      $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
       $billDetail->fee_type    = $DA['fee_type']; // 费用类型
       $billDetail->amount      = $DA['amount'];
       $billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
+      $billDetail->discount_amount = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
       if (isset($DA['receive_date'])) {
         $billDetail->receive_date = $DA['receive_date'];
       }
       $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
       $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-
-
       return $billDetail->save();
     } catch (Exception $e) {
       Log::error($e->getMessage());

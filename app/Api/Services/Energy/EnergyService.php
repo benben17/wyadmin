@@ -13,6 +13,8 @@ use App\Api\Models\Energy\MeterLog as MeterLogModel;
 use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\BseRemark;
+use App\Api\Services\Tenant\TenantBillService;
+use App\Enums\AppEnum;
 
 /**
  *能耗服务
@@ -346,11 +348,38 @@ class EnergyService
    * @param    [type]     $user [description]
    * @return   [type]           [description]
    */
-  public function auditMeterRecord($Ids, $userId)
+  public function auditMeterRecord($Ids, $user)
   {
-    $data['audit_user'] = $userId;
-    $res = $this->meterRecordModel()->whereIn('id', $Ids)->update($data);
-    return $res;
+    try {
+      DB::transaction(function () use ($Ids, $user) {
+        $billService = new TenantBillService;
+        $data['audit_user'] = $user['id'];
+        $this->meterRecordModel()->whereIn('id', $Ids)->update($data);
+        $BA = array();
+        foreach ($Ids as $k => $id) {
+          $record = MeterRecordModel::find($id);
+          $meter = MeterModel::find($record['meter_id']);
+          $BA['proj_id'] = $meter['proj_id'];
+          $BA['tenant_id'] = $meter['tenant_id'];
+          $BA['tenant_name'] = $record['tenant_name'];
+          if ($meter['type'] == 1) {
+            $BA['fee_type'] = AppEnum::waterFeeType;
+          } else {
+            $BA['fee_type'] = AppEnum::electricFeeType;
+          }
+
+          $BA['amount'] = numFormat($meter['price'] * $record['used_value']);
+          $BA['bill_date'] = $record['pre_date'] . "至" . $record['record_date'];
+          $BA['charge_date'] = date('Y-m-t', strtotime(getPreYmd($record['record_date'], 1)));
+          $billService->saveBillDetail($BA, $user);
+        }
+      }, 3);
+      return true;
+    } catch (\Throwable $th) {
+      Log::error("水电表审核失败" . $th);
+      throw new Exception("水电表审核失败" . $th);
+      return false;
+    }
   }
 
   private function saveMeterLog($DA, $user)

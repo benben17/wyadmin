@@ -18,7 +18,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'updated_at'];
 
-  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount'];
+  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -36,8 +36,14 @@ class TenantBillDetail extends Model
   }
   public function getUnreceiveAmountAttribute()
   {
-    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount']);
+    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
   }
+
+  public function getReceivableAmountAttribute()
+  {
+    return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+  }
+
   public function getProjNameAttribute()
   {
     if (isset($this->attributes['proj_id'])) {
