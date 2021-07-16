@@ -541,7 +541,7 @@ class MeterController extends BaseController
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->with('meter:id,meter_no,proj_id,parent_id')
+      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);

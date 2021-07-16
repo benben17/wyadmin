@@ -39,18 +39,22 @@ class Meter extends Model
   }
   public function getMeterTypeAttribute()
   {
-    if ($this->attributes['type'] == 1) {
-      return '水表';
-    } else {
-      return '电表';
+    if (isset($this->attributes['type'])) {
+      if ($this->attributes['type'] == 1) {
+        return '水表';
+      } else {
+        return '电表';
+      }
     }
   }
   public function getMasterSlaveAttribute()
   {
-    if ($this->attributes['master_slave'] == 1) {
-      return '总表';
-    } else {
-      return '子表';
+    if (isset($this->attributes['master_slave'])) {
+      if ($this->attributes['master_slave'] == 1) {
+        return '总表';
+      } else {
+        return '子表';
+      }
     }
   }
 
