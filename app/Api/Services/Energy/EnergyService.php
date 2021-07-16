@@ -120,7 +120,7 @@ class EnergyService
       }
 
       $meterRecord->meter_id   = $DA['meter_id'];
-      $meterRecord->tenant_id  = $DA['tenant_id'];
+      $meterRecord->tenant_id  = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       // $meterRecord->pre_value  = isset($DA['pre_value']) ? $DA['pre_value'] :0;
       if (isset($DA['pre_date'])) {
         $meterRecord->pre_date  = $DA['pre_date'];
