@@ -498,7 +498,7 @@ class PubSelectController extends BaseController
 				$q->where('parent_id', 0);
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
 				$q->where('type', AppEnum::TenantType);
-			})->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type')
+			})->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();
 		return $this->success($data);
