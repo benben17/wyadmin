@@ -36,12 +36,16 @@ class TenantBillDetail extends Model
   }
   public function getUnreceiveAmountAttribute()
   {
-    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
+    if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
+      return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
+    }
   }
 
   public function getReceivableAmountAttribute()
   {
-    return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+    if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
+      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+    }
   }
 
   public function getProjNameAttribute()

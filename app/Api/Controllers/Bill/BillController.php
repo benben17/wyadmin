@@ -79,18 +79,29 @@ class BillController extends BaseController
     } else {
       $order = 'desc';
     }
+    if ($request->tenant_id) {
+      $map['tenant_id'] = $request->tenant_id;
+    }
     DB::enableQueryLog();
     $billService = new TenantBillService;
     $data = $billService->billModel()
       ->where($map)
-      ->with(['billDetail' => function ($q) {
-        $q->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt');
-      }])
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+      })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
 
     $data = $this->handleBackData($data);
+    foreach ($data['result'] as $k => &$v) {
+      $billCount = $billService->billDetailModel()
+        ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
+        ->where('bill_id', $v['id'])->first();
+      $v['total_amount'] = $billCount['totalAmt'];
+      $v['discount_amount'] = $billCount['disAmt'];
+      // $v['receive_amount'] = $billCount['receiveAmt'];
+    }
     return $this->success($data);
   }
 
