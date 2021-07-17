@@ -169,4 +169,39 @@ class BillController extends BaseController
       return $this->error("账单生成失败！");
     }
   }
+
+
+  public function show(Request $request)
+  {
+
+    $map = array();
+    // 排序字段
+    if ($request->input('orderBy')) {
+      $orderBy = $request->input('orderBy');
+    } else {
+      $orderBy = 'created_at';
+    }
+    // 排序方式desc 倒叙 asc 正序
+    if ($request->input('order')) {
+      $order = $request->input('order');
+    } else {
+      $order = 'desc';
+    }
+    if ($request->tenant_id) {
+      $map['tenant_id'] = $request->tenant_id;
+    }
+    DB::enableQueryLog();
+    $billService = new TenantBillService;
+    $data = $billService->billModel()->find($request->id);
+
+    $billCount = $billService->billDetailModel()
+      ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
+      ->where('bill_id', $request->id)->first();
+    $data['total_amount']    = $billCount['totalAmt'];
+    $data['discount_amount'] = $billCount['disAmt'];
+    $data['receive_amount']  = $billCount['receiveAmt'];
+    $data['unreceive_amount'] = numFormat($billCount['totalAmt'] - $billCount['receiveAmt']);
+
+    return $this->success($data);
+  }
 }

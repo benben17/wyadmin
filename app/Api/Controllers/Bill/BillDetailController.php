@@ -85,7 +85,7 @@ class BillDetailController extends BaseController
     if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
-    $request->end_date = date('Y-m-t', strtotime(nowYmd()));
+    // $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
     $subQuery = $this->billService->billDetailModel()
