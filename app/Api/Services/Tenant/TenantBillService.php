@@ -208,7 +208,7 @@ class TenantBillService
         $bill = $this->saveBill($billData, $user);
         Log::error("账单ID------" . $bill['id']);
         $update['bill_id'] = $bill['id'];
-        $this->billDetailModel()->where('tenant_id', $tenantId)
+        $this->billDetailModel()->where('contract_id', $contract['id'])
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType)->update($update);
