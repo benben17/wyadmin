@@ -507,10 +507,10 @@ class MeterController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
+    $map = array();
     if (isset($request->audit_status) && !$request->audit_status) {
       $map['audit_status'] = $request->audit_status;
     }
-    $map = array();
     if ($request->meter_id) {
       $map['meter_id'] = $request->meter_id;
     }
