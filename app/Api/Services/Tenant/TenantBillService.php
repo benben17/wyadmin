@@ -89,8 +89,8 @@ class TenantBillService
       }
       $billDetail->company_id  = $user['company_id'];
       $billDetail->proj_id     = $DA['proj_id'];
-      $billDetail->tenant_id   = $DA['tenant_id'];
-      $billDetail->tenant_name = $DA['tenant_name'];
+      $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+      $billDetail->tenant_name = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
       $billDetail->fee_type    = $DA['fee_type']; // 费用类型
       $billDetail->amount      = $DA['amount'];
