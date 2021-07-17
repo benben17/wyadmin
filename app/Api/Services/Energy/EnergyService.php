@@ -353,11 +353,13 @@ class EnergyService
     try {
       DB::transaction(function () use ($Ids, $user) {
         $billService = new TenantBillService;
-        $data['audit_user'] = $user['id'];
-        $this->meterRecordModel()->whereIn('id', $Ids)->update($data);
+        $data['audit_user'] = $user['realname'];
+        $data['audit_status'] = 1;
+        $this->meterRecordModel()->whereIn('id', $Ids)
+          ->where('audit_status', 0)->update($data);
         $BA = array();
         foreach ($Ids as $k => $id) {
-          $record = MeterRecordModel::find($id);
+          $record = MeterRecordModel::whereId($id)->where('audit_status', 0)->first();
           $meter = MeterModel::find($record['meter_id']);
           $BA['proj_id'] = $meter['proj_id'];
           $BA['tenant_id'] = $meter['tenant_id'];

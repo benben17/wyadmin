@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Models\Energy;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,23 +8,29 @@ use App\Api\Scopes\CompanyScope;
 
 class MeterRecord extends Model
 {
-/**
-  * 关联到模型的数据表
-  *
-  * @var string
-  */
+  /**
+   * 关联到模型的数据表
+   *
+   * @var string
+   */
 
   protected $table = 'bse_meter_record';
   protected $fillable = [];
-  protected $hidden = ['deleted_at',"company_id",'updated_at'];
-
+  protected $hidden = ['deleted_at', "company_id", 'updated_at'];
+  protected $appends = ['audit_status_label'];
 
   public function meter()
   {
-    return $this->hasOne(Meter::class,'id','meter_id');
+    return $this->hasOne(Meter::class, 'id', 'meter_id');
   }
 
-  protected static function boot(){
+  public function getAuditStatusLabelAttribute()
+  {
+    return  $this->attributes['audit_status'] ? "已审核" : "未审核";
+  }
+
+  protected static function boot()
+  {
     parent::boot();
     static::addGlobalScope(new CompanyScope);
   }
