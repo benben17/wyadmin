@@ -346,7 +346,7 @@ class EnergyService
    * @param    [type]     $user [description]
    * @return   [type]           [description]
    */
-  public function auditMeterRecord($Ids, $user)
+  public function auditMeterRecord(array $Ids, $user)
   {
     try {
       DB::transaction(function () use ($Ids, $user) {

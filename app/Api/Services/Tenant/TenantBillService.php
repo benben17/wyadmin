@@ -31,7 +31,47 @@ class TenantBillService
 
 
   /**
-   * 账单保存
+   * 账单表头保存 
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-17
+   * @param [type] $DA
+   *
+   * @return array
+   */
+  public function saveBill($DA, $user): array
+  {
+    try {
+      if (isset($DA['id']) && $DA['id'] > 0) {
+        $bill = $this->billModel()->find($DA['id']);
+        $bill->u_uid = $user['id'];
+      } else {
+        $bill = $this->billModel();
+        $bill->company_id = $user['company_id'];
+        $bill->proj_id   = $DA['proj_id'];
+        $bill->c_uid     = $user['id'];
+      }
+
+      $bill->tenant_id   = $DA['tenant_id'];
+      $bill->tenant_name = $DA['tenant_name'];
+      $bill->type        = $DA['type']; // 1 收款 2 付款
+      $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
+      $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
+      $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
+      $bill->amount = isset($DA['amount']) ? $DA['amount'] : 0.00;;
+      $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
+      $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+      $bill->save();
+      return $bill;
+    } catch (Exception $e) {
+      Log::error("账单保存失败" . $e);
+      throw new Exception("账单保存失败" . $e);
+      return false;
+    }
+  }
+
+  /**
+   * 费用详细保存
    * @Author   leezhua
    * @DateTime 2021-05-31
    * @param    [type]     $DA [description]
@@ -93,30 +133,7 @@ class TenantBillService
     return $this->billDetailModel()->addAll($data);
   }
 
-  /** 
-   * 账单表头保存 
-   */
-  public function saveBill($DA)
-  {
-    try {
-      $bill = $this->billModel();
-      $bill->tenant_id   = $DA['tenant_id'];
-      $bill->tenant_name = $DA['tenant_name'];
-      $bill->type        = $DA['type']; // 1 收款 2 付款
-      $bill->fee_type    = $DA['fee_type']; // 费用类型
-      $bill->bank_id      = $DA['bank_id'];
 
-      $bill->charge_amount = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;;
-      $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
-      $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $res = $bill->save();
-      return $res;
-    } catch (Exception $e) {
-      Log::error($e->getMessage());
-      throw new Exception("账单保存失败");
-      return false;
-    }
-  }
 
 
   /**
@@ -154,10 +171,33 @@ class TenantBillService
    * @param    string     $month    [账单月份]
    * @return   [type]               [description]
    */
-  public function createBill($tenantId = 0, $month = "")
+  public function createBill(int $tenantId, String $month = "", $feeType, $chargeDate, $user)
   {
+    try {
+      DB::transaction(function () use ($tenantId,  $month, $feeType, $chargeDate, $user) {
+        $startDate = date('Y-m-01', strtotime($month));
+        $endDate = date('Y-m-01', strtotime($month));
+        $subQuery = $this->billDetailModel()->where('tenant_id', $tenantId)
+          ->whereBetween('charge_date', $startDate, $endDate)
+          ->where('status', 0)
+          ->whereIn('fee_type', $feeType);
+        $billSum = $subQuery->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt');
+        $tenant = TenantModel::find($tenantId);
+        $billData['tenant_id'] = $tenantId;
+        $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
+        $billData['charge_date'] = $chargeDate;
+        $billData['proj_id'] = $tenant['proj_id'];
+        $billData['tenant_name'] = $tenant['name'];
+        $billData['bill_no'] = $tenant['tenant_no'] . "-" . dateFormat("Ym", $month);
+        $billData['bill_title'] = $tenant['name'];
+        $bill = $this->saveBill($billData, $user);
 
-    return false;
+        $subQuery->update(['bill_id', $bill['id']]);
+      }, 3);
+    } catch (Exception $e) {
+      Log::error("生成账单失败" . $e);
+      return false;
+    }
   }
 
   /**
