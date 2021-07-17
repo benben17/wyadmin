@@ -383,6 +383,7 @@ Route::group(['prefix' => 'operation/inspection'], function () {
     Route::post('/record/edit', '\App\Api\Controllers\Operation\InspectionController@recordUpdate');
     Route::post('/record/show', '\App\Api\Controllers\Operation\InspectionController@recordShow');
     Route::post('/record/del', '\App\Api\Controllers\Operation\InspectionController@recordDelete');
+    Route::post('/record/audit', '\App\Api\Controllers\Operation\InspectionController@auditMeterRecord');
 });
 
 // 车位管理
