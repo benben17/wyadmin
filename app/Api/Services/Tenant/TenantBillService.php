@@ -203,7 +203,7 @@ class TenantBillService
         $billData['charge_date'] = $chargeDate;
         $billData['proj_id'] = $tenant['proj_id'];
         $billData['tenant_name'] = $tenant['name'];
-        $billData['bill_no']    = $tenant['tenant_no'] . "-" . dateFormat("Ym", $month);
+        $billData['bill_no']    = billNo($month);
         $billData['bill_title'] = $tenant['name'];
         $bill = $this->saveBill($billData, $user);
         Log::error("账单ID------" . $bill['id']);
@@ -262,5 +262,10 @@ class TenantBillService
       Log::error("格式化，租户账单失败" . $th->getMessage());
       throw $th;
     }
+  }
+
+  private function billNo($month){
+    $no = dateFormat("ym", $month);
+    return  $no."-".mt_rand(1000, 9999)
   }
 }
