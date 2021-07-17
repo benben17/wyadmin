@@ -100,7 +100,8 @@ class BillController extends BaseController
         ->where('bill_id', $v['id'])->first();
       $v['total_amount'] = $billCount['totalAmt'];
       $v['discount_amount'] = $billCount['disAmt'];
-      // $v['receive_amount'] = $billCount['receiveAmt'];
+      $v['receive_amount'] = $billCount['receiveAmt'];
+      $v['unreceive_amount'] = $billCount['totalAmt'] - $billCount['receiveAmt'];
     }
     return $this->success($data);
   }
