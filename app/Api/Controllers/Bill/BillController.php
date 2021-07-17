@@ -148,7 +148,9 @@ class BillController extends BaseController
       $tenantService = new TenantService;
       $tenants = $tenantService->tenantModel();
 
-      $contracts = $contractService->model()->select('id', 'tenant_id')->whereIn('proj_id', $request->proj_ids)->get();
+      $contracts = $contractService->model()->select('id', 'tenant_id')
+        ->where('contract_state', AppEnum::contractExecute) // 执行状态
+        ->whereIn('proj_id', $request->proj_ids)->get();
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       foreach ($contracts as $k => $v) {
