@@ -324,9 +324,7 @@ class EnergyService
    */
   public function editMeterRecord($DA, $user)
   {
-
     // 获取上一次的抄表信息
-
     $meterRecord = $this->meterRecordModel()->find($DA['id']);
     $meter = MeterModel::select('multiple')->find($meterRecord['meter_id']);
     $meterRecord->meter_value = $DA['meter_value'];

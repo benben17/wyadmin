@@ -19,9 +19,14 @@ class MeterRecord extends Model
   protected $hidden = ['deleted_at', "company_id", 'updated_at'];
   protected $appends = ['audit_status_label'];
 
+  // public function meter()
+  // {
+  //   return $this->hasOne(Meter::class, 'id', 'meter_id');
+  // }
+
   public function meter()
   {
-    return $this->hasOne(Meter::class, 'id', 'meter_id');
+    return $this->belongsTo(Meter::class, 'meter_id', 'id');
   }
 
   public function getAuditStatusLabelAttribute()
