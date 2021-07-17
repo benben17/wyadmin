@@ -353,26 +353,30 @@ class EnergyService
         $billService = new TenantBillService;
         $data['audit_user'] = $user['realname'];
         $data['audit_status'] = 1;
-        $this->meterRecordModel()->whereIn('id', $Ids)
-          ->where('audit_status', 0)->update($data);
         $BA = array();
         foreach ($Ids as $k => $id) {
           $record = MeterRecordModel::whereId($id)->where('audit_status', 0)->first();
+          if (!$record) {
+            Log::error("未查询到数据");
+            continue;
+          }
           $meter = MeterModel::find($record['meter_id']);
-          $BA['proj_id'] = $meter['proj_id'];
-          $BA['tenant_id'] = $meter['tenant_id'];
-          $BA['tenant_name'] = $record['tenant_name'];
+          $BA['proj_id']      = $meter['proj_id'];
+          $BA['tenant_id']    = $meter['tenant_id'];
+          $BA['tenant_name']  = $record['tenant_name'];
           if ($meter['type'] == 1) {
             $BA['fee_type'] = AppEnum::waterFeeType;
           } else {
             $BA['fee_type'] = AppEnum::electricFeeType;
           }
-
-          $BA['amount'] = numFormat($meter['price'] * $record['used_value']);
-          $BA['bill_date'] = $record['pre_date'] . "至" . $record['record_date'];
-          $BA['charge_date'] = date('Y-m-t', strtotime(getPreYmd($record['record_date'], 1)));
+          $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
+          $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
+          $BA['charge_date']  = date('Y-m-t', strtotime(getPreYmd($record['record_date'], 1)));
+          Log::error(json_encode($BA));
           $billService->saveBillDetail($BA, $user);
         }
+        // 更新状态
+        $this->meterRecordModel()->whereIn('id', $Ids)->where('audit_status', 0)->update($data);
       }, 3);
       return true;
     } catch (\Throwable $th) {
