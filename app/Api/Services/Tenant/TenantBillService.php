@@ -55,7 +55,7 @@ class TenantBillService
       $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
       $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
       $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
-      $bill->amount = isset($DA['amount']) ? $DA['amount'] : 0.00;;
+      $bill->amount       = isset($DA['amount']) ? $DA['amount'] : 0.00;;
       $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $bill->save();
@@ -86,7 +86,7 @@ class TenantBillService
       }
       $billDetail->company_id  = $user['company_id'];
       $billDetail->proj_id     = $DA['proj_id'];
-      $billDetail->contract_id     = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
+      $billDetail->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
       $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $billDetail->tenant_name = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
@@ -264,8 +264,18 @@ class TenantBillService
     }
   }
 
-  private function billNo($month){
+  /**
+   * 生成账单编号
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-17
+   * @param [type] $month
+   *
+   * @return void
+   */
+  private function billNo($month)
+  {
     $no = dateFormat("ym", $month);
-    return  $no."-".mt_rand(1000, 9999)
+    return  $no . "-" . mt_rand(1000, 9999);
   }
 }

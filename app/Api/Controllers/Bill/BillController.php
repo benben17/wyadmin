@@ -6,13 +6,11 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\TenantBillService;
-use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 use Exception;
 
@@ -145,8 +143,6 @@ class BillController extends BaseController
       // DB::transaction(function () use ($request) {
       $contractService = new ContractService;
       $billService = new TenantBillService;
-      $tenantService = new TenantService;
-      $tenants = $tenantService->tenantModel();
 
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where('contract_state', AppEnum::contractExecute) // 执行状态

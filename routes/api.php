@@ -350,6 +350,8 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('fee/verify', '\App\Api\Controllers\Bill\BillDetailController@verify');
     Route::post('fee/add', '\App\Api\Controllers\Bill\BillDetailController@store');
     Route::post('fee/edit', '\App\Api\Controllers\Bill\BillDetailController@edit');
+
+    Route::post('sync', '\App\Api\Controllers\Bill\BillSyncController@syncContractBill');
 });
 
 //发票
