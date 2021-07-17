@@ -386,6 +386,16 @@ class EnergyService
     }
   }
 
+  /**
+   * 保存水电表更新记录
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-17
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
   private function saveMeterLog($DA, $user)
   {
     $meterLog = new MeterLogModel;

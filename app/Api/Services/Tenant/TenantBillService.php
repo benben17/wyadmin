@@ -16,19 +16,17 @@ use App\Api\Services\Energy\EnergyService;
 class TenantBillService
 {
 
+  // 账单
+  public function billModel()
+  {
+    return new BillModel;
+  }
   /** 账单详情 */
   public function billDetailModel()
   {
     $model = new BillDetailModel;
     return $model;
   }
-  // 账单
-  public function billModel()
-  {
-    $model = new BillModel;
-    return $model;
-  }
-
 
   /**
    * 账单表头保存 
@@ -39,7 +37,7 @@ class TenantBillService
    *
    * @return array
    */
-  public function saveBill($DA, $user): array
+  public function saveBill($DA, $user)
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
@@ -51,17 +49,15 @@ class TenantBillService
         $bill->proj_id   = $DA['proj_id'];
         $bill->c_uid     = $user['id'];
       }
-
       $bill->tenant_id   = $DA['tenant_id'];
       $bill->tenant_name = $DA['tenant_name'];
-      $bill->type        = $DA['type']; // 1 收款 2 付款
       $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
       $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
       $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
       $bill->amount = isset($DA['amount']) ? $DA['amount'] : 0.00;;
       $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $bill->save();
+      $res = $bill->save();
       return $bill;
     } catch (Exception $e) {
       Log::error("账单保存失败" . $e);
@@ -133,9 +129,6 @@ class TenantBillService
     return $this->billDetailModel()->addAll($data);
   }
 
-
-
-
   /**
    * 账单审核
    * @Author   leezhua
@@ -164,36 +157,50 @@ class TenantBillService
   }
 
   /**
-   * [创建账单]
-   * @Author   leezhua
-   * @DateTime 2020-08-10
-   * @param    integer    $tenantId [租户ID]
-   * @param    string     $month    [账单月份]
-   * @return   [type]               [description]
+   * 创建账单
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-17
+   * @param integer $tenantId
+   * @param String $month
+   * @param [type] $feeType
+   * @param [type] $chargeDate
+   * @param [type] $user
+   *
+   * @return void
    */
   public function createBill(int $tenantId, String $month = "", $feeType, $chargeDate, $user)
   {
     try {
+      // DB::enableQueryLog();
       DB::transaction(function () use ($tenantId,  $month, $feeType, $chargeDate, $user) {
         $startDate = date('Y-m-01', strtotime($month));
-        $endDate = date('Y-m-01', strtotime($month));
+        $endDate = date('Y-m-t', strtotime($month));
         $subQuery = $this->billDetailModel()->where('tenant_id', $tenantId)
-          ->whereBetween('charge_date', $startDate, $endDate)
+          ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType);
-        $billSum = $subQuery->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt');
+        $billSum = $subQuery->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
+          ->groupBy('tenant_id')->first();
+        Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
+        Log::error(response()->json(DB::getQueryLog()));
         $tenant = TenantModel::find($tenantId);
         $billData['tenant_id'] = $tenantId;
         $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
         $billData['charge_date'] = $chargeDate;
         $billData['proj_id'] = $tenant['proj_id'];
         $billData['tenant_name'] = $tenant['name'];
-        $billData['bill_no'] = $tenant['tenant_no'] . "-" . dateFormat("Ym", $month);
+        $billData['bill_no']    = $tenant['tenant_no'] . "-" . dateFormat("Ym", $month);
         $billData['bill_title'] = $tenant['name'];
         $bill = $this->saveBill($billData, $user);
-
-        $subQuery->update(['bill_id', $bill['id']]);
+        Log::error("账单ID------" . $bill['id']);
+        $update['bill_id'] = $bill['id'];
+        $this->billDetailModel()->where('tenant_id', $tenantId)
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('status', 0)
+          ->whereIn('fee_type', $feeType)->update($update);
       }, 3);
+      return true;
     } catch (Exception $e) {
       Log::error("生成账单失败" . $e);
       return false;
