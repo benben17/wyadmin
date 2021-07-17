@@ -16,15 +16,28 @@ class InvoiceRecord extends Model
   protected $table = 'bse_invoice_record';
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
-
   protected $appends = ['status_label', 'c_user', 'tenant_name'];
+
   public function getStatusLabelAttribute()
   {
-    return $this->attributes['status'] ? "已开" : "未开";
+    if (isset($this->attributes['status'])) {
+      $status = $this->attributes['status'];
+      switch ($status) {
+        case '0':
+          return '未开';
+          break;
+        case '1':
+          return "已开";
+          break;
+        case '2':
+          return "作废";
+          break;
+      }
+    }
   }
   public function getCUserAttribute()
   {
-    if (isset($this->attributes['status'])) {
+    if (isset($this->attributes['c_uid'])) {
       $user = getUserByUid($this->attributes['c_uid']);
       return $user['realname'];
     }

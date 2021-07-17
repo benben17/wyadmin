@@ -111,7 +111,7 @@ class ChargeService
         $billRecord['proj_id']        = $detailBill['proj_id'];
         $billRecord['verify_date'] = $verifyDate;
         $billService = new TenantBillService;
-        $billService->saveBillDetail($detailBill, $user);
+        $billService->saveBillDetail($detailBill, $user); // 更新费用信息
         $this->save($chargeBill, $user);  //更新 收款
         $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
       }, 3);

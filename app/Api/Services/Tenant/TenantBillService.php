@@ -8,6 +8,7 @@ use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
+use App\Api\Models\Contract\Contract;
 use App\Api\Services\Energy\EnergyService;
 
 /**
@@ -85,6 +86,7 @@ class TenantBillService
       }
       $billDetail->company_id  = $user['company_id'];
       $billDetail->proj_id     = $DA['proj_id'];
+      $billDetail->contract_id     = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
       $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $billDetail->tenant_name = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
@@ -119,14 +121,20 @@ class TenantBillService
    *
    * @return void
    */
-  public function batchSaveBillDetail($DA, $user, int $projId)
+  public function batchSaveBillDetail($contractId, $user, int $projId)
   {
-    if (!is_array($DA)) {
-      $DA = $DA->toArray();
+    try {
+      $depositBills = Contract::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
+      $data = $this->formatBillDetail($depositBills, $user, $projId);
+      $this->billDetailModel()->addAll($data);
+      $bills = Contract::where('contract_id', $contractId)->where('type', 1)->orderBy('charge_date')->first();
+      $this->saveBillDetail($bills, $user);
+      Log::error('格式化账单成功');
+      return true;
+    } catch (Exception $th) {
+      throw $th;
+      return false;
     }
-    $data = $this->formatBillDetail($DA, $user, $projId);
-    Log::error('格式化账单成功');
-    return $this->billDetailModel()->addAll($data);
   }
 
   /**

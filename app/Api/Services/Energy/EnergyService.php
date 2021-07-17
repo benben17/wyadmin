@@ -373,6 +373,10 @@ class EnergyService
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
           $BA['charge_date']  = date('Y-m-t', strtotime(getPreYmd($record['record_date'], 1)));
           Log::error(json_encode($BA));
+          $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
+          if ($contractRoom['contract_id'] > 0) {
+            $BA['contract_id'] = $contractRoom['contract_id'];
+          }
           $billService->saveBillDetail($BA, $user);
         }
         // 更新状态

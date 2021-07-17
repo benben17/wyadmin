@@ -140,6 +140,9 @@ function amountToCny($num)
 /** 保留两位小数 并格式化数据输出 */
 function numFormat($num)
 {
+    if (!$num || empty($num) || is_null($num) || $num === NULL) {
+        return 0.00;
+    }
     return  sprintf("%.2f", round($num, 2));
     // return number_format($num, 2, ",", "");
 }

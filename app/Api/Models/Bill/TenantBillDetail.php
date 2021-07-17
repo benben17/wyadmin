@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  *  账单详细
@@ -34,18 +35,25 @@ class TenantBillDetail extends Model
       return $user['realname'];
     }
   }
+  // 未收金额
   public function getUnreceiveAmountAttribute()
   {
-    if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
-      return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
-    }
+    // if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
+    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
+    // } else {
+    // return 0.00;
+    // }
   }
 
+  // 实际应收
   public function getReceivableAmountAttribute()
   {
-    if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
-      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
-    }
+    // if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
+    // Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
+    return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+    // } else {
+    // return 0.00;
+    // }
   }
 
   public function getProjNameAttribute()

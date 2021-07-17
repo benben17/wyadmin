@@ -192,14 +192,14 @@ class BillController extends BaseController
     }
     DB::enableQueryLog();
     $billService = new TenantBillService;
-    $data = $billService->billModel()->find($request->id);
+    $data = $billService->billModel()->with('billDetail')->find($request->id);
 
     $billCount = $billService->billDetailModel()
       ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
       ->where('bill_id', $request->id)->first();
-    $data['total_amount']    = $billCount['totalAmt'];
-    $data['discount_amount'] = $billCount['disAmt'];
-    $data['receive_amount']  = $billCount['receiveAmt'];
+    $data['total_amount']    = numFormat($billCount['totalAmt']);
+    $data['discount_amount'] = numFormat($billCount['disAmt']);
+    $data['receive_amount']  = numFormat($billCount['receiveAmt']);
     $data['unreceive_amount'] = numFormat($billCount['totalAmt'] - $billCount['receiveAmt']);
 
     return $this->success($data);
