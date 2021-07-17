@@ -124,15 +124,20 @@ class TenantBillService
   public function batchSaveBillDetail($contractId, $user, int $projId)
   {
     try {
-      $depositBills = Contract::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
-      $data = $this->formatBillDetail($depositBills, $user, $projId);
-      $this->billDetailModel()->addAll($data);
-      $bills = Contract::where('contract_id', $contractId)->where('type', 1)->orderBy('charge_date')->first();
-      $this->saveBillDetail($bills, $user);
-      Log::error('格式化账单成功');
-      return true;
+      DB::transaction(function () use ($contractId, $user, $projId) {
+        $depositBills = Contract::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
+        $data = $this->formatBillDetail($depositBills, $user, $projId);
+        $this->billDetailModel()->addAll($data);
+        // 保存后同步更新状态
+        Contract::where('contract_id', $contractId)->where('type', 2)->update('is_sync', 1);
+        $bills = Contract::where('contract_id', $contractId)->where('type', 1)->orderBy('charge_date')->first();
+        $bills->is_sync = 1;
+        $bills->save();
+        $this->saveBillDetail($bills, $user);
+        Log::error('格式化账单成功');
+      }, 3);
     } catch (Exception $th) {
-      throw $th;
+      throw new Exception("账单保存失败" . $th);
       return false;
     }
   }
@@ -177,14 +182,14 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill(int $tenantId, String $month = "", $feeType, $chargeDate, $user)
+  public function createBill($contract, String $month = "", $feeType, $chargeDate, $user)
   {
     try {
       // DB::enableQueryLog();
-      DB::transaction(function () use ($tenantId,  $month, $feeType, $chargeDate, $user) {
+      DB::transaction(function () use ($contract,  $month, $feeType, $chargeDate, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
-        $subQuery = $this->billDetailModel()->where('tenant_id', $tenantId)
+        $subQuery = $this->billDetailModel()->where('contract_id', $contract['id'])
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType);
@@ -192,8 +197,8 @@ class TenantBillService
           ->groupBy('tenant_id')->first();
         Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
         Log::error(response()->json(DB::getQueryLog()));
-        $tenant = TenantModel::find($tenantId);
-        $billData['tenant_id'] = $tenantId;
+        $tenant = TenantModel::find($contract['tenant_id']);
+        $billData['tenant_id'] = $contract['tenant_id'];
         $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
         $billData['charge_date'] = $chargeDate;
         $billData['proj_id'] = $tenant['proj_id'];

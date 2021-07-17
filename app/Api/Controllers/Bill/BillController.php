@@ -7,6 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Tenant\Tenant;
+use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -142,19 +143,18 @@ class BillController extends BaseController
     ]);
     try {
       // DB::transaction(function () use ($request) {
+      $contractService = new ContractService;
       $billService = new TenantBillService;
       $tenantService = new TenantService;
-      $tenants = $tenantService->tenantModel()
-        ->where(function ($q) use ($request) {
-          $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
-        })->whereType(2)->whereIn('proj_id', $request->proj_ids)->get();
+      $tenants = $tenantService->tenantModel();
 
+      $contracts = $contractService->model()->select('id', 'tenant_id')->whereIn('proj_id', $request->proj_ids)->get();
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
-      foreach ($tenants as $k => $v) {
-        $bill = $billService->billModel()->where('tenant_id', $v['id'])->whereBetween('charge_date', [$startDate, $endDate])->count();
+      foreach ($contracts as $k => $v) {
+        $bill = $billService->billModel()->where('contract_id', $v['id'])->whereBetween('charge_date', [$startDate, $endDate])->count();
         if ($bill > 0) {
-          Log::error("已有账单，租户Id" . $v['id']);
+          Log::error("已有账单，合同Id" . $v['id']);
           continue;
         }
         $res = $billService->createBill($v['id'], $request->bill_month, $request->fee_types, $request->charge_date, $this->user);
