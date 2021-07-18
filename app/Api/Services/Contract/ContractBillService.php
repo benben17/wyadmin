@@ -115,6 +115,10 @@ class ContractBillService
       $bill[$i]['start_date'] = $startDate;
       // Log::error($startDate);
       $bill[$i]['charge_date'] = formatYmd(formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, $rule['ahead_pay_month'])))));
+      // 当 第二期账单收款日小于合同签订日期取合同签订时间
+      if (strtotime($bill[$i]['charge_date']) < strtotime($rule['start_date'])) {
+        $bill[$i]['charge_date'] = $rule['start_date'];
+      }
       $bill[$i]['amount'] = numFormat($rule['month_amt'] * $rule['pay_method']);
       $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $rule['pay_method'] - 1)));
       $bill[$i]['end_date'] = formatYmd($endDate);

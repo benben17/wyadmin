@@ -232,11 +232,11 @@ class EnergyService
           $DA['tenant_id'] = $tenantId;
           $this->saveMeterLog($DA, $user);
         }
-      });
+      }, 2);
       return true;
     } catch (Exception $e) {
-      Log::error("租户绑定失败" . $e);
-      throw new Exception("租户绑定失败" . $e);
+      Log::error("水电表租户绑定失败" . $e);
+      throw new Exception("水电表租户绑定失败" . $e);
       return false;
     }
   }
