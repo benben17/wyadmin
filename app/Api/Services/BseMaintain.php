@@ -145,11 +145,12 @@ class BseMaintain
      */
     public function showMaintain($id, $parentType)
     {
-        $data = MaintainModel::find($id)->toArray();
+        $data = MaintainModel::find($id);
+        Log::error("维护租户id" . $data['parent_id']);
         $data['name'] = $this->getParentName($data['parent_id'], $parentType);
         $data['maintain_type_label'] = getDictName($data['maintain_type']);
         if ($data) {
-            return $data->toArray();
+            return $data;
         } else {
             return "{}";
         }
