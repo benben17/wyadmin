@@ -10,7 +10,7 @@ use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use Exception;
 
 /**

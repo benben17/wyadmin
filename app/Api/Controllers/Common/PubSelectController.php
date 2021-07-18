@@ -16,7 +16,7 @@ use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Tenant\ChargeService;
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 
 /**

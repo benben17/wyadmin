@@ -9,7 +9,7 @@ use App\Api\Models\Operation\WorkOrder as WorkOrderModel;
 use App\Api\Models\Operation\WorkOrderLog as WorkOrderLogModel;
 use App\Api\Services\Common\MessageService;
 use App\Api\Services\Common\SmsService;
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use Exception;
 
 /**

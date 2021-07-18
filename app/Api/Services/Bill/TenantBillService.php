@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Services\Tenant;
+namespace App\Api\Services\Bill;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +10,6 @@ use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\Contract;
-use App\Api\Services\Energy\EnergyService;
 
 /**
  *   租户账单服务
@@ -56,7 +55,7 @@ class TenantBillService
       $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
       $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
       $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
-      $bill->amount       = isset($DA['amount']) ? $DA['amount'] : 0.00;;
+      $bill->amount       = isset($DA['amount']) ? $DA['amount'] : 0.00;
       $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $bill->save();
@@ -104,6 +103,7 @@ class TenantBillService
       }
       $billDetail->bill_date = isset($DA['bill_date']) ? $DA['bill_date'] : "";
       $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
+      $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
       $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
       return $billDetail->save();
     } catch (Exception $e) {
@@ -113,7 +113,7 @@ class TenantBillService
     }
   }
   /**
-   * 批量保存账单信息
+   * 批量保存账单信息,合同审核同步账单
    *
    * @Author leezhua
    * @DateTime 2021-07-11
@@ -131,7 +131,7 @@ class TenantBillService
         $data = $this->formatBillDetail($depositBills, $user, $projId);
         $this->billDetailModel()->addAll($data);
         // 保存后同步更新状态
-        Contract::where('contract_id', $contractId)->where('type', 2)->update('is_sync', 1);
+        Contract::where('contract_id', $contractId)->where('type', 2)->update(['is_sync' => 1]);
         $bills = Contract::where('contract_id', $contractId)->where('type', 1)->orderBy('charge_date')->first();
         $bills->is_sync = 1;
         $bills->save();
@@ -189,10 +189,10 @@ class TenantBillService
     try {
       // DB::enableQueryLog();
       DB::transaction(function () use ($contract,  $month, $feeType, $chargeDate, $user) {
-        $startDate = date('Y-m-01', strtotime($month));
-        $endDate = date('Y-m-t', strtotime($month));
+        // $startDate = date('Y-m-01', strtotime($month));
+        // $endDate = date('Y-m-t', strtotime($month));
         $subQuery = $this->billDetailModel()->where('contract_id', $contract['id'])
-          ->whereBetween('charge_date', [$startDate, $endDate])
+          // ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType);
         $billSum = $subQuery->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
@@ -211,7 +211,7 @@ class TenantBillService
         Log::error("账单ID------" . $bill['id']);
         $update['bill_id'] = $bill['id'];
         $this->billDetailModel()->where('contract_id', $contract['id'])
-          ->whereBetween('charge_date', [$startDate, $endDate])
+          // ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType)->update($update);
       }, 3);
@@ -301,6 +301,15 @@ class TenantBillService
     return  $no . "-" . mt_rand(1000, 9999);
   }
 
+  /**
+   * 查看账单服务
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-18
+   * @param [type] $billId
+   *
+   * @return void
+   */
   public function showBill($billId)
   {
     $data = $this->billModel()->find($billId);
@@ -311,11 +320,7 @@ class TenantBillService
       ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt,bank_id')
       ->where('bill_id', $billId)->groupBy('bank_id')->get();
     foreach ($billGroups as $k => $v) {
-      // $v['total_amount']    = numFormat($v['totalAmt']);
-      // $v['discount_amount'] = numFormat($v['disAmt']);
-      // $v['receive_amount']  = numFormat($v['receiveAmt']);
-      // $v['unreceive_amount'] = numFormat($v['totalAmt'] - $v['receiveAmt']);
-      $v['bank_info'] = BankAccount::find($v['bank_id']);
+      $v['bank_info']   = BankAccount::find($v['bank_id']);
       $v['bill_detail'] = $this->billDetailModel()->where('bill_id', $billId)->where('bank_id', $v['bank_id'])->get();
     }
     $data['bills'] = $billGroups;

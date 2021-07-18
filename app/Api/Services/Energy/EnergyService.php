@@ -12,8 +12,7 @@ use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 use App\Api\Models\Energy\MeterLog as MeterLogModel;
 use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
-use App\Api\Services\BseRemark;
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 
 /**

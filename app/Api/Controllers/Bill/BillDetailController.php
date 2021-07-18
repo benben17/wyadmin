@@ -11,7 +11,7 @@ use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
 
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 
 /**

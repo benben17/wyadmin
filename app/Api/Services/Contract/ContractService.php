@@ -9,14 +9,13 @@ use App\Api\Models\Contract\ContractLog as ContractLogModel;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Tenant\Tenant;
-use App\Api\Services\Channel\ChannelService;
 use App\Api\Services\Common\MessageService;
 use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Company\FeeTypeService;
 use App\Api\Services\Energy\EnergyService;
-use App\Api\Services\Tenant\TenantBillService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 
 /**

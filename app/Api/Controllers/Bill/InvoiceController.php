@@ -6,13 +6,11 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\InvoiceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Tenant\TenantBillService;
-use App\Api\Services\Tenant\TenantService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 use Exception;
 
