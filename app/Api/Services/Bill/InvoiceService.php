@@ -7,6 +7,7 @@ use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  *   发票服务
@@ -57,6 +58,33 @@ class InvoiceService
     } catch (Exception $e) {
       Log::error('保存发票失败' . $e);
       throw new Exception("发票保存失败" . $e);
+      return false;
+    }
+  }
+
+  /**
+   * 发票作废
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-18
+   * @param [type] $recordId
+   *
+   * @return void
+   */
+  public function cancelInvoice($recordId)
+  {
+    try {
+      DB::transaction(function () use ($recordId) {
+        $record = $this->invoiceRecordModel()->find($recordId);
+        $record->status = 3;
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->whereIn('id', str2Array($record['bill_detail_id']))
+          ->update('invoice_id', 0);
+        $record->save();
+      });
+      return true;
+    } catch (Exception $th) {
+      Log::error('发票作废失败.' . $th);
       return false;
     }
   }

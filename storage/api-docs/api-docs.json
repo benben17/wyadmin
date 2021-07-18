@@ -310,7 +310,7 @@
                                 "properties": {
                                     "id": {
                                         "description": "账单id",
-                                        "type": "List"
+                                        "type": "int"
                                     }
                                 },
                                 "type": "object"
@@ -988,6 +988,40 @@
                 ],
                 "summary": "发票查看",
                 "operationId": "App\\Api\\Controllers\\Bill\\InvoiceController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "发票记录id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/invoice/cancel": {
+            "post": {
+                "tags": [
+                    "发票"
+                ],
+                "summary": "发票作废",
+                "operationId": "App\\Api\\Controllers\\Bill\\InvoiceController::cancel",
                 "requestBody": {
                     "content": {
                         "application/json": {

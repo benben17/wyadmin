@@ -197,6 +197,11 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
+
+      $res = $this->invoiceService()->model()->find($DA['id']);
+      if ($res['status'] == 3) {
+        return $this->error("已取消，不可编辑!");
+      }
       $this->invoiceService->invoiceRecordSave($DA, $this->user);
       $this->success("发票保存成功.");
 
@@ -247,6 +252,41 @@ class InvoiceController extends BaseController
     } catch (Exception $th) {
       Log::error("查看失败" . $th);
       return $this->error("查看失败");
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/invoice/cancel",
+   *     tags={"发票"},
+   *     summary="发票作废",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *        @OA\Property(property="id",type="int",description="发票记录id")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function cancel(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'         => 'required|numeric'
+    ]);
+    $res = $this->invoiceService->cancelInvoice($request->id);
+    if ($res) {
+      return $this->success("发票取消成功");
+    } else {
+      return $this->error("发票取消失败!");
     }
   }
 }
