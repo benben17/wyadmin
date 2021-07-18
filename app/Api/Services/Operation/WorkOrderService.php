@@ -34,13 +34,14 @@ class WorkOrderService
         $order = new WorkOrderModel;
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
-        $order->order_no = isset($DA['order_no']) ? $DA['order_no'] : $user['company_id'] . '-' . $this->workorderNo();
+        $order->order_no = isset($DA['order_no']) ? $DA['order_no'] :  $this->workorderNo($user['company_id']);
       }
-      $order->proj_id       = $DA['proj_id'];
-      $order->open_time     = nowTime();
+      $order->proj_id         = $DA['proj_id'];
+      $order->open_time       = nowTime();
       $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $order->tenant_name     = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $order->building_floor_room = isset($DA['building_floor_room']) ? $DA['building_floor_room'] : "";
+      $order->build_floor_room_id = isset($DA['build_floor_room_id']) ? $DA['build_floor_room_id'] : 0;
       $order->position        = isset($DA['position']) ? $DA['position'] : "";
       $order->open_person     = isset($DA['open_person']) ? $DA['open_person'] : "";
       $order->open_phone      = isset($DA['open_phone']) ? $DA['open_phone'] : "";
@@ -191,9 +192,9 @@ class WorkOrderService
     }
   }
   /** 生成工单编号 */
-  private function workorderNo()
+  private function workorderNo($companyId)
   {
-    return date('ymdHis');
+    return "WS-" . $companyId . date('ymdHis');
   }
 
   /**
@@ -208,7 +209,6 @@ class WorkOrderService
   private function saveOrderLog($orderId, $orderStatus, $user)
   {
     try {
-
       $orderLog = new WorkOrderLogModel;
       $orderLog->workorder_id = $orderId;
       $orderLog->status = $orderStatus;

@@ -203,7 +203,7 @@
                 }
             }
         },
-        "/api/operation/bill/list": {
+        "/api/operation/tenant/bill/list": {
             "post": {
                 "tags": [
                     "账单"
@@ -228,6 +228,96 @@
                                 "type": "object"
                             },
                             "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/create": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "租户列表",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillController::createBill",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenantIds",
+                                    "billMonths",
+                                    "chargeDate",
+                                    "feeTypes"
+                                ],
+                                "properties": {
+                                    "tenantIds": {
+                                        "description": "客户Id集合",
+                                        "type": "List"
+                                    },
+                                    "billMonths": {
+                                        "description": "账单年月例如：2021-07",
+                                        "type": "String"
+                                    },
+                                    "chargeDate": {
+                                        "description": "应收日",
+                                        "type": "String"
+                                    },
+                                    "feeTypes": {
+                                        "description": "费用类型Id列表",
+                                        "type": "List"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenantIds": "[]",
+                                "billMonths": "2021-07",
+                                "chargeDate": "2021-07-05",
+                                "feeTypes": "[101]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/show": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "租户列表",
+                "operationId": "App\\Api\\Controllers\\Bill\\BillController::show",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "账单id",
+                                        "type": "List"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
                         }
                     }
                 },

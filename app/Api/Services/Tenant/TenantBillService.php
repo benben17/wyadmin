@@ -92,6 +92,7 @@ class TenantBillService
       $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
       $billDetail->fee_type    = $DA['fee_type']; // 费用类型
       $billDetail->amount      = $DA['amount'];
+      $billDetail->bank_id     = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
       if (isset($DA['charge_date'])) {
         $billDetail->charge_date = $DA['charge_date']; //账单日期
       }
@@ -246,6 +247,7 @@ class TenantBillService
           } else {
             $tenantName = $v['tenant_name'];
           }
+          $data[$k]['bank_id']         = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
           $data[$k]['tenant_name'] = $tenantName;
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
@@ -264,6 +266,25 @@ class TenantBillService
     }
   }
 
+  /**
+   * 获取费用ID
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-18
+   * @param [type] $contractId
+   * @param [type] $feeType
+   *
+   * @return integer
+   */
+  private function getBankIdByContractId($contractId, $feeType): int
+  {
+    $contract = Contract::select('rental_bank_id,manager_bank_id')->find($contractId);
+    if ($feeType == 101 || $feeType == 107) {
+      return $contract['rental_bank_id'];
+    } else {
+      return $contract['manager_bank_id'];
+    }
+  }
   /**
    * 生成账单编号
    *

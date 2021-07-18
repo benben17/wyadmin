@@ -116,7 +116,7 @@ class BillController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"tenantIds","billMonths","chargeDate","feeTypes"},
-   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合")
+   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合"),
    *      @OA\Property(property="billMonths",type="String",description="账单年月例如：2021-07"),
    *      @OA\Property(property="chargeDate",type="String",description="应收日"),
    *      @OA\Property(property="feeTypes",type="List",description="费用类型Id列表"),
@@ -132,7 +132,6 @@ class BillController extends BaseController
    */
   public function createBill(Request $request)
   {
-
     $validatedData = $request->validate([
       // 'tenantIds' => 'required|array',
       'bill_month' => 'required|String',
@@ -143,7 +142,6 @@ class BillController extends BaseController
       // DB::transaction(function () use ($request) {
       $contractService = new ContractService;
       $billService = new TenantBillService;
-
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->whereIn('proj_id', $request->proj_ids)->get();
@@ -168,10 +166,33 @@ class BillController extends BaseController
     }
   }
 
-
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/show",
+   *     tags={"账单"},
+   *     summary="租户列表",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="账单id")
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
   public function show(Request $request)
   {
-
+    $validatedData = $request->validate([
+      'id' => 'required'
+    ]);
     $map = array();
     // 排序字段
     if ($request->input('orderBy')) {
@@ -199,7 +220,6 @@ class BillController extends BaseController
     $data['discount_amount'] = numFormat($billCount['disAmt']);
     $data['receive_amount']  = numFormat($billCount['receiveAmt']);
     $data['unreceive_amount'] = numFormat($billCount['totalAmt'] - $billCount['receiveAmt']);
-
     return $this->success($data);
   }
 }
