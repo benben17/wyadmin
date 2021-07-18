@@ -46,7 +46,7 @@ class InvoiceService
         $invoiceRecord->invoice_date    = $DA['invoice_date'];
       }
       $invoiceRecord->open_person  = isset($DA['open_person']) ? $DA['open_person'] : "";
-      $invoiceRecord->status       = $DA['status'];
+      // $invoiceRecord->status       = $DA['status'];
       $invoiceRecord->title        = $DA['title'];
       $invoiceRecord->bank_name    = $DA['bank_name'];
       $invoiceRecord->account_name = $DA['account_name'];
