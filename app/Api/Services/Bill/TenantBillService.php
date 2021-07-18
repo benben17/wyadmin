@@ -289,6 +289,9 @@ class TenantBillService
    */
   private function getBankIdByContractId($contractId, $feeType): int
   {
+    if (!$contractId || $feeType) {
+      return 0;
+    }
     $contract = Contract::select('rental_bank_id', 'manager_bank_id')->find($contractId);
     if ($feeType == 101 || $feeType == 107) {
       return $contract['rental_bank_id'];
