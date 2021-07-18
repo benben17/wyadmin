@@ -528,18 +528,19 @@ class MeterController extends BaseController
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no')
+      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $v['meter_no'] = $v['meter']['meter_no'];
       $v['proj_name'] = $v['meter']['proj_name'];
+      $v['tenant_name'] = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
       $v['is_virtual'] = $v['meter']['is_virtual'];
       $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
         $used = abs($v['used_value'] - $v['pre_used_value']) / $v['pre_used_value'] * 100;
-        Log::error($used);
+        // Log::error($used);
         if ($used >= 50) {
           $v['unusual'] = 0;
         } else {
