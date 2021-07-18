@@ -331,12 +331,10 @@ class MaintainController extends BaseController
             'id' => 'required|int',
             'parent_type' => 'required|int|in:1,2,3,4,5',
         ]);
-        // $data = $request->toArray();
-        // return gettype($data['Ids']);
-        $maintain = new maintainService;
 
+        $maintain = new maintainService;
         $data = $maintain->maintainModel()->find($request->id);
-        $data['name'] = $maintain->getParentName($data['parent_id'], $request->parent_type);
+        $data['name'] = $maintain->getParentName($data['parent_id'], $data['parent_type']);
         $data['maintain_type_label'] = getDictName($data['maintain_type']);
         // $data = $maintain->showMaintain($request->id,);
         return $this->success($data);
