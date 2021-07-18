@@ -83,8 +83,10 @@ class InvoiceService
         $record = $this->invoiceRecordModel()->find($recordId);
         $record->status = 3;
         $billService = new TenantBillService;
-        $billService->billDetailModel()->whereIn('id', str2Array($record['bill_detail_id']))
-          ->update('invoice_id', 0);
+        // Log::error(str2Array($record['bill_detail_id']));
+        $billService->billDetailModel()
+          ->whereIn('id', str2Array($record['bill_detail_id']))
+          ->update(['invoice_id' => 0]);
         $record->save();
       });
       return true;

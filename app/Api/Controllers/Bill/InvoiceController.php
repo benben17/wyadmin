@@ -198,14 +198,13 @@ class InvoiceController extends BaseController
     try {
       $DA = $request->toArray();
 
-      $res = $this->invoiceService()->model()->find($DA['id']);
+      $res = $this->invoiceService->invoiceModel()->find($DA['id']);
       if ($res['status'] == 3) {
         return $this->error("已取消，不可编辑!");
       }
       $this->invoiceService->invoiceRecordSave($DA, $this->user);
-      $this->success("发票保存成功.");
 
-      return true;
+      return $this->success("发票保存成功.");
     } catch (Exception $th) {
       Log::error("发票保存失败" . $th);
       return $this->error("发票保存失败");
