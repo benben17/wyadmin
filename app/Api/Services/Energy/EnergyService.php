@@ -376,6 +376,8 @@ class EnergyService
           $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
           if ($contractRoom['contract_id'] > 0) {
             $BA['contract_id'] = $contractRoom['contract_id'];
+          } else {
+            $BA['contract_id'] = 0;
           }
           // 插入水电费用到 租户费用表
           $billService->saveBillDetail($BA, $user);

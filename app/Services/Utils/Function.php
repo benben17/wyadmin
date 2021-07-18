@@ -336,7 +336,7 @@ function getProjById($projId)
 
 function getTenantNameById($tenantId)
 {
-    if (!$tenantId || empty($tenant)) {
+    if (!$tenantId || empty($tenantId)) {
         return "公区";
     }
     $tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
