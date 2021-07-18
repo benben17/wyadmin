@@ -438,11 +438,11 @@ class EnergyService
   public function getTenantByMeterId($meterId): String
   {
     $meter = $this->meterModel()->find($meterId);
-    // Log::error("aaa" . $meter->room_id);
+    Log::error("aaa" . $meter->room_id);
     $room = ContractRoom::where('room_id', $meter->room_id)->first();
-    Log::error(json_encode($room));
-
-    Log::error("contract" . $room->contract_id);
+    if (!$room) {
+      return "公区";
+    }
     $contract = Contract::find($room->contract_id);
     if ($contract) {
       return $contract->tenant_name;

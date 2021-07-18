@@ -294,12 +294,7 @@ class MeterController extends BaseController
       ->with('remark')
       ->first();
     if ($data) {
-      $tenant = new TenantService;
-      if ($data['tenant_id'] > 0) {
-        $data['tenant_name'] = $tenant->getTenantById($data['tenant_id']);
-      } else {
-        $data['tenant_name'] = '公区';
-      }
+      $data['tenant_name'] = $this->meterService->getTenantByMeterId($v['id']);
       $record = $this->meterService->getNewMeterRecord($request->id);
       $data['last_record']  = $record->meter_value;
       $data['last_date'] = $record->record_date;
