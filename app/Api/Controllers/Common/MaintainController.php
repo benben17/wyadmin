@@ -334,8 +334,11 @@ class MaintainController extends BaseController
         // $data = $request->toArray();
         // return gettype($data['Ids']);
         $maintain = new maintainService;
-        DB::enableQueryLog();
-        $data = $maintain->showMaintain($request->id, $request->parent_type);
+
+        $data = $maintain->maintainModel()->find($request->id);
+        $data['name'] = $maintain->getParentName($data['parent_id'], $request->parent_type);
+        $data['maintain_type_label'] = getDictName($data['maintain_type']);
+        // $data = $maintain->showMaintain($request->id,);
         return $this->success($data);
     }
 }

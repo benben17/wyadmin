@@ -121,6 +121,16 @@ class BseMaintain
         return $maintain;
     }
 
+    /**
+     * 获取名称
+     *
+     * @Author leezhua
+     * @DateTime 2021-07-18
+     * @param [type] $parentId
+     * @param [type] $parentType
+     *
+     * @return String
+     */
     public function getParentName($parentId, $parentType): String
     {
         if ($parentType == AppEnum::Channel) {
