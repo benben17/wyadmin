@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Energy;
 
+use App\Api\Models\Contract\Contract;
 use App\Api\Models\Contract\ContractRoom;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,7 @@ use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
+use Stringy\Stringy;
 
 /**
  *能耗服务
@@ -220,15 +222,13 @@ class EnergyService
           ->where('contract_id', $contractId)->groupBy('contract_id')->first();
         $data['tenant_id']  = $tenantId;
         $data['u_uid']      = $user['id'];
-
-        // $meterIds = array();
         $this->meterModel()->whereIn('room_id', str2Array($contractRoom['room_ids']))->update($data);
         // 获取 水表电表信息
         $meter = $this->meterModel()->selectRaw('GROUP_CONCAT(id) ids')
           ->whereIn('room_id', str2Array($contractRoom['room_ids']))->first();
         foreach (str2Array($meter['ids']) as $k => $v) {
           $DA['remark']  = '绑定租户';
-          $DA['id']      = $v;
+          $DA['meter_id']  = $v;
           $DA['tenant_id'] = $tenantId;
           $this->saveMeterLog($DA, $user);
         }
@@ -377,6 +377,7 @@ class EnergyService
           if ($contractRoom['contract_id'] > 0) {
             $BA['contract_id'] = $contractRoom['contract_id'];
           }
+          // 插入水电费用到 租户费用表
           $billService->saveBillDetail($BA, $user);
         }
         // 更新状态
@@ -418,18 +419,35 @@ class EnergyService
       $meterLog->tenant_name = '公区';
     }
 
-    $record = $this->meterRecordModel()->where('meter_id', $DA['id'])->select('meter_value')
+    $record = $this->meterRecordModel()->select('meter_value')
+      ->where('meter_id', $DA['meter_id'])
       ->orderBy('id', 'desc')->first();
     $meterLog->meter_value  = $record['meter_value'];
-    $meterLog->meter_id     = $DA['id'];
+    $meterLog->meter_id     = $DA['meter_id'];
     $meterLog->c_uid        = $user['id'];
     $meterLog->c_username   = $user['realname'];
-    $meterLog->remark       = $user['remark'];
+    $meterLog->remark       = $DA['remark'] . "-" . $meterLog->tenant_name;
     $res = $meterLog->save();
     if ($res) {
       return true;
     } else {
       return false;
+    }
+  }
+
+  public function getTenantByMeterId($meterId): String
+  {
+    $meter = $this->meterModel()->find($meterId);
+    // Log::error("aaa" . $meter->room_id);
+    $room = ContractRoom::where('room_id', $meter->room_id)->first();
+    Log::error(json_encode($room));
+
+    Log::error("contract" . $room->contract_id);
+    $contract = Contract::find($room->contract_id);
+    if ($contract) {
+      return $contract->tenant_name;
+    } else {
+      return "公区";
     }
   }
 }

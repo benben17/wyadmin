@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Energy;
 
+use App\Api\Models\Contract\ContractRoom;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -78,6 +79,11 @@ class Meter extends Model
   public function meterRecord()
   {
     return $this->hasMany(MeterRecord::class, 'meter_id', 'id');
+  }
+
+  public function contractRoom()
+  {
+    return $this->belongsTo(ContractRoom::class, 'room_id', 'room_id');
   }
 
   protected static function boot()

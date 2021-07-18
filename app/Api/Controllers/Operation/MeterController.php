@@ -113,16 +113,11 @@ class MeterController extends BaseController
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
-    $tenant = new TenantService;
     foreach ($data['result'] as $k => &$v) {
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value;
       $v['last_date'] = $record->record_date;
-      if ($v['tenant_id'] > 0) {
-        $v['tenant_name'] = $tenant->getTenantById($v['tenant_id']);
-      } else {
-        $v['tenant_name'] = '公区';
-      }
+      $v['tenant_name'] = $this->meterService->getTenantByMeterId($v['id']);
     }
     return $this->success($data);
   }

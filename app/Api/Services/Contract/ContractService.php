@@ -216,8 +216,8 @@ class ContractService
           $tenantBillService  = new TenantBillService;
           $tenantBillService->batchSaveBillDetail($contract['id'], $user, $contract['proj_id']);
 
-          $energyService = new EnergyService;
-          $energyService->bindTenant($tenant['id'], $contract['id'], $user);
+          // $energyService = new EnergyService;
+          // $energyService->bindTenant($tenant['id'], $contract['id'], $user);
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";

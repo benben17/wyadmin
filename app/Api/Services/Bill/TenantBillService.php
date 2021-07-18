@@ -265,8 +265,8 @@ class TenantBillService
           $data[$k]['amount']      = $v['amount'];
           $data[$k]['charge_date'] = $v['charge_date'];
           $data[$k]['c_uid']       = $user['id'];
-          $data[$k]['bill_date']   = isset($DA['bill_date']) ? $DA['bill_date'] : "";  // 收款区间
-          $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+          $data[$k]['bill_date']   = isset($v['bill_date']) ? $v['bill_date'] : "";  // 收款区间
+          $data[$k]['remark']      = isset($v['remark']) ? $v['remark'] : "";
           $data[$k]['created_at']  = nowTime();
         }
       }
