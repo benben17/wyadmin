@@ -8,6 +8,7 @@ use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
+use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\Contract;
 use App\Api\Services\Energy\EnergyService;
 
@@ -92,7 +93,7 @@ class TenantBillService
       $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
       $billDetail->fee_type    = $DA['fee_type']; // 费用类型
       $billDetail->amount      = $DA['amount'];
-      $billDetail->bank_id     = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
+      $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
       if (isset($DA['charge_date'])) {
         $billDetail->charge_date = $DA['charge_date']; //账单日期
       }
@@ -298,5 +299,30 @@ class TenantBillService
   {
     $no = dateFormat("ym", $month);
     return  $no . "-" . mt_rand(1000, 9999);
+  }
+
+  public function showBill($billId)
+  {
+    $data = $this->billModel()->find($billId);
+    if (!$data) {
+      return "";
+    }
+    $billGroups = $this->billDetailModel()
+      ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt,bank_id')
+      ->where('bill_id', $billId)->groupBy('bank_id')->get();
+    foreach ($billGroups as $k => $v) {
+      // $v['total_amount']    = numFormat($v['totalAmt']);
+      // $v['discount_amount'] = numFormat($v['disAmt']);
+      // $v['receive_amount']  = numFormat($v['receiveAmt']);
+      // $v['unreceive_amount'] = numFormat($v['totalAmt'] - $v['receiveAmt']);
+      $v['bank_info'] = BankAccount::find($v['bank_id']);
+      $v['bill_detail'] = $this->billDetailModel()->where('bill_id', $billId)->where('bank_id', $v['bank_id'])->get();
+    }
+    $data['bills'] = $billGroups;
+    $billCount = $this->billDetailModel()
+      ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
+      ->where('bill_id', $billId)->first();
+    $data['bill_count'] = $billCount;
+    return $data;
   }
 }

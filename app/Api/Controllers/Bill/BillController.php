@@ -193,33 +193,10 @@ class BillController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required'
     ]);
-    $map = array();
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
-    if ($request->tenant_id) {
-      $map['tenant_id'] = $request->tenant_id;
-    }
+
     DB::enableQueryLog();
     $billService = new TenantBillService;
-    $data = $billService->billModel()->with('billDetail')->find($request->id);
 
-    $billCount = $billService->billDetailModel()
-      ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
-      ->where('bill_id', $request->id)->first();
-    $data['total_amount']    = numFormat($billCount['totalAmt']);
-    $data['discount_amount'] = numFormat($billCount['disAmt']);
-    $data['receive_amount']  = numFormat($billCount['receiveAmt']);
-    $data['unreceive_amount'] = numFormat($billCount['totalAmt'] - $billCount['receiveAmt']);
-    return $this->success($data);
+    return $this->success($billService->showBill($request->id));
   }
 }

@@ -17,7 +17,7 @@ class TenantBillDetail extends Model
   use SoftDeletes;
   protected $table = 'bse_tenant_bill_detail';
   protected $fillable = [];
-  protected $hidden = ['deleted_at', 'updated_at'];
+  protected $hidden = ['deleted_at', 'updated_at', 'company_id', 'u_uid'];
 
   protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount'];
 
@@ -38,22 +38,22 @@ class TenantBillDetail extends Model
   // 未收金额
   public function getUnreceiveAmountAttribute()
   {
-    // if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
-    return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
-    // } else {
-    // return 0.00;
-    // }
+    if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
+      return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
+    } else {
+      return 0.00;
+    }
   }
 
   // 实际应收
   public function getReceivableAmountAttribute()
   {
-    // if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
-    // Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
-    return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
-    // } else {
-    // return 0.00;
-    // }
+    if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
+      Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
+      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+    } else {
+      return 0.00;
+    }
   }
 
   public function getProjNameAttribute()
