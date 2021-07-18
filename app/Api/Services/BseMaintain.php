@@ -145,7 +145,7 @@ class BseMaintain
      */
     public function showMaintain($id, $parentType)
     {
-        $data = MaintainModel::find($id);
+        $data = MaintainModel::find($id)->toArray();
         $data['name'] = $this->getParentName($data['parent_id'], $parentType);
         $data['maintain_type_label'] = getDictName($data['maintain_type']);
         if ($data) {

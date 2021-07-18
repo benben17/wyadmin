@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * 公用方法 获取用户公司ID
  * @param $uid 用户id
@@ -330,4 +332,13 @@ function getUserByUid($uid)
 function getProjById($projId)
 {
     return  \App\Api\Models\Project::find($projId);
+}
+
+function getTenantNameById($tenantId)
+{
+    if (!$tenantId || empty($tenant)) {
+        return "公区";
+    }
+    $tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
+    return $tenant['name'];
 }
