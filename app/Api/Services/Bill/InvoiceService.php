@@ -7,7 +7,6 @@ use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
-use Maatwebsite\Excel\Facades\Excel;
 
 /**
  *   发票服务

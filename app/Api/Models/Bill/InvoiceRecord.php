@@ -23,13 +23,13 @@ class InvoiceRecord extends Model
     if (isset($this->attributes['status'])) {
       $status = $this->attributes['status'];
       switch ($status) {
-        case '0':
+        case '1':
           return '未开';
           break;
-        case '1':
+        case '2':
           return "已开";
           break;
-        case '2':
+        case '3':
           return "作废";
           break;
       }
