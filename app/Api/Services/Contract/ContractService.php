@@ -207,7 +207,7 @@ class ContractService
           $tenant->save();
           // 更新房间信息
           $contractRoom = ContractRoomModel::selectRaw('group_concat(room_id) as room_id')->where('contract_id', $DA['id'])->first();
-          Log::info($contractRoom);
+          // Log::info($contractRoom);
           $roomService = new BuildingService;
           $roomService->updateRoomState($contractRoom['room_id'], 0);
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "审核完成。";

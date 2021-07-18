@@ -218,14 +218,15 @@ class EnergyService
       DB::transaction(function () use ($contractId, $tenantId, $user) {
         $contractRoom = ContractRoom::selectRaw('GROUP_CONCAT(room_id) room_ids')
           ->where('contract_id', $contractId)->groupBy('contract_id')->first();
-
-        $data['tenant_id']  =  $tenantId;
+        $data['tenant_id']  = $tenantId;
         $data['u_uid']      = $user['id'];
 
         // $meterIds = array();
-        $this->meterModel()->whereIn('room_id', $contractRoom['room_ids'])->update($data);
-        $meter = $this->meterModel()->selectRaw('GROUP_CONCAT(id) ids')->whereIn('room_id', $contractRoom['room_ids'])->first();
-        foreach ($meter['ids'] as $k => $v) {
+        $this->meterModel()->whereIn('room_id', str2Array($contractRoom['room_ids']))->update($data);
+        // 获取 水表电表信息
+        $meter = $this->meterModel()->selectRaw('GROUP_CONCAT(id) ids')
+          ->whereIn('room_id', str2Array($contractRoom['room_ids']))->first();
+        foreach (str2Array($meter['ids']) as $k => $v) {
           $DA['remark']  = '绑定租户';
           $DA['id']      = $v;
           $DA['tenant_id'] = $tenantId;
@@ -234,8 +235,8 @@ class EnergyService
       });
       return true;
     } catch (Exception $e) {
+      Log::error("租户绑定失败" . $e);
       throw new Exception("租户绑定失败" . $e);
-      Log::error($e);
       return false;
     }
   }

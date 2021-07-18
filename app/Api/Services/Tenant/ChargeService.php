@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
-use App\Api\Models\Bill\ChargeDetail;
-use App\Api\Models\Bill\TenantBillDetail;
+use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 
 class ChargeService

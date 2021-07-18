@@ -10,6 +10,7 @@ use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Contract\ContractBill;
 
 /**
  *   租户账单服务
@@ -127,17 +128,26 @@ class TenantBillService
   {
     try {
       DB::transaction(function () use ($contractId, $user, $projId) {
-        $depositBills = Contract::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
+        $depositBills = ContractBill::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
         $data = $this->formatBillDetail($depositBills, $user, $projId);
         $this->billDetailModel()->addAll($data);
         // 保存后同步更新状态
-        Contract::where('contract_id', $contractId)->where('type', 2)->update(['is_sync' => 1]);
-        $bills = Contract::where('contract_id', $contractId)->where('type', 1)->orderBy('charge_date')->first();
-        $bills->is_sync = 1;
-        $bills->save();
-        $this->saveBillDetail($bills, $user);
-        Log::error('格式化账单成功');
+        ContractBill::where('contract_id', $contractId)->where('type', 2)->update(['is_sync' => 1]);
+
+        $startDate = date('Y-m-01', strtotime(nowYmd()));
+        $endDate = date('Y-m-t', strtotime(nowYmd()));
+
+        $bills = ContractBill::where('contract_id', $contractId)
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('type', 1)->get()->toArray();
+        $billData = $this->formatBillDetail($bills, $user, $projId);
+        $this->billDetailModel()->addAll($billData);
+        ContractBill::where('contract_id', $contractId)
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('type', 1)->update(['is_sync' => 1]);
+        // Log::error('格式化账单成功');
       }, 3);
+      Log::error('账单保存成功');
     } catch (Exception $th) {
       throw new Exception("账单保存失败" . $th);
       return false;
@@ -279,7 +289,7 @@ class TenantBillService
    */
   private function getBankIdByContractId($contractId, $feeType): int
   {
-    $contract = Contract::select('rental_bank_id,manager_bank_id')->find($contractId);
+    $contract = Contract::select('rental_bank_id', 'manager_bank_id')->find($contractId);
     if ($feeType == 101 || $feeType == 107) {
       return $contract['rental_bank_id'];
     } else {
