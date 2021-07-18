@@ -203,7 +203,7 @@ class TenantBillService
         $billData['charge_date'] = $chargeDate;
         $billData['proj_id'] = $tenant['proj_id'];
         $billData['tenant_name'] = $tenant['name'];
-        $billData['bill_no']    = billNo($month);
+        $billData['bill_no']    = $this->billNo($month);
         $billData['bill_title'] = $tenant['name'];
         $bill = $this->saveBill($billData, $user);
         Log::error("账单ID------" . $bill['id']);
