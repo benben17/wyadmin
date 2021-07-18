@@ -435,6 +435,15 @@ class EnergyService
     }
   }
 
+  /**
+   * 获取水电表租户名称
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-18
+   * @param [type] $roomId
+   *
+   * @return String
+   */
   public function getTenantByRoomId($roomId): String
   {
     if ($roomId === 0) {
