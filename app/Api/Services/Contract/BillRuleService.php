@@ -84,7 +84,7 @@ class BillRuleService
         if ($v['end_date']) {
           $data[$k]['end_date']    = $v['end_date'];
         }
-        if ($v['charge_date']) {
+        if (isset($v['charge_date'])) {
           $data[$k]['charge_date']    = $v['charge_date'];
         }
         $data[$k]['area_num']    = isset($v['area_num']) ? $v['area_num'] : 0.00;
