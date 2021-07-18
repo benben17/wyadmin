@@ -49,7 +49,7 @@ class TenantBillDetail extends Model
   public function getReceivableAmountAttribute()
   {
     if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
-      Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
+      // Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
       return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
     } else {
       return 0.00;

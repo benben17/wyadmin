@@ -3,7 +3,6 @@
 namespace App\Api\Controllers\Bill;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Contract\ContractService;
