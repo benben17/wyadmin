@@ -360,6 +360,7 @@ Route::group(['prefix' => 'operation/tenant/invoice'], function () {
     Route::post('add', '\App\Api\Controllers\Bill\InvoiceController@store');
     Route::post('edit', '\App\Api\Controllers\Bill\InvoiceController@edit');
     Route::post('show', '\App\Api\Controllers\Bill\InvoiceController@show');
+    Route::post('cancel', '\App\Api\Controllers\Bill\InvoiceController@cancel');
 });
 
 // 设备设施
