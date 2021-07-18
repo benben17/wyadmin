@@ -142,7 +142,7 @@ class BseMaintain
         } else if ($parentType == AppEnum::Tenant) {
             $res = TenantModel::select('name as name')->find($parentId);
         }
-        return $res->name;
+        return $res['name'];
     }
 
     /**
