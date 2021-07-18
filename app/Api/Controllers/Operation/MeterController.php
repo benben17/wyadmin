@@ -117,7 +117,7 @@ class MeterController extends BaseController
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value;
       $v['last_date'] = $record->record_date;
-      $v['tenant_name'] = $this->meterService->getTenantByMeterId($v['id']);
+      $v['tenant_name'] = $this->meterService->getTenantByRoomId($v['room_id']);
     }
     return $this->success($data);
   }
@@ -294,7 +294,7 @@ class MeterController extends BaseController
       ->with('remark')
       ->first();
     if ($data) {
-      $data['tenant_name'] = $this->meterService->getTenantByMeterId($v['id']);
+      $data['tenant_name'] = $this->meterService->getTenantByRoomId($data['room_id']);
       $record = $this->meterService->getNewMeterRecord($request->id);
       $data['last_record']  = $record->meter_value;
       $data['last_date'] = $record->record_date;

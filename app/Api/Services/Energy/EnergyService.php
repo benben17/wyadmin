@@ -435,11 +435,12 @@ class EnergyService
     }
   }
 
-  public function getTenantByMeterId($meterId): String
+  public function getTenantByRoomId($roomId): String
   {
-    $meter = $this->meterModel()->find($meterId);
-    Log::error("aaa" . $meter->room_id);
-    $room = ContractRoom::where('room_id', $meter->room_id)->first();
+    if ($roomId === 0) {
+      return "公区";
+    }
+    $room = ContractRoom::where('room_id', $roomId)->first();
     if (!$room) {
       return "公区";
     }
