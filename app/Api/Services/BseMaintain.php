@@ -121,7 +121,7 @@ class BseMaintain
         return $maintain;
     }
 
-    public function getParentName($parentId, $parentType)
+    public function getParentName($parentId, $parentType): String
     {
         if ($parentType == AppEnum::Channel) {
             $res = ChannelModel::select('channel_name as name')->find($parentId);
@@ -132,7 +132,7 @@ class BseMaintain
         } else if ($parentType == AppEnum::Tenant) {
             $res = TenantModel::select('name as name')->find($parentId);
         }
-        return $res['name'];
+        return $res->name;
     }
 
     /**
