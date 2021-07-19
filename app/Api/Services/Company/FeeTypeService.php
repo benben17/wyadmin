@@ -43,7 +43,7 @@ class FeeTypeService
         $feeType->c_uid = $user['id'];
       }
       $feeType->fee_name = $DA['free_name'];
-      $feeType->fee_type = isset($DA['free_type']) ? $DA['free_type'] : 1;
+      $feeType->type = $DA['type'];
       return $feeType->save();
     } catch (Exception $e) {
       Log::error($e->getMessage());
