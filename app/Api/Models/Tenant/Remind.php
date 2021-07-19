@@ -21,7 +21,7 @@ class Remind extends Model
 
   public function customer()
   {
-    return $this->hasOne(Tenant::class, 'id', 'cus_id');
+    return $this->hasOne(Tenant::class, 'id', 'tenant_id');
   }
 
 
