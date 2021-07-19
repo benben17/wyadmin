@@ -467,7 +467,7 @@ class CustomerController extends BaseController
         }
         $user = auth('api')->user();
         $skyeyeService = new BaseInfoService;
-        $data = $skyeyeService->getCompanyInfo($request->cus_name, $user->toArray());
+        $data = $skyeyeService->getCompanyInfo($request->name, $user->toArray());
         return $this->success($data);
     }
 
