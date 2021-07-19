@@ -70,15 +70,15 @@ class CustomerRemindController extends BaseController
           $now = date('Y-m-d H:i:s');
 
           // DB::enableQueryLog();
-          $data = RemindModel::select(DB::Raw("group_concat(concat_ws('-',tenant_id,cus_name,
-               DATE_FORMAT(cus_remind_date,'%H:%i'),cus_remind_content,remind_user)) as remind_info ,
-               DATE_FORMAT(cus_remind_date,'%Y-%m-%d') as remind_date"))
+          $data = RemindModel::select(DB::Raw("group_concat(concat_ws('-',tenant_id,tenant_name,
+               DATE_FORMAT(remind_date,'%H:%i'),remind_content,remind_user)) as remind_info ,
+               DATE_FORMAT(remind_date,'%Y-%m-%d') as remind_date"))
                ->where(function ($q) use ($DA) {
                     if (isset($DA['start_time'])) {
-                         $q->where('cus_remind_date', '>=', $DA['start_time']);
+                         $q->where('remind_date', '>=', $DA['start_time']);
                     }
                     if (isset($DA['end_time'])) {
-                         $q->where('cus_remind_date', '<=', $DA['end_time']);
+                         $q->where('remind_date', '<=', $DA['end_time']);
                     }
                     isset($DA['c_uid']) && $q->where('c_uid', $DA['c_uid']);
                     isset($DA['c_uid']) || $q->where('c_uid', $this->uid);
@@ -132,8 +132,8 @@ class CustomerRemindController extends BaseController
      {
           $validatedData = $request->validate([
                'tenant_id' => 'required|numeric|gt:0',
-               'cus_name' => 'required|String|min:1',
-               'cus_remind_date' => 'required|date',
+               'tenant_name' => 'required|String|min:1',
+               'remind_date' => 'required|date',
           ]);
           $checkCustomer = Tenant::whereId($request->tenant_id)->exists();
           if (!$checkCustomer) {
