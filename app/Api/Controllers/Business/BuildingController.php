@@ -118,11 +118,11 @@ class BuildingController extends BaseController
             //统计管理房间面积
             ->withCount(['buildRoom as total_area' => function ($q) use ($subMap) {
                 $q->where($subMap);
-                $q->select(DB::raw('ifnull(ROUND(sum(room_area),2) ,"0.00")'));
+                $q->select(DB::raw('ifnull(sum(room_area),"0.00")'));
             }])
             //统计空闲房间面积
             ->withCount(['buildRoom as free_area' => function ($q) use ($subMap) {
-                $q->select(DB::raw('ifnull(ROUND(sum(room_area),2),"0.00")'));
+                $q->select(DB::raw('ifnull(sum(room_area),"0.00")'));
                 $q->where($subMap);
                 $q->where('room_state', 1);
             }])
@@ -132,6 +132,10 @@ class BuildingController extends BaseController
         // 获取统计信息
         $data = $this->handleBackData($data);
         $buildingService = new BuildingService;
+        foreach ($data['result'] as $k => &$v) {
+            $v['free_area'] = numFormat($v['free_area']);
+            $v['total_area'] = numFormat($v['total_area']);
+        }
         $data['stat'] = $buildingService->getBuildingAllStat($data['result']);
         return $this->success($data);
     }
