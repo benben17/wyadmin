@@ -42,7 +42,7 @@ class FeeTypeService
         $feeType->company_id = $user['company_id'];
         $feeType->c_uid = $user['id'];
       }
-      $feeType->fee_name = $DA['free_name'];
+      $feeType->fee_name = $DA['fee_name'];
       $feeType->type = $DA['type'];
       return $feeType->save();
     } catch (Exception $e) {

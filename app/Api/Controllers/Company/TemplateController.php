@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Company;
 
 use App\Api\Controllers\BaseController;
@@ -20,7 +21,7 @@ class TemplateController extends BaseController
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
-        if(!$this->uid){
+        if (!$this->uid) {
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
@@ -69,8 +70,8 @@ class TemplateController extends BaseController
         // $map['company_id'] = $this->company_id;
         $map = array();
         $map['type'] = $request->type;
-        $data = TemplateModel::where(function ($q) use ($request){
-            $request->name && $q->where('name','like',$request->name);
+        $data = TemplateModel::where(function ($q) use ($request) {
+            $request->name && $q->where('name', 'like', $request->name);
         })->get();
         // return response()->json(DB::getQueryLog());
         return $this->success($data);
@@ -111,14 +112,14 @@ class TemplateController extends BaseController
         $map['company_id'] = $this->company_id;
         $map['name'] = $DA['name'];
 
-        $checkTemplateCount = TemplateModel::where('type',$DA['type'])->count();
+        $checkTemplateCount = TemplateModel::where('type', $DA['type'])->count();
         $maxCount = config('max_contract_template');
         if ($DA['type'] == 1) {
             if ($checkTemplateCount >= $maxCount) {
                 return $this->error("每个公司最多能添加 ${maxCount} 个模版");
             }
-        }else{
-            $maxCount = $maxCount*4;
+        } else {
+            $maxCount = $maxCount * 4;
             if ($checkTemplateCount >= $maxCount) {
                 return $this->error("每个公司最多能添加 ${maxCount} 个模版");
             }
@@ -130,7 +131,7 @@ class TemplateController extends BaseController
         }
         $user = auth('api')->user();
         $template = new TemplateService;
-        $res = $template->saveTemplate($DA,$user);
+        $res = $template->saveTemplate($DA, $user);
         if ($res) {
             return $this->success('模版添加成功！');
         }
@@ -166,13 +167,13 @@ class TemplateController extends BaseController
         $map['name'] = $DA['name'];
         $map['company_id'] = $this->company_id;
 
-        $checkTemplate = TemplateModel::where($map)->where('id','!=',$DA['id'])->exists();
+        $checkTemplate = TemplateModel::where($map)->where('id', '!=', $DA['id'])->exists();
         if ($checkTemplate) {
             return $this->error('模版名称重复！');
         }
         $user = auth('api')->user();
         $template = new TemplateService;
-        $res = $template->saveTemplate($DA,$user);
+        $res = $template->saveTemplate($DA, $user);
         if ($res) {
             return $this->success('合同模版更新成功！');
         }
@@ -202,13 +203,12 @@ class TemplateController extends BaseController
         // return gettype($data['Ids']);
         DB::enableQueryLog();
 
-        $res = TemplateModel::whereIn('id',$request->Ids)->delete();
+        $res = TemplateModel::whereIn('id', $request->Ids)->delete();
 
         if ($res) {
             return $this->success('合同模版删除成功！');
         }
         return $this->error('合同模版删除失败！');
-
     }
 
     /**
@@ -241,13 +241,13 @@ class TemplateController extends BaseController
         $data = array();
         $map['type'] = $request->type;
         $types = TemplateParmModel::select("parm_type")->where($map)
-        ->groupBy('parm_type')->get()->toArray();
+            ->groupBy('parm_type')->get()->toArray();
         foreach ($types as $k => $v) {
 
             $data[$k]['title'] = $v['parm_type'];
             $data[$k]['list'] = TemplateParmModel::where($map)
-            ->where('parm_type',$v['parm_type'])
-            ->get()->toArray();
+                ->where('parm_type', $v['parm_type'])
+                ->get()->toArray();
         }
         return $this->success($data);
     }

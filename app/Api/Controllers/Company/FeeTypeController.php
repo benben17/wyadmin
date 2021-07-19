@@ -19,6 +19,7 @@ class FeeTypeController extends BaseController
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
+    $this->user = auth('api')->user();
     $this->company_id = getCompanyId($this->uid);
     $this->feeService = new FeeTypeService;
   }
@@ -98,7 +99,7 @@ class FeeTypeController extends BaseController
    *     )
    * )
    */
-  public function store(Request $request)
+  public function save(Request $request)
   {
     $validatedData = $request->validate([
       'fee_name' => 'required|String|max:32',
@@ -111,7 +112,7 @@ class FeeTypeController extends BaseController
     if ($count > 0) {
       return $this->error('数据重复!');
     }
-    $res = $this->feeService->save($request->toArray(), $this->uid);
+    $res = $this->feeService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('数据添加成功');
     } else {
