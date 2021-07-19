@@ -153,8 +153,8 @@ class ProjectController extends BaseController
             }
             $v['build_room_count']   = $DA['total_room_count'];
             $v['free_room_count']    = $DA['free_room_count'];
-            $v['total_area']         = $DA['manager_area'];
-            $v['free_area']          = $DA['free_area'];
+            $v['total_area']         = numFormat($DA['manager_area']);
+            $v['free_area']          = numFormat($DA['free_area']);
         }
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;

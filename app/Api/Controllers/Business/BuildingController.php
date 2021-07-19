@@ -7,7 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-
+use Exception;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingFloor as FloorModel;
