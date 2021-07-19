@@ -96,6 +96,15 @@ class BuildingService
     return $res;
   }
 
+  /**
+   * 格式化返回数据
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-19
+   * @param [type] $data
+   *
+   * @return void
+   */
   public function formatData($data)
   {
     foreach ($data as $k => &$v) {

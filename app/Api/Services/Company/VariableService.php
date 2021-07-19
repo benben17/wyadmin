@@ -114,7 +114,7 @@ class VariableService
 
       $variable = $this->variableModel();
       $variable->company_id = $companyId;
-      $variable->cus_prefix = 'CUS';
+      $variable->tenant_prefix = 'CUS';
       $res = $variable->save();
       // 项目初始化
       $project = new ProjectModel;
@@ -139,7 +139,7 @@ class VariableService
     $variable->contract_due_remind  = $DA['contract_due_remind'];
     $variable->msg_revoke_time      = $DA['msg_revoke_time'];
     $variable->contract_prefix      = $DA['contract_prefix'];
-    $variable->year_days                 = isset($DA['year_days']) ? $DA['year_days'] : 365;
+    $variable->year_days            = isset($DA['year_days']) ? $DA['year_days'] : 365;
     $variable->u_uid                = $user['id'];
     $res = $variable->save();
     return $res;
