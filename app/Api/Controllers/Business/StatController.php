@@ -431,9 +431,9 @@ class StatController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
-            ->select(DB::Raw('count(distinct(cus_id)) cus_count,
-            sum(case type when  "租金"  then amount else 0 end) rental_amount,
-            sum(case type when  "管理费"  then amount else 0 end) manager_amount,
+            ->select(DB::Raw('count(distinct(tenant_id)) cus_count,
+            sum(case type when  101  then amount else 0 end) rental_amount,
+            sum(case type when  102  then amount else 0 end) manager_amount,
             DATE_FORMAT(charge_date,"%Y-%m") as ym'))
             ->groupBy('ym')
             ->orderBy('ym')

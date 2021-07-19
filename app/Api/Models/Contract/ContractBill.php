@@ -34,7 +34,7 @@ class ContractBill extends Model
   public function getTypeLabelAttribute()
   {
     if (isset($this->attributes['type'])) {
-      if ($this->attributes['type'] == 1) {
+      if ($this->attributes['type'] == 1 || $this->attributes['type'] == 3) {
         return "费用";
       } else if ($this->attributes['type'] == 2) {
         return "押金";
