@@ -133,7 +133,7 @@ class BuildingController extends BaseController
         $data = $this->handleBackData($data);
         $buildingService = new BuildingService;
         foreach ($data['result'] as $k => &$v) {
-            $v['free_area'] = numFormat($v['free_area']);
+            // $v['free_area'] = numFormat($v['free_area']);
             $v['total_area'] = numFormat($v['total_area']);
         }
         $data['stat'] = $buildingService->getBuildingAllStat($data['result']);
