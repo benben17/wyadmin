@@ -19,7 +19,7 @@ class Remind extends Model
   protected $fillable = [];
 
 
-  public function tenant()
+  public function customer()
   {
     return $this->hasOne(Tenant::class, 'id', 'cus_id');
   }
