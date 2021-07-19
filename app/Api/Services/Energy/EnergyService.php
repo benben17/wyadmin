@@ -55,7 +55,6 @@ class EnergyService
           $meter->parent_id  = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
           $is_add = true;
         }
-
         $meter->tenant_id    = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
         $meter->type         = $DA['type'];
         $meter->proj_id      = $DA['proj_id'];
@@ -140,6 +139,7 @@ class EnergyService
       $meterRecord->audit_user = isset($DA['audit_user']) ? $DA['audit_user'] : "";
       if ($is_add) {
         $meterRecord->remark = date('Y-m-d', time()) . '初始化';
+        $meterRecord->status = 1;  //  标识初始化
       } else {
         $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
       }
@@ -357,7 +357,7 @@ class EnergyService
         foreach ($Ids as $k => $id) {
           $record = MeterRecordModel::whereId($id)->where('audit_status', 0)->first();
           if (!$record) {
-            Log::error("未查询到数据");
+            Log::error("未查询到数据.meter_id:" . $id);
             continue;
           }
           $meter = MeterModel::find($record['meter_id']);
@@ -380,7 +380,9 @@ class EnergyService
             $BA['contract_id'] = 0;
           }
           // 插入水电费用到 租户费用表
-          $billService->saveBillDetail($BA, $user);
+          if (!$record['status']) { // 不是初始化的数据，审核时产生的费用到租户费用列表
+            $billService->saveBillDetail($BA, $user);
+          }
         }
         // 更新状态
         $this->meterRecordModel()->whereIn('id', $Ids)->where('audit_status', 0)->update($data);
