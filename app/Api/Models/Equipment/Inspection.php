@@ -41,10 +41,12 @@ class Inspection extends Model
 
   public function getTypeLabelAttribute()
   {
-    if ($this->attributes['type'] == 1) {
-      return "工程";
-    } else {
-      return "秩序";
+    if (isset($this->attributes['type'])) {
+      if ($this->attributes['type'] == 1) {
+        return "工程";
+      } else {
+        return "秩序";
+      }
     }
   }
 
