@@ -22,7 +22,7 @@ class InspectionRecord extends Model
   protected $hidden = ["company_id"];
 
 
-  protected $appends = ['proj_name', 'is_unusual_label', 'major_label'];
+  protected $appends = ['proj_name', 'is_unusual_label'];
 
   public function getProjNameAttribute()
   {
