@@ -89,8 +89,8 @@ class ChannelService
         $brokerage = new BrokerageModel;
         $brokerage->channel_id = $channel['id'];
         $brokerage->policy_name = $policy['name'];
-        $brokerage->cus_name = $DA['tenant_name'];
-        $brokerage->cus_id = $DA['id'];
+        $brokerage->tenant_name = $DA['tenant_name'];
+        $brokerage->tenant_id = $DA['id'];
         $brokerage->contract_id = $DA['contract_id'];
         // 计算本次佣金的金额
         $brokerage->brokerage_amount = $brokerageAmount;

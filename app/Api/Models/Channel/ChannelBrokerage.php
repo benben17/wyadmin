@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Models\Channel;
 
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,5 @@ class ChannelBrokerage extends Model
   protected $table = 'bse_channel_brokerage_log';
 
   // protected $fillable = [];
-  protected $hidden = ['deleted_at',"company_id",'u_uid','updated_at'];
-
+  protected $hidden = ['deleted_at', "company_id", 'u_uid', 'updated_at'];
 }

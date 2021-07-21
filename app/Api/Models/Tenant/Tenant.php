@@ -3,6 +3,7 @@
 namespace App\Api\Models\Tenant;
 
 use App\Api\Models\Channel\Channel;
+use App\Api\Models\Channel\ChannelBrokerage;
 use App\Api\Models\Common\Maintain;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Contract\ContractRoom;
@@ -105,6 +106,15 @@ class Tenant extends Model
   {
     return $this->hasMany(TenantRoom::class, 'tenant_id', 'id');
   }
+
+  // 佣金
+
+  public function brokerageLog()
+  {
+    return $this->hasMany(ChannelBrokerage::class, 'tenant_id', 'id');
+  }
+
+
   protected static function boot()
   {
     parent::boot();
