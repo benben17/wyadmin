@@ -40,7 +40,7 @@ class WxStatController extends BaseController
      * @OA\Post(
      *     path="/api/wxapp/customer/stat",
      *     tags={"微信首页"},
-     *     summary="微信首页，客户信息统计",
+     *     summary="微信首页，客户信息统计，统计当前用户的信息",
      *    @OA\RequestBody(
      *       @OA\MediaType(
      *           mediaType="application/json",
@@ -62,6 +62,9 @@ class WxStatController extends BaseController
      */
     public function customerStat(Request $request)
     {
+        $validatedData = $request->validate([
+            'proj_id' => 'required|gt:0',
+        ]);
         $today = strtotime(date('Y-m-d'));
         $weekday = date('w') == 0 ? 7 : date('w');
         $Monday = $today - ($weekday - 1) * 3600 * 24;
@@ -70,7 +73,6 @@ class WxStatController extends BaseController
         $monthStart = date('Y-m-01');
         $monthEnd = date('Y-m-t');
         $tenant = $this->customerService->tenantModel();
-
 
         /** 统计当日 本周 本月新增客户数 */
         DB::enableQueryLog();
@@ -91,9 +93,6 @@ class WxStatController extends BaseController
         $data['cus']['today'] = $todayCount;
         $data['cus']['week'] = $weekCount;
         $data['cus']['month'] = $monthCount;
-
-
-
 
         // 统计跟进信息
         $where['proj_id'] = $request->proj_id;
