@@ -424,6 +424,7 @@ Route::group(['prefix' => 'wx'], function () {
 
 Route::group(['prefix' => 'wxapp/customer'], function () {
     Route::post('/stat', '\App\Api\Controllers\Weixin\WxStatController@customerStat');
+    Route::post('/list', '\App\Api\Controllers\Weixin\WxStatController@list');
 });
 
 

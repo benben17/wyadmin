@@ -123,18 +123,20 @@ class WxStatController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/business/stat/contract",
-     *     tags={"统计"},
-     *     summary="按月统计合同数、成交客户数、成交均价",
+     *     path="/api/wxapp/customer/list",
+     *     tags={"客户"},
+     *     summary="客户列表",
      *    @OA\RequestBody(
      *       @OA\MediaType(
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={},
-     *       @OA\Property(property="proj_id",type="int",description="项目ID")
+     *          required={"pagesize","orderBy","order"},
+     *       @OA\Property(property="list_type",type="int",description="// 1 客户列表 2 在租户 3 退租租户")
      *     ),
-     *       example={}
+     *       example={
+     *
+     *           }
      *       )
      *     ),
      *     @OA\Response(
@@ -143,145 +145,54 @@ class WxStatController extends BaseController
      *     )
      * )
      */
-    public function getContractStat(Request $request)
+    public function list(Request $request)
     {
-        // $validatedData = $request->validate([
-        //     'start_date'=> 'required|date',
-        //     'end_date'=> 'required|date',
-        //     // 'proj_id'=> 'array',
-        // ]);
-        $thisMonth = date('Y-m-01', time());
-        $startDate = getPreYmd($thisMonth, 11);
-
-        $endDate = getNextYmd($thisMonth, 1);
-        // return $startDate.'+++++++'.$endDate;
-        // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
-        $contract = ContractModel::select(DB::Raw('count(*) contract_total,
-            count(distinct(tenant_id)) cus_total,
-            sum(case rental_price_type when 1 then rental_price*sign_area else rental_price*sign_area*12/365 end) amount,
-            sum(sign_area) area, DATE_FORMAT(sign_date,"%Y-%m") as ym'))
-            ->where('contract_state', 2)
-            ->where(function ($q) use ($request) {
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->room_type && $q->where('room_type', $request->room_type);
-            })
-            ->where('sign_date', '>=', $startDate)
-            ->where('sign_date', '<', $endDate)
-            ->groupBy('ym')->get();
-
-        $i = 0;
-        $stat = array();
-        while ($i < 12) {
-            // Log::info(getNextMonth($startDate,$i)."----".$i);
-            foreach ($contract as $k => $v) {
-                if ($v['ym'] == getNextMonth($startDate, $i)) {
-                    $stat[$i]['ym'] = $v['ym'];
-                    $stat[$i]['contract_total'] = $v['contract_total'];
-                    $stat[$i]['cus_total'] = $v['cus_total'];
-                    $stat[$i]['area'] = numFormat($v['area']);
-                    $stat[$i]['avg_price'] = numFormat($v['amount'] / $v['area']);
-                    $i++;
-                }
-            }
-
-            $stat[$i]['ym'] = getNextMonth($startDate, $i);
-            $stat[$i]['contract_total'] = 0;
-            $stat[$i]['cus_total'] = 0;
-            $stat[$i]['area'] = 0.00;
-            $stat[$i]['avg_price'] = 0.00;
-            $i++;
+        $validatedData = $request->validate([
+            'proj_id' => 'required|gt:0',
+        ]);
+        $pagesize = $request->input('pagesize');
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('per_size');
         }
-        return $this->success($stat);
-    }
+        $map = array();
 
-    /**
-     * @OA\Post(
-     *     path="/api/business/stat/staffkpi",
-     *     tags={"统计"},
-     *     summary="按月统计招商人员",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={},
-     *       @OA\Property(property="proj_id",type="int",description="项目ID")
-     *     ),
-     *       example={}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-
-    public function getStaffKpi(Request $request)
-    {
-        // $validatedData = $request->validate([
-        //     'start_date'=> 'required|date',
-        //     'end_date'=> 'required|date',
-        //     // 'proj_name'=> 'required',
-        // ]);
-        $DA = $request->toArray();
-        $DA['start_date'] = '2020-01-01';
-        $DA['end_date'] = '2020-12-31';
-        $dict = new DictServices;
-        $cusState = $dict->getByKeyGroupBy('0,' . $this->company_id, 'cus_state');
-        $State = str2Array($cusState['value']);
-        Log::error(json_encode($cusState['value']));
+        if ($request->channel_id && $request->channel_id > 0) {
+            $map['channel_id'] = $request->channel_id;
+        }
+        // 排序字段
+        if ($request->input('orderBy')) {
+            $orderBy = $request->input('orderBy');
+        } else {
+            $orderBy = 'created_at';
+        }
+        // 排序方式desc 倒叙 asc 正序
+        if ($request->input('order')) {
+            $order = $request->input('order');
+        } else {
+            $order = 'desc';
+        }
+        $request->type = [1, 3];
         DB::enableQueryLog();
-        $belongPerson = $this->customerService->tenantModel()->select(DB::Raw('group_concat(distinct belong_person) as user,count(*) total'))
-            ->where(function ($q) use ($DA) {
-                $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
-                isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
+        $result = $this->customerService->tenantModel()
+            ->where($map)
+            ->where(function ($q) use ($request) {
+                $request->type && $q->whereIn('type', $request->type);
+                $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+                $request->proj_id && $q->where('proj_id', $request->proj_id);
+                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
+                $request->room_type && $q->where('room_type', $request->room_type);
+                $request->state && $q->where('state', $request->state);
             })
-            ->groupBy('belong_person')
-            ->get()->toArray();
-        // return response()->json(DB::getQueryLog());
-        $i = 0;
-        $stat_cus = array(['name' => '']);
-
-        foreach ($belongPerson as $k => &$v) {
-            foreach ($State as $ks => $vs) {
-                Log::error($vs . '----' . $v['user']);
-                $cusCount = $this->customerService->tenantModel()
-                    ->where('state', $vs)
-                    ->where('belong_person', $v['user'])
-                    ->where(function ($q) use ($DA) {
-                        $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
-                        isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
-                    })
-                    ->count();
-
-                if ($vs == '成交客户') {
-                    $area = ContractModel::selectRaw('sum(sign_area) deal_area')
-                        ->where('room_type', 1)
-                        ->where('belong_person', $v['user'])
-                        ->where(function ($q) use ($DA) {
-                            $q->whereBetween('sign_date', [$DA['start_date'], $DA['end_date']]);
-                            isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
-                        })
-                        ->first();
-                    $v['dealArea']  = $area['deal_area'];
-                    $v['deal'] = $cusCount;
-                } else if ($vs == '潜在客户') {
-                    $v['potential'] = $cusCount;
-                } else if ($vs == '初次接触') {
-                    $v['first'] = $cusCount;
-                } else if ($vs == '意向客户') {
-                    $v['intention'] = $cusCount;
-                } else if ($vs == '流失客户') {
-                    $v['lose'] = $cusCount;
-                }
-            }
-            $v['followCount'] = Follow::whereHas('customer', function ($q) use ($DA, $v) {
-                $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
-                isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
-                $q->where('belong_person', $v['user']);
-            })->count();
-        }
-        return $this->success($belongPerson);
+            ->with('contacts')
+            ->with('extraInfo')
+            ->whereHas('extraInfo', function ($q) use ($request) {
+                $request->demand_area && $q->where('demand_area', $request->demand_area);
+            })
+            // ->with('customerRoom')
+            ->withCount('follow')
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
+        $data = $this->handleBackData($result);
+        return $this->success($data);
     }
 }
