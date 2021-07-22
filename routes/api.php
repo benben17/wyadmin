@@ -422,6 +422,10 @@ Route::group(['prefix' => 'wx'], function () {
     Route::post('/auth/login', '\App\Api\Controllers\Weixin\WeiXinController@wxAppAuth');
 });
 
+Route::group(['prefix' => 'wxapp/customer'], function () {
+    Route::post('/stat', '\App\Api\Controllers\Weixin\WxStatController@customerStat');
+});
+
 
 
 

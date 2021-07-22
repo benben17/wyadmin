@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Controllers\Business;
+namespace App\Api\Controllers\Weixin;
 
 use App\Api\Controllers\BaseController;
 use JWTAuth;
@@ -60,31 +60,53 @@ class WxStatController extends BaseController
      *     )
      * )
      */
-    public function getCustomerStat(Request $request)
+    public function customerStat(Request $request)
     {
         $today = strtotime(date('Y-m-d'));
         $weekday = date('w') == 0 ? 7 : date('w');
         $Monday = $today - ($weekday - 1) * 3600 * 24;
-        $Sunday = $Monday + 7 * 24 * 3600 - 1;
-
-        $BA = $request->toArray();
-        /** 统计每种状态下的客户  */
-        $customerByState = $this->customerService->tenantModel()
-            ->selectRaw('state,count(*) as cus_count')
-            ->where(function ($q) use ($BA) {
-                if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
-                }
-            })
-            ->groupBy('state')->get();
+        $sunday = date('Y-m-d', $Monday + 7 * 24 * 3600 - 1);
+        $monday = date('Y-m-d', $Monday);
+        $monthStart = date('Y-m-01');
+        $monthEnd = date('Y-m-t');
+        $tenant = $this->customerService->tenantModel();
 
 
+        /** 统计当日 本周 本月新增客户数 */
+        DB::enableQueryLog();
+        $map['proj_id'] = $request->proj_id;
+        $map['belong_uid'] = $this->uid;
+        $todayCount = $tenant->where($map)->whereDate('created_at', nowYmd())->count();
+        $weekCount = $tenant->where($map)->whereBetween('created_at', [$monday, $sunday])->count();
+        $monthCount = $tenant->where($map)->whereBetween('created_at', [$monthStart, $monthEnd])->count();
+        $data['cus']['today'] = $todayCount;
+        $data['cus']['week'] = $weekCount;
+        $data['cus']['month'] = $monthCount;
+
+        // 统计跟进信息
+        $where['proj_id'] = $request->proj_id;
+        $where['c_uid'] = $this->uid;
+        $f_today = Follow::where($where)->whereDate('created_at', nowYmd())->count();
+        $f_week = Follow::where($where)->whereBetween('created_at', [$monday, $sunday])->count();
+        $f_month = Follow::where($where)->whereBetween('created_at', [$monthStart, $monthEnd])->count();
+        $data['follow']['today'] = $f_today;
+        $data['follow']['week'] = $f_week;
+        $data['follow']['month'] = $f_month;
 
 
-        // return $Stat;
-        $data['customerByState'] = $customerByState->toArray();
-
-
+        $unfollow1 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+            $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 3), getPreYmdByDay(nowYmd(), 7)]);
+        })->count();
+        $unfollow2 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+            $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 8), getPreYmdByDay(nowYmd(), 16)]);
+        })->count();
+        $unfollow3 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+            $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 16), getPreYmd(nowYmd(), 3)]);
+        })->count();
+        $data['unfollow']['three'] = $unfollow1;
+        $data['unfollow']['week']  = $unfollow2;
+        $data['unfollow']['month'] = $unfollow3;
+        // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }
 
