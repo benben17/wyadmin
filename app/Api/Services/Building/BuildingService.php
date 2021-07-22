@@ -64,8 +64,8 @@ class BuildingService
             count(*) as total_room,
             ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
       ->first()->toArray();
-    if (!$room['free_area']) {
-      $rentalRate = 0;
+    if ($room['free_area'] == 0) {
+      $rentalRate = 0.00;
     } else {
       $rentalRate = numFormat($room['free_area'] / $room['total_area'] * 100);
     }
