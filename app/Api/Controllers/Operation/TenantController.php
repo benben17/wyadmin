@@ -306,9 +306,10 @@ class TenantController extends BaseController
 
         $data = $this->tenantService->tenantModel()
             ->with('contract')
-            ->with('tenantShare')
+            // ->with('tenantShare')
             ->with('invoice')
             ->with('business')
+            ->with('contacts')
             ->find($request->id);
 
         DB::enableQueryLog();
