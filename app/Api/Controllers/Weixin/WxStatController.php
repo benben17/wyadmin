@@ -178,7 +178,7 @@ class WxStatController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
-                $request->proj_id && $q->where('proj_id', $request->proj_id);
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->state && $q->where('state', $request->state);
