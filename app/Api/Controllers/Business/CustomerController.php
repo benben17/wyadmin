@@ -104,6 +104,7 @@ class CustomerController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
                 $request->room_type && $q->where('room_type', $request->room_type);
+                $request->state && $q->where('state', $request->state);
             })
             ->with('contacts')
             ->with('extraInfo')
