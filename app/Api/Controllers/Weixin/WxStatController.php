@@ -39,7 +39,7 @@ class WxStatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/wxapp/customer/stat",
-     *     tags={"微信首页"},
+     *     tags={"微信招商"},
      *     summary="微信首页，客户信息统计，统计当前用户的信息",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -124,7 +124,7 @@ class WxStatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/wxapp/customer/list",
-     *     tags={"客户"},
+     *     tags={"微信招商"},
      *     summary="客户列表",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -192,6 +192,80 @@ class WxStatController extends BaseController
             ->withCount('follow')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
+        $data = $this->handleBackData($result);
+        return $this->success($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/wxapp/customer/follow/list",
+     *     tags={"微信招商"},
+     *     summary="客户跟进列表",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"pagesize"},
+     *       @OA\Property(
+     *          property="pagesize",
+     *          type="int",
+     *          description="每页行数"
+     *       ),
+     *       @OA\Property(
+     *          property="id",
+     *          type="int",
+     *          description="客户ID，不传默认为所有的跟进"
+     *       )
+     *     ),
+     *       example={
+     *          "?pagesize=10"
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function followList(Request $request)
+    {
+        $pagesize = $request->input('pagesize');
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('per_size');
+        }
+        if ($pagesize == '-1') {
+            $pagesize = config('export_rows');
+        }
+
+        $map = array();
+        if ($request->follow_type) {
+            $map['follow_type'] = $request->follow_type;
+        }
+        // 排序字段
+        if ($request->input('orderBy')) {
+            $orderBy = $request->input('orderBy');
+        } else {
+            $orderBy = 'follow_time';
+        }
+        // 排序方式desc 倒叙 asc 正序
+        if ($request->input('order')) {
+            $order = $request->input('order');
+        } else {
+            $order = 'desc';
+        }
+
+        DB::enableQueryLog();
+        $result = Follow::where($map)
+            ->where(function ($q) use ($request) {
+                $request->start_time && $q->where('follow_time', '>=', $request->start_time);
+                $request->end_time && $q->where('follow_time', '<=', $request->end_time);
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
+        // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         return $this->success($data);
     }
