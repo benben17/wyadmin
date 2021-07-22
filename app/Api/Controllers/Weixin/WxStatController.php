@@ -76,12 +76,24 @@ class WxStatController extends BaseController
         DB::enableQueryLog();
         $map['proj_id'] = $request->proj_id;
         $map['belong_uid'] = $this->uid;
+
+        // 统计
+        $followCount = $tenant->where($map)->whereHas('follow')->count();
+        $lossCount = $tenant->where($map)->whereYear('created_at', date('Y'))->where('state', '流失客户')->count();
+        $dealCount = $tenant->where($map)->whereHas('contract')->count();
+        $data['first']['followCount'] = $followCount;
+        $data['first']['lossCount'] = $lossCount;
+        $data['first']['dealCount'] = $dealCount;
+        // return response()->json(DB::getQueryLog());
         $todayCount = $tenant->where($map)->whereDate('created_at', nowYmd())->count();
         $weekCount = $tenant->where($map)->whereBetween('created_at', [$monday, $sunday])->count();
         $monthCount = $tenant->where($map)->whereBetween('created_at', [$monthStart, $monthEnd])->count();
         $data['cus']['today'] = $todayCount;
         $data['cus']['week'] = $weekCount;
         $data['cus']['month'] = $monthCount;
+
+
+
 
         // 统计跟进信息
         $where['proj_id'] = $request->proj_id;
