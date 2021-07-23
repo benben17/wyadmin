@@ -107,8 +107,8 @@ class WeiXinController extends BaseController
     if (isset($result['errcode']) || !isset($result['unionid'])) {
       return $this->error($result['errmsg']);
     }
-    Log::error($result['unionid']);
-    DB::enableQueryLog();
+    // Log::error($result['unionid']);
+    // DB::enableQueryLog();
     // $result['unionid'] = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
     $res = $wxService->bindWx($result['unionid'], $uid, $request->wxUser);
     if ($res) {

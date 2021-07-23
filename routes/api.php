@@ -429,7 +429,6 @@ Route::group(['prefix' => 'wxapp/customer'], function () {
 
 
 
-
 // Route::get('/test', function() {
 
 // $result= config('paystatus')[1];

@@ -377,7 +377,7 @@ class ContractService
         ->get()->toArray();
 
       if (empty($contract)) {
-        Log::error('empty');
+        // Log::error('empty');
         return 0.00;
       }
       $totalAmount = 0.00;

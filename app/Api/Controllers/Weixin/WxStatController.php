@@ -7,12 +7,6 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Services\Common\DictServices;
-use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Contract\ContractBill as ContractBillModel;
-use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Services\CustomerService;
 

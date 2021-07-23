@@ -70,10 +70,10 @@ class VenueBookController extends BaseController
 		]);
 		$pagesize = $request->input('pagesize');
 		if (!$pagesize || $pagesize < 1) {
-               $pagesize = config('per_size');
-        }elseif($pagesize == '-1'){
-            $pagesize = config('export_rows');
-        }
+			$pagesize = config('per_size');
+		} elseif ($pagesize == '-1') {
+			$pagesize = config('export_rows');
+		}
 		$map = array();
 
 		// 排序字段
@@ -94,30 +94,30 @@ class VenueBookController extends BaseController
 
 		DB::enableQueryLog();
 		$data = $this->venueServices->venueBookModel()->where($map)
-		->where(function ($q) use ($request){
-			if($request->book_ym){
-				$s_date = dateFormat('Y-m-01', $request->book_ym);
-				$e_date = dateFormat('Y-m-t', $request->book_ym);
-				$q->whereBetween('start_date',[$s_date,$e_date]);
-			}
-			if($request->book_state == 0){
-				$q->whereIn('state',[1,99]);
-			}else if($request->book_state != 99){
-				$q->where('state',$request->book_state);
-			}
-			$request->belong_uid && $q->where('belong_uid',$request->belong_uid);
-			$request->cus_name && $q->where('cus_name','like','%'.$request->cus_name.'%');
-			$request->venue_id && $q->where('venue_id',$request->venue_id);
-		})
-		->whereHas('venue',function ($q) use($request){
-			$request->venue_name && $q->where('venue_name','like','%'.$request->venue_name.'%');
-			$request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-		})
+			->where(function ($q) use ($request) {
+				if ($request->book_ym) {
+					$s_date = dateFormat('Y-m-01', $request->book_ym);
+					$e_date = dateFormat('Y-m-t', $request->book_ym);
+					$q->whereBetween('start_date', [$s_date, $e_date]);
+				}
+				if ($request->book_state == 0) {
+					$q->whereIn('state', [1, 99]);
+				} else if ($request->book_state != 99) {
+					$q->where('state', $request->book_state);
+				}
+				$request->belong_uid && $q->where('belong_uid', $request->belong_uid);
+				$request->cus_name && $q->where('cus_name', 'like', '%' . $request->cus_name . '%');
+				$request->venue_id && $q->where('venue_id', $request->venue_id);
+			})
+			->whereHas('venue', function ($q) use ($request) {
+				$request->venue_name && $q->where('venue_name', 'like', '%' . $request->venue_name . '%');
+				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+			})
 
-		->with('venue:id,venue_name')
-		->orderBy($orderBy, $orderByAsc)
-		->paginate($pagesize)->toArray();
-				// return response()->json(DB::getQueryLog());
+			->with('venue:id,venue_name')
+			->orderBy($orderBy, $orderByAsc)
+			->paginate($pagesize)->toArray();
+		// return response()->json(DB::getQueryLog());
 		$data = $this->handleBackData($data);
 		foreach ($data['result'] as $k => &$v) {
 			$v['book_state'] = $this->venueServices->bookState($v['state']);
@@ -167,7 +167,7 @@ class VenueBookController extends BaseController
 			'cus_name' => 'required|String',
 		]);
 		$data = $request->toArray();
-		$res = $this->venueServices->saveVenueBook($data,$this->user);
+		$res = $this->venueServices->saveVenueBook($data, $this->user);
 		if ($res) {
 			return $this->success('场馆预定成功！');
 		} else {
@@ -209,7 +209,7 @@ class VenueBookController extends BaseController
 			'end_date' => 'required|min:1',
 		]);
 		$data = $request->toArray();
-		$res = $this->venueServices->saveVenueBook($data,$this->user);
+		$res = $this->venueServices->saveVenueBook($data, $this->user);
 		if ($res) {
 			return $this->success('场馆预定更新成功。');
 		} else {
@@ -254,7 +254,7 @@ class VenueBookController extends BaseController
 		DB::enableQueryLog();
 		$data = $this->venueServices->getVenueBookById($request->id);
 		$settleBill =  $this->venueServices->venueSettleModel()
-			->where('book_id',$request->id)
+			->where('book_id', $request->id)
 			->get()->toArray();
 		if (!$settleBill) {
 			$settleBill = [];
@@ -264,7 +264,6 @@ class VenueBookController extends BaseController
 		// return response()->json(DB::getQueryLog());
 		$data['book_state'] = $this->venueServices->bookState($data['state']);
 		return $this->success($data);
-
 	}
 
 
@@ -306,14 +305,15 @@ class VenueBookController extends BaseController
 	 *     )
 	 * )
 	 */
-	public function cancelBook(Request $request){
+	public function cancelBook(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|min:1',
 			'cancel_date' => 'required|date',
 		]);
 
 		$venueBook = $this->venueServices->venueBookModel()->find($request->id);
-		if ($venueBook->state == 2 || $venueBook->state ==99) {
+		if ($venueBook->state == 2 || $venueBook->state == 99) {
 			return $this->error('已经是结算或者取消状态不允许操作.');
 		}
 		$venueBook->state = 99;
@@ -328,7 +328,6 @@ class VenueBookController extends BaseController
 			return $this->success('取消预定。');
 		}
 		return $this->error('取消预定失败！');
-
 	}
 	/**
 	 * @OA\Post(
@@ -368,13 +367,13 @@ class VenueBookController extends BaseController
 		]);
 		$DA = $request->toArray();
 		$venueSettle = $this->venueServices->getVenueBookById($DA['id']);
-    if ($venueSettle->state == 99 || $venueSettle->state == 2) {
-        return $this->error('已经结算或者此预定已经取消');
-    }
-		$res = $this->venueServices->settleVenue($DA,$this->user);
+		if ($venueSettle->state == 99 || $venueSettle->state == 2) {
+			return $this->error('已经结算或者此预定已经取消');
+		}
+		$res = $this->venueServices->settleVenue($DA, $this->user);
 		if ($res) {
 			return $this->success('结算成功');
-		}else{
+		} else {
 			return $this->error('结算失败');
 		}
 	}
@@ -407,38 +406,38 @@ class VenueBookController extends BaseController
 	 *     )
 	 * )
 	 */
-	public function settleStat(Request $request){
+	public function settleStat(Request $request)
+	{
 
+		$data = $this->venueServices->venueBookModel()
+			->selectRaw('sum(settle_amount) amount,count(*) count,DATE_FORMAT(start_date,"%Y-%m") ym')
+			->where(function ($q) use ($request) {
+				$request->start_date && $q->whereBetween('settle_date', [$request->start_date, $request->end_date]);
+				$request->cus_name && $q->where('cus_name', 'like', '%' . $request->cus_name . '%');
+				$request->venue_id && $q->where('venue_id', $request->venue_id);
+				$q->where('state', 2);
+			})
+			->whereHas('venue', function ($q) use ($request) {
+				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+			})->groupBy('ym')->get();
 
-    $data = $this->venueServices->venueBookModel()->selectRaw('sum(settle_amount) amount,count(*) count,DATE_FORMAT(start_date,"%Y-%m") ym')
-    ->where(function ($q) use($request){
-        $request->start_date && $q->whereBetween('settle_date',[$request->start_date,$request->end_date]);
-        $request->cus_name && $q->where('cus_name','like','%'.$request->cus_name.'%');
-        $request->venue_id && $q->where('venue_id',$request->venue_id);
-        $q->where('state',2);
-    })
-    ->whereHas('venue',function ($q) use ($request){
-        $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-    })->groupBy('ym')->get();
-
-    $thisYear = date('Y-01-01',time());
-    $i= 0;
-    $stat = array();
-    while($i<12){
-    	foreach ($data as $k => $v) {
-    		if ($v['ym'] == getNextMonth($thisYear,$i)){
-    			$stat[$i]['amount'] 	= $v['amount'];
-    			$stat[$i]['ym'] 			= $v['ym'];
-    			$stat[$i]['count'] 		= $v['count'];
-    			$i++;
-    		}
-    	}
-    	$stat[$i]['amount'] 	= 0.00;
-			$stat[$i]['ym'] 			= getNextMonth($thisYear,$i);
+		$thisYear = date('Y-01-01', time());
+		$i = 0;
+		$stat = array();
+		while ($i < 12) {
+			foreach ($data as $k => $v) {
+				if ($v['ym'] == getNextMonth($thisYear, $i)) {
+					$stat[$i]['amount'] 	= $v['amount'];
+					$stat[$i]['ym'] 			= $v['ym'];
+					$stat[$i]['count'] 		= $v['count'];
+					$i++;
+				}
+			}
+			$stat[$i]['amount'] 	= 0.00;
+			$stat[$i]['ym'] 			= getNextMonth($thisYear, $i);
 			$stat[$i]['count'] 		= 0;
 			$i++;
-  	}
-    return $this->success($stat);
-  }
-
+		}
+		return $this->success($stat);
+	}
 }

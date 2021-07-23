@@ -36,9 +36,7 @@ class ContractBillService
     $data = array();
     // Log::error(json_encode($feetype) . "费用id");
     DB::enableQueryLog();
-
     $leaseTerm = $contract['lease_term'];
-
     // Log::error("创建账单" . $rule['id']);
     $i = 0;
     $data['total'] = 0.00;
@@ -78,14 +76,14 @@ class ContractBillService
           $bill[$i]['remark'] = $free['remark'];
         }
       }
-      $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
+      $bill[$i]['bill_date'] = formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
       $bill[$i]['bill_num'] = $i + 1;
       $data['total'] += $bill[$i]['amount'];
       $i++;
     }
     $data['total'] = numFormat($data['total']);
     $data['bill'] = $bill;
-    $data['fee_type'] =  getFeeNameById($rule['fee_type'])['fee_name'];
+    $data['fee_type'] = getFeeNameById($rule['fee_type'])['fee_name'];
 
     return $data;
   }
