@@ -326,10 +326,11 @@ Route::group(['prefix' => 'operation/tenant'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\TenantController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\TenantController@show');
 
-    Route::post('/sync', '\App\Api\Controllers\Operation\TenantController@tenantSync');
+    // Route::post('/sync', '\App\Api\Controllers\Operation\TenantController@tenantSync');
     // 退租租户
-    Route::post('/share/save', '\App\Api\Controllers\Operation\TenantController@shareStore');
-    Route::post('/share/unlink', '\App\Api\Controllers\Operation\TenantController@unlinkShare');
+    Route::post('share/add', '\App\Api\Controllers\Operation\TenantShareController@store');
+    Route::post('share/edit', '\App\Api\Controllers\Operation\TenantShareController@update');
+    Route::post('share/show', '\App\Api\Controllers\Operation\TenantShareController@show');
 });
 
 Route::group(['prefix' => 'operation/tenant/leaseback'], function () {

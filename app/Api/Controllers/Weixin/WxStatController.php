@@ -17,7 +17,6 @@ use App\Api\Services\CustomerService;
 class WxStatController extends BaseController
 {
 
-
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');

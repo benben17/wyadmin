@@ -9,10 +9,7 @@ use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Contract\ContractRoom;
-use App\Api\Models\Tenant\BaseInfo;
 use App\Api\Services\Contract\ContractService;
-use App\Api\Services\CustomerInfoService;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
@@ -147,7 +144,7 @@ class TenantController extends BaseController
         if ($checkRepeat) {
             return $this->error('客户名称重复!');
         }
-        $DA['type'] = AppEnum::Customer;
+        $DA['type'] = AppEnum::TenantType;
         try {
             DB::transaction(function () use ($DA) {
                 $res = $this->tenantService->saveTenant($DA, $this->user);
@@ -319,99 +316,5 @@ class TenantController extends BaseController
             $data['rooms'] = $contractService->getRoomsByTenantId($data['id']);
         }
         return $this->success($data);
-    }
-
-
-
-    /**
-     * @OA\Post(
-     *     path="/api/operation/tenant/share/save",
-     *     tags={"租户"},
-     *     summary="租户分摊字表",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"parent_id","name"},
-     *       @OA\Property(
-     *          property="parent_id",
-     *          type="int",
-     *          description="父亲租户ID"
-     *       ),
-     *       @OA\Property(
-     *          property="name",
-     *          type="String",
-     *          description="分摊租户名称"
-     *       ),
-     *       @OA\Property(
-     *          property="share_type",
-     *          type="int",
-     *          description="分摊类型1面积2 比例3固定金额"
-     *       )
-     *     ),
-     *       example={"parent_id":1,"name":"","share_type":""}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function shareStore(Request $request)
-    {
-        $validatedData = $request->validate([
-            'parent_id' => 'required|numeric|gt:0',
-            'name' => 'required',
-            'share_type' => 'required|numeric|in:1,2,3',
-        ]);
-        $DA = $request->toArray();
-        try {
-            $this->tenantService->saveShare($DA, $this->user);
-            return $this->success("保存成功");
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return $this->error("保存失败");
-        }
-    }
-    /**
-     * @OA\Post(
-     *     path="/api/operation/tenant/share/unlink",
-     *     tags={"租户"},
-     *     summary="解绑分摊租户",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"id"},
-     *       @OA\Property(
-     *          property="id",
-     *          type="int",
-     *          description="租户id"
-     *       )
-     *     ),
-     *       example={"id":1}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function unlinkShare(Request $request)
-    {
-        $validatedData = $request->validate([
-            'id' => 'required|numeric|gt:0',
-        ]);
-
-        $res = $this->tenantService->unlinkShare($request->id);
-        if ($res) {
-            return $this->success("删除分摊租户成功");
-        } else {
-            return $this->error("删除分摊租户失败");
-        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Contract;
 
+use App\Api\Models\Bill\TenantShareRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -54,10 +55,16 @@ class Contract extends Model
   {
     return $this->hasMany(BillRule::class, 'contract_id', 'id')->where('type', 2);
   }
-
+  // 合同日志
   public function contractLog()
   {
     return $this->hasMany(ContractLog::class, 'contract_id', 'id');
+  }
+
+  // 分摊规则
+  public function shareRule()
+  {
+    return $this->hasMany(TenantShareRule::class, 'contract_id', 'id');
   }
 
   public function getProjNameAttribute()
