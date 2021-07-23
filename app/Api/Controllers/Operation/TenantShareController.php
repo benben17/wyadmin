@@ -205,8 +205,10 @@ class TenantShareController extends BaseController
                 if (!$res['tenantIds']) {
                     throw new Exception("分摊租户为空");
                 }
+                // 更新原有分摊租户信息
                 $this->tenantService->tenantModel()->where('parent_id', $DA['parent_tenant_id'])
                     ->update(['parent_id' => 0]);
+                // 更新分摊租户 父id
                 $this->tenantService->tenantModel()->whereIn('id', $res['tenantIds'])
                     ->update(['parent_id' => $DA['parent_tenant_id']]);
             });
@@ -251,13 +253,23 @@ class TenantShareController extends BaseController
 
         $contractService = new ContractService;
         DB::enableQueryLog();
-        $data = $contractService->model()
+        $data = $contractService->model()->select('id', 'tenant_id', 'tenant_name', 'contract_no', 'proj_id')
             ->where('contract_state', 2)
-            ->with('shareRule')
+            // ->with('shareRule')
             ->with('contractRoom')
             ->find($request->id);
 
         // return response()->json(DB::getQueryLog());
+
+        $shareService = new ShareRuleService;
+        $shareList = $shareService->model()->selectRaw('tenant_id,contract_id,share_type')
+            ->groupBy('tenant_id', 'share_type')->get();
+        foreach ($shareList as $k => &$v) {
+            $map['contract_id'] = $v['contract_id'];
+            $map['tenant_id']   = $v['tenant_id'];
+            $v['share_rule'] =  $shareService->model()->where($map)->get();
+        }
+        $data['share_list'] = $shareList;
         return $this->success($data);
     }
 }
