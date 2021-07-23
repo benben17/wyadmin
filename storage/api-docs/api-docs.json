@@ -8334,42 +8334,96 @@
                 }
             }
         },
-        "/api/operation/tenant/share/save": {
+        "/api/operation/tenant/share/list": {
             "post": {
                 "tags": [
-                    "租户"
+                    "租户分摊"
                 ],
-                "summary": "租户分摊字表",
-                "operationId": "App\\Api\\Controllers\\Operation\\TenantController::shareStore",
+                "summary": "租户列表",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "parent_id",
-                                    "name"
+                                    "pagesize",
+                                    "orderBy",
+                                    "order"
                                 ],
                                 "properties": {
-                                    "parent_id": {
-                                        "description": "父亲租户ID",
-                                        "type": "int"
-                                    },
                                     "name": {
-                                        "description": "分摊租户名称",
+                                        "description": "客户名称",
                                         "type": "String"
-                                    },
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/share/add": {
+            "post": {
+                "tags": [
+                    "租户分摊"
+                ],
+                "summary": "分摊租户规则新增",
+                "operationId": "App\\Api\\Controllers\\Operation\\TenantShareController::store",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "share_type",
+                                    "tenant_id",
+                                    "contract_id",
+                                    "invoice"
+                                ],
+                                "properties": {
                                     "share_type": {
-                                        "description": "分摊类型1面积2 比例3固定金额",
+                                        "description": "客户类型 1:比例 2 固定金额",
                                         "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "分摊租户id",
+                                        "type": "int"
+                                    },
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    },
+                                    "fee_type": {
+                                        "description": "分摊费用类型",
+                                        "type": "int"
+                                    },
+                                    "share_rate": {
+                                        "description": "分摊比例，最大两位小数",
+                                        "type": "float"
+                                    },
+                                    "share_amount": {
+                                        "description": "分摊金额",
+                                        "type": "float"
+                                    },
+                                    "remark": {
+                                        "description": "分摊备注",
+                                        "type": "String"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "parent_id": 1,
-                                "name": "",
-                                "share_type": ""
+                                "parent_tenant_id": 5,
+                                "contract_id": 6,
+                                "share_type": 2,
+                                "share_rules": ""
                             }
                         }
                     }
@@ -8381,13 +8435,61 @@
                 }
             }
         },
-        "/api/operation/tenant/share/unlink": {
+        "/api/operation/tenant/share/edit": {
             "post": {
                 "tags": [
                     "租户"
                 ],
-                "summary": "解绑分摊租户",
-                "operationId": "App\\Api\\Controllers\\Operation\\TenantController::unlinkShare",
+                "summary": "租户编辑",
+                "operationId": "App\\Api\\Controllers\\Operation\\TenantShareController::update",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "cus_type",
+                                    "cus_name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "客户id",
+                                        "type": "int"
+                                    },
+                                    "cus_type": {
+                                        "description": "客户类型 1:公司 2 个人",
+                                        "type": "int"
+                                    },
+                                    "cus_name": {
+                                        "description": "客户名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 1,
+                                "cus_type": 1,
+                                "cus_name": "公司客户"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/share/show": {
+            "post": {
+                "tags": [
+                    "租户分摊"
+                ],
+                "summary": "根据租户获取客户信息",
+                "operationId": "App\\Api\\Controllers\\Operation\\TenantShareController::show",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8398,7 +8500,7 @@
                                 ],
                                 "properties": {
                                     "id": {
-                                        "description": "租户id",
+                                        "description": "客户id",
                                         "type": "int"
                                     }
                                 },

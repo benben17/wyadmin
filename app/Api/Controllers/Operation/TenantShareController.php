@@ -108,7 +108,11 @@ class TenantShareController extends BaseController
      *       @OA\Property(property="share_amount",type="float",description="分摊金额"),
      *       @OA\Property(property="remark",type="String",description="分摊备注"),
      *     ),
-     *       example={"tenant_id":"","share_type":"","contract_id":"","share_rate":"","share_amount"}
+     *       example={
+     *       "parent_tenant_id":5,
+     *          "contract_id":6,
+     *          "share_type":2,
+     *          "share_rules":""}
      *       )
      *     ),
      *     @OA\Response(
@@ -122,38 +126,25 @@ class TenantShareController extends BaseController
         $validatedData = $request->validate([
             'parent_tenant_id' => 'required',
             'contract_id' => 'required|gt:0',
-            'share_type' => 'required|in:1,2,3',
-            'share_rules' => 'required|array',
+            // 'share_type' => 'required|in:1,2,3',
+            'share_list' => 'required|array',
             // 'share_rules.tenant_id' => 'required|gt:0',
             // 'share_rules.contract_id' => 'required|gt:0',
             // 'share_rules.share_type' => 'required|in:1,2,3',
             // 'share_rules.fee_type' => 'required|gt:0',
         ]);
         $DA = $request->toArray();
-        $shareTenantIds = [];
-        $rateCount = 0.00;
-        foreach ($DA['share_rules'] as $k => $v) {
-            array_push($shareTenantIds, $v['tenant_id']);
-            if ($DA['share_type'] == 1) {
-                $rateCount += $v['share_rate'];
-            }
-        }
-        if ($rateCount >= 100.00) {
-            return $this->error("分摊租户分摊比例大于百分之100");
-        }
 
-        if (sizeof($shareTenantIds) == 0) {
-            return $this->error("分摊租户为空");
-        }
+
 
         try {
-            DB::transaction(function () use ($DA, $shareTenantIds) {
+            DB::transaction(function () use ($DA) {
                 $shareService = new ShareRuleService;
-                $shareService->batchSaveShare($DA, $this->user);
+                $res = $shareService->batchSaveShare($DA, $this->user);
                 // $contractService = new ContractService;
                 // $contract = $contractService->model()->find($DA['contract_id']);
 
-                $this->tenantService->tenantModel()->whereIn('id', $shareTenantIds)
+                $this->tenantService->tenantModel()->whereIn('id', $res['tenantIds'])
                     ->update(['parent_id' => $DA['parent_tenant_id']]);
             });
             return $this->success('租户分摊新增成功。');
@@ -194,39 +185,29 @@ class TenantShareController extends BaseController
         $validatedData = $request->validate([
             'parent_tenant_id' => 'required',
             'contract_id' => 'required|gt:0',
-            'share_type' => 'required|in:1,2,3',
-            'share_rules' => 'required|array',
+            // 'share_type' => 'required|in:1,2,3',
+            'share_list' => 'required|array',
             // 'share_rules.tenant_id' => 'required|gt:0',
             // 'share_rules.contract_id' => 'required|gt:0',
             // 'share_rules.share_type' => 'required|in:1,2,3',
             // 'share_rules.fee_type' => 'required|gt:0',
         ]);
         $DA = $request->toArray();
-        $shareTenantIds = [];
-        $rateCount = 0.00;
-        foreach ($DA['share_rules'] as $k => $v) {
-            array_push($shareTenantIds, $v['tenant_id']);
-            if ($DA['share_type'] == 1) {
-                $rateCount += $v['share_rate'];
-            }
-        }
-        if ($rateCount >= 100.00) {
-            return $this->error("分摊租户分摊比例大于百分之100");
-        }
 
-        if (sizeof($shareTenantIds) == 0) {
-            return $this->error("分摊租户为空");
-        }
 
         try {
-            DB::transaction(function () use ($DA, $shareTenantIds) {
+            DB::transaction(function () use ($DA) {
                 $shareService = new ShareRuleService;
                 $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
-                $shareService->batchSaveShare($DA, $this->user);
+                $res = $shareService->batchSaveShare($DA, $this->user);
                 // $contractService = new ContractService;
                 // $contract = $contractService->model()->find($DA['contract_id']);
-
-                $this->tenantService->tenantModel()->whereIn('id', $shareTenantIds)
+                if (!$res['tenantIds']) {
+                    throw new Exception("分摊租户为空");
+                }
+                $this->tenantService->tenantModel()->where('parent_id', $DA['parent_tenant_id'])
+                    ->update(['parent_id' => 0]);
+                $this->tenantService->tenantModel()->whereIn('id', $res['tenantIds'])
                     ->update(['parent_id' => $DA['parent_tenant_id']]);
             });
             return $this->success('租户分摊编辑成功。');
@@ -238,7 +219,7 @@ class TenantShareController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/operation/tenant/show",
+     *     path="/api/operation/tenant/share/show",
      *     tags={"租户分摊"},
      *     summary="根据租户获取客户信息",
      *    @OA\RequestBody(

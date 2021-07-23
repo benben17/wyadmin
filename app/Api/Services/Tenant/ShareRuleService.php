@@ -46,8 +46,9 @@ class ShareRuleService
   public function batchSaveShare($DA, $user)
   {
     try {
-      $data = $this->formatRule($DA['share_rules'], $user, $DA['contract_id'], $DA['share_type']);
-      $this->model()->addAll($data);
+      $data = $this->formatRule($DA['share_list'], $user, $DA['contract_id']);
+      $res = $this->model()->addAll($data['data']);
+      return $data;
     } catch (Exception $e) {
       Log::error("分摊规则保存失败！" . $e);
       throw new Exception("分摊规则保存失败！" . $e);
@@ -55,23 +56,34 @@ class ShareRuleService
     }
   }
 
-  private function formatRule(array $shareRules, $user, $contractId, $sharetype)
+  private function formatRule(array $shareList, $user, $contractId)
   {
     $BA = array();
-    foreach ($shareRules as $k => $v) {
-      $BA[$k]['company_id']    = $user['id'];
-      $BA[$k]['c_uid']         = $user['id'];
-      $BA[$k]['created_at']    = nowTime();
-      $BA[$k]['updated_at']    = nowTime();
-      $BA[$k]['bill_rule_id']  = $v['bill_rule_id'];
-      $BA[$k]['contract_id']   = $contractId;
-      $BA[$k]['share_type']    = $sharetype;
-      $BA[$k]['tenant_id']     = $v['tenant_id'];
-      $BA[$k]['fee_type']      = isset($v['fee_type']) ? $v['fee_type'] : 0;
-      $BA[$k]['share_rate']    = isset($v['share_rate']) ? $v['share_rate'] : 0.00;
-      $BA[$k]['share_amount']  = isset($v['share_amount']) ? $v['share_amount'] : 0.00;
-      $BA[$k]['remark']    = isset($v['remark']) ? $v['remark'] : "";
+    $i = 0;
+    $tenantIds = [];
+    foreach ($shareList as $key => $rule) {
+      foreach ($rule['share_rule'] as $k => $v) {
+        $BA[$i]['company_id']    = $user['id'];
+        $BA[$i]['c_uid']         = $user['id'];
+        $BA[$i]['created_at']    = nowTime();
+        $BA[$i]['updated_at']    = nowTime();
+        $BA[$i]['bill_rule_id']  = $v['bill_rule_id'];
+        $BA[$i]['contract_id']   = $contractId;
+        $BA[$i]['share_type']    = $rule['share_type'];
+        $BA[$i]['tenant_id']     = $rule['tenant_id'];
+        $BA[$i]['fee_type']      = isset($v['fee_type']) ? $v['fee_type'] : 0;
+        $BA[$i]['share_rate']    = isset($v['share_rate']) ? $v['share_rate'] : 0.00;
+        $BA[$i]['share_amount']  = isset($v['share_amount']) ? $v['share_amount'] : 0.00;
+        $BA[$i]['remark']    = isset($v['remark']) ? $v['remark'] : "";
+        $i++;
+      }
+      array_push($tenantIds, $rule['tenant_id']);
     }
-    return $BA;
+
+    Log::error(json_encode($BA));
+    $res['data'] = $BA;
+    $res['tenantIds'] = $tenantIds;
+    Log::error(json_encode($tenantIds));
+    return $res;
   }
 }
