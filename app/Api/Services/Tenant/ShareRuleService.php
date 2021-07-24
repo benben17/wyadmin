@@ -46,7 +46,7 @@ class ShareRuleService
   public function batchSaveShare($DA, $user)
   {
     try {
-      $data = $this->formatRule($DA['share_list'], $user, $DA['contract_id']);
+      $data = $this->formatRule($DA['share_list'], $user, $DA['contract_id'], $DA['share_type']);
       $res = $this->model()->addAll($data['data']);
       return $data;
     } catch (Exception $e) {
@@ -56,7 +56,7 @@ class ShareRuleService
     }
   }
 
-  private function formatRule(array $shareList, $user, $contractId)
+  private function formatRule(array $shareList, $user, $contractId, $shareType)
   {
     $BA = array();
     $i = 0;
@@ -69,11 +69,10 @@ class ShareRuleService
         $BA[$i]['updated_at']    = nowTime();
         $BA[$i]['bill_rule_id']  = $v['bill_rule_id'];
         $BA[$i]['contract_id']   = $contractId;
-        $BA[$i]['share_type']    = $rule['share_type'];
+        $BA[$i]['share_type']    = $shareType;
         $BA[$i]['tenant_id']     = $rule['tenant_id'];
         $BA[$i]['fee_type']      = isset($v['fee_type']) ? $v['fee_type'] : 0;
-        $BA[$i]['share_rate']    = isset($v['share_rate']) ? $v['share_rate'] : 0.00;
-        $BA[$i]['share_amount']  = isset($v['share_amount']) ? $v['share_amount'] : 0.00;
+        $BA[$i]['share_num']     = $v['share_num'];
         $BA[$i]['remark']    = isset($v['remark']) ? $v['remark'] : "";
         $i++;
       }

@@ -6,6 +6,7 @@ use App\Api\Models\Contract\BillRule;
 use App\Api\Models\Contract\Contract;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
+use App\Enums\AppEnum;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +21,7 @@ class TenantShareRule extends Model
   protected $table = 'bse_tenant_share_rule';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id', 'updated_at', 'created_at', 'u_uid'];
-  protected $appends = ['fee_type_label', 'pay_method', 'month_amt', 'tenant_name', 'share_type_label'];
+  protected $appends = ['fee_type_label', 'pay_method', 'month_amt', 'tenant_name', 'share_type_label', 'share_num_label'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -50,6 +51,22 @@ class TenantShareRule extends Model
     }
   }
 
+  public function getShareNumLabelAttribute()
+  {
+    if (isset($this->attributes['share_type'])) {
+      switch ($this->attributes['share_type']) {
+        case '1':
+          return AppEnum::shareRate;
+          break;
+        case '2':
+          return AppEnum::shareAmt;
+          break;
+        case '3':
+          return AppEnum::shareArea;
+          break;
+      }
+    }
+  }
 
   public function getShareTypeLabelAttribute()
   {

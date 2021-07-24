@@ -185,7 +185,7 @@ class TenantShareController extends BaseController
         $validatedData = $request->validate([
             'parent_tenant_id' => 'required',
             'contract_id' => 'required|gt:0',
-            // 'share_type' => 'required|in:1,2,3',
+            'share_type' => 'required|in:1,2,3',
             'share_list' => 'required|array',
             // 'share_rules.tenant_id' => 'required|gt:0',
             // 'share_rules.contract_id' => 'required|gt:0',
@@ -194,14 +194,14 @@ class TenantShareController extends BaseController
         ]);
         $DA = $request->toArray();
 
-
         try {
             DB::transaction(function () use ($DA) {
                 $shareService = new ShareRuleService;
                 $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
+                $contractService = new ContractService;
+                $contractService->model()->find($DA['contract_id'])->update(['share_type', $DA['share_type']]);
                 $res = $shareService->batchSaveShare($DA, $this->user);
-                // $contractService = new ContractService;
-                // $contract = $contractService->model()->find($DA['contract_id']);
+
                 if (!$res['tenantIds']) {
                     throw new Exception("分摊租户为空");
                 }
@@ -253,7 +253,8 @@ class TenantShareController extends BaseController
 
         $contractService = new ContractService;
         DB::enableQueryLog();
-        $data = $contractService->model()->select('id', 'tenant_id', 'tenant_name', 'contract_no', 'proj_id')
+        $data = $contractService->model()
+            ->select('id', 'tenant_id', 'tenant_name', 'contract_no', 'proj_id', 'share_type')
             ->where('contract_state', 2)
             // ->with('shareRule')
             ->with('contractRoom')

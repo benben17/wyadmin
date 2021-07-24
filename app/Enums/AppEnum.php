@@ -44,4 +44,10 @@ final class AppEnum extends Enum
 
   const chargeVerify  = 1;  // 
   const chargeUnVerify  = 0;
+
+
+  // 单位
+  const shareRate = "%";
+  const shareAmt  = "元";
+  const shareArea = "m²";
 }
