@@ -6,11 +6,13 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Tenant\TenantShare;
 use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\ShareRuleService;
 use Exception;
 
 /**
@@ -37,23 +39,28 @@ class BillSyncController extends BaseController
   public function syncContractBill()
   {
     try {
-      // DB::transaction(function () use ($request) {
       $contractService = new ContractService;
       $billService = new TenantBillService;
-      // Log::error("aaaa");
-      $chargeDate = date('Y-m-d', strtotime(nowYmd()));
+      $shareRule = new ShareRuleService;
+
+      $chargeDate = date('Y-m-d');
       Log::error($chargeDate);
-      $contractBills = $contractService->contractBillModel()->where('charge_date', $chargeDate)
+      $contractBills = $contractService->contractBillModel()
+        ->where('charge_date', $chargeDate)
         ->where('is_sync', 0)->get();
       // Log::error(json_encode($contractBills));
       if ($contractBills) {
         foreach ($contractBills as $k => $bill) {
-          DB::transaction(function () use ($bill, $billService, $contractService) {
+          DB::transaction(function () use ($bill, $billService, $contractService, $shareRule) {
+
             $user['id'] = isset($bill['c_uid']) ? $bill['c_uid'] : 0;
             $user['company_id'] = $bill['company_id'];
-            $billService->saveBillDetail($bill, $user);
+
+            $shareRule =
+
+              $billService->saveBillDetail($bill, $user);
             $contractService->contractBillModel()->find($bill['id'])->update('is_sync', 1);
-          }, 2);
+          }, 3);
         }
       } else {
         Log::error(nowYmd() . "今天未发现账单");

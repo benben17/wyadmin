@@ -20,7 +20,7 @@ class TenantShareRule extends Model
   protected $table = 'bse_tenant_share_rule';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id', 'updated_at', 'created_at', 'u_uid'];
-  protected $appends = ['fee_type_label', 'pay_method', 'month_amt', 'tenant_name'];
+  protected $appends = ['fee_type_label', 'pay_method', 'month_amt', 'tenant_name', 'share_type_label'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -49,6 +49,18 @@ class TenantShareRule extends Model
       return $fee['month_amt'];
     }
   }
+
+
+  public function getShareTypeLabelAttribute()
+  {
+    $sharetype = $this->attributes['share_type'];
+    if ($sharetype == 1) {
+      return '比例分摊';
+    } else if ($sharetype == 2) {
+      return '固定金额';
+    }
+  }
+
   /** 账单详细 */
   public function contract()
   {
