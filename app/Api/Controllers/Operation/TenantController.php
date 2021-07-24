@@ -81,7 +81,6 @@ class TenantController extends BaseController
 
         $result = $this->tenantService->tenantModel()
             ->where($map)
-            ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
                 $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
