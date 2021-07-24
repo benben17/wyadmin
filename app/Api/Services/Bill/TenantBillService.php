@@ -108,8 +108,8 @@ class TenantBillService
       $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
       return $billDetail->save();
     } catch (Exception $e) {
-      Log::error($e->getMessage());
-      throw new Exception("账单详细保存失败");
+      Log::error("账单详细保存失败" . $e);
+      throw new Exception("账单详细保存失败" . $e);
       return false;
     }
   }

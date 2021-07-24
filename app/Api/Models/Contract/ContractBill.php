@@ -20,7 +20,7 @@ class ContractBill extends Model
 
   protected $table = 'bse_contract_bill';
 
-  protected $fillable = ['contract_id', 'type', 'amount', 'charge_date', 'start_date', 'end_date', 'bill_date', 'price', 'remark'];
+  protected $fillable = ['contract_id', 'type', 'amount', 'charge_date', 'start_date', 'end_date', 'bill_date', 'price', 'is_sync', 'remark'];
   protected $hidden = ['deleted_at', 'updated_at', 'company_id', 'c_uid', 'u_uid'];
   protected $appends = ['fee_type_label', 'type_label'];
 

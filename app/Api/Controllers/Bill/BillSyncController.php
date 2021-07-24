@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Company\VariableService;
 use App\Api\Services\Tenant\ShareRuleService;
 use Exception;
 
@@ -35,7 +36,14 @@ class BillSyncController extends BaseController
 
 
 
-
+  /**
+   * operation/tenant/bill/sync
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-24
+   *
+   * @return void
+   */
   public function syncContractBill()
   {
     try {
@@ -43,30 +51,95 @@ class BillSyncController extends BaseController
       $billService = new TenantBillService;
       $shareRule = new ShareRuleService;
 
-      $chargeDate = date('Y-m-d');
-      Log::error($chargeDate);
-      $contractBills = $contractService->contractBillModel()
-        ->where('charge_date', $chargeDate)
-        ->where('is_sync', 0)->get();
-      // Log::error(json_encode($contractBills));
-      if ($contractBills) {
-        foreach ($contractBills as $k => $bill) {
-          DB::transaction(function () use ($bill, $billService, $contractService, $shareRule) {
+      // $chargeDate = date('Y-m-d');
+      $chargeDate = "2021-09-01";
 
-            $user['id'] = isset($bill['c_uid']) ? $bill['c_uid'] : 0;
+      $bills = $contractService->contractBillModel()
+        ->where('charge_date', $chargeDate)
+        ->where('is_sync', 0)->exists();
+      if ($bills) {
+        DB::transaction(function () use ($chargeDate, $billService, $contractService, $shareRule) {
+          $billList = $contractService->contractBillModel()
+            ->where('charge_date', $chargeDate)
+            ->where('is_sync', 0)->get();
+          foreach ($billList as $k => $bill) {
+
+
+            $contractBillId = $bill['id'];
+            unset($bill['id']);
+            $contractBill = $bill;
+            $user['id']         = isset($bill['c_uid']) ? $bill['c_uid'] : 0;
             $user['company_id'] = $bill['company_id'];
 
-            $shareRule =
+            // 判断租户是否有分摊
+            $shareCount  = $shareRule->model()
+              ->where('contract_id', $bill['contract_id'])
+              ->where('fee_type', $bill['fee_type'])->count();
+            if ($shareCount > 0) {
+              $shareList = $shareRule->model()->where('contract_id', $bill['contract_id'])
+                ->where('fee_type', $bill['fee_type'])->get();
+              $shareTotalAmt = 0.00;
 
-              $billService->saveBillDetail($bill, $user);
-            $contractService->contractBillModel()->find($bill['id'])->update('is_sync', 1);
-          }, 3);
-        }
+              foreach ($shareList as $key => $share) {
+                $shareBill = $bill;
+                $shareAmount = 0.00;
+                if ($share['share_type'] == 1) {  // 比例
+                  // 分摊租户账单保存
+                  $shareAmount = numFormat($bill['amount'] * $share['share_num'] / 100);
+                }
+                // else if ($share['share_type'] == 2) {  // 固定金额
+                //   $shareBill['amount'] = numFormat($bill['amount'] - $share['share_num']);
+                // } else if ($share['share_type'] == 3) { // 面积
+                //   $shareBill['amount'] = $this->getMonthPrice($bill, $share['share_num']);
+                // }
+                $shareBill['tenant_id'] = $share['tenant_id'];
+                $shareBill['tenant_name'] = getTenantNameById($share['tenant_id']);
+                $shareBill['amount'] = $shareAmount;
+                // 保存分摊租户账单
+                // Log::error("保存分摊租户账单" . json_encode($shareBill));
+                $billService->saveBillDetail($shareBill, $user);
+                $shareTotalAmt += $shareAmount;
+              }
+
+              // Log::error("yuanshuju" . json_encode($contractBill));
+              $contractBill['amount'] = numFormat($contractBill['amount'] - $shareTotalAmt);
+              Log::error("格式化" . json_encode($contractBill));
+            }
+
+            // $billService->saveBillDetail($contractBill, $user);
+
+            // $billUpdateData['is_sync'] = 0;
+            // Log::error("账单更新ID:" . $contractBillId);
+            // $contractService->contractBillModel()->where('id', $contractBillId)->update($billUpdateData);
+          }
+        }, 3);
       } else {
         Log::error(nowYmd() . "今天未发现账单");
       }
     } catch (Exception $th) {
       Log::error("账单同步失败" . $th);
     }
+  }
+
+  /**
+   * 获取账单金额
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-24
+   * @param [type] $rule
+   * @param [type] $shareNum
+   *
+   * @return void
+   */
+  private function getMonthPrice(array $rule, float $shareNum): float
+  {
+    $monthPrice = 0.00;
+    if ($rule['price_type'] == 1) {
+      $yearDays = getVariable($rule['company_id'], 'year_days');
+      $monthPrice = numFormat($rule['unit_price'] * $shareNum * $yearDays / 12);
+    } else if ($rule['price_type'] == 2) {
+      $monthPrice = numFormat($rule['unit_price'] * $shareNum);
+    }
+    return $monthPrice;
   }
 }
