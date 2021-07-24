@@ -20,7 +20,7 @@ class TenantShareRule extends Model
   protected $table = 'bse_tenant_share_rule';
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id', 'updated_at', 'created_at', 'u_uid'];
-  protected $appends = ['fee_type_label', 'pay_method', 'month_amt'];
+  protected $appends = ['fee_type_label', 'pay_method', 'month_amt', 'tenant_name'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -29,7 +29,12 @@ class TenantShareRule extends Model
       return $fee['fee_name'];
     }
   }
-
+  public function getTenantNameAttribute()
+  {
+    if (isset($this->attributes['tenant_id'])) {
+      return getTenantNameById($this->attributes['tenant_id']);
+    }
+  }
   public function getPayMethodAttribute()
   {
     if (isset($this->attributes['bill_rule_id'])) {
