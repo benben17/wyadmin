@@ -63,7 +63,7 @@ class TenantController extends BaseController
             $pagesize = config('export_rows');
         }
         $map = array();
-        $map['parent_id'] = 0;
+        // $map['parent_id'] = 0;
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -81,6 +81,7 @@ class TenantController extends BaseController
 
         $result = $this->tenantService->tenantModel()
             ->where($map)
+            ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
                 $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
