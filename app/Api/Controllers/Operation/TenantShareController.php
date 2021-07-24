@@ -193,13 +193,13 @@ class TenantShareController extends BaseController
             // 'share_rules.fee_type' => 'required|gt:0',
         ]);
         $DA = $request->toArray();
-
+        Log::error($DA['share_type']);
         try {
             DB::transaction(function () use ($DA) {
                 $shareService = new ShareRuleService;
                 $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
                 $contractService = new ContractService;
-                $contractService->model()->find($DA['contract_id'])->update(['share_type', $DA['share_type']]);
+                $contractService->model()->whereId($DA['contract_id'])->update(['share_type' => $DA['share_type']]);
                 $res = $shareService->batchSaveShare($DA, $this->user);
 
                 if (!$res['tenantIds']) {
