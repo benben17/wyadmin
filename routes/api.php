@@ -334,10 +334,10 @@ Route::group(['prefix' => 'operation/tenant'], function () {
 });
 
 Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
-    Route::post('/list', '\App\Api\Controllers\Operation\LeaseBackController@list');
+    Route::post('/list', '\App\Api\Controllers\Operation\LeasebackController@list');
     Route::post('/add', '\App\Api\Controllers\Operation\LeasebackController@store');
-    Route::post('/edit', '\App\Api\Controllers\Operation\LeaseBackController@update');
-    Route::post('/show', '\App\Api\Controllers\Operation\LeaseBackController@show');
+    Route::post('/edit', '\App\Api\Controllers\Operation\LeasebackController@update');
+    Route::post('/show', '\App\Api\Controllers\Operation\LeasebackController@show');
 });
 
 //租户账单
