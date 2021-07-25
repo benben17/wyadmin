@@ -58,31 +58,33 @@ class ShareRuleService
 
   private function formatRule(array $shareList, $user, $contractId, $shareType)
   {
-    $BA = array();
-    $i = 0;
-    $tenantIds = [];
-    foreach ($shareList as $key => $rule) {
-      foreach ($rule['share_rule'] as $k => $v) {
-        $BA[$i]['company_id']    = $user['id'];
-        $BA[$i]['c_uid']         = $user['id'];
-        $BA[$i]['created_at']    = nowTime();
-        $BA[$i]['updated_at']    = nowTime();
-        $BA[$i]['bill_rule_id']  = $v['bill_rule_id'];
-        $BA[$i]['contract_id']   = $contractId;
-        $BA[$i]['share_type']    = $shareType;
-        $BA[$i]['tenant_id']     = $rule['tenant_id'];
-        $BA[$i]['fee_type']      = isset($v['fee_type']) ? $v['fee_type'] : 0;
-        $BA[$i]['share_num']     = $v['share_num'];
-        $BA[$i]['remark']    = isset($v['remark']) ? $v['remark'] : "";
-        $i++;
-      }
-      array_push($tenantIds, $rule['tenant_id']);
-    }
+    try {
 
-    Log::error(json_encode($BA));
-    $res['data'] = $BA;
-    $res['tenantIds'] = $tenantIds;
-    Log::error(json_encode($tenantIds));
-    return $res;
+      $BA = array();
+      $i = 0;
+      $tenantIds = [];
+      foreach ($shareList as $key => $rule) {
+        foreach ($rule['share_rule'] as $k => $v) {
+          $BA[$i]['company_id']    = $user['id'];
+          $BA[$i]['c_uid']         = $user['id'];
+          $BA[$i]['created_at']    = nowTime();
+          $BA[$i]['updated_at']    = nowTime();
+          $BA[$i]['bill_rule_id']  = $v['bill_rule_id'];
+          $BA[$i]['contract_id']   = $contractId;
+          $BA[$i]['share_type']    = $shareType;
+          $BA[$i]['tenant_id']     = $rule['tenant_id'];
+          $BA[$i]['fee_type']      = isset($v['fee_type']) ? $v['fee_type'] : 0;
+          $BA[$i]['share_num']     = $v['share_num'];
+          $BA[$i]['remark']    = isset($v['remark']) ? $v['remark'] : "";
+          $i++;
+        }
+        array_push($tenantIds, $rule['tenant_id']);
+      }
+      $res['data'] = $BA;
+      $res['tenantIds'] = $tenantIds;
+      return $res;
+    } catch (Exception $e) {
+      throw new Exception("分摊规则格式化失败");
+    }
   }
 }

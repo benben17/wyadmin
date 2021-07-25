@@ -6,10 +6,13 @@ use Exception;
 use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\LeasebackService;
+use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
 /**
@@ -186,5 +189,42 @@ class LeasebackController extends BaseController
         } else {
             return $this->fail("租户退租失败");
         }
+    }
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/leaseback/show",
+     *     tags={"租户退租"},
+     *     summary="租户退租",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id"},
+     *      @OA\Property(property="contract_id",type="int",description="合同id"),
+     *      
+     *     ),
+     *       example={"contract_id":"合同id"}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function show(Request $request)
+    {
+        $validatedData = $request->validate([
+            'contract_id'            => 'required|gt:0',
+        ]);
+        $contractService = new ContractService;
+        $tenantService = new TenantBillService;
+        $data = $contractService->model()
+            ->find($request->contract_id);
+        $data['bills'] = $tenantService->billDetailModel()
+            ->where('contract_id', $request->contract_id)
+            ->where('status', 0)->get();
+        return $this->success($data);
     }
 }

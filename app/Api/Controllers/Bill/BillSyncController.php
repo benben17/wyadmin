@@ -51,8 +51,8 @@ class BillSyncController extends BaseController
       $billService = new TenantBillService;
       $shareRule = new ShareRuleService;
 
-      // $chargeDate = date('Y-m-d');
-      $chargeDate = "2021-09-01";
+      $chargeDate = date('Y-m-d');
+      // $chargeDate = "2021-09-01";
 
       $bills = $contractService->contractBillModel()
         ->where('charge_date', $chargeDate)
@@ -81,11 +81,11 @@ class BillSyncController extends BaseController
               unset($shareBill['id']);
               if ($share['share_type'] == 1) {  // 比例
                 // 分摊租户账单保存
-                $shareAmount = numFormat($bill['amount'] * $share['share_num'] / 100);
+                $shareAmount = numFormat($shareBill['amount'] * $share['share_num'] / 100);
               } else if ($share['share_type'] == 2) {  // 固定金额
                 $shareAmount = numFormat($share['share_num']);
               } else if ($share['share_type'] == 3) { // 面积
-                $shareAmount = $this->getMonthPrice($bill, $share['share_num']);
+                $shareAmount = $this->getMonthPrice($shareBill, $share['share_num']);
               }
 
               $shareBill['tenant_id'] = $share['tenant_id'];

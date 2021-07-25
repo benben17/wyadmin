@@ -193,7 +193,7 @@ class TenantShareController extends BaseController
             // 'share_rules.fee_type' => 'required|gt:0',
         ]);
         $DA = $request->toArray();
-        Log::error($DA['share_type']);
+        // Log::error($DA['share_type']);
         try {
             DB::transaction(function () use ($DA) {
                 $shareService = new ShareRuleService;
@@ -259,7 +259,6 @@ class TenantShareController extends BaseController
             // ->with('shareRule')
             ->with('contractRoom')
             ->find($request->id);
-
         // return response()->json(DB::getQueryLog());
 
         $shareService = new ShareRuleService;
