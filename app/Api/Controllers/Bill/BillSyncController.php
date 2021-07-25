@@ -58,61 +58,54 @@ class BillSyncController extends BaseController
         ->where('charge_date', $chargeDate)
         ->where('is_sync', 0)->exists();
       if ($bills) {
-        DB::transaction(function () use ($chargeDate, $billService, $contractService, $shareRule) {
-          $billList = $contractService->contractBillModel()
-            ->where('charge_date', $chargeDate)
-            ->where('is_sync', 0)->get();
-          foreach ($billList as $k => $bill) {
+        // DB::transaction(function () use ($chargeDate, $billService, $contractService, $shareRule) {
+        $billList = $contractService->contractBillModel()
+          ->where('charge_date', $chargeDate)
+          ->where('is_sync', 0)->get();
+        foreach ($billList as $k => $bill) {
+          $contractBillId = $bill['id'];
 
+          $user['id']         = isset($bill['c_uid']) ? $bill['c_uid'] : 0;
+          $user['company_id'] = $bill['company_id'];
 
-            $contractBillId = $bill['id'];
-            unset($bill['id']);
-            $contractBill = $bill;
-            $user['id']         = isset($bill['c_uid']) ? $bill['c_uid'] : 0;
-            $user['company_id'] = $bill['company_id'];
+          // 判断租户是否有分摊
+          $shareCount  = $shareRule->model()->where('contract_id', $bill['contract_id'])->where('fee_type', $bill['fee_type'])->count();
+          if ($shareCount > 0) {
+            $shareList = $shareRule->model()->where('contract_id', $bill['contract_id'])
+              ->where('fee_type', $bill['fee_type'])->get();
+            $shareTotalAmt = 0.00;
+            $shareAmount = 0.00;
+            foreach ($shareList as $key => $share) {
 
-            // 判断租户是否有分摊
-            $shareCount  = $shareRule->model()
-              ->where('contract_id', $bill['contract_id'])
-              ->where('fee_type', $bill['fee_type'])->count();
-            if ($shareCount > 0) {
-              $shareList = $shareRule->model()->where('contract_id', $bill['contract_id'])
-                ->where('fee_type', $bill['fee_type'])->get();
-              $shareTotalAmt = 0.00;
-
-              foreach ($shareList as $key => $share) {
-                $shareBill = $bill;
-                $shareAmount = 0.00;
-                if ($share['share_type'] == 1) {  // 比例
-                  // 分摊租户账单保存
-                  $shareAmount = numFormat($bill['amount'] * $share['share_num'] / 100);
-                }
-                // else if ($share['share_type'] == 2) {  // 固定金额
-                //   $shareBill['amount'] = numFormat($bill['amount'] - $share['share_num']);
-                // } else if ($share['share_type'] == 3) { // 面积
-                //   $shareBill['amount'] = $this->getMonthPrice($bill, $share['share_num']);
-                // }
-                $shareBill['tenant_id'] = $share['tenant_id'];
-                $shareBill['tenant_name'] = getTenantNameById($share['tenant_id']);
-                $shareBill['amount'] = $shareAmount;
-                // 保存分摊租户账单
-                // Log::error("保存分摊租户账单" . json_encode($shareBill));
-                $billService->saveBillDetail($shareBill, $user);
-                $shareTotalAmt += $shareAmount;
+              $shareBill = $bill;
+              unset($shareBill['id']);
+              if ($share['share_type'] == 1) {  // 比例
+                // 分摊租户账单保存
+                $shareAmount = numFormat($bill['amount'] * $share['share_num'] / 100);
+              } else if ($share['share_type'] == 2) {  // 固定金额
+                $shareAmount = numFormat($share['share_num']);
+              } else if ($share['share_type'] == 3) { // 面积
+                $shareAmount = $this->getMonthPrice($bill, $share['share_num']);
               }
 
-              // Log::error("yuanshuju" . json_encode($contractBill));
-              $contractBill['amount'] = numFormat($contractBill['amount'] - $shareTotalAmt);
-              Log::error("格式化" . json_encode($contractBill));
+              $shareBill['tenant_id'] = $share['tenant_id'];
+              $shareBill['tenant_name'] = getTenantNameById($share['tenant_id']);
+              $shareBill['amount'] = $shareAmount;
+              // 保存分摊租户账单
+              $billService->saveBillDetail($shareBill, $user);
+              $shareTotalAmt += $shareAmount;
             }
-
-            // $billService->saveBillDetail($contractBill, $user);
-
-            // $billUpdateData['is_sync'] = 0;
-            // Log::error("账单更新ID:" . $contractBillId);
-            // $contractService->contractBillModel()->where('id', $contractBillId)->update($billUpdateData);
+            $bill =  $contractService->contractBillModel()->find($contractBillId);
+            $bill['amount'] = numFormat($bill['amount'] - $shareTotalAmt);
           }
-        }, 3);
+          unset($bill['id']);
+          $billService->saveBillDetail($bill, $user);
+
+          $billUpdateData['is_sync'] = 0;
+          Log::error("账单更新ID:" . $contractBillId);
+          $contractService->contractBillModel()->where('id', $contractBillId)->update($billUpdateData);
+        }
+        // }, 3);
       } else {
         Log::error(nowYmd() . "今天未发现账单");
       }

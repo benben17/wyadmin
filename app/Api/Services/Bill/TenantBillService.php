@@ -106,7 +106,7 @@ class TenantBillService
       $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
       $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
       $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      return $billDetail->save();
+      $billDetail->save();
     } catch (Exception $e) {
       Log::error("账单详细保存失败" . $e);
       throw new Exception("账单详细保存失败" . $e);
