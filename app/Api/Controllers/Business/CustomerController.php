@@ -560,6 +560,6 @@ class CustomerController extends BaseController
             $rooms[$k]['room_area']    = $v['room_area'];
             $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
         }
-        return $DA;
+        return $rooms;
     }
 }
