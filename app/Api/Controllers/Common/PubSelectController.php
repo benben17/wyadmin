@@ -176,9 +176,6 @@ class PubSelectController extends BaseController
 
 		$subMap['room_type'] =  $request->room_type;
 		$subMap['is_vaild']  = 1;
-		if ($request->room_type) {
-			$subMap['room_type'] = $request->room_type;
-		}
 		if ($request->room_state) {
 			$subMap['room_state'] = $request->room_state;
 		}
@@ -188,20 +185,21 @@ class PubSelectController extends BaseController
 			->whereHas('buildRoom', function ($q) use ($subMap) {
 				$q->where($subMap);
 			})->get();
+
 		if ($request->room_type != 3) {
-			foreach ($buildings as $k => $v) {
+			foreach ($buildings as $k => &$v) {
+				DB::enableQueryLog();
 				$floors = FloorModel::where('build_id', $v['id'])
 					->whereHas('floorRoom', function ($q) use ($subMap) {
 						$q->where($subMap);
-					})
-					->get();
-				foreach ($floors as $kr => $vr) {
+					})->get();
+				foreach ($floors as $kr => &$vr) {
 					$rooms = RoomModel::where('floor_id', $vr['id'])
 						->where(function ($q) use ($subMap) {
 							$q->where($subMap);
 						})
 						->get();
-					$floors[$kr]['rooms'] = $rooms;
+
 					$floor_room_count = 0;
 					$floor_area = 0.00;
 					foreach ($rooms as $km => $vm) {
@@ -215,8 +213,10 @@ class PubSelectController extends BaseController
 					}
 					$floors[$kr]['floor_room_count'] = $floor_room_count;
 					$floors[$kr]['floor_area'] = $floor_area;
+
+					$vr['rooms'] = $rooms;
 				}
-				$buildings[$k]['floors'] = $floors;
+				$v['floors'] = $floors;
 			}
 		}
 		return $this->success($buildings);
