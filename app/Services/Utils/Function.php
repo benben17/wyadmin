@@ -45,7 +45,7 @@ function formatContact($contacts, $parentId, $userinfo, $type = 1): array
         return false;
     }
     foreach ($contacts as $k => $v) {
-        $data[$k]['created_at']     = date('Y-m-d H:i:s');
+        $data[$k]['created_at']     = nowTime();
         $data[$k]['u_uid']          = $userinfo['id'];
         $data[$k]['company_id']     = $userinfo['company_id'];
         $data[$k]['parent_id']      = $parentId;
@@ -54,7 +54,7 @@ function formatContact($contacts, $parentId, $userinfo, $type = 1): array
         $data[$k]['contact_role']   = isset($v['contact_role']) ? $v['contact_role'] : "";
         $data[$k]['contact_phone']  = isset($v['contact_phone']) ? $v['contact_phone'] : "";
         $data[$k]['is_default']     = isset($v['is_default']) ? $v['is_default'] : 0;
-        $data[$k]['updated_at']     = date('Y-m-d H:i:s');
+        $data[$k]['updated_at']     = nowTime();
     }
     return $data;
 }

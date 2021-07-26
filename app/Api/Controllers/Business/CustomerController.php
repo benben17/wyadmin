@@ -379,6 +379,7 @@ class CustomerController extends BaseController
             });
             return $this->success('客户更新成功。');
         } catch (Exception $e) {
+            Log::error("客户更新失败" . $e);
             return $this->error('客户更新失败');
         }
     }
