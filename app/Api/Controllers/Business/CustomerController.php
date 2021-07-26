@@ -323,7 +323,7 @@ class CustomerController extends BaseController
             'name' => 'required|String|max:64',
             'contacts' => 'array',
             'extra_info' => 'array',
-            'rooms' => 'array'
+            'tenant_rooms' => 'array'
         ]);
         $DA = $request->toArray();
         $map['company_id'] = $this->company_id;
