@@ -544,12 +544,21 @@ class CustomerController extends BaseController
 
     private function formatRoom(array $DA, $tenantId, $roomType)
     {
+        $rooms = array();
         foreach ($DA as $k => &$v) {
-            $v['created_at']   = nowTime();
-            $v['updated_at']   = nowTime();
-            $v['tenant_id']    = $tenantId;
-            $v['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
-            $v['station_no']   = isset($v['room_area']) ? $v['room_area'] : "";
+            $rooms[$k]['created_at']   = nowTime();
+            $rooms[$k]['updated_at']   = nowTime();
+            $rooms[$k]['tenant_id']    = $tenantId;
+            $rooms[$k]['proj_id']    = $v['proj_id'];
+            $rooms[$k]['proj_name']    = isset($v['proj_name']) ? $v['proj_name'] : "";
+            $rooms[$k]['build_id']    = $v['build_id'];
+            $rooms[$k]['build_no']    = $v['build_no'];
+            $rooms[$k]['floor_id']    = $v['floor_id'];
+            $rooms[$k]['floor_no']    = $v['floor_no'];
+            $rooms[$k]['room_id']    = $v['room_id'];
+            $rooms[$k]['room_no']    = $v['room_no'];
+            $rooms[$k]['room_area']    = $v['room_area'];
+            $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
         }
         return $DA;
     }
