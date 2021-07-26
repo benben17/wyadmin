@@ -223,7 +223,10 @@ class LeasebackController extends BaseController
         $data = $contractService->model()
             ->find($request->contract_id);
         $data['bills'] = $tenantService->billDetailModel()
-            ->where('contract_id', $request->contract_id)
+            ->where('contract_id', $request->contract_id)->where('type', '!=', 2)
+            ->where('status', 0)->get();
+        $data['deposit_bills'] = $tenantService->billDetailModel()
+            ->where('contract_id', $request->contract_id)->where('type', 2)
             ->where('status', 0)->get();
         return $this->success($data);
     }
