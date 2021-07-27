@@ -42,7 +42,8 @@ class TenantController extends BaseController
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"pagesize","orderBy","order"},
-     *       @OA\Property(property="name",type="String",description="客户名称")
+     *       @OA\Property(property="name",type="String",description="客户名称"),
+     *       @OA\Property(property="on_rent",type="int",description="1 在租 2 退租 0 所有")
      *     ),
      *       example={}
      *       )
