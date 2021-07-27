@@ -203,6 +203,7 @@ class ContractService
           // 更新客户状态 为租户
           $tenant  = Tenant::find($contract['tenant_id']);
           $tenant->type = 2;   //2 租户 1 客户 3 退租
+          $tenant->on_rent = 1;
           $tenant->state = '成交客户';
           $tenant->save();
           // 更新房间信息
