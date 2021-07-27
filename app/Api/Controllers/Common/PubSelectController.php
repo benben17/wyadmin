@@ -423,8 +423,8 @@ class PubSelectController extends BaseController
 	{
 		$data = Tenant::select('id', 'name', 'industry', 'type', 'business_id')
 			->where(function ($q) use ($request) {
-				if ($request->type == 2) {
-					$q->where('type', 2);
+				if ($request->type == 1) {
+					$q->whereIn('type', [1, 3]);
 				}
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
 			})
@@ -497,7 +497,11 @@ class PubSelectController extends BaseController
 			->where(function ($q) use ($request) {
 				// $q->where('parent_id', 0);
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-				$q->where('type', AppEnum::TenantType);
+				if ($request->type = 1) {
+					$q->where('type', "!=", AppEnum::TenantType);
+				} else if ($request->type == 2) {
+					$q->where('type', AppEnum::TenantType);
+				}
 			})->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();

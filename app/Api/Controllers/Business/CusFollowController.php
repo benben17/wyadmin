@@ -98,7 +98,8 @@ class CusFollowController extends BaseController
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->tenant_name && $q->where('tenant_name', "%" . $request->tenant_name . "%");
+      })->whereHas('tenant', function ($q) use ($request) {
+        $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
