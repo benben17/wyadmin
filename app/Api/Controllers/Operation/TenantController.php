@@ -86,6 +86,7 @@ class TenantController extends BaseController
                 $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->on_rent && $q->where('on_rent', $request->on_rent);
             })
             ->withCount('maintain')
             ->withCount('contract')
