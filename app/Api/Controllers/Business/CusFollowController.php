@@ -98,6 +98,7 @@ class CusFollowController extends BaseController
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->tenant_name && $q->where('tenant_name', "%" . $request->tenant_name . "%");
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -185,7 +186,6 @@ class CusFollowController extends BaseController
     $follow = new CustomerService;
     $res = $follow->saveFollow($DA, $user);
     if ($res) {
-
       return $this->success('跟进记录保存成功。');
     }
     return $this->error('跟进记录保存失败');
