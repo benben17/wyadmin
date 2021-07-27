@@ -125,7 +125,7 @@ class CustomerService
         //更新客户状态
         $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
         if (isset($DA['next_date'])) {
-          $this->saveRemind($follow->tenant_id, $DA['remind_date'], $user);
+          $this->saveRemind($follow->tenant_id, $DA['next_date'], $user);
         }
       });
       return true;
