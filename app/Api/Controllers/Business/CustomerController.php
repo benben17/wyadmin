@@ -172,9 +172,9 @@ class CustomerController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"channel_id","tenant_type","name"},
+     *          required={"channel_id","type","name"},
      *       @OA\Property(
-     *          property="tenant_type",
+     *          property="type",
      *          type="int",
      *          description="客户类型 1:公司 2 个人"
      *       ),
@@ -200,7 +200,7 @@ class CustomerController extends BaseController
      *       )
      *     ),
      *       example={
-     *              "channel_id":1,"tenant_type":1,"name":"公司客户","contact_name":"","contact_phone":""
+     *              "channel_id":1,"type":1,"name":"公司客户","contact_name":"","contact_phone":""
      *           }
      *       )
      *     ),

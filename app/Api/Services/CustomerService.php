@@ -114,6 +114,9 @@ class CustomerService
         $follow->loss_reason = isset($DA['loss_reason']) ? $DA['loss_reason'] : "";
         $follow->c_uid = $user['id'];
         $follow->follow_username = $user['realname'];
+        if ($DA['next_date']) {
+          $follow->next_date = $user['next_date'];
+        }
         // 第几次跟进
         $followTimes = Follow::where('tenant_id', $DA['tenant_id'])->count();
         Log::error($followTimes);
@@ -121,9 +124,9 @@ class CustomerService
         $res = $follow->save();
         //更新客户状态
         $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
-        if (isset($DA['remind_date'])) {
-          $this->saveRemind($follow->tenant_id, $DA['remind_date'], $user);
-        }
+        // if (isset($DA['remind_date'])) {
+        //   $this->saveRemind($follow->tenant_id, $DA['remind_date'], $user);
+        // }
       });
       return true;
     } catch (Exception $e) {
