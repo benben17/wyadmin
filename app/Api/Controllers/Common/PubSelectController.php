@@ -480,7 +480,8 @@ class PubSelectController extends BaseController
 	 *       @OA\Schema(
 	 *          schema="UserModel",
 	 *          required={"proj_ids"},
-	 * 					@OA\Property(property="proj_ids",type="String",description="项目ID，多个用逗号隔开")
+	 * 					@OA\Property(property="proj_ids",type="String",description="项目ID，多个用逗号隔开"),
+	 *          @OA\Property(property="type",type="int",description="0 所有 1 客户 2租户")
 	 *     ),
 	 *       example={"proj_ids":"1,2"}
 	 *       )
@@ -497,7 +498,7 @@ class PubSelectController extends BaseController
 			->where(function ($q) use ($request) {
 				// $q->where('parent_id', 0);
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-				if ($request->type = 1) {
+				if ($request->type == 1) {
 					$q->where('type', "!=", AppEnum::TenantType);
 				} else if ($request->type == 2) {
 					$q->where('type', AppEnum::TenantType);
