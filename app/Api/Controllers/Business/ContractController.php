@@ -25,15 +25,19 @@ use App\Api\Services\Contract\ContractService;
 
 class ContractController extends BaseController
 {
-    private $months = 0;
+
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        try {
+            $this->company_id = getCompanyId($this->uid);
+            $this->user = auth('api')->user();
+        } catch (Exception $e) {
+            Log::error($e);
+        }
     }
 
     /**
