@@ -8,8 +8,12 @@
  */
 function getCompanyId($uid)
 {
-    $result = \App\Models\User::select('company_id')->find($uid);
-    return $result->company_id;
+
+    if ($uid) {
+        $result = \App\Models\User::select('company_id')->find($uid);
+        // Log::error($uid . $result);
+        return $result->company_id;
+    }
 }
 function getCompanyIds($uid)
 {

@@ -33,8 +33,8 @@ class ContractController extends BaseController
             return $this->error('用户信息错误');
         }
         try {
-            $this->company_id = getCompanyId($this->uid);
             $this->user = auth('api')->user();
+            // Log::error($this->user);
         } catch (Exception $e) {
             Log::error($e);
         }
@@ -636,12 +636,12 @@ class ContractController extends BaseController
                 }
             }
         } catch (Exception $e) {
-            Log::error($e);
+            Log::error("模版错误，请重新上传模版" . $e);
             return $this->error('模版错误，请重新上传模版');
         }
 
         $parm['fileName'] = $contract['tenant_name'] . date('Ymd', time()) . ".docx";
-        $filePath = "/uploads/" . nowYmd() . "/" . $this->company_id . "/";
+        $filePath = "/uploads/" . nowYmd() . "/" . $this->user['company_id'] . "/";
         $parm['savePath'] = public_path() . $filePath;
 
         $result = $template->exportContract($parm, $contract);
