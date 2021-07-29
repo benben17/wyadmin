@@ -8,7 +8,6 @@
  */
 function getCompanyId($uid)
 {
-
     if ($uid) {
         $result = \App\Models\User::select('company_id')->find($uid);
         // Log::error($uid . $result);
@@ -17,7 +16,10 @@ function getCompanyId($uid)
 }
 function getCompanyIds($uid)
 {
-    return array(0, getCompanyId($uid));
+    if (getCompanyId($uid)) {
+        return array(0, getCompanyId($uid));
+    }
+    return array(0);
 }
 
 function getVariable($companyId, $key)

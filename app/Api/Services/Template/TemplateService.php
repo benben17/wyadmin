@@ -11,6 +11,7 @@ use PhpOffice\PhpWord\Writer\Html as WriteHtml;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 use App\Api\Models\Company\Template as TemplateModel;
+use App\Api\Services\Contract\BillRuleService;
 
 /**
  *合同管理
@@ -29,16 +30,26 @@ class TemplateService
      */
     public function exportContract($parm, $contract)
     {
+        $ruleService = new BillRuleService;
+        $rentalRule = $ruleService->model()->where('contract_id', $contract['id'])->where('fee_type', 101)->first();
+        $managerRule = $ruleService->model()->where('contract_id', $contract['id'])->where('fee_type', 102)->first();
         $data['租户名称'] = $contract['name'];
         $data['合同编号'] = $contract['contract_no'];
-        $data['租金单价'] = $contract['rental_price'];
-        $data['租金月金额'] = $contract['rental_month_amount'];
-        $data['租金月金额大写'] = amountToCny(numFormat($contract['rental_month_amount']));
+        if ($rentalRule) {
+            $data['租金单价'] = $rentalRule['unit_price'] . "/" . $rentalRule['unit_price_label'];
+            $data['租金月金额'] = $rentalRule['month_amt'];
+            $data['租金月金额大写'] = amountToCny(numFormat($rentalRule['month_amt']));
+            $data['付费方式'] = $rentalRule['pay_method'];
+            $data['提前几个月付款'] = $contract['ahead_pay_month'];
+        }
+
         $data['签约年月日'] = dateFormat("Y年m月d日", $contract['sign_date']);
-        $data['付费方式'] = $contract['pay_method'];
-        $data['管理费单价'] = $contract['management_price'];
-        $data['管理费月金额'] = $contract['management_month_amount'];
-        $data['管理费月金额大写'] = amountToCny(numFormat($contract['management_month_amount']));
+        if ($managerRule) {
+            $data['管理费单价'] = $managerRule['unit_price'] . "/" . $rentalRule['unit_price_label'];
+            $data['管理费月金额'] = $managerRule['month_amt'];
+            $data['管理费月金额大写'] = amountToCny(numFormat($managerRule['month_amt']));
+        }
+
         $data['租赁开始年月日'] = dateFormat("Y年m月d日", $contract['start_date']);
         $data['租赁结束年月日'] = dateFormat("Y年m月d日", $contract['end_date']);
         $data['押金收款年月日'] = dateFormat("Y年m月d日", $contract['sign_date']);
@@ -49,8 +60,7 @@ class TemplateService
         $data['计租面积'] = $contract['sign_area'];
         $data['租赁押金金额'] = numFormat($contract['rental_deposit_amount']);
         $data['管理押金金额'] = numFormat($contract['manager_deposit_amount']);
-        $data['押金收款日'] = dateFormat("Y年m月d日", $contract['sign_date']);
-        $data['提前几个月付款'] = $contract['ahead_pay_month'];
+
         $data['管理费收款账户'] = $contract['manager_account_name'];
         $data['管理费收款账户银行'] = $contract['manager_bank_name'];
         $data['管理费收款账户名称'] = $contract['manager_account_number'];
@@ -68,7 +78,6 @@ class TemplateService
             $data['房源楼栋'] = $buildInfo;
             $data['楼层房号'] = $floorInfo . "-" . $rooms;
         }
-
 
         if ($contract['free_list']) {
             $num  = 0;
