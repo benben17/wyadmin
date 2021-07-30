@@ -2792,6 +2792,48 @@
                 }
             }
         },
+        "/api/business/customer/remind/wxlist": {
+            "post": {
+                "tags": [
+                    "客户"
+                ],
+                "summary": "获取跟进提醒一周内",
+                "operationId": "00c1b6e705327543e59aee04b68cda32",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [],
+                                "properties": {
+                                    "start_time": {
+                                        "description": "开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_time": {
+                                        "description": "结束时间",
+                                        "type": "date"
+                                    },
+                                    "c_uid": {
+                                        "description": "跟进人",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "proj_id": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/customer/remind/add": {
             "post": {
                 "tags": [

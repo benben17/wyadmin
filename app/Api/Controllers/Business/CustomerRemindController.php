@@ -118,7 +118,7 @@ class CustomerRemindController extends BaseController
       *          description="跟进人"
       *       )
       *     ),
-      *       example={
+      *       example={"proj_id":1
       *
       *           }
       *       )
