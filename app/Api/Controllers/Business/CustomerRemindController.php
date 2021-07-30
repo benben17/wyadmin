@@ -118,9 +118,7 @@ class CustomerRemindController extends BaseController
       *          description="跟进人"
       *       )
       *     ),
-      *       example={"proj_id":1
-      *
-      *           }
+      *       example={"proj_id":1,"start_date":"","end_date":"","tenant_name":""}
       *       )
       *     ),
       *     @OA\Response(
@@ -152,6 +150,7 @@ class CustomerRemindController extends BaseController
                     if (isset($DA['end_time'])) {
                          $q->where('remind_date', '<=', $DA['end_time']);
                     }
+                    $DA['tenant_name'] && $q->where('tenant_name', $DA['tenant_name']);
                })
                ->with('customer')
                ->whereHas('customer', function ($q) use ($request) {

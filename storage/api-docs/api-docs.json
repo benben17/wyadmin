@@ -2822,7 +2822,10 @@
                                 "type": "object"
                             },
                             "example": {
-                                "proj_id": 1
+                                "proj_id": 1,
+                                "start_date": "",
+                                "end_date": "",
+                                "tenant_name": ""
                             }
                         }
                     }
