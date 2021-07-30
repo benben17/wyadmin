@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
 
 use App\Api\Models\Tenant\Tenant;
@@ -87,6 +88,79 @@ class CustomerRemindController extends BaseController
                })
                ->groupBy("remind_date")->get()->toArray();
 
+          return $this->success($data);
+     }
+
+     /**
+      * @OA\Post(
+      *     path="/api/business/customer/remind/wxlist",
+      *     tags={"客户"},
+      *     summary="获取跟进提醒一周内",
+      *    @OA\RequestBody(
+      *       @OA\MediaType(
+      *           mediaType="application/json",
+      *       @OA\Schema(
+      *          schema="UserModel",
+      *          required={},
+      *       @OA\Property(
+      *          property="start_time",
+      *          type="date",
+      *          description="开始时间"
+      *       ),
+      *       @OA\Property(
+      *          property="end_time",
+      *          type="date",
+      *          description="结束时间"
+      *       ),
+      *       @OA\Property(
+      *          property="c_uid",
+      *          type="int",
+      *          description="跟进人"
+      *       )
+      *     ),
+      *       example={
+      *
+      *           }
+      *       )
+      *     ),
+      *     @OA\Response(
+      *         response=200,
+      *         description=""
+      *     )
+      * )
+      */
+     public function wxList(Request $request)
+     {
+          $validatedData = $request->validate([
+               'proj_id' => 'required|numeric|gt:0',
+          ]);
+          $DA = $request->toArray();
+          if (!isset($DA['start_time'])) {
+               $DA['start_time'] =  nowYmd();
+          }
+          if (!isset($DA['end_time'])) {
+
+               $DA['end_time'] = getYmdPlusDays(nowYmd(), 7);
+          }
+
+          // DB::enableQueryLog();
+          $data = RemindModel::where('c_uid', $this->uid)
+               ->where(function ($q) use ($DA) {
+                    if (isset($DA['start_time'])) {
+                         $q->where('remind_date', '>=', $DA['start_time']);
+                    }
+                    if (isset($DA['end_time'])) {
+                         $q->where('remind_date', '<=', $DA['end_time']);
+                    }
+               })
+               ->with('customer')
+               ->whereHas('customer', function ($q) use ($request) {
+                    $q->where('proj_id', $request->proj_id);
+               })
+               ->get()->toArray();
+          foreach ($data as $k => &$v) {
+               $v['follow'] = Follow::where('tenant_id', $v['tenant_id'])->first();
+          }
           return $this->success($data);
      }
      /**

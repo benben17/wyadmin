@@ -172,6 +172,7 @@ Route::group(['prefix' => 'business/customer'], function () {
     Route::post('no/edit', '\App\Api\Controllers\Business\CustomerController@cusNoEdit');
     // 提醒
     Route::post('remind/list', '\App\Api\Controllers\Business\CustomerRemindController@list');
+    Route::post('remind/wxlist', '\App\Api\Controllers\Business\CustomerRemindController@wxList');
     Route::post('remind/add', '\App\Api\Controllers\Business\CustomerRemindController@store');
     Route::post('remind/edit', '\App\Api\Controllers\Business\CustomerRemindController@update');
     // 客户跟进
@@ -353,6 +354,9 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('fee/edit', '\App\Api\Controllers\Bill\BillDetailController@edit');
 
     Route::post('sync', '\App\Api\Controllers\Bill\BillSyncController@syncContractBill');
+
+    // 生成word 版账单
+    Route::post('toWord', '\App\Api\Controllers\Bill\BillController@billToWord');
 });
 
 //发票

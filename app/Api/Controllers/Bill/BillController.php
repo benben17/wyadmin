@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Template\TemplateService;
 use App\Enums\AppEnum;
 use Exception;
 
@@ -197,5 +198,48 @@ class BillController extends BaseController
     $billService = new TenantBillService;
 
     return $this->success($billService->showBill($request->id));
+  }
+
+  public function billToWord(Request $request)
+  {
+    $validatedData = $request->validate([
+      'template_id' => 'required|gt:0',
+      'bill_id' => 'required|gt:0',
+    ]);
+    $bankId = 1;
+    $template = new TemplateService;
+    $tem = $template->getTemplate($request->template_id);
+
+    $billService  = new TenantBillService;
+    $bill = $billService->billModel()->find($request->bill_id);
+    $parm['templateFile'] = public_path('template/') . md5($tem['name']) . ".docx";
+    try {
+      if (!is_dir(public_path('template/'))) {
+        mkdir(public_path('template/'), 0755, true);
+      }
+      // 合同模版本地不存在则从OSS下载，OSS没有则报错
+      if (!$parm['templateFile'] || !file_exists($parm['templateFile'])) {
+        $fileUrl = getOssUrl($tem['file_path']);
+        $downloadTemlate = copy(trim($fileUrl), $parm['templateFile']);
+        if (!$downloadTemlate) {
+          return $this->error('合同模版不存在');
+        }
+      }
+    } catch (Exception $e) {
+      Log::error("模版错误，请重新上传模版" . $e);
+      return $this->error('模版错误，请重新上传模版');
+    }
+    $tenantName = getTenantNameById($bill['tenant_id']);
+    $parm['fileName'] = $tenantName . date('Ymd', time()) . ".docx";
+    $filePath = "/uploads/" . nowYmd() . "/" . $this->user['company_id'] . "/";
+    $parm['savePath'] = public_path() . $filePath;
+
+    $res = $template->createBillToWord($parm, [101, 102, 106], $bill, $bankId);
+
+    if ($res) {
+      return $this->success($filePath . $parm['fileName']);
+    } else {
+      return $this->error("生成账单失败");
+    }
   }
 }

@@ -2,8 +2,9 @@
 
 namespace App\Api\Services\Template;
 
+use App\Api\Models\Company\BankAccount;
 use Illuminate\Support\Facades\Log;
-
+use Exception;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Shared\Html;
@@ -11,10 +12,11 @@ use PhpOffice\PhpWord\Writer\Html as WriteHtml;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 use App\Api\Models\Company\Template as TemplateModel;
+use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\BillRuleService;
 
 /**
- *合同管理
+ *合同模版生成
  */
 
 class TemplateService
@@ -28,7 +30,7 @@ class TemplateService
      * @param    [type]     $contract [合同信息]
      * @return   [bool]               [true or false]
      */
-    public function exportContract($parm, $contract)
+    public function exportContract($param, $contract)
     {
         $ruleService = new BillRuleService;
         $rentalRule = $ruleService->model()->where('contract_id', $contract['id'])->where('fee_type', 101)->first();
@@ -58,8 +60,11 @@ class TemplateService
         $data['租户法人'] = $contract['customer_legal_person'];
         $data['租户签约人'] = $contract['customer_sign_person'];
         $data['计租面积'] = $contract['sign_area'];
-        $data['租赁押金金额'] = numFormat($contract['rental_deposit_amount']);
-        $data['管理押金金额'] = numFormat($contract['manager_deposit_amount']);
+        $rentalDeposit = $ruleService->model()->where('contract_id', $contract['id'])->where('fee_type', 107)->first();
+
+        $data['租赁押金金额'] = isset($rentalDeposit['amount']) ? $rentalDeposit['amount'] : 0.00;
+        $managerDeposit = $ruleService->model()->where('contract_id', $contract['id'])->where('fee_type', 106)->first();
+        $data['管理押金金额'] = isset($managerDeposit['amount']) ? $managerDeposit['amount'] : 0.00;
 
         $data['管理费收款账户'] = $contract['manager_account_name'];
         $data['管理费收款账户银行'] = $contract['manager_bank_name'];
@@ -97,13 +102,13 @@ class TemplateService
             $data['免租时间段'] = $freePeriod;
         }
         try {
-            $template = new TemplateProcessor($parm['templateFile']);
+            $template = new TemplateProcessor($param['templateFile']);
             $template->setValues($data);
 
-            if (!is_dir($parm['savePath'])) {
-                mkdir($parm['savePath'], 0755, true);
+            if (!is_dir($param['savePath'])) {
+                mkdir($param['savePath'], 0755, true);
             }
-            $saveFile = $parm['savePath'] . $parm['fileName'];
+            $saveFile = $param['savePath'] . $param['fileName'];
             $template->saveAs($saveFile);
 
             return true;
@@ -155,5 +160,54 @@ class TemplateService
         $template->remark = isset($DA['remark']) ? $DA['remark'] : "";
         $res = $template->save();
         return $res;
+    }
+
+    /** 创建账单 */
+    public function createBillToWord($param, array $feeTypes, $bill, $bankId)
+    {
+
+        try {
+            $billService  = new TenantBillService;
+            $bills = $billService->billDetailModel()
+                ->selectRaw('tenant_name,bill_id,fee_type,amount,charge_date,bill_date,remark,receive_amount,discount_amount')
+                ->where('bill_id', $bill['id'])
+                ->whereIn('fee_type', $feeTypes)
+                ->where('status', 0)->get()->toArray();
+            $bank = BankAccount::find($bankId);
+            $bankData["收款账户名"] = $bank['account_name'];
+            $bankData["收款银行"] = $bank['bank_name'];
+            $bankData["收款账户"] = $bank['account_number'];
+            $bankData["银行支行"] = $bank['bank_branch'];
+            $totalAmt = 0.00;
+            if ($bills) {
+                $i = 1;
+                foreach ($bills as $k => &$v) {
+                    $v['序号'] = $i;
+                    $v['账单日期'] = $bill['charge_date'];
+                    $v['费用金额'] = numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
+                    $v['费用类型'] = $v['fee_type_label'];
+                    $v['账期'] = $v['bill_date'];
+                    $v['备注'] = $v['remark'];
+                    $totalAmt += numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
+                    $i++;
+                }
+            }
+            $total['总金额'] = $totalAmt;
+            Log::error(json_encode($bills));
+            $template = new TemplateProcessor($param['templateFile']);
+            $template->cloneRowAndSetValues('num', $bills);
+            $template->setValues($bankData);
+
+            if (!is_dir($param['savePath'])) {
+                mkdir($param['savePath'], 0755, true);
+            }
+            $saveFile = $param['savePath'] . $param['fileName'];
+            $template->saveAs($saveFile);
+
+            return true;
+        } catch (Exception $e) {
+            Log::error('模版转换' . $e->getMessage());
+            return false;
+        }
     }
 }
