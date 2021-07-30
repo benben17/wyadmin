@@ -150,7 +150,9 @@ class CustomerRemindController extends BaseController
                     if (isset($DA['end_time'])) {
                          $q->where('remind_date', '<=', $DA['end_time']);
                     }
-                    $DA['tenant_name'] && $q->where('tenant_name', $DA['tenant_name']);
+                    if (isset($DA['tenant_name'])) {
+                         $q->where('tenant_name', $DA['tenant_name']);
+                    }
                })
                ->with('customer')
                ->whereHas('customer', function ($q) use ($request) {
