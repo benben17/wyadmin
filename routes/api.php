@@ -146,6 +146,7 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('room/enable', '\App\Api\Controllers\Business\BuildingRoomController@enable');
     Route::post('room/edit', '\App\Api\Controllers\Business\BuildingRoomController@update');
     Route::post('room/show', '\App\Api\Controllers\Business\BuildingRoomController@show');
+    Route::post('wx/rooms', '\App\Api\Controllers\Business\BuildingRoomController@rooms');
 });
 
 // 工位管理

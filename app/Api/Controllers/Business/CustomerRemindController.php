@@ -101,7 +101,7 @@ class CustomerRemindController extends BaseController
       *           mediaType="application/json",
       *       @OA\Schema(
       *          schema="UserModel",
-      *          required={},
+      *          required={"proj_id"},
       *       @OA\Property(
       *          property="start_time",
       *          type="date",
@@ -113,9 +113,9 @@ class CustomerRemindController extends BaseController
       *          description="结束时间"
       *       ),
       *       @OA\Property(
-      *          property="c_uid",
+      *          property="proj_id",
       *          type="int",
-      *          description="跟进人"
+      *          description="项目id"
       *       )
       *     ),
       *       example={"proj_id":1,"start_date":"","end_date":"","tenant_name":""}
@@ -141,7 +141,7 @@ class CustomerRemindController extends BaseController
                $DA['end_time'] = getYmdPlusDays(nowYmd(), 7);
           }
 
-          // DB::enableQueryLog();
+          DB::enableQueryLog();
           $data = RemindModel::where('c_uid', $this->uid)
                ->where(function ($q) use ($DA) {
                     if (isset($DA['start_time'])) {
@@ -159,6 +159,7 @@ class CustomerRemindController extends BaseController
                     $q->where('proj_id', $request->proj_id);
                })
                ->get()->toArray();
+          // return response()->json(DB::getQueryLog());
           foreach ($data as $k => &$v) {
                $v['follow'] = Follow::where('tenant_id', $v['tenant_id'])->first();
           }

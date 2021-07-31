@@ -371,6 +371,63 @@ class BuildingRoomController extends BaseController
         return $this->error('房源删除失败');
     }
 
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/building/wx/rooms",
+     *     tags={"房源"},
+     *     summary="房源启用禁用",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"Ids","is_vaild"},
+     *       @OA\Property(
+     *          property="Ids",
+     *          type="list",
+     *          description="房源ID集合"
+     *       ),
+     *       @OA\Property(
+     *          property="is_vaild",
+     *          type="int",
+     *          description="0禁用1 启用"
+     *       )
+     *
+     *     ),
+     *       example={
+     *              "Ids":"[1]","is_vaild":0
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function rooms(Request $request)
+    {
+        $validatedData = $request->validate([
+            'Ids' => 'required|array',
+            'is_vaild' => 'required|numeric|in:0,1',
+            // 'is_vaild' => 'required|numeric|in:0,1',
+        ]);
+
+        $data = RoomModel::where(function ($q) use ($request) {
+            $request->Ids && $q->whereIn('id', $request->Ids);
+            $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+        })
+            ->whereHas('building', function ($q) use ($request) {
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->with('building:id,proj_name,build_no,proj_id')
+            ->with('floor:id,floor_no')
+            ->get()->toArray();
+
+        return $this->success($data);
+    }
+
     private function formatRoom($DA, $type = 1)
     {
         if ($type == 1) {
