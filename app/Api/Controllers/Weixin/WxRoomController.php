@@ -36,7 +36,44 @@ class WxRoomController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/business/building/wx/room/list",
+     *     path="/api/business/wx/project/list",
+     *     tags={"微信招商房源"},
+     *     summary="获取所有项目信息",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"pagesize","proj_id","build_id","orderBy","order"},
+     *     ),
+     *       example={
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function wxGetProj(Request $request)
+    {
+        $data = ProjectModel::with('building')
+            // ->when($request->limit, function ($q) use ($DA) {
+            //     if (!$DA['is_admin']) {
+            //         $q->whereIn('id', $DA['proj_limit']);
+            //     }
+            // })
+            ->where('is_vaild', 1)
+            ->get()->toArray();
+
+        return $this->success($data);
+        // return response()->json(DB::getQueryLog());
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/wx/room/list",
      *     tags={"微信招商房源"},
      *     summary="根据房源ID获取房源信息",
      *    @OA\RequestBody(
@@ -128,7 +165,7 @@ class WxRoomController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/business/building/wx/room/show",
+     *     path="/api/business/wx/room/show",
      *     tags={"微信招商房源"},
      *     summary="根据房源ID获取房源信息",
      *    @OA\RequestBody(
@@ -185,7 +222,7 @@ class WxRoomController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/business/building/wx/rooms",
+     *     path="/api/business/wx/rooms",
      *     tags={"微信招商房源"},
      *     summary="房源启用禁用",
      *    @OA\RequestBody(
