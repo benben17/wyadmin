@@ -20,7 +20,7 @@ class BuildingRoom extends Model
 	protected $table = 'bse_building_room';
 	protected $fillable = ['company_id', 'proj_id', 'build_id', 'floor_id', 'room_no', 'room_state', 'room_measure_area', 'room_trim_state', 'room_price', 'room_type', 'room_tags', 'channel_state', 'rentable_date', 'room_area', 'remark', 'is_vaild', 'c_uid', 'u_uid'];
 	protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-	protected $appends = ['price_label'];
+	protected $appends = ['price_label', 'pic_list'];
 
 	public function project()
 	{
@@ -46,6 +46,12 @@ class BuildingRoom extends Model
 					break;
 			}
 		};
+	}
+	public function getPicListAttribute()
+	{
+		if (isset($this->attributes['pics'])) {
+			return str2Array($this->attributes['pics']);
+		}
 	}
 	public function addAll(array $data)
 	{

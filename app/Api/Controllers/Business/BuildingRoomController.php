@@ -463,6 +463,7 @@ class BuildingRoomController extends BaseController
             $BA['rentable_date'] = $DA['rentable_date'];
         }
         $BA['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
+        $BA['pics'] = isset($DA['pics']) ? $DA['pics'] : "";
         return $BA;
     }
 }
