@@ -37,7 +37,7 @@ class WxRoomController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/building/wx/room/list",
-     *     tags={"房源"},
+     *     tags={"微信招商房源"},
      *     summary="根据房源ID获取房源信息",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -129,7 +129,7 @@ class WxRoomController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/building/wx/room/show",
-     *     tags={"房源"},
+     *     tags={"微信招商房源"},
      *     summary="根据房源ID获取房源信息",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -186,7 +186,7 @@ class WxRoomController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/building/wx/rooms",
-     *     tags={"房源"},
+     *     tags={"微信招商房源"},
      *     summary="房源启用禁用",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -207,7 +207,7 @@ class WxRoomController extends BaseController
      *
      *     ),
      *       example={
-     *              "Ids":"[1]","is_vaild":0
+     *              "Ids":"[1]","is_vaild":"0"
      *           }
      *       )
      *     ),

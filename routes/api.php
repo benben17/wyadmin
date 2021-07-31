@@ -148,8 +148,8 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('room/show', '\App\Api\Controllers\Business\BuildingRoomController@show');
 });
 Route::group(['prefix' => 'business/building'], function () {
-    Route::post('wx/room/list', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
-    Route::post('wx/room/show', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
+    Route::post('wx/room/list', '\App\Api\Controllers\Weixin\WxRoomController@index');
+    Route::post('wx/room/show', '\App\Api\Controllers\Weixin\WxRoomController@show');
     Route::post('wx/rooms', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
 });
 
