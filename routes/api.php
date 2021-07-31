@@ -146,7 +146,11 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('room/enable', '\App\Api\Controllers\Business\BuildingRoomController@enable');
     Route::post('room/edit', '\App\Api\Controllers\Business\BuildingRoomController@update');
     Route::post('room/show', '\App\Api\Controllers\Business\BuildingRoomController@show');
-    Route::post('wx/rooms', '\App\Api\Controllers\Business\BuildingRoomController@rooms');
+});
+Route::group(['prefix' => 'business/building'], function () {
+    Route::post('wx/room/list', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
+    Route::post('wx/room/show', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
+    Route::post('wx/rooms', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
 });
 
 // 工位管理

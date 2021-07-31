@@ -19,9 +19,14 @@ class CompanyScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $user = auth('api')->user();
-        $map = array(
-            'company_id'   =>  $user->company_id
-        );
+        if ($user) {
+            $map = array(
+                'company_id'   =>  $user->company_id
+            );
+        } else {
+            $map = array();
+        }
+
         $builder->where($map);
     }
 }
