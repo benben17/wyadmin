@@ -87,7 +87,7 @@ class TenantBillService
           $BA['amount'] = $billDetail->amount;
           $BA['edit_amount'] = $DA['amount'];
           $BA['tenant_name'] = $billDetail->tenant_name;
-          $BA['edit_reason'] = $DA['edit_reason'];
+          $BA['edit_reason'] = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
           $BA['bill_detail_id'] = $DA['bill_detail_id'];
           $this->saveBillDetailLog($BA, $user);
         } else {
@@ -133,7 +133,7 @@ class TenantBillService
       $detailLogModel->bill_detail_id = $DA['bill_detail_id'];
       $detailLogModel->amount = $DA['amount'];
       $detailLogModel->edit_amount = $DA['edit_amount'];
-      $detailLogModel->edit_reason = $DA['edit_reason'];
+      $detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
       $detailLogModel->edit_user = $user['realname'];
       $detailLogModel->c_uid = $user['id'];
       $detailLogModel->save();
