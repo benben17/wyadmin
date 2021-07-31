@@ -58,7 +58,7 @@ class WxRoomController extends BaseController
      */
     public function wxGetProj(Request $request)
     {
-        $data = ProjectModel::with('building')
+        $data = ProjectModel::select('id', 'proj_name', 'proj_logo', 'proj_pic')
             // ->when($request->limit, function ($q) use ($DA) {
             //     if (!$DA['is_admin']) {
             //         $q->whereIn('id', $DA['proj_limit']);
