@@ -76,9 +76,9 @@ class WxRoomController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
-        if ($request->room_state) { //1 空闲  0 在租
-            $map['room_state'] = $request->room_state;
-        }
+
+        $map['room_state'] = 1;
+
         if ($request->room_type) { // 1 房间 2 工位
             $map['room_type'] = $request->room_type;
         } else {
