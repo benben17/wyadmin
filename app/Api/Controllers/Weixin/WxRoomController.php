@@ -102,6 +102,8 @@ class WxRoomController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
                 $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->min_area && $q->where('room_area', '>=', $request->min_area);
+                $request->max_area && $q->where('room_area', '>=', $request->max_area);
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
