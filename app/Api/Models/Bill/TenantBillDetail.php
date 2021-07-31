@@ -83,6 +83,13 @@ class TenantBillDetail extends Model
   {
     return $this->hasMany(ChargeBillRecord::class, 'bill_detail_id', 'id');
   }
+
+
+  public function billDetailLog()
+  {
+    return $this->hasMany(TenantBillDetailLog::class, 'bill_detail_id', 'id');
+  }
+
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);

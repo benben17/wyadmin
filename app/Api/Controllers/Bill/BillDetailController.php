@@ -146,7 +146,7 @@ class BillDetailController extends BaseController
     $data = $this->billService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('charge:id,charge_date,flow_no,amount,c_uid,status');
-      }])
+      }])->with('billDetailLog')
       ->with('contract:id,contract_no')
       ->find($request->id);
     $invoiceService = new InvoiceService;

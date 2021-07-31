@@ -8,6 +8,7 @@ use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
+use App\Api\Models\Bill\TenantBillDetailLog;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Contract\ContractBill;
@@ -78,39 +79,67 @@ class TenantBillService
   public function saveBillDetail($DA, $user)
   {
     try {
-      if (isset($DA['id']) && $DA['id'] > 0) {
-        $billDetail = $this->billDetailModel()->find($DA['id']);
-        $billDetail->u_uid       = $user['id'];
-      } else {
-        $billDetail = $this->billDetailModel();
-        $billDetail->c_uid       = $user['id'];
-      }
-      $billDetail->company_id  = $user['company_id'];
-      $billDetail->proj_id     = $DA['proj_id'];
-      $billDetail->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
-      $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
-      $billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
-      $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
-      $billDetail->fee_type    = $DA['fee_type']; // 费用类型
-      $billDetail->amount      = $DA['amount'];
-      $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
-      if (isset($DA['charge_date'])) {
-        $billDetail->charge_date = $DA['charge_date']; //账单日期
-      }
-      $billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
-      $billDetail->discount_amount = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
-      if (isset($DA['receive_date'])) {
-        $billDetail->receive_date = $DA['receive_date'];
-      }
-      $billDetail->bill_date = isset($DA['bill_date']) ? $DA['bill_date'] : "";
-      $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
-      $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
-      $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $billDetail->save();
+      DB::transaction(function () use ($DA, $user) {
+        if (isset($DA['id']) && $DA['id'] > 0) {
+          $billDetail = $this->billDetailModel()->find($DA['id']);
+
+          $billDetail->u_uid       = $user['id'];
+          $BA['amount'] = $billDetail->amount;
+          $BA['edit_amount'] = $DA['amount'];
+          $BA['tenant_name'] = $billDetail->tenant_name;
+          $BA['edit_reason'] = $DA['edit_reason'];
+          $BA['bill_detail_id'] = $DA['bill_detail_id'];
+          $this->saveBillDetailLog($BA, $user);
+        } else {
+          $billDetail = $this->billDetailModel();
+          $billDetail->c_uid       = $user['id'];
+        }
+        $billDetail->company_id  = $user['company_id'];
+        $billDetail->proj_id     = $DA['proj_id'];
+        $billDetail->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
+        $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+        $billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
+        $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1; // 1 收款 2 付款
+        $billDetail->fee_type    = $DA['fee_type']; // 费用类型
+        $billDetail->amount      = $DA['amount'];
+        $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
+        if (isset($DA['charge_date'])) {
+          $billDetail->charge_date = $DA['charge_date']; //账单日期
+        }
+        $billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
+        $billDetail->discount_amount = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
+        if (isset($DA['receive_date'])) {
+          $billDetail->receive_date = $DA['receive_date'];
+        }
+        $billDetail->bill_date = isset($DA['bill_date']) ? $DA['bill_date'] : "";
+        $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
+        $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
+        $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+        $billDetail->save();
+      }, 3);
     } catch (Exception $e) {
       Log::error("账单详细保存失败" . $e);
       throw new Exception("账单详细保存失败" . $e);
       return false;
+    }
+  }
+
+  public function saveBillDetailLog($DA, $user)
+  {
+    try {
+      $detailLogModel = new TenantBillDetailLog;
+      $detailLogModel->company_id = $DA['company_id'];
+      $detailLogModel->tenant_name = $DA['tenant_name'];
+      $detailLogModel->bill_detail_id = $DA['bill_detail_id'];
+      $detailLogModel->amount = $DA['amount'];
+      $detailLogModel->edit_amount = $DA['edit_amount'];
+      $detailLogModel->edit_reason = $DA['edit_reason'];
+      $detailLogModel->edit_user = $user['realname'];
+      $detailLogModel->c_uid = $user['id'];
+      $detailLogModel->save();
+    } catch (Exception $e) {
+      Log::error("费用修改失败:" . $e);
+      throw new Exception($e);
     }
   }
   /**
