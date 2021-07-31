@@ -424,8 +424,18 @@ class BuildingRoomController extends BaseController
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
             ->get()->toArray();
-
-        return $this->success($data);
+        $roomStat = RoomModel::selectRaw('min(room_area) min_area,max(room_area) max_area,avg(room_price) avg_price')
+            ->where(function ($q) use ($request) {
+                $request->Ids && $q->whereIn('id', $request->Ids);
+                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+            })
+            ->whereHas('building', function ($q) use ($request) {
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })->first();
+        $roomStat['avg_price'] = numFormat($roomStat['avg_price']);
+        $result['stat'] = $roomStat;
+        $result['rooms'] = $data;
+        return $this->success($result);
     }
 
     private function formatRoom($DA, $type = 1)
