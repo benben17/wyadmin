@@ -50,4 +50,9 @@ final class AppEnum extends Enum
   const shareRate = "%";
   const shareAmt  = "元";
   const shareArea = "m²";
+
+
+  // 房源单价
+  const dayPrice = "元/㎡/天";
+  const monthPrice = "元/㎡/月";
 }

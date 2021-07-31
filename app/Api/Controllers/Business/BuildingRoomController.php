@@ -455,6 +455,7 @@ class BuildingRoomController extends BaseController
         $BA['room_measure_area'] = isset($DA['room_measure_area']) ? $DA['room_measure_area'] : 0;
         $BA['room_trim_state'] = isset($DA['room_trim_state']) ? $DA['room_trim_state'] : "";
         $BA['room_price'] = isset($DA['room_price']) ? $DA['room_price'] : 0.00;
+        $BA['price_type'] = isset($DA['price_type']) ? $DA['price_type'] : 1;
         $BA['room_tags'] = isset($DA['room_tags']) ? $DA['room_tags'] : "";
         $BA['channel_state'] = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
         $BA['room_area'] = isset($DA['room_area']) ? $DA['room_area'] : 0;
