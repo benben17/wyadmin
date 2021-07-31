@@ -121,7 +121,7 @@ class WxRoomController extends BaseController
             $data['result'] = $buildService->formatData($data['result']);
         }
 
-        $data['stat'] = $buildService->areaStat($map, $request->proj_ids);
+        // $data['stat'] = $buildService->areaStat($map, $request->proj_ids);
         return $this->success($data);
     }
 
@@ -160,7 +160,7 @@ class WxRoomController extends BaseController
             'id' => 'required|numeric|gt:0',
         ]);
         $data = RoomModel::whereHas('building', function ($q) use ($request) {
-            $request->proj_id && $q->where('proj_id', $request->proj_id);
+            $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
