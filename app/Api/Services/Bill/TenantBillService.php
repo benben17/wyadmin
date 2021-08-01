@@ -125,9 +125,13 @@ class TenantBillService
         if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
           throw new Exception("已有收款不允许编辑");
         }
+        if ($billDetail->amount <= $billDetail->discount_amount) {
+          throw new Exception("收款金额不允许小于等于优惠金额");
+        }
         $billDetail->u_uid       = $user['id'];
         $this->saveBillDetailLog($billDetail, $DA, $user);
         $billDetail->amount = $DA['amount'];
+        $billDetail->discount_amount = $DA['discount_amount'];
         $billDetail->save();
       }, 2);
       return true;
@@ -143,6 +147,8 @@ class TenantBillService
       $detailLogModel->company_id = $user['company_id'];
       $detailLogModel->amount      = $billDetail->amount;
       $detailLogModel->edit_amount = $DA['amount'];
+      $detailLogModel->discount_amount = $billDetail->discount_amount;
+      $detailLogModel->edit_discount_amount = $DA['discount_amount'];
       $detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
       $detailLogModel->bill_detail_id = $DA['id'];
       $detailLogModel->edit_user = $user['realname'];
