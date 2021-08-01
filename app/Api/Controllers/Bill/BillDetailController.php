@@ -290,17 +290,11 @@ class BillDetailController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|date',
-      'charge_date' => 'required|date',
-      'tenant_id' => 'required',
-      'proj_id'  => 'required',
-      'amount'   => 'required',
-      'fee_type' => 'required',
+      'amount' => 'required|date',
+      'edit_reason' => 'required',
     ]);
-    $detailBill = $this->billService->billDetailModel()->find($request->id);
-    if ($detailBill->receive_amount > 0 && $detailBill->receive_date) {
-      return $this->error("已有收款不允许编辑!");
-    }
-    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
+
+    $res = $this->billService->editBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("编辑费用失败!");
     }

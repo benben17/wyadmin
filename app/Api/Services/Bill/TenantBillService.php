@@ -83,7 +83,6 @@ class TenantBillService
         if (isset($DA['id']) && $DA['id'] > 0) {
           $billDetail = $this->billDetailModel()->find($DA['id']);
           $billDetail->u_uid       = $user['id'];
-          $this->saveBillDetailLog($billDetail, $DA, $user);
         } else {
           $billDetail = $this->billDetailModel();
           $billDetail->c_uid       = $user['id'];
@@ -118,11 +117,30 @@ class TenantBillService
     }
   }
 
+  public function editBillDetail($DA, $user)
+  {
+    try {
+      DB::transaction(function () use ($DA, $user) {
+        $billDetail = $this->billDetailModel()->find($DA['id']);
+        if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
+          throw new Exception("已有收款不允许编辑");
+        }
+        $billDetail->u_uid       = $user['id'];
+        $this->saveBillDetailLog($billDetail, $DA, $user);
+        $billDetail->amount = $DA['amount'];
+        $billDetail->save();
+      }, 2);
+      return true;
+    } catch (Exception $th) {
+      Log::error("账单详细保存失败" . $th);
+      throw new Exception("账单详细保存失败" . $th);
+    }
+  }
   public function saveBillDetailLog($billDetail, $DA, $user)
   {
     try {
       $detailLogModel = new TenantBillDetailLog;
-      $detailLogModel->company_id = $DA['company_id'];
+      $detailLogModel->company_id = $user['company_id'];
       $detailLogModel->amount      = $billDetail->amount;
       $detailLogModel->edit_amount = $DA['amount'];
       $detailLogModel->tenant_name = $billDetail->tenant_name;
