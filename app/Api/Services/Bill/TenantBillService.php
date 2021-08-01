@@ -145,7 +145,7 @@ class TenantBillService
       $detailLogModel->edit_amount = $DA['amount'];
       $detailLogModel->tenant_name = $billDetail->tenant_name;
       $detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
-      $detailLogModel->bill_detail_id = $DA['bill_detail_id'];
+      $detailLogModel->bill_detail_id = $DA['id'];
       $detailLogModel->edit_user = $user['realname'];
       $detailLogModel->c_uid = $user['id'];
       $detailLogModel->save();
