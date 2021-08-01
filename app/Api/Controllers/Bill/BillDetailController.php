@@ -289,8 +289,8 @@ class BillDetailController extends BaseController
   public function edit(Request $request)
   {
     $validatedData = $request->validate([
-      'id' => 'required|date',
-      'amount' => 'required|date',
+      'id' => 'required|gt:0',
+      'amount' => 'required|gt:0',
       'edit_reason' => 'required',
     ]);
 
