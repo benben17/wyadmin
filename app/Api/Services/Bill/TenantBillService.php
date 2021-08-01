@@ -82,14 +82,8 @@ class TenantBillService
       DB::transaction(function () use ($DA, $user) {
         if (isset($DA['id']) && $DA['id'] > 0) {
           $billDetail = $this->billDetailModel()->find($DA['id']);
-
           $billDetail->u_uid       = $user['id'];
-          $BA['amount'] = $billDetail->amount;
-          $BA['edit_amount'] = $DA['amount'];
-          $BA['tenant_name'] = $billDetail->tenant_name;
-          $BA['edit_reason'] = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
-          $BA['bill_detail_id'] = $DA['bill_detail_id'];
-          $this->saveBillDetailLog($BA, $user);
+          $this->saveBillDetailLog($billDetail, $DA, $user);
         } else {
           $billDetail = $this->billDetailModel();
           $billDetail->c_uid       = $user['id'];
@@ -124,16 +118,16 @@ class TenantBillService
     }
   }
 
-  public function saveBillDetailLog($DA, $user)
+  public function saveBillDetailLog($billDetail, $DA, $user)
   {
     try {
       $detailLogModel = new TenantBillDetailLog;
       $detailLogModel->company_id = $DA['company_id'];
-      $detailLogModel->tenant_name = $DA['tenant_name'];
-      $detailLogModel->bill_detail_id = $DA['bill_detail_id'];
-      $detailLogModel->amount = $DA['amount'];
-      $detailLogModel->edit_amount = $DA['edit_amount'];
+      $detailLogModel->amount      = $billDetail->amount;
+      $detailLogModel->edit_amount = $DA['amount'];
+      $detailLogModel->tenant_name = $billDetail->tenant_name;
       $detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
+      $detailLogModel->bill_detail_id = $DA['bill_detail_id'];
       $detailLogModel->edit_user = $user['realname'];
       $detailLogModel->c_uid = $user['id'];
       $detailLogModel->save();
