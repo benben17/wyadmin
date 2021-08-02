@@ -60,8 +60,8 @@ class LeasebackService
         $leaseback->leaseback_reason     = isset($DA['leaseback_reason']) ? $DA['leaseback_reason'] : "";
         $leaseback->type                 = $DA['type'];
         $leaseback->is_settle            = isset($DA['is_settle']) ? $DA['is_settle'] : 1;
-        $leaseback->company_id           = isset($DA['company_id']) ? $DA['company_id'] : 0;
-        $leaseback->proj_id              = isset($DA['proj_id']) ? $DA['proj_id'] : 0;
+        $leaseback->company_id           = $contract->company_id;
+        $leaseback->proj_id              = $contract->proj_id;
         $leaseback->remark               = isset($DA['remark']) ? $DA['remark'] : "";
         $leaseback->save();
 
