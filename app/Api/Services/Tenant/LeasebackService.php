@@ -78,9 +78,17 @@ class LeasebackService
           $tenantService->tenantModel()->where('parent_id', $tenantId)->update($data);
         }
         $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
-
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
         $this->sendMsg($title = $contract->tenant_name . '租户退租', $msgContent, $user);
+        // 保存日志
+        $log = array(
+          "id" => $contract->id,
+          "title" => $contract->tenant_name . '租户退租',
+          "contract_state" => $contract->contract_state,
+          "c_uid" => $user['id'],
+          "c_username" => $user['realname'],
+        );
+        $contractService->saveLog($log);
       });
       return true;
     } catch (Exception $e) {

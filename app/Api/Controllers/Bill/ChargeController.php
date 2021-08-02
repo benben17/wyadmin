@@ -194,7 +194,7 @@ class ChargeController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/charge/del",
+   *     path="/api/operation/charge/cancel",
    *     tags={"预充值"},
    *     summary="预充值删除",
    *    @OA\RequestBody(
@@ -215,7 +215,7 @@ class ChargeController extends BaseController
    * )
    */
 
-  public function del(Request $request)
+  public function cancel(Request $request)
   {
     $validatedData = $request->validate([
       'ids' => 'required|array',
@@ -223,12 +223,12 @@ class ChargeController extends BaseController
     DB::enableQueryLog();
     $res = $this->chargeService->model()
       ->whereDoesntHave('chargeBillRecord')
-      ->whereIn('id', $request->ids)->delete();
+      ->whereIn('id', $request->ids)->update(["status" => 3]);
     // return response()->json(DB::getQueryLog());
     if (!$res) {
-      return $this->error("有核销记录不允许删除！");
+      return $this->error("有核销记录不允许取消！");
     }
-    return $this->success("删除成功。");
+    return $this->success("收支取消成功。");
   }
   /**
    * @OA\Post(
