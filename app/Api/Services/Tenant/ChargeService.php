@@ -82,19 +82,15 @@ class ChargeService
         if ($unreceiveAmt == $verifyAmt) {
           $detailBill['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
           $detailBill['status'] = 1;
-          // 收入
-          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
-          $chargeBill['status'] = AppEnum::chargeVerify;
-          $billRecord['amount'] = $verifyAmt;
         } elseif ($unreceiveAmt > $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detailBill['status'] = 0;
-          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
-          $chargeBill['status'] = AppEnum::chargeVerify;
-          $billRecord['amount'] = $verifyAmt;
         }
+        $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
+        $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+        $chargeBill['status'] = AppEnum::chargeVerify;
+
+        $billRecord['amount'] = $verifyAmt;
         $detailBill['receive_date']   = $verifyDate;
         $billRecord['charge_id']      = $chargeBill['id'];
         $billRecord['bill_detail_id'] = $detailBill['id'];

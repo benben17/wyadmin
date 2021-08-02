@@ -114,10 +114,9 @@ class LeasebackController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"type","tenant_name","tenant_id","leaseback_date","leaseback_reason"},
+     *          required={"type","contract_id","leaseback_date","leaseback_reason"},
      *       @OA\Property(property="type",type="int",description="退租原因1:正常退租2:提前退租"),
-     *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
-     *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+     *       @OA\Property(property="contract_id",type="int",description="合同id"),
      *       @OA\Property(property="leaseback_date",type="String",description="退租日期"),
      *       @OA\Property(property="leaseback_reason",type="String", description="退租原因"),
      *     ),
@@ -133,8 +132,7 @@ class LeasebackController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'tenant_name' => 'required',
-            'tenant_id' => 'required',
+            'contract_id' => 'required',
             'type' => 'required',
             'leaseback_date' => 'required',
         ]);
@@ -177,9 +175,8 @@ class LeasebackController extends BaseController
     {
         $validatedData = $request->validate([
             'id'            => 'required',
-            'tenant_name'   => 'required',
-            'tenant_id'     => 'required',
-            'type'          => 'required',
+            'contract_id' => 'required',
+            'type' => 'required',
             'leaseback_date' => 'required',
         ]);
         $DA = $request->toArray();
