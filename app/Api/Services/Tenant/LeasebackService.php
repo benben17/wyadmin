@@ -51,7 +51,8 @@ class LeasebackService
         $tenantService = new TenantService;
         // 更新合同状态
         $contract = $contractService->model()->find($DA['contract_id']);
-        $leaseback->tenant_id            = $contract->tenant_id;
+        $tenantId = $contract->tenant_id;
+        $leaseback->tenant_id            = $tenantId;
         $leaseback->contract_id          = $DA['contract_id'];
         $leaseback->tenant_name          = $contract->tenant_name;
         $leaseback->leaseback_date       = $DA['leaseback_date'];
@@ -67,19 +68,19 @@ class LeasebackService
         $contract->contract_state = AppEnum::contractLeaseBack;
         $contract->save();
 
-        $contractCount = $contractService->model()->where('tenant_id', $DA['tenant_id'])->where('contract_state', AppEnum::contractExecute)->count();
+        $contractCount = $contractService->model()->where('tenant_id', $tenantId)->where('contract_state', AppEnum::contractExecute)->count();
 
         if ($contractCount == 0) {
           $data['on_rent'] = 0;
           $data['status'] = 3;
-          $tenantService->tenantModel()->where('id', $DA['tenant_id'])->update($data);
+          $tenantService->tenantModel()->where('id', $tenantId)->update($data);
           // 更新分摊租户
-          $tenantService->tenantModel()->where('parent_id', $DA['tenant_id'])->update($data);
+          $tenantService->tenantModel()->where('parent_id', $tenantId)->update($data);
         }
         $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
 
-        $msgContent = $DA['tenant_name'] . "在" . $DA['leaseback_date'] . '完成退租';
-        $this->sendMsg($title = $DA['tenant_name'] . '租户退租', $msgContent, $user);
+        $msgContent = $$contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
+        $this->sendMsg($title = $$contract->tenant_name . '租户退租', $msgContent, $user);
       });
       return true;
     } catch (Exception $e) {
