@@ -79,8 +79,8 @@ class LeasebackService
         }
         $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
 
-        $msgContent = $$contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
-        $this->sendMsg($title = $$contract->tenant_name . '租户退租', $msgContent, $user);
+        $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
+        $this->sendMsg($title = $contract->tenant_name . '租户退租', $msgContent, $user);
       });
       return true;
     } catch (Exception $e) {
