@@ -51,9 +51,9 @@ class LeasebackService
         $tenantService = new TenantService;
         // 更新合同状态
         $contract = $contractService->model()->find($DA['contract_id']);
-        $leaseback->tenant_id            = $contract['tenant_id'];
+        $leaseback->tenant_id            = $contract->tenant_id;
         $leaseback->contract_id          = $DA['contract_id'];
-        $leaseback->tenant_name          = $contract['tenant_name'];
+        $leaseback->tenant_name          = $contract->tenant_name;
         $leaseback->leaseback_date       = $DA['leaseback_date'];
         $leaseback->regaddr_change_date  = isset($DA['regaddr_change_date']) ? $DA['regaddr_change_date'] : "null";
         $leaseback->leaseback_reason     = isset($DA['leaseback_reason']) ? $DA['leaseback_reason'] : "";
@@ -83,7 +83,7 @@ class LeasebackService
       });
       return true;
     } catch (Exception $e) {
-      Log::error("退租失败" . $e->getMessage());
+      Log::error("退租失败" . $e);
       throw new Exception("退租失败" . $e->getMessage());
       return false;
     }

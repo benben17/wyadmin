@@ -136,7 +136,7 @@ class LeasebackController extends BaseController
             'type' => 'required',
             'leaseback_date' => 'required',
         ]);
-        $res = $this->leasebackService->save($request, $this->user);
+        $res = $this->leasebackService->save($request->toArray(), $this->user);
         if ($res) {
             return $this->success('租户退租保存成功');
         } else {
