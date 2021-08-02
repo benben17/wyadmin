@@ -71,33 +71,26 @@ class ChargeService
    *
    * @return void
    */
-  public  function detailBillVerify(array $detailBill, array $chargeBill, $verifyDate, $user)
+  public  function detailBillVerify(array $detailBill, array $chargeBill, $verifyAmt, $verifyDate, $user)
   {
+
     try {
-      DB::transaction(function () use ($detailBill,  $chargeBill, $verifyDate, $user) {
-        $verifyAmt = $chargeBill['unverify_amount'];
+      DB::transaction(function () use ($detailBill,  $chargeBill, $verifyAmt, $verifyDate, $user) {
+
+        // $verifyAmt = $verifyAmount;
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
-        if ($unreceiveAmt < $verifyAmt) {
-          $detailBill['receive_amount'] = $detailBill['amount'];
+        if ($unreceiveAmt == $verifyAmt) {
+          $detailBill['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
           $detailBill['status'] = 1;
           // 收入
-          $chargeBill['unverify_amount'] = $chargeBill['unverify_amount'] - $unreceiveAmt;
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
-          $chargeBill['status'] = AppEnum::chargeUnVerify;
-          // 记录
-          $billRecord['amount'] = $unreceiveAmt;
-        } else if ($unreceiveAmt == $verifyAmt) {
-          $detailBill['receive_amount'] = $detailBill['amount'];
-          $detailBill['status'] = 1;
-          // 收入
-          $chargeBill['unverify_amount'] = 0.00;
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $unreceiveAmt;
+          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
           $chargeBill['status'] = AppEnum::chargeVerify;
-          $billRecord['amount'] = $unreceiveAmt;
+          $billRecord['amount'] = $verifyAmt;
         } elseif ($unreceiveAmt > $verifyAmt) {
           $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detailBill['status'] = 0;
-          $chargeBill['unverify_amount'] = 0.00;
+          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
           $chargeBill['status'] = AppEnum::chargeVerify;
           $billRecord['amount'] = $verifyAmt;

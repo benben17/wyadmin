@@ -140,7 +140,6 @@ class BillDetailController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
-
     ]);
     DB::enableQueryLog();
     $data = $this->billService->billDetailModel()
@@ -187,13 +186,15 @@ class BillDetailController extends BaseController
   {
     $validatedData = $request->validate([
       'bill_detail_id' => 'required|numeric|gt:0',
-      'charge_id' => 'required|gt:0'
+      'charge_id' => 'required|gt:0',
+      'verify_amount' => 'required',
     ]);
 
     $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
+
     $chargeService = new ChargeService;
     $chargeBill =  $chargeService->model()
       ->where('status', AppEnum::chargeUnVerify)
@@ -201,9 +202,15 @@ class BillDetailController extends BaseController
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
     }
+    $unreceiveAmt = $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
+    if ($unreceiveAmt < $request->verify_amount) {
+      return $this->error("收款金额小于核销金额");
+    }
     $verifyDate = nowYmd();
     $chargeService = new ChargeService;
-    $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $verifyDate, $this->user);
+
+
+    $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_amount, $verifyDate, $this->user);
     if ($res) {
       return $this->success("核销成功");
     } else {
