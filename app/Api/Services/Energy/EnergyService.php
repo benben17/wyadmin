@@ -421,7 +421,7 @@ class EnergyService
     $meterLog->meter_id     = $DA['meter_id'];
     $meterLog->c_uid        = $user['id'];
     $meterLog->c_username   = $user['realname'];
-    $meterLog->remark       = $DA['remark'] . "-" . $meterLog->tenant_name;
+    $meterLog->remark       = $DA['detail'] . "-" . $meterLog->tenant_name;
     $res = $meterLog->save();
     if ($res) {
       return true;
