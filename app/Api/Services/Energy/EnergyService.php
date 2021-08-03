@@ -88,7 +88,7 @@ class EnergyService
       });
       return true;
     } catch (Exception $e) {
-      Log::error("save meter :" . $e->getMessage());
+      Log::error("save meter :" . $e);
       return false;
     }
   }
