@@ -85,13 +85,6 @@ class EnergyService
         if (!$res) {
           throw new Exception("能耗日志保存失败！");
         }
-        // if( isset($DA['remark'])){
-        //   $remark['remark'] = $DA['remark'];
-        //   $remark['parent_id'] = $meter->id;
-        //   $remark['parent_type'] = $this->parent_type;
-        //   $bseRemark = new BseRemark;
-        //   $bseRemark->save($remark,$user);
-        // }
       });
       return true;
     } catch (Exception $e) {
@@ -140,8 +133,6 @@ class EnergyService
       if ($is_add) {
         $meterRecord->remark = date('Y-m-d', time()) . '初始化';
         $meterRecord->status = 1;  //  标识初始化
-      } else {
-        $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
       }
       return  $meterRecord->save();
     } catch (Exception $e) {
