@@ -17,6 +17,7 @@ class ChargeBill extends Model
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
   protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label'];
+
   public function getTenantNameAttribute()
   {
     if (isset($this->attributes['tenant_id'])) {
@@ -28,12 +29,14 @@ class ChargeBill extends Model
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      if ($this->attributes['status']  == 1)
+      $status = $this->attributes['status'];
+      if ($status == 1) {
         return  "已核销";
-    } else if ($this->attributes['status']  == 0) {
-      return "未核销";
-    } else if ($this->attributes['status']  == 3) {
-      return "已废弃";
+      } else if ($status == 0) {
+        return "未核销";
+      } else if ($status == 3) {
+        return "已废弃";
+      }
     }
   }
 
