@@ -339,6 +339,7 @@ class BillDetailController extends BaseController
     $res = $this->billService->billDetailModel()
       ->whereIn('id', $request->Ids)
       ->where('status', '!=', 1)
+      ->whereDoesntHave('chargeBillRecord')
       ->delete();
     if (!$res) {
       return $this->error("删除费用失败!");
