@@ -333,7 +333,7 @@ class BillDetailController extends BaseController
   public function del(Request $request)
   {
     $validatedData = $request->validate([
-      'Ids' => 'required|array',
+      'ids' => 'required|array',
     ]);
 
     $res = $this->billService->billDetailModel()
