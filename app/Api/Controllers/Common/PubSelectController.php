@@ -726,12 +726,16 @@ class PubSelectController extends BaseController
 			'proj_id' => 'required',
 			'tenant_id' => 'required',
 		]);
+
 		$service = new ChargeService;
 		$where['proj_id'] = $request->proj_id;
 		$where['tenant_id'] = $request->tenant_id;
 		$data = $service->model()
 			->where(function ($q) use ($request) {
 				$q->where('unverify_amount', '>', '0.00');
+				if (isset($request->status)) {
+					$q->where('status', $request->status);
+				}
 			})
 			->where($where)->get();
 		return $this->success($data);
