@@ -9,6 +9,7 @@ use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Tenant\Invoice;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantService;
@@ -306,7 +307,7 @@ class TenantController extends BaseController
         $data = $this->tenantService->tenantModel()
             ->with('contract')
             // ->with('tenantShare')
-            ->with('invoice')
+            // ->with('invoice')
             ->with('business')
             ->with('contacts')
             ->find($request->id);
@@ -316,6 +317,15 @@ class TenantController extends BaseController
         if ($data) {
             $contractService = new ContractService;
             $data['rooms'] = $contractService->getRoomsByTenantId($data['id']);
+
+            $invoice = Invoice::find($data['invoice_id']);
+            if (!$invoice) {
+                $invoice = (object) null;
+            }
+            $data['invoice'] = $invoice;
+            if (!$data['business'] || empty($data['business'])) {
+                $data['business'] = (object) null;
+            }
         }
         return $this->success($data);
     }

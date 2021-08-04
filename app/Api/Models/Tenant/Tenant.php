@@ -69,7 +69,9 @@ class Tenant extends Model
   // 发票抬头
   public function invoice()
   {
-    return $this->hasOne(Invoice::class, 'tenant_id', 'id');
+    $invoice =  $this->hasOne(Invoice::class, 'tenant_id', 'id');
+
+    return $invoice;
   }
 
   public function follow()
