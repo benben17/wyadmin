@@ -18,7 +18,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'updated_at', 'company_id', 'u_uid'];
 
-  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount'];
+  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount', 'bill_status'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -66,6 +66,12 @@ class TenantBillDetail extends Model
   {
     if (isset($this->attributes['status'])) {
       return $this->attributes['status'] ?  '已结清' : "未结清";
+    }
+  }
+  public function getBillStatusAttribute()
+  {
+    if (isset($this->attributes['bill_id'])) {
+      return $this->attributes['status'] ?  '已生成' : "未生成";
     }
   }
 

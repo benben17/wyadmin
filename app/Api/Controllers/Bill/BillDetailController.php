@@ -305,4 +305,44 @@ class BillDetailController extends BaseController
     }
     return $this->success("编辑费用成功");
   }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/fee/del",
+   *     tags={"费用"},
+   *     summary="费用删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids"},
+   *       @OA\Property(property="Ids",type="int",description="费用ID"),
+   *      
+   *      
+   *     ),
+   *       example={"Ids":"[]"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function del(Request $request)
+  {
+    $validatedData = $request->validate([
+      'Ids' => 'required|array',
+    ]);
+
+    $res = $this->billService->billDetailModel()
+      ->whereIn('id', $request->Ids)
+      ->where('bill_id', 0)
+      ->delete();
+    if (!$res) {
+      return $this->error("删除费用失败!");
+    }
+    return $this->success("删除费用成功");
+  }
 }
