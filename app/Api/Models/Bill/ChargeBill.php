@@ -28,7 +28,12 @@ class ChargeBill extends Model
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      return $this->attributes['status'] ? "已核销" : "未核销";
+      if ($this->attributes['status']  == 1)
+        return  "已核销";
+    } else if ($this->attributes['status']  == 0) {
+      return "未核销";
+    } else if ($this->attributes['status']  == 3) {
+      return "已废弃";
     }
   }
 
