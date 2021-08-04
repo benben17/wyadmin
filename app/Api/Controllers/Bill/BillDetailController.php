@@ -337,7 +337,7 @@ class BillDetailController extends BaseController
     ]);
 
     $res = $this->billService->billDetailModel()
-      ->whereIn('id', $request->Ids)
+      ->whereIn('id', $request->ids)
       ->where('status', '!=', 1)
       ->whereDoesntHave('chargeBillRecord')
       ->delete();
