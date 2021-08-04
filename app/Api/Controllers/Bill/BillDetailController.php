@@ -204,12 +204,10 @@ class BillDetailController extends BaseController
     }
     $unreceiveAmt = $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
     if ($unreceiveAmt < $request->verify_amount) {
-      return $this->error("收款金额小于核销金额");
+      return $this->error("核销金额大于未收款金额！");
     }
     $verifyDate = nowYmd();
     $chargeService = new ChargeService;
-
-
     $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_amount, $verifyDate, $this->user);
     if ($res) {
       return $this->success("核销成功");

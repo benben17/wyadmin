@@ -730,6 +730,7 @@ class PubSelectController extends BaseController
 		$service = new ChargeService;
 		$where['proj_id'] = $request->proj_id;
 		$where['tenant_id'] = $request->tenant_id;
+		DB::enableQueryLog();
 		$data = $service->model()
 			->where(function ($q) use ($request) {
 				$q->where('unverify_amount', '>', '0.00');
@@ -738,6 +739,7 @@ class PubSelectController extends BaseController
 				}
 			})
 			->where($where)->get();
+		return response()->json(DB::getQueryLog());
 		return $this->success($data);
 	}
 }

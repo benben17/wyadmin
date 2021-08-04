@@ -88,8 +88,9 @@ class ChargeService
         }
         $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
         $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
-        $chargeBill['status'] = AppEnum::chargeVerify;
-
+        if ($chargeBill['unverify_amount'] == 0) {
+          $chargeBill['status'] = AppEnum::chargeVerify;
+        }
         $billRecord['amount'] = $verifyAmt;
         $detailBill['receive_date']   = $verifyDate;
         $billRecord['charge_id']      = $chargeBill['id'];
