@@ -310,7 +310,7 @@ class TenantController extends BaseController
             // ->with('invoice')
             ->with('business')
             ->with('contacts')
-            ->find($request->id);
+            ->find($request->id)->toArray();
 
         DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
@@ -318,7 +318,7 @@ class TenantController extends BaseController
             $contractService = new ContractService;
             $data['rooms'] = $contractService->getRoomsByTenantId($data['id']);
 
-            $invoice = Invoice::find($data['invoice_id']);
+            $invoice = Invoice::where('tenant_id', $data['id']);
             if (!$invoice) {
                 $invoice = (object) null;
             }
