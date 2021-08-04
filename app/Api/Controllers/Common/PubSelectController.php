@@ -739,7 +739,7 @@ class PubSelectController extends BaseController
 				}
 			})
 			->where($where)->get();
-		return response()->json(DB::getQueryLog());
+		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
 	}
 }
