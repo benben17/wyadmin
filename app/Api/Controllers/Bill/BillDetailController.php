@@ -338,7 +338,7 @@ class BillDetailController extends BaseController
 
     $res = $this->billService->billDetailModel()
       ->whereIn('id', $request->Ids)
-      ->where('bill_id', 0)
+      ->where('status', '!=', 1)
       ->delete();
     if (!$res) {
       return $this->error("删除费用失败!");
