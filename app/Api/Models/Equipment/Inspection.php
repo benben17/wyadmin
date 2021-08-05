@@ -16,7 +16,7 @@ class Inspection extends Model
    * 关联到模型的数据表
    * @var string
    */
-  use SoftDeletes;
+  // use SoftDeletes;
   protected $table = 'bse_inspection';
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at'];
