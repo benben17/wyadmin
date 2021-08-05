@@ -560,6 +560,42 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/fee/del": {
+            "post": {
+                "tags": [
+                    "费用"
+                ],
+                "summary": "费用删除",
+                "operationId": "f8b082b419a732877e99afd156a43191",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "Ids"
+                                ],
+                                "properties": {
+                                    "Ids": {
+                                        "description": "费用ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "Ids": "[]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/charge/list": {
             "post": {
                 "tags": [
@@ -736,13 +772,13 @@
                 }
             }
         },
-        "/api/operation/charge/del": {
+        "/api/operation/charge/cancel": {
             "post": {
                 "tags": [
                     "预充值"
                 ],
                 "summary": "预充值删除",
-                "operationId": "3499a4ec1ed2da0ad8ce21c8b7d11d5f",
+                "operationId": "b47f921c2755cf3c74a260a13e384302",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -7198,8 +7234,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "type",
-                                    "tenant_name",
-                                    "tenant_id",
+                                    "contract_id",
                                     "leaseback_date",
                                     "leaseback_reason"
                                 ],
@@ -7208,12 +7243,8 @@
                                         "description": "退租原因1:正常退租2:提前退租",
                                         "type": "int"
                                     },
-                                    "tenant_name": {
-                                        "description": "租户名称",
-                                        "type": "String"
-                                    },
-                                    "tenant_id": {
-                                        "description": "租户id",
+                                    "contract_id": {
+                                        "description": "合同id",
                                         "type": "int"
                                     },
                                     "leaseback_date": {
@@ -9005,6 +9036,45 @@
                                 "properties": {
                                     "id": {
                                         "description": "ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/stat/bight": {
+            "post": {
+                "tags": [
+                    "费用统计"
+                ],
+                "summary": "运营费用收费统计",
+                "operationId": "667b2751128ff52576486117f2ac709e",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "type",
+                                    "year"
+                                ],
+                                "properties": {
+                                    "year": {
+                                        "description": "2021,默认为本年度",
+                                        "type": "int"
+                                    },
+                                    "type": {
+                                        "description": "1所有 2 租金3管理费 4 其他",
                                         "type": "int"
                                     }
                                 },

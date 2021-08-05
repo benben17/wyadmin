@@ -30,7 +30,7 @@ class FeeType extends Model
       } else if ($type == 2) {
         return '押金';
       } else if ($type == 3) {
-        return '年费用';
+        return '日常费用';
       }
     }
   }

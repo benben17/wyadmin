@@ -426,6 +426,13 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
 });
 
+
+// 费用统计
+Route::group(['prefix' => 'operation/stat'], function () {
+    Route::post('bill', '\App\Api\Controllers\Stat\BillStatController@billStat');
+    Route::post('bight', '\App\Api\Controllers\Stat\BillStatController@bightStat');
+});
+
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WeiXinController@redirectToProvider');
     Route::get('/callback', '\App\Api\Controllers\Weixin\WeiXinController@handleProviderCallback');
