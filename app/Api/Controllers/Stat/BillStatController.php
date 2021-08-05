@@ -61,11 +61,28 @@ class BillStatController extends BaseController
       })
       ->first();
 
+    $reAmt = array(
+      'totalAmt' => $totalStat['amt'],
+      'rentalAmt' => $rentalStat['amt'],
+      'managerAmt' => $managerStat['amt'],
+      'otherAmt' => $otherStat['amt']
+    );
+    $received = array(
+      'totalAmt' => $totalStat['receiveAmt'],
+      'rentalAmt' => $rentalStat['receiveAmt'],
+      'managerAmt' => $managerStat['receiveAmt'],
+      'otherAmt' => $otherStat['receiveAmt']
+    );
+    $unReceived = array(
+      'totalAmt' => numFormat($totalStat['amt'] - $totalStat['receiveAmt']),
+      'rentalAmt' => numFormat($rentalStat['amt'] - $rentalStat['receiveAmt']),
+      'managerAmt' => numFormat($managerStat['amt'] - $managerStat['receiveAmt']),
+      'otherAmt' => numFormat($otherStat['amt'] - $otherStat['receiveAmt'])
+    );
     $data = array(
-      'total' => $totalStat,
-      'rental' => $rentalStat,
-      'manager' => $managerStat,
-      'other' => $otherStat
+      'reAmt' => $reAmt,
+      'received' => $received,
+      'unReceived' => $unReceived,
     );
     return $this->success($data);
   }
