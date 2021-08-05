@@ -136,7 +136,13 @@ class ContractController extends BaseController
             })->withCount('contractRoom')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
+
         $data = $this->handleBackData($data);
+        foreach ($data['result'] as $k => &$v) {
+            $room = ContractRoomModel::selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no)   end  rooms ')
+                ->where('contract_id', $v['id'])->groupBy('contract_id')->first();
+            $v['contract_room'] = $room['build_no'] . "-" . $room['floor_no'] . "-" . $room['rooms'];
+        }
         return $this->success($data);
     }
 
