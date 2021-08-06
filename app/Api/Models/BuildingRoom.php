@@ -52,6 +52,8 @@ class BuildingRoom extends Model
 		if (isset($this->attributes['pics'])) {
 			if ($this->attributes['pics']) {
 				return str2Array($this->attributes['pics']);
+			} else {
+				return [];
 			}
 		}
 	}
