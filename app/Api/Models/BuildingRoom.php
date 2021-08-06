@@ -50,11 +50,7 @@ class BuildingRoom extends Model
 	public function getPicListAttribute()
 	{
 		if (isset($this->attributes['pics'])) {
-			if ($this->attributes['pics']) {
-				return str2Array($this->attributes['pics']);
-			} else {
-				return [];
-			}
+			return str2Array($this->attributes['pics']);
 		}
 	}
 	public function addAll(array $data)

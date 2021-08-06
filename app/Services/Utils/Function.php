@@ -283,10 +283,11 @@ function getOssUrl($filePath)
 }
 function str2Array($str, $tag = ',')
 {
-    if (!is_array($str)) {
-        $str = explode($tag, $str);
+    $arr = array();
+    if (!is_array($str) && !empty($str)) {
+        $arr = explode($tag, $str);
     }
-    return $str;
+    return $arr;
 }
 
 /** 获取UUID */
