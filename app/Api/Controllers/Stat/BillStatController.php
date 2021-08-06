@@ -34,6 +34,16 @@ class BillStatController extends BaseController
     } else {
       $endYmd = date('Y-m-t');
     }
+
+    if (!$request->year) {
+      $request->year =  date('Y');
+      $startYmd = date($request->year . '-01-01');
+      $endYmd = date($request->year . 'Y-12-t');
+    }
+    if ($request->year && $request->month) {
+      $startYmd = date($request->year . "-" . $request->month . '-01');
+      $endYmd = date($request->year . '-12-t');
+    }
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
     ifnull(sum(discount_amount),0.00) discountAmt,
