@@ -38,7 +38,7 @@ class BillStatController extends BaseController
     if (!$request->year) {
       $request->year =  date('Y');
       $startYmd = date($request->year . '-01-01');
-      $endYmd = date($request->year . 'Y-12-t');
+      $endYmd = date($request->year . '-12-t');
     }
     if ($request->year && $request->month) {
       $startYmd = date($request->year . "-" . $request->month . '-01');
@@ -46,8 +46,8 @@ class BillStatController extends BaseController
     }
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
-    ifnull(sum(discount_amount),0.00) discountAmt,
-    ifnull(sum(receive_amount),0.00) receiveAmt';
+              ifnull(sum(discount_amount),0.00) discountAmt,
+              ifnull(sum(receive_amount),0.00) receiveAmt';
     $totalStat = $billService->billDetailModel()
       ->selectRaw($select)
       ->whereBetween('charge_date', [$startYmd, $endYmd])
@@ -71,6 +71,24 @@ class BillStatController extends BaseController
       })
       ->first();
 
+    $yuqiOtherStat = $billService->billDetailModel()
+      ->selectRaw('sum(amount-discount_amount-receive_amount) otherAmt')
+      ->where('charge_date', '<', getPreYmd(date('Y-m-t'), 1))
+      ->whereNotIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType])
+      ->whereDoesntHave('feetype', function ($q) {
+        $q->where('type', '!=', 2);
+      })
+      ->where('status', 0)->first();
+    DB::enableQueryLog();
+    $yuqiSelect = 'sum(amount-discount_amount-receive_amount) totalAmt,
+                    sum(case when fee_type = 101 then amount-discount_amount-receive_amount end) rentalAmt,
+                    sum(case when fee_type = 102 then amount-discount_amount-receive_amount end) manageAmt';
+    $yuqiStat = $billService->billDetailModel()
+      ->selectRaw($yuqiSelect)
+      ->where('charge_date', '<', getPreYmd(date('Y-m-t'), 1))
+      ->where('status', 0)
+      ->first();
+    // return response()->json(DB::getQueryLog());
     $reAmt = array(
       'totalAmt' => $totalStat['amt'],
       'rentalAmt' => $rentalStat['amt'],
@@ -89,10 +107,12 @@ class BillStatController extends BaseController
       'managerAmt' => numFormat($managerStat['amt'] - $managerStat['receiveAmt']),
       'otherAmt' => numFormat($otherStat['amt'] - $otherStat['receiveAmt'])
     );
+    $yuqiStat['otherAmt'] = numFormat($yuqiOtherStat['otherAmt']);
     $data = array(
       'reAmt' => $reAmt,
       'received' => $received,
       'unReceived' => $unReceived,
+      'yuqi' => $yuqiStat,
     );
     return $this->success($data);
   }
@@ -132,9 +152,6 @@ class BillStatController extends BaseController
     }
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
-
-
-
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
     ifnull(sum(discount_amount),0.00) discountAmt,
