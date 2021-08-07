@@ -36,9 +36,14 @@ class BillStatController extends BaseController
     //   $startYmd = date($request->year . '-01-01');
     //   $endYmd = date($request->year . '-12-t');
     // }
-    if ($request->year && $request->month) {
-      $startYmd = date($request->year . "-" . $request->month . '-01');
-      $endYmd = date($request->year . "-" . $request->month . '-t');
+    if ($request->year) {
+      if ($request->month) {
+        $startYmd = date($request->year . "-" . $request->month . '-01');
+        $endYmd = date($request->year . "-" . $request->month . '-t');
+      } else {
+        $startYmd = date($request->year . '-01-01');
+        $endYmd = date($request->year . '-12-t');
+      }
     }
     if (!$startYmd || !$endYmd) {
       $endYmd = date('Y-m-01');
