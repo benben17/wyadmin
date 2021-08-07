@@ -126,7 +126,7 @@ class BillStatController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/stat/bight",
+   *     path="/api/operation/stat/month/report",
    *     tags={"费用统计"},
    *     summary="运营费用收费统计",
    *    @OA\RequestBody(
@@ -148,7 +148,7 @@ class BillStatController extends BaseController
    * )
    */
 
-  public function bightStat(Request $request)
+  public function monthlyStat(Request $request)
   {
 
     if ($request->year) {
