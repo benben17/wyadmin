@@ -196,7 +196,7 @@ class BuildingController extends BaseController
 
         $DA = $request->toArray();
         try {
-            DB::enableQueryLog();
+            // DB::enableQueryLog();
             DB::transaction(function () use ($DA) {
                 $building = $this->formatBuild($DA);
                 $building['company_id'] = $this->company_id;
@@ -530,7 +530,7 @@ class BuildingController extends BaseController
      * @param    integer    $type       [1 新增2 编辑]
      * @return   [数组]                 [返回格式化数组]
      */
-    private function formatFloor($data, $buildingId, $projId, $type = 1)
+    private function formatFloor($data, $buildingId, $projId, $type = 1): array
     {
         foreach ($data as $k => $v) {
 

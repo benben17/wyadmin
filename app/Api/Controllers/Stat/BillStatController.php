@@ -26,13 +26,9 @@ class BillStatController extends BaseController
 
     if ($request->start_ymd) {
       $startYmd = $request->start_ymd;
-    } else {
-      $startYmd = date('Y-m-01');
     }
     if ($request->end_ymd) {
       $endYmd = $request->end_ymd;
-    } else {
-      $endYmd = date('Y-m-t');
     }
 
     if (!$request->year) {
@@ -43,6 +39,10 @@ class BillStatController extends BaseController
     if ($request->year && $request->month) {
       $startYmd = date($request->year . "-" . $request->month . '-01');
       $endYmd = date($request->year . '-12-t');
+    }
+    if (!$startYmd || !$endYmd) {
+      $endYmd = date('Y-m-01');
+      $endYmd = date('Y-m-t');
     }
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,

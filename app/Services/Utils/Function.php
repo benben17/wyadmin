@@ -83,7 +83,7 @@ function getContractNo()
  * @param    [type]     $num [description]
  * @return   [type]          [description]
  */
-function amountToCny($num)
+function amountToCny(float $num)
 {
     $d = array('零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖');
     $e = array('元', '拾', '佰', '仟', '万', '拾万', '佰万', '仟万', '亿', '拾亿', '佰亿', '仟亿', '万亿');
