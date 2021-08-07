@@ -88,7 +88,7 @@ class BillStatController extends BaseController
     DB::enableQueryLog();
     $yuqiSelect = 'sum(amount-discount_amount-receive_amount) totalAmt,
                     sum(case when fee_type = 101 then amount-discount_amount-receive_amount end) rentalAmt,
-                    sum(case when fee_type = 102 then amount-discount_amount-receive_amount end) manageAmt';
+                    sum(case when fee_type = 102 then amount-discount_amount-receive_amount end) managerAmt';
     $yuqiStat = $billService->billDetailModel()
       ->selectRaw($yuqiSelect)
       ->where('charge_date', '<', getPreYmd(date('Y-m-t'), 1))
