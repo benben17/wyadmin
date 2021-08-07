@@ -86,9 +86,9 @@ class BillStatController extends BaseController
       })
       ->where('status', 0)->first();
     DB::enableQueryLog();
-    $yuqiSelect = 'sum(amount-discount_amount-receive_amount) totalAmt,
-                    sum(case when fee_type = 101 then amount-discount_amount-receive_amount end) rentalAmt,
-                    sum(case when fee_type = 102 then amount-discount_amount-receive_amount end) managerAmt';
+    $yuqiSelect = 'ifnull(sum(amount-discount_amount-receive_amount),0.00) totalAmt,
+                    ifnull(sum(case when fee_type = 101 then amount-discount_amount-receive_amount end),0.00) rentalAmt,
+                    ifnull(sum(case when fee_type = 102 then amount-discount_amount-receive_amount end),0.00) managerAmt';
     $yuqiStat = $billService->billDetailModel()
       ->selectRaw($yuqiSelect)
       ->where('charge_date', '<', getPreYmd(date('Y-m-t'), 1))
