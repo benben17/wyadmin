@@ -85,6 +85,7 @@ class RoomStatController extends BaseController
             ->groupBy('room_state')
             ->get()->toArray();
         $areaTypeStat = array();
+        // Log::error(json_encode($areaType));
         foreach ($areaType as $k => $v) {
             $i = 0;
             foreach ($v as $kr => $vr) {
@@ -101,58 +102,54 @@ class RoomStatController extends BaseController
                 $i++;
             }
         }
-
+        // Log::error(json_encode($areaTypeStat));
         foreach ($areaTypeStat as $k => &$v) {
-            if (isset($v['used_count']) && isset($v['free_count'])) {
-                $v['total'] = $v['used_count'] + $v['free_count'];
-            } else if (!isset($v['used_count']) && !isset($v['free_count'])) {
-                $v['total'] = 0;
+            if (!isset($v['used_count']) && !isset($v['free_count'])) {
                 $v['used_count'] = 0;
                 $v['free_count'] = 0;
             } else if (!isset($v['used_count'])) {
-                $v['total'] = $v['free_count'];
                 $v['used_count'] = 0;
             } else if (!isset($v['free_count'])) {
                 $v['free_count'] = 0;
-                $v['total'] = $v['used_count'];
             }
+            $v['total'] = $v['used_count'] + $v['free_count'];
         }
-
+        Log::error(json_encode($areaTypeStat));
         $data['stat'] = $areaTypeStat;
+        // return $data;
         /** 统计空闲房间占比 空闲面积占比 */
-        $room_area_data = RoomModel::select(DB::Raw('sum(room_area) area,count(*) room_count,room_state'))
+        $roomRateStat = RoomModel::select(DB::Raw('sum(room_area) area,count(*) room_count,room_state'))
             ->whereHas('building', function ($q) use ($request) {
                 $request->id && $q->whereId($request->id);
                 $request->proj_ids &&  $q->whereIn('proj_id', $request->proj_ids);
             })->where('room_type', 1)
             ->groupBy('room_state')
             ->get()->toArray();
-        $areaStat = array('free_count' => 0, 'free_area' => 0, 'used_count' => 0, 'used_area' => 0);
-        foreach ($room_area_data as $k => $v) {
+        // $rateStat = array('free_count' => 0, 'free_area' => 0, 'used_count' => 0, 'used_area' => 0);
+        foreach ($roomRateStat as $k => &$v) {
             if ($v['room_state'] == 1) {
-                $areaStat['free_count'] = $v['room_count'];
-                $areaStat['free_area'] = numFormat($v['area']);
+                $rateStat['free_count'] = $v['room_count'];
+                $rateStat['free_area'] = numFormat($v['area']);
             } else {
-                $areaStat['used_count'] = $v['room_count'];
-                $areaStat['used_area'] = numFormat($v['area']);
+                $rateStat['used_count'] = $v['room_count'];
+                $rateStat['used_area'] = numFormat($v['area']);
             }
         }
-        if (!$areaStat['free_area']) {
-            $areaStat['free_area_rate'] = '0%';
+        if (!$rateStat['free_area']) {
+            $rateStat['free_area_rate'] = '0%';
         } else {
-            $areaStat['free_area_rate'] = numFormat($areaStat['free_area'] / ($areaStat['free_area'] + $areaStat['used_area']) * 100) . '%';
+            $rateStat['free_area_rate'] = numFormat($rateStat['free_area'] / ($rateStat['free_area'] + $rateStat['used_area']) * 100) . '%';
         }
-        if (!$areaStat['free_count']) {
-            $areaStat['free_room_count_rate'] = '0%';
+        if (!$rateStat['free_count']) {
+            $rateStat['free_room_count_rate'] = '0%';
         } else {
-            $areaStat['free_room_count_rate'] = numFormat($areaStat['free_count'] / ($areaStat['free_count'] + $areaStat['used_count']) * 100) . '%';
+            $rateStat['free_room_count_rate'] = numFormat($rateStat['free_count'] / ($rateStat['free_count'] + $rateStat['used_count']) * 100) . '%';
         }
+        $rateStat['total_area'] = $rateStat['free_area'] + $rateStat['used_area'];
+        $data['areaStat'] = $rateStat;
 
-
-        $areaStat['total_area'] = $areaStat['free_area'] + $areaStat['used_area'];
-        $data['areaStat'] = $areaStat;
-
-        $stationStat = RoomModel::select(DB::Raw('sum(case room_state when 1 then 1 else 0 end) free_count,sum(case room_state when 0 then 1  else 0 end) used_count,count(*) total_count'))
+        $stationStat = RoomModel::select(DB::Raw('sum(case room_state when 1 then 1 else 0 end) free_count,
+        sum(case room_state when 0 then 1  else 0 end) used_count,count(*) total_count'))
             ->whereHas('building', function ($q) use ($request) {
                 $request->id && $q->whereId($request->id);
                 $request->proj_ids &&  $q->whereIn('proj_id', $request->proj_ids);
@@ -168,7 +165,7 @@ class RoomStatController extends BaseController
         $data['station'] = $stationStat;
 
         $data['trim'] = RoomModel::where($map)
-            ->selectRaw('count(*) count,room_trim_state trim_state')
+            ->selectRaw('count(*) count,IFNULL(room_trim_state,"其他") trim_state')
             ->groupBy('trim_state')->get();
         return $this->success($data);
     }
