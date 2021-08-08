@@ -89,7 +89,7 @@ class RoomStatController extends BaseController
             $i = 0;
             foreach ($v as $kr => $vr) {
                 // Log::info($i);
-                if ($kr == 'room_state') {
+                if ($kr == 'room_state' || $kr == 'price_label' || $kr == 'pic_list') {
                     continue;
                 }
                 $areaTypeStat[$i]['label'] = $kr;
@@ -138,7 +138,7 @@ class RoomStatController extends BaseController
             }
         }
         if (!$areaStat['free_area']) {
-            $areaStat['free_area_rate'] = '0' . '%';
+            $areaStat['free_area_rate'] = '0%';
         } else {
             $areaStat['free_area_rate'] = numFormat($areaStat['free_area'] / ($areaStat['free_area'] + $areaStat['used_area']) * 100) . '%';
         }
