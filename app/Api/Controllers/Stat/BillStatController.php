@@ -248,7 +248,8 @@ class BillStatController extends BaseController
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
     $chargeService  = new ChargeService;
-    $select = 'ifnull(sum(amount),"0.00") amt ,
+    $select = 'ifnull(sum(case when type = 1 then amount end),"0.00") chargeAmt ,
+              ifnull(sum(case when type = 2 then amount end),"0.00") payAmt,
     DATE_FORMAt(charge_date,"%Y-%m") ym';
 
     $chargeStat = $chargeService->model()->selectRaw($select)
@@ -272,7 +273,8 @@ class BillStatController extends BaseController
         }
       }
       $statNew[$month]['ym'] = getNextMonth($startYmd, $month);
-      $statNew[$month]['amt'] = 0.00;
+      $statNew[$month]['chargeAmt'] = "0.00";
+      $statNew[$month]['payAmt'] = "0.00";
       $month++;
     }
     return $this->success($statNew);
