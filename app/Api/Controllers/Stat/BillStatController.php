@@ -126,7 +126,7 @@ class BillStatController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/stat/month/report",
+   *     path="/api/operation/stat/bill/month/report",
    *     tags={"费用统计"},
    *     summary="运营费用收费统计",
    *    @OA\RequestBody(
@@ -136,6 +136,7 @@ class BillStatController extends BaseController
    *          schema="UserModel",
    *          required={"type","year"},
    *  				@OA\Property(property="year",type="int",description="2021,默认为本年度"),
+   *        @OA\Property(property="proj_ids",type="list",description="项目id集合"),
    * 				@OA\Property(property="type",type="int",description="1所有 2 租金3管理费 4 其他"),
    *     ),
    *       example={}
@@ -156,6 +157,8 @@ class BillStatController extends BaseController
     } else {
       $year = date('Y');
     }
+    $map = array();
+
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
     $billService  = new TenantBillService;
@@ -169,6 +172,7 @@ class BillStatController extends BaseController
       ->selectRaw($select)
       ->whereBetween('charge_date', [$startYmd, $endYmd])
       ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         if ($request->type == 1) {
         } else if ($request->type == 2) {
           $q->where('fee_type', AppEnum::rentFeeType);

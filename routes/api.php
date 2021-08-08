@@ -430,7 +430,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
 // 费用统计
 Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('bill', '\App\Api\Controllers\Stat\BillStatController@billStat');
-    Route::post('month/report', '\App\Api\Controllers\Stat\BillStatController@monthlyStat');
+    Route::post('/bill/month/report', '\App\Api\Controllers\Stat\BillStatController@monthlyStat');
 });
 
 Route::group(['prefix' => 'wx'], function () {
