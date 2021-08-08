@@ -6,6 +6,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -202,6 +203,76 @@ class BillStatController extends BaseController
       $statNew[$month]['amt'] = 0.00;
       $statNew[$month]['discountAmt'] = 0.00;
       $statNew[$month]['receiveAmt']  = 0.00;
+      $month++;
+    }
+    return $this->success($statNew);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/stat/charge/month/report",
+   *     tags={"费用统计"},
+   *     summary="运营收支统计",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"type","year"},
+   *  				@OA\Property(property="year",type="int",description="2021,默认为本年度"),
+   *        @OA\Property(property="proj_ids",type="list",description="项目id集合"),
+   * 				@OA\Property(property="type",type="int",description="1收费、2支出"),
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function chargeStat(Request $request)
+  {
+
+    if ($request->year) {
+      $year = $request->year;
+    } else {
+      $year = date('Y');
+    }
+    $map['audit_status'] = 1;
+    if ($request->type) {
+      $map['type'] = $request->type;
+    }
+    $map = array();
+    $startYmd = date($year . '-01-01');
+    $endYmd = date($year . '-12-t');
+    $chargeService  = new ChargeService;
+    $select = 'ifnull(sum(amount),"0.00") amt ,
+    DATE_FORMAt(charge_date,"%Y-%m") ym';
+
+    $chargeStat = $chargeService->model()->selectRaw($select)
+      ->where($map)
+      ->whereBetween('charge_date', [$startYmd, $endYmd])
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+      })
+      ->groupBy('ym')
+      ->orderBy('ym')
+      ->get()->toArray();
+    $month = 0;
+    $statNew = array();
+    while ($month < 12) {
+      // $v = 
+      foreach ($chargeStat as $k => &$v) {
+        if ($v['ym'] == getNextMonth($startYmd, $month)) {
+          $statNew[$month] = $v;
+          $month++;
+          break;
+        }
+      }
+      $statNew[$month]['ym'] = getNextMonth($startYmd, $month);
+      $statNew[$month]['amt'] = 0.00;
       $month++;
     }
     return $this->success($statNew);

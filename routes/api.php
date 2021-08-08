@@ -431,6 +431,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
 Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('bill', '\App\Api\Controllers\Stat\BillStatController@billStat');
     Route::post('/bill/month/report', '\App\Api\Controllers\Stat\BillStatController@monthlyStat');
+    Route::post('/charge/month/report', '\App\Api\Controllers\Stat\BillStatController@chargeStat');
 });
 
 Route::group(['prefix' => 'wx'], function () {
