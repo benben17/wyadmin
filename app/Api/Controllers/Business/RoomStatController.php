@@ -126,6 +126,7 @@ class RoomStatController extends BaseController
             ->groupBy('room_state')
             ->get()->toArray();
         // $rateStat = array('free_count' => 0, 'free_area' => 0, 'used_count' => 0, 'used_area' => 0);
+
         foreach ($roomRateStat as $k => &$v) {
             if ($v['room_state'] == 1) {
                 $rateStat['free_count'] = $v['room_count'];
@@ -135,12 +136,12 @@ class RoomStatController extends BaseController
                 $rateStat['used_area'] = numFormat($v['area']);
             }
         }
-        if (!$rateStat['free_area']) {
+        if (!isset($rateStat['free_area']) || !$rateStat['free_area']) {
             $rateStat['free_area_rate'] = '0%';
         } else {
             $rateStat['free_area_rate'] = numFormat($rateStat['free_area'] / ($rateStat['free_area'] + $rateStat['used_area']) * 100) . '%';
         }
-        if (!$rateStat['free_count']) {
+        if (!isset($rateStat['free_count']) || !$rateStat['free_count']) {
             $rateStat['free_room_count_rate'] = '0%';
         } else {
             $rateStat['free_room_count_rate'] = numFormat($rateStat['free_count'] / ($rateStat['free_count'] + $rateStat['used_count']) * 100) . '%';
