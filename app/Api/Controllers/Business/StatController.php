@@ -421,19 +421,19 @@ class StatController extends BaseController
         // $validatedData = $request->validate([
         //     'room_type' => 'required|int|in:1,2',
         // ]);
-        $startDate = date('Y-m', time());
-        $endDate = getNextMonth($startDate, 24);
+        $startDate = date('Y-m-01');
+        $endDate = getNextYmd($startDate, 24);
 
         DB::enableQueryLog();
-        $res = ContractBillModel::where('charge_date', '>=', $startDate)
+        $res = ContractBillModel::whereBetween('charge_date', [$startDate, $endDate])
             ->whereHas('contract', function ($q)  use ($request) {
                 $q->where('contract_state', 2);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
             ->select(DB::Raw('count(distinct(tenant_id)) cus_count,
-            sum(case type when  101  then amount else 0 end) rental_amount,
-            sum(case type when  102  then amount else 0 end) manager_amount,
+            sum(case when fee_type = 101  then amount else 0 end) rental_amount,           
+            sum(case when  fee_type = 102  then amount else 0 end) manager_amount,
             DATE_FORMAT(charge_date,"%Y-%m") as ym'))
             ->groupBy('ym')
             ->orderBy('ym')
@@ -442,20 +442,18 @@ class StatController extends BaseController
         // return $res;
         $i = 0;
         $stat = array();
+
         while ($i < 24) {
             foreach ($res as $k => $v) {
                 if ($v['ym'] == getNextMonth($startDate, $i)) {
-                    $stat[$i]['ym'] = getNextMonth($startDate, $i);
-                    $stat[$i]['rental_amount'] = $v['rental_amount'];
-                    $stat[$i]['manager_amount'] = $v['manager_amount'];
-                    $stat[$i]['cus_count'] = $v['cus_count'];
+                    $stat[$i] = $v;
                     $i++;
                 }
             }
+            $stat[$i]['cus_count'] = 0;
             $stat[$i]['ym'] = getNextMonth($startDate, $i);
             $stat[$i]['rental_amount'] = 0.00;
             $stat[$i]['manager_amount'] = 0.00;
-            $stat[$i]['cus_count'] = 0;
             $i++;
         }
         return $this->success($stat);
