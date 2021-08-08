@@ -114,7 +114,7 @@ class RoomStatController extends BaseController
             }
             $v['total'] = $v['used_count'] + $v['free_count'];
         }
-        Log::error(json_encode($areaTypeStat));
+        // Log::error(json_encode($areaTypeStat));
         $data['stat'] = $areaTypeStat;
         // return $data;
         /** 统计空闲房间占比 空闲面积占比 */
