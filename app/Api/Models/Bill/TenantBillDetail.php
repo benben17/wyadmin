@@ -102,6 +102,11 @@ class TenantBillDetail extends Model
     return $this->hasMany(TenantBillDetailLog::class, 'bill_detail_id', 'id');
   }
 
+  public function refundRecord()
+  {
+    return $this->hasMany(RefundRecord::class, 'bill_detail_id', 'id');
+  }
+
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);

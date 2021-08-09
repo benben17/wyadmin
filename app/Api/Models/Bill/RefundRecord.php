@@ -22,6 +22,11 @@ class RefundRecord extends Model
   //     return $bank['account_name'];
   //   }
   // }
+
+  public function billDetail()
+  {
+    return $this->belongsTo(TenantBillDetail::class, "bill_detail_id", "id");
+  }
   protected static function boot()
   {
     parent::boot();

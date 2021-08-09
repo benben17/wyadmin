@@ -27,7 +27,7 @@ class RefundController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/refund/list",
+   *     path="/api/operation/tenant/bill/refund/list",
    *     tags={"退款"},
    *     summary="退款列表",
    *    @OA\RequestBody(
@@ -39,8 +39,8 @@ class RefundController extends BaseController
    *       @OA\Property(property="tenant_id",type="int",description="租户id"),
    *       @OA\Property(property="pagesize",type="int",description="行数"),
    *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
-   *       @OA\Property(property="start_date",type="date",description="开始时间"),
-   *       @OA\Property(property="end_date",type="date",description="结束时间"),
+   *       @OA\Property(property="start_date",type="date",description="退款开始时间"),
+   *       @OA\Property(property="end_date",type="date",description="退款结束时间"),
    *        @OA\Property(property="proj_ids",type="list",description="")
    *     ),
    *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":""}
@@ -80,20 +80,22 @@ class RefundController extends BaseController
     if ($request->type) {
       $map['type'] = $request->type;
     }
-    if (isset($request->status) && $request->status != "") {
-      $map['status'] = $request->status;
+    if ($request->bill_detail_id) {
+      $map['bill_detail_id'] = $request->bill_detail_id;
     }
+
     DB::enableQueryLog();
-    $data = $this->chargeService->model()
+    $data = $this->refundService->model()
       ->where($map)
       ->where(function ($q) use ($request) {
-        $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
-        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-        $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
-        $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
+        $request->start_date && $q->where('refund_date', '>=',  $request->start_date);
+        $request->end_date && $q->where('refund_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->withCount('chargeBillRecord')
+      ->whereHas('billDetail', function ($q) use ($request) {
+        $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
+        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+      })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
@@ -179,46 +181,6 @@ class RefundController extends BaseController
     }
   }
 
-
-
-  /**
-   * @OA\Post(
-   *     path="/api/operation/charge/cancel",
-   *     tags={"退款"},
-   *     summary="预充值删除",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"ids"},
-   *       @OA\Property(property="ids",type="List",description="id集合")
-   *     ),
-   *       example={"ids":"[1,2]"}
-   *       )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description=""
-   *     )
-   * )
-   */
-
-  public function cancel(Request $request)
-  {
-    $validatedData = $request->validate([
-      'ids' => 'required|array',
-    ]);
-    DB::enableQueryLog();
-    $res = $this->chargeService->model()
-      ->whereDoesntHave('chargeBillRecord')
-      ->whereIn('id', $request->ids)->update(["status" => 3]);
-    // return response()->json(DB::getQueryLog());
-    if (!$res) {
-      return $this->error("有核销记录不允许取消！");
-    }
-    return $this->success("收支取消成功。");
-  }
   /**
    * @OA\Post(
    *     path="/api/operation/bill/refund/show",

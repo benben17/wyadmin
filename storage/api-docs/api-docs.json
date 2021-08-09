@@ -1085,6 +1085,152 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/refund/list": {
+            "post": {
+                "tags": [
+                    "退款"
+                ],
+                "summary": "退款列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "start_date": {
+                                        "description": "退款开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "退款结束时间",
+                                        "type": "date"
+                                    },
+                                    "proj_ids": {
+                                        "description": "",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": "1",
+                                "tenant_name": "",
+                                "start_date": "",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/refund/add": {
+            "post": {
+                "tags": [
+                    "退款"
+                ],
+                "summary": "退款新增",
+                "operationId": "3902049c9eab651723869439a7b1c7c9",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "bill_detail_id,amount,refund_date",
+                                    "proj_id"
+                                ],
+                                "properties": {
+                                    "bill_detail_id": {
+                                        "description": "费用ID",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "收款金额",
+                                        "type": "double"
+                                    },
+                                    "refund_date": {
+                                        "description": "退款日期",
+                                        "type": "date"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "bill_detail_id": 1,
+                                "amount": "2",
+                                "refund_date": "",
+                                "charge_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/bill/refund/show": {
+            "post": {
+                "tags": [
+                    "退款"
+                ],
+                "summary": "退款详细",
+                "operationId": "caa2a1fc3e2384c3356676d9534c9c78",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/building/list": {
             "post": {
                 "tags": [
@@ -9052,13 +9198,13 @@
                 }
             }
         },
-        "/api/operation/stat/bight": {
+        "/api/operation/stat/bill/month/report": {
             "post": {
                 "tags": [
                     "费用统计"
                 ],
                 "summary": "运营费用收费统计",
-                "operationId": "667b2751128ff52576486117f2ac709e",
+                "operationId": "017e6b865e6e978a3794bc9d9568e7e1",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -9073,8 +9219,55 @@
                                         "description": "2021,默认为本年度",
                                         "type": "int"
                                     },
+                                    "proj_ids": {
+                                        "description": "项目id集合",
+                                        "type": "list"
+                                    },
                                     "type": {
                                         "description": "1所有 2 租金3管理费 4 其他",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/stat/charge/month/report": {
+            "post": {
+                "tags": [
+                    "费用统计"
+                ],
+                "summary": "运营收支统计",
+                "operationId": "8b2b34cce39c318b3cb1331a48061063",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "type",
+                                    "year"
+                                ],
+                                "properties": {
+                                    "year": {
+                                        "description": "2021,默认为本年度",
+                                        "type": "int"
+                                    },
+                                    "proj_ids": {
+                                        "description": "项目id集合",
+                                        "type": "list"
+                                    },
+                                    "type": {
+                                        "description": "1收费、2支出",
                                         "type": "int"
                                     }
                                 },
