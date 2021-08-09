@@ -41,7 +41,7 @@ class ChargeService
       $charge->tenant_id   = $BA['tenant_id'];
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
-      $charge->type       = $BA['type'];
+      $charge->type        = $BA['type'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
 
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
@@ -52,7 +52,11 @@ class ChargeService
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
       $chargeRes = $charge->save();
       // });
-      return $chargeRes;
+      if ($chargeRes) {
+        return $charge;
+      } else {
+        return false;
+      }
     } catch (Exception $e) {
       Log::error("保存收款失败:" . $e);
       return false;

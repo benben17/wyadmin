@@ -364,6 +364,8 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
 
     // 生成word 版账单
     Route::post('toWord', '\App\Api\Controllers\Bill\BillController@billToWord');
+    // 退款
+    Route::post('refund/add', '\App\Api\Controllers\Bill\RefundController@store');
 });
 
 //发票
