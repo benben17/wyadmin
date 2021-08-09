@@ -24,6 +24,7 @@ class RefundService
         $refund->proj_id = $DA['proj_id'];
         $refund->bill_detail_id = $DA['bill_detail_id'];
         $refund->amount = $DA['amount'];
+        $refund->charge_id = $DA['charge_id'];
         $refund->refund_date = $DA['refund_date'];
         $refund->bank_id = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
         $refund->remark = isset($DA['remark']) ? $DA['remark'] : "";

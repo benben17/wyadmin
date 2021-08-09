@@ -132,19 +132,23 @@ class RefundController extends BaseController
     $validatedData = $request->validate([
       'bill_detail_id' => 'required|numeric|gt:0',
       'amount'    => 'required',
-      'refund_date'      => 'required|date',
-      'proj_id'    => 'required|numeric|gt:0',
+      'refund_date' => 'required|date',
       'bank_id'    => 'required|numeric|gt:0',
     ]);
 
     $billService = new TenantBillService;
     $billDetail = $billService->billDetailModel()->find($request->bill_detail_id);
     if (!$billDetail) {
-      return $this->success("未查询到费用记录。");
+      return $this->error("未查询到费用记录。");
     }
-    if ($billDetail->receive_amount < $request->amount) {
-      return $this->success("已收金额小于退款记录！");
+    $refund = $this->refundService->model()->selectRaw('sum(amount) amount')->where('bill_detail_id', $request->bill_detail_id)->first();
+
+    $refundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
+    Log::error($refundAmt);
+    if ($refundAmt < $request->amount) {
+      return $this->error("已收金额小于退款记录！");
     }
+
     try {
       DB::transaction(function () use ($billDetail, $request) {
         $chargeService = new ChargeService;
@@ -160,8 +164,13 @@ class RefundController extends BaseController
         $charge['tenant_name']  = $billDetail->tenant_name;
         $charge['remark']       = isset($request->remark) ? $request->remark : "";
         $chargeRes = $chargeService->save($charge, $this->user);
-        $request->charge_id = $chargeRes->id;
-        $this->refundService->save($request->toArray(), $this->user);
+
+        // Log::error($chargeRes);
+        $DA = $request->toArray();
+        $DA['charge_id'] = $chargeRes->id;
+        $DA['proj_id'] = $billDetail->proj_id;
+        Log::error(json_encode($DA));
+        $this->refundService->save($DA, $this->user);
       }, 2);
       return $this->success("退款成功。");
     } catch (Exception $th) {
