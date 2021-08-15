@@ -108,7 +108,9 @@ class TenantBillService
         $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
         $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
         $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-        $billDetail->save();
+        if ($DA['amount'] == 0 || $DA['amount'] == 0.00) {
+          $billDetail->save();  // 费用等于0，写入数据
+        }
       }, 3);
     } catch (Exception $e) {
       Log::error("账单详细保存失败" . $e);
