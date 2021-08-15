@@ -113,7 +113,7 @@ class WorkOrderController extends BaseController
         })->first();
       $data['stat'] = array(
         ['label' => '总工单', 'value' => $stat['count']],
-        ['label' => '平均评分', 'value' => $stat['rate']],
+        ['label' => '平均评分', 'value' => numFormat($stat['rate'])],
         ['label' => '总用时', 'value' => numFormat($stat['time_used']) . '小时'],
         ['label' => '总金额', 'value' => $stat['amount'] . '元'],
       );
