@@ -105,6 +105,11 @@ class TenantController extends BaseController
         // return response()->json(DB::getQueryLog());
 
         $data = $this->handleBackData($result);
+        foreach ($data['result'] as $k => &$v) {
+            if (!isset($v['contract_stat']) || empty($v['contract_stat'])) {
+                $v['contract_stat']['total_area'] = 0.00;
+            }
+        }
         return $this->success($data);
     }
 
