@@ -35,13 +35,15 @@ class TenantService
         $tenant->c_uid       = $user['id'];
         $tenant->company_id  = $user['company_id'];
         $tenant->proj_id     = $DA['proj_id'];
-        // $tenant->proj_id     = $DA['proj_name'];
+        $tenant->state = $DA['state'];
+        $tenant->type = $DA['type'];
         $tenant->tenant_no   = $this->getTenantNo($user['company_id']);
       }
       $tenant->u_uid         = $user['id'];
       $tenant->name          = $DA['name'];
+
       $tenant->parent_id     = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
-      $tenant->checkin_date  = isset($DA['checkin_date']) ? $DA['checkin_date'] : "";
+      $tenant->checkin_date  = isset($DA['checkin_time']) ? $DA['checkin_time'] : "";
       $tenant->business_id   = isset($DA['business_id']) ? $DA['business_id'] : 0;  // 工商信息id
       $tenant->industry      = isset($DA['industry']) ? $DA['industry'] : "";  // 行业
       $tenant->level         = isset($DA['level']) ? $DA['level'] : "";  // 租户级别

@@ -117,7 +117,7 @@ class TenantController extends BaseController
      * @OA\Post(
      *     path="/api/operation/tenant/add",
      *     tags={"租户"},
-     *     summary="租户新增-分摊租户新增",
+     *     summary="租户新增",
      *    @OA\RequestBody(
      *       @OA\MediaType(
      *           mediaType="application/json",
