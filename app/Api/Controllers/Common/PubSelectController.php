@@ -80,9 +80,8 @@ class PubSelectController extends BaseController
 			})
 			->where('is_vaild', 1)
 			->get()->toArray();
-
-		return $this->success($data);
 		// return response()->json(DB::getQueryLog());
+		return $this->success($data);
 	}
 
 	/**

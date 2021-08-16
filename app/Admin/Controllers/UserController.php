@@ -96,6 +96,7 @@ class UserController extends AdminController
             ->rules('required', ['required'   => '必须选择一个公司!']);
         $form->select('role_id', '角色名称')->options('/admin/sys/role/select')
             ->rules('required', ['required'   => '必须选择一个角色!']);
+
         $form->tools(function (Form\Tools $tools) {
 
             // 去掉`列表`按钮
@@ -111,9 +112,10 @@ class UserController extends AdminController
             // $tools->add('<a class="btn btn-sm btn-danger"><i class="fa fa-trash"></i>&nbsp;&nbsp;delete</a>');
         });
         $form->submitted(function (Form $form) {
+            $form->is_admin = 1;
             $form->password = Hash::make('a123456');
         });
-        $form->is_admin = 1;
+
         return $form;
     }
 }

@@ -8,6 +8,7 @@ use Exception;
 
 use App\Api\Models\Company\CompanyVariable;
 use App\Api\Models\Project as ProjectModel;
+use App\Enums\AppEnum;
 
 /**
  *
@@ -118,7 +119,7 @@ class VariableService
       $res = $variable->save();
       // 项目初始化
       $project = new ProjectModel;
-      $project->proj_type = '办公园区';
+      $project->proj_type = AppEnum::projType;
       $project->proj_name = '默认项目';
       $project->company_id = $companyId;
       $project->is_vaild = 1;

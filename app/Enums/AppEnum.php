@@ -56,4 +56,6 @@ final class AppEnum extends Enum
   // 房源单价
   const dayPrice = "元/㎡/天";
   const monthPrice = "元/㎡/月";
+
+  const projType = "办公园区";
 }
