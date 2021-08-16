@@ -34,9 +34,7 @@ class BaseInfoService
       $company = $this->model()->find($DA['id']);
       $company->skyeye_id = isset($DA['skyeye_id']) ? $DA['skyeye_id'] : $DA['id'];
     }
-
     $company->name = isset($DA['name']) ? $DA['name'] : ""; //公司名
-
     $company->regStatus  = isset($DA['regStatus']) ? $DA['regStatus'] : ""; //状态
     $company->historyNames = isset($DA['historyNames']) ? $DA['historyNames'] : "";
     $company->companyOrgType = isset($DA['companyOrgType']) ? $DA['companyOrgType'] : "";

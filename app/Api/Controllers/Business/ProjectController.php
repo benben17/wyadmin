@@ -366,7 +366,6 @@ class ProjectController extends BaseController
         $data = ProjectModel::with('building')->find($request->id)->toArray();
         // return $data;
         $rooms =  BuildingModel::where('proj_id', $request->id)
-
             ->withCount('buildRoom')
             ->withCount(['buildRoom as free_room_count' => function ($q) {
                 $q->where('room_state', 1);
