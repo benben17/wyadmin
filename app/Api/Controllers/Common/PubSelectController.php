@@ -499,7 +499,8 @@ class PubSelectController extends BaseController
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
 				if ($request->type == 1) {
 					$q->where('type', "!=", AppEnum::TenantType);
-				} else if ($request->type == 2) {
+				}
+				if ($request->type == 2) {
 					$q->where('type', AppEnum::TenantType);
 				}
 			})->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
