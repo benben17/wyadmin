@@ -43,7 +43,7 @@ class TenantService
       $tenant->name          = $DA['name'];
 
       $tenant->parent_id     = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
-      $tenant->checkin_date  = isset($DA['checkin_time']) ? $DA['checkin_time'] : "";
+      $tenant->checkin_date  = isset($DA['checkin_date']) ? $DA['checkin_date'] : "";
       $tenant->business_id   = isset($DA['business_id']) ? $DA['business_id'] : 0;  // 工商信息id
       $tenant->industry      = isset($DA['industry']) ? $DA['industry'] : "";  // 行业
       $tenant->level         = isset($DA['level']) ? $DA['level'] : "";  // 租户级别
