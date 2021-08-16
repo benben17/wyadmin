@@ -108,7 +108,7 @@ class CustomerController extends BaseController
             })
             ->with('contacts')
             ->with('extraInfo')
-            ->where('extraInfo', function ($q) use ($request) {
+            ->whereHas('extraInfo', function ($q) use ($request) {
                 $request->demand_area && $q->where('demand_area', $request->demand_area);
             })
             // ->with('customerRoom')
