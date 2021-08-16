@@ -195,8 +195,10 @@ class TenantController extends BaseController
                     }
                 }
             });
+
             return $this->success('租户新增成功。');
         } catch (Exception $e) {
+            Log::error("运营新增租户失败" . $e);
             return $this->error('租户新增失败');
         }
     }
