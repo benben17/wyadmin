@@ -96,7 +96,7 @@ class UserController extends AdminController
             ->rules('required', ['required'   => '必须选择一个公司!']);
         $form->select('role_id', '角色名称')->options('/admin/sys/role/select')
             ->rules('required', ['required'   => '必须选择一个角色!']);
-        $form->is_admin = 1;
+        $form->text('is_admin')->value(1);
         $form->tools(function (Form\Tools $tools) {
 
             // 去掉`列表`按钮
