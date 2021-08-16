@@ -220,7 +220,7 @@ class CustomerService
         $tenant->c_uid = $user->id;
         $tenant->state = $DA['state'];
         $tenant->company_id = $user['company_id'];
-        $tenant->type = 1;
+        $tenant->type = $DA['type'];
       } else {
         $tenant = $this->tenantModel()->find($DA['id']);
         $tenant->u_uid = $user->uid;
