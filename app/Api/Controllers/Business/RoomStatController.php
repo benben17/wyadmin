@@ -125,7 +125,7 @@ class RoomStatController extends BaseController
             })->where('room_type', 1)
             ->groupBy('room_state')
             ->get()->toArray();
-        // $rateStat = array('free_count' => 0, 'free_area' => 0, 'used_count' => 0, 'used_area' => 0);
+        $rateStat = array('free_count' => 0, 'free_area' => 0, 'used_count' => 0, 'used_area' => 0);
 
         foreach ($roomRateStat as $k => &$v) {
             if ($v['room_state'] == 1) {
