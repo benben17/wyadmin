@@ -246,6 +246,7 @@ class CustomerService
       $tenant->tags = isset($DA['tags']) ? $DA['tags'] : "";
       $tenant->remark = isset($DA['remark']) ? $DA['remark'] : "";
       $tenant->save();
+      Log::error("type" . $DA['type']);
       return $tenant;
     } catch (Exception $th) {
       Log::error($th->getMessage() . "客户保存失败");

@@ -152,10 +152,11 @@ class TenantController extends BaseController
         if ($checkRepeat) {
             return $this->error('客户名称重复!');
         }
-        $DA['state'] = "成交客户";
-        $DA['type'] = AppEnum::TenantType;
+
         try {
             DB::transaction(function () use ($DA) {
+                $DA['state'] = "成交客户";
+                $DA['type'] = AppEnum::TenantType;
                 $res = $this->tenantService->saveTenant($DA, $this->user);
                 if ($res) {
                     $tenantId = $res->id;
