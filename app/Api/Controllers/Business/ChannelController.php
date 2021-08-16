@@ -242,7 +242,7 @@ class ChannelController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'channel_name' => 'required|unique:bse_channel|String|max:64',
+            'channel_name' => 'required|String|max:64',
             'channel_type' => 'required',
             'is_vaild' => 'required|numeric',
             'channel_contact' => 'array',
