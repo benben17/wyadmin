@@ -64,10 +64,11 @@ class InspectionService
       if (!isset($DA['id']) || $DA['id'] == 0) {
         $this->createQr($inspection->id, $inspection->id, $user['company_id']);
       }
+      return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());
+      throw new Exception("巡检点保存失败!");
     }
-    return $res;
   }
   /**
    * 巡检记录保存
