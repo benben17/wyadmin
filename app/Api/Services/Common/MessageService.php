@@ -37,35 +37,35 @@ class MessageService
    * @param    integer    $type [1 通知 2待办]
    * @return   [type]           [description]
    */
-  public function sendMsg($DA,$user,$type =1)
+  public function sendMsg($DA, $user, $type = 1)
   {
     try {
       if ($DA['role_id'] == '-1') {
         $receiveUid = '-1';
-      }else{
+      } else {
         $roleIds = explode(',', $DA['role_id']);
-        $receive  = \App\Models\User::whereIn('role_id',$roleIds)
-        ->where('is_vaild',1)
-        ->select(DB::Raw('group_concat(id) uids'))->first();
+        $receive  = \App\Models\User::whereIn('role_id', $roleIds)
+          ->where('is_vaild', 1)
+          ->select(DB::Raw('group_concat(id) uids'))->first();
         $receiveUid = $receive['uids'];
       }
       if (!$receiveUid) {
-        Log::error("role_id:".$DA['role_id'].'未找到用户信息');
+        Log::error("role_id:" . $DA['role_id'] . '未找到用户信息');
         return false;
       }
 
       $DA['receive_uid'] = $receiveUid;
-      DB::transaction(function () use ($DA,$user,$type){
+      DB::transaction(function () use ($DA, $user, $type) {
         $message  = new MessageModel;
         $message->company_id  = $user['company_id'];
         $message->type        = $type;
         if (isset($DA['title']) && $DA['title']) {
           $message->title       = $DA['title'];
-        }else{
-          if($type == 1){
-            $message->title   = isset($DA['title']) ? $DA['title'] :"通知消息";
-          }else{
-            $message->title   = isset($DA['title']) ? $DA['title']."待处理消息":"待处理消息";
+        } else {
+          if ($type == 1) {
+            $message->title   = isset($DA['title']) ? $DA['title'] : "通知消息";
+          } else {
+            $message->title   = isset($DA['title']) ? $DA['title'] . "待处理消息" : "待处理消息";
           }
         }
         $message->content     = $DA['content'];
@@ -76,7 +76,7 @@ class MessageService
       });
       return true;
     } catch (Exception $e) {
-      Log::error("messageService:".$e);
+      Log::error("messageService:" . $e);
       throw new Exception("消息发送失败!");
       return false;
     }
@@ -92,7 +92,7 @@ class MessageService
   public function contractMsg($DA)
   {
     try {
-      DB::transaction(function () use ($DA){
+      DB::transaction(function () use ($DA) {
         $message  = new MessageModel;
         $message->company_id = $DA['company_id'];
         $message->type = 1;
@@ -102,7 +102,7 @@ class MessageService
         $message->sender_uid = -1;
         $message->sender_username = "系统通知";
         $message->save();
-       });
+      });
       return true;
     } catch (Exception $e) {
       Log::error($e);
@@ -111,13 +111,15 @@ class MessageService
   }
 
   /** 设置消息已读 */
-  public function setRead($msgIds,$uid)
+  public function setRead($msgIds, $uid)
   {
-    $msgIds = str2Array($msgIds);
+    if (!is_array($msgIds)) {
+      $msgIds = str2Array($msgIds);
+    }
     try {
-      DB::transaction(function () use ($msgIds,$uid){
+      DB::transaction(function () use ($msgIds, $uid) {
         foreach ($msgIds as $msgId) {
-          $msgRead = MessageReadModel::where('msg_id',$msgId)->where('uid',$uid)->exists();
+          $msgRead = MessageReadModel::where('msg_id', $msgId)->where('uid', $uid)->exists();
           if (!$msgRead) {
             $msg = new MessageReadModel;
             $msg->msg_id = $msgId;
@@ -133,17 +135,18 @@ class MessageService
     }
   }
   // 删除接收的消息。1 已读删除 2 未读删除
-  public function deleteMsg(Array $msgIds,$uid){
+  public function deleteMsg(array $msgIds, $uid)
+  {
     try {
-      DB::transaction(function () use ($msgIds,$uid){
+      DB::transaction(function () use ($msgIds, $uid) {
         foreach ($msgIds as $msgId) {
           $map['msg_id'] = $msgId;
           $map['uid'] = $uid;
           $msg = MessageReadModel::where($map)->first();
           if ($msg) {  // 已读 直接更新
-             $msg->is_delete = 1;
-             $msg->save();
-          }else{   // 未读 写入一条记录
+            $msg->is_delete = 1;
+            $msg->save();
+          } else {   // 未读 写入一条记录
             $msg = new MessageReadModel;
             $msg->msg_id = $msgId;
             $msg->uid = $uid;
@@ -166,23 +169,24 @@ class MessageService
    * @param    [type]     $msg [description]
    * @return   [type]          [description]
    */
-  public function sendShow($msg){
+  public function sendShow($msg)
+  {
     if ($msg['receive_uid'] == '-1') {
-        $receiveUser = '所有人';
-    }else{
-        $receiveUser = $this->getUserName($msg['receive_uid']);
+      $receiveUser = '所有人';
+    } else {
+      $receiveUser = $this->getUserName($msg['receive_uid']);
     }
     // add receive username
-    $msg['receive_user'] = $receiveUser ;  // 添加接收人
+    $msg['receive_user'] = $receiveUser;  // 添加接收人
 
     $readUid = $this->getReadUid($msg['id']);
     $msg['read_user'] = $this->getUserName($readUid);
 
     $revokeTime = config('msg_revoke');
-    if(strtotime($msg['created_at']) + $revokeTime['time']*60 <= time()){
-        $msg['is_revoke'] = 0;
-    }else{
-        $msg['is_revoke'] = 1;
+    if (strtotime($msg['created_at']) + $revokeTime['time'] * 60 <= time()) {
+      $msg['is_revoke'] = 0;
+    } else {
+      $msg['is_revoke'] = 1;
     }
     return $msg;
   }
@@ -194,10 +198,11 @@ class MessageService
    * @param    [int]     $msgId [description]
    * @return   [array]            [已读用户uids array]
    */
-  public function getReadUid($msgId){
+  public function getReadUid($msgId)
+  {
     $readUids = MessageReadModel::select(DB::Raw('GROUP_CONCAT(uid) uids'))
-            ->where('msg_id',$msgId)->first();
-    return explode(',',$readUids['uids'] );
+      ->where('msg_id', $msgId)->first();
+    return explode(',', $readUids['uids']);
   }
   /**
    * 根据用户id list 获取用户名
@@ -206,13 +211,12 @@ class MessageService
    * @param    Array      $uids [description]
    * @return   [String]           [用户多个用户逗号隔开]
    */
-  public function getUserName($uids){
+  public function getUserName($uids)
+  {
     $uids = str2Array($uids);
-    $users = \App\Models\User::whereIn('id',$uids)
-                ->select(DB::Raw('GROUP_CONCAT(realname) as realname'))
-                ->first();
+    $users = \App\Models\User::whereIn('id', $uids)
+      ->select(DB::Raw('GROUP_CONCAT(realname) as realname'))
+      ->first();
     return $users['realname'];
   }
-
-
 }
