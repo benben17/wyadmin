@@ -84,11 +84,11 @@ class ChargeService
         // $verifyAmt = $verifyAmount;
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt == $verifyAmt) {
-          $detailBill['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
-          $detailBill['status'] = 1;
+          $detail_bill_data['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
+          $detail_bill_data['status'] = 1;
         } elseif ($unreceiveAmt > $verifyAmt) {
-          $detailBill['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
-          $detailBill['status'] = 0;
+          $detail_bill_data['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
+          $detail_bill_data['status'] = 0;
         }
         $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
         $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
@@ -96,7 +96,7 @@ class ChargeService
           $chargeBill['status'] = AppEnum::chargeVerify;
         }
         $billRecord['amount'] = $verifyAmt;
-        $detailBill['receive_date']   = $verifyDate;
+        $detail_bill_data['receive_date']   = $verifyDate;
         $billRecord['charge_id']      = $chargeBill['id'];
         $billRecord['bill_detail_id'] = $detailBill['id'];
         $billRecord['type']           = $detailBill['type'];
@@ -104,7 +104,7 @@ class ChargeService
         $billRecord['proj_id']        = $detailBill['proj_id'];
         $billRecord['verify_date'] = $verifyDate;
         $billService = new TenantBillService;
-        $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBill); // 更新费用信息
+        $billService->billDetailModel()->where('id', $detailBill)->update($detail_bill_data); // 更新费用信息
         $this->save($chargeBill, $user);  //更新 收款
         $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
       }, 3);
