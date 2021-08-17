@@ -396,9 +396,8 @@ class ContractService
           }
         }
       }
-      Log::error('service' . $totalAmount);
-      $price = numFormat($totalAmount / $totalArea);
-      return $price;
+      // Log::error('service' . $totalAmount);
+      return numFormat($totalAmount / $totalArea);
     } catch (Exception $e) {
       Log::error($e->getMessage());
       return '0.00';

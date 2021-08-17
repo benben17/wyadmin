@@ -260,7 +260,13 @@ class CustomerController extends BaseController
                 if ($businessInfo) {
                     $businessInfo['name'] = $DA['name'];
                     $info = new BaseInfoService;
-                    $business = $info->save($businessInfo, 1);   // 1 新增
+                    $baseInfo = $info->model()->where('name', $businessInfo['name'])->first();
+                    if ($baseInfo) {
+                        $businessInfo['id'] = $baseInfo->id;
+                        $business = $info->save($businessInfo, 2);   // 1 新增
+                    } else {
+                        $business = $info->save($businessInfo, 1);   // 1 新增
+                    }
                     if ($business) {
                         $businessData['business_id'] = $business->id;
                         $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
