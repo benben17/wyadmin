@@ -360,7 +360,9 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('fee/add', '\App\Api\Controllers\Bill\BillDetailController@store');
     Route::post('fee/edit', '\App\Api\Controllers\Bill\BillDetailController@edit');
     Route::post('fee/del', '\App\Api\Controllers\Bill\BillDetailController@del');
-    Route::post('sync', '\App\Api\Controllers\Bill\BillSyncController@syncContractBill');
+
+    // 费用自动同步
+    Route::get('sync', '\App\Api\Controllers\Bill\BillSyncController@syncContractBill');
 
     // 生成word 版账单
     Route::post('toWord', '\App\Api\Controllers\Bill\BillController@billToWord');
