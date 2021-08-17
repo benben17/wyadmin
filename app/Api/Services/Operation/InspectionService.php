@@ -52,7 +52,7 @@ class InspectionService
       $inspection->proj_id      = $DA['proj_id'];
       $inspection->name         = $DA['name'];
       $inspection->type         = isset($DA['type']) ? $DA['type'] : 1;
-      $inspection->major        = $DA['major'];
+      // $inspection->major        = $DA['major'];
       $inspection->device_name  = isset($DA['device_name']) ? $DA['device_name'] : "";
       $inspection->position     = isset($DA['position']) ? $DA['position'] : "";
       $inspection->check_cycle  = isset($DA['check_cycle']) ? $DA['check_cycle'] : 1;
