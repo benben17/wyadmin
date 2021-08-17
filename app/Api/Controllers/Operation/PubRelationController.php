@@ -3,18 +3,20 @@
 namespace App\Api\Controllers\Operation;
 
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Operation\PubRelations;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Api\Services\Operation\SupplierService;
 use App\Api\Services\Common\ContactService;
+use App\Api\Services\Operation\RelationService;
+use App\Enums\AppEnum;
 
 /**
  *   供应商管理
  */
-class SupplierController extends BaseController
+class PubRelationController extends BaseController
 {
   public function __construct()
   {
@@ -23,30 +25,27 @@ class SupplierController extends BaseController
       return $this->error('用户信息错误');
     }
     $this->company_id = getCompanyId($this->uid);
-    $this->supplier = new SupplierService;
     $this->user = auth('api')->user();
-    $this->parentType = 4;
+    $this->parentType = AppEnum::Relationship;
   }
 
 
   /**
    * @OA\Post(
-   *     path="/api/operation/supplier/list",
-   *     tags={"供应商"},
-   *     summary="供应商列表",
+   *     path="/api/operation/relation/list",
+   *     tags={"公共关系"},
+   *     summary="公共关系列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={},
-   *       @OA\Property(property="supplier_type",type="String",
-   *         description="专业"),
    *       @OA\Property(property="pagesize",type="int",description="行数"),
-   *       @OA\Property(property="name",type="int",description="供应商名称"),
+   *       @OA\Property(property="name",type="int",description="公共关系名称"),
    *       @OA\Property(property="proj_ids",type="int",description="项目IDs")
    *     ),
-   *       example={"supplier_type":1,"proj_ids":"[]","name":""}
+   *       example={"proj_ids":"[]","name":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -80,16 +79,14 @@ class SupplierController extends BaseController
     } else {
       $order = 'desc';
     }
-    $data = $this->supplier->supplierModel()
-      ->where(function ($q) use ($request) {
-        $request->supplier_type && $q->where('supplier_type', 'like', '%' . $request->supplier_type . '%');
-        $request->name && $q->where('name', 'like', '%' . $request->name . '%');
-      })
+    $relation = new RelationService;
+    $data = $relation->model()->where(function ($q) use ($request) {
+      $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+    })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
     $contactService = new ContactService;
-
     foreach ($data['result'] as $k => &$v) {
       $contact = $contactService->getContact($v['id'], $this->parentType);
       $v['contact_name'] = $contact['name'];
@@ -101,23 +98,22 @@ class SupplierController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/supplier/add",
-   *     tags={"供应商"},
-   *     summary="供应商新增",
+   *     path="/api/operation/relation/add",
+   *     tags={"公共关系"},
+   *     summary="公共关系新增",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"proj_id","name","supplier_type","service_content"},
+   *          required={"proj_id","name","department","job_position"},
    *       @OA\Property(property="name",type="String",description="供应商名称"),
-   *       @OA\Property(property="supplier_type",type="String",description="专业"),
-   *       @OA\Property(property="service_content",type="String",description="服务内容"),
-   *       @OA\Property(property="maintain_depart",type="String",description="维护部门"),
-   *       @OA\Property(property="contacts",type="list",description="联系人")
+   *       @OA\Property(property="department",type="String",description="部门"),
+   *       @OA\Property(property="address",type="String",description="地址"),
+   *       @OA\Property(property="c_username",type="String",description="添加人"),
+   *       @OA\Property(property="contacts",type="list",description="联系人，list")
    *     ),
-   *       example={"name":"","supplier_type":"","service_content":"",
-   *       "maintain_depart":"","contacts":""}
+   *       example={"name":"","department":"","address":"","c_username":"","contacts":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -130,25 +126,23 @@ class SupplierController extends BaseController
   {
     $validatedData = $request->validate([
       'name'     => 'required',
-      'supplier_type'     => 'required|String',
-      'service_content'        => 'required',
-      'maintain_depart'        => 'required',
+      'department'     => 'required|String',
       'contacts'      => 'array',
     ]);
     $DA = $request->toArray();
-
+    $relation = new RelationService;
     $map['company_id'] = $this->user->company_id;
     $map['name']       = $DA['name'];
-    $isRepeat = $this->supplier->supplierModel()->where($map)->exists();
+    $isRepeat = $relation->model()->where($map)->exists();
     if ($isRepeat) {
-      return $this->error('供应商重复');
+      return $this->error('公共关系重复！');
     }
 
-    $res = $this->supplier->saveSupplier($DA, $this->user);
+    $res = $relation->save($DA, $this->user);
     if (!$res) {
-      return $this->error('供应商保存失败！');
+      return $this->error('公共关系保存失败！');
     }
-    return $this->success('供应商保存成功。');
+    return $this->success('公共关系保存成功。');
   }
 
   /**

@@ -422,6 +422,14 @@ Route::group(['prefix' => 'operation/supplier'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\SupplierController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\SupplierController@show');
 });
+// 公共关系
+Route::group(['prefix' => 'operation/relation'], function () {
+    Route::post('/list', '\App\Api\Controllers\Operation\PubRelationController@list');
+    Route::post('/add', '\App\Api\Controllers\Operation\PubRelationController@store');
+    Route::post('/edit', '\App\Api\Controllers\Operation\PubRelationController@update');
+    Route::post('/show', '\App\Api\Controllers\Operation\PubRelationController@show');
+});
+
 // 预充值管理
 Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/list', '\App\Api\Controllers\Bill\ChargeController@list');
