@@ -67,12 +67,13 @@ class TemplateController extends BaseController
         } else {
             $order = 'desc';
         }
-        // $map['company_id'] = $this->company_id;
-        $map = array();
-        $map['type'] = $request->type;
+        DB::enableQueryLog();
         $data = TemplateModel::where(function ($q) use ($request) {
-            $request->name && $q->where('name', 'like', $request->name);
-        })->get();
+            $request->name && $q->where('name', 'like', "%" . $request->name . "%");
+            $request->type && $q->where('type', $request->type);
+        })
+            ->orderBy($orderBy, $order)
+            ->get();
         // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }
