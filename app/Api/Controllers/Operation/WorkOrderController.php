@@ -135,9 +135,9 @@ class WorkOrderController extends BaseController
         })->first();
       $data['stat'] = array(
         ['label' => '待处理', 'value' => empty($stat['pending']) ? 0 : $stat['pending']],
-        ['label' => '已接单', 'value' => $stat['received']],
-        ['label' => '已处理', 'value' => $stat['finished']],
-        ['label' => '已取消', 'value' => $stat['cancel']],
+        ['label' => '已接单', 'value' => empty($stat['received']) ? 0 : $stat['received']],
+        ['label' => '已处理', 'value' => empty($stat['finished']) ? 0 : $stat['finished']],
+        ['label' => '已取消', 'value' => empty($stat['cancel']) ? 0 : $stat['cancel']],
         ['label' => '总计', 'value' => $stat['total_count']]
       );
     }
