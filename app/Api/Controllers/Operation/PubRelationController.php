@@ -140,30 +140,27 @@ class PubRelationController extends BaseController
 
     $res = $relation->save($DA, $this->user);
     if (!$res) {
-      return $this->error('公共关系保存失败！');
+      return $this->error($DA['name'] . '公共关系保存失败！');
     }
-    return $this->success('公共关系保存成功。');
+    return $this->success($DA['name'] . '公共关系保存成功。');
   }
 
   /**
    * @OA\Post(
-   *     path="/api/operation/supplier/edit",
-   *     tags={"供应商"},
-   *     summary="供应商编辑",
+   *     path="/api/operation/relation/edit",
+   *     tags={"公共关系"},
+   *     summary="公共关系编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *           required={"id","supplier_type","service_content","maintain_depart","contacts"},
-   *       @OA\Property(property="name",type="String",description="供应商名称"),
-   *       @OA\Property(property="supplier_type",type="String",description="专业"),
-   *       @OA\Property(property="service_content",type="String",description="服务内容"),
-   *       @OA\Property(property="maintain_depart",type="String",description="维护部门"),
+   *           required={"id","department","job_position","contacts"},
+   *       @OA\Property(property="name",type="String",description="公共关系"),
+   *       @OA\Property(property="department",type="String",description="部门"),
    *       @OA\Property(property="contacts",type="list",description="联系人")
    *     ),
-   *       example={"name":"","supplier_type":"","service_content":"",
-   *       "maintain_depart":"","contacts":""}
+   *       example={"name":"","department":"","job_position":"","contacts":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -176,27 +173,25 @@ class PubRelationController extends BaseController
   {
 
     $validatedData = $request->validate([
-      'id'              => 'required',
-      'name'     => 'required',
-      'supplier_type'     => 'required|String',
-      'service_content'        => 'required',
-      'maintain_depart'        => 'required',
-      'supplier_contact'      => 'array',
+      'id'          => 'required',
+      'name'        => 'required',
+      'department'  => 'required|String',
+      'contacts'    => 'array',
     ]);
     $DA = $request->toArray();
-
+    $relation = new RelationService;
     $map['company_id'] = $this->user['company_id'];
     $map['name']       = $DA['name'];
-    $isRepeat = $this->supplier->supplierModel()->where($map)
+    $isRepeat = $relation->model()->where($map)
       ->where('id', '!=', $DA['id'])->exists();
     if ($isRepeat) {
-      return $this->error('供应商重复');
+      return $this->error($DA['name'] . "已存在");
     }
-    $res = $this->supplier->saveSupplier($DA, $this->user, 2);
+    $res = $relation->save($DA, $this->user, 2);
     if (!$res) {
-      return $this->error('更新失败！');
+      return $this->error($DA['name'] . '更新失败！');
     }
-    return $this->success('更新成功。');
+    return $this->success($DA['name'] . '更新成功。');
   }
 
 
@@ -229,7 +224,8 @@ class PubRelationController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $data = $this->supplier->supplierModel()
+    $relation = new RelationService;
+    $data = $relation->model()
       ->find($request->id);
 
     if ($data) {

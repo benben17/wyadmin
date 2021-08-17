@@ -51,7 +51,7 @@ class RelationService
           if ($type == 2) {
             $contact->delete($relation->id);
           }
-          $user['parent_type'] = AppEnum::Supplier;
+          $user['parent_type'] = AppEnum::Relationship;
           $contacts = formatContact($DA['contacts'], $relation->id, $user);
           if ($contacts) {
             $contact->saveAll($contacts);
