@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Operation;
 
 use App\Api\Controllers\BaseController;
@@ -15,14 +16,15 @@ use PhpParser\Node\Stmt\TryCatch;
  */
 class InspectionController extends BaseController
 {
-  public function __construct(){
-      $this->uid  = auth()->payload()->get('sub');
-      if (!$this->uid) {
-        return $this->error('用户信息错误');
-      }
-      $this->company_id = getCompanyId($this->uid);
-      $this->inspection = new InspectionService;
-      $this->user = auth('api')->user();
+  public function __construct()
+  {
+    $this->uid  = auth()->payload()->get('sub');
+    if (!$this->uid) {
+      return $this->error('用户信息错误');
+    }
+    $this->company_id = getCompanyId($this->uid);
+    $this->inspection = new InspectionService;
+    $this->user = auth('api')->user();
   }
   /**
    * @OA\Post(
@@ -57,32 +59,32 @@ class InspectionController extends BaseController
     // ]);
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
-        $pagesize = config('per_size');
+      $pagesize = config('per_size');
     }
-    if($pagesize == '-1'){
-        $pagesize = config('export_rows');
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
     }
 
     // 排序字段
     if ($request->input('orderBy')) {
-        $orderBy = $request->input('orderBy');
+      $orderBy = $request->input('orderBy');
     } else {
-        $orderBy = 'created_at';
+      $orderBy = 'created_at';
     }
     // 排序方式desc 倒叙 asc 正序
     if ($request->input('order')) {
-        $order = $request->input('order');
+      $order = $request->input('order');
     } else {
-        $order = 'desc';
+      $order = 'desc';
     }
     $data = $this->inspection->inspectionModel()
-    ->where(function ($q) use($request){
-      $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-      $request->device_name && $q->where('device_name','like','%'.$request->device_name.'%');
-      $request->name && $q->where('name','like','%'.$request->name.'%');
-    })
-    ->orderBy($orderBy,$order)
-    ->paginate($pagesize)->toArray();
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
+        $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+      })
+      ->orderBy($orderBy, $order)
+      ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
     return $this->success($data);
   }
@@ -114,15 +116,17 @@ class InspectionController extends BaseController
    * )
    */
 
-  public function store(Request $request){
+  public function store(Request $request)
+  {
     $validatedData = $request->validate([
-        'proj_id'         => 'required|numeric|gt:0',
-        'device_name'     => 'required|String',
-        'position'        => 'required|String',
+      'type'         => 'required|numeric|in:1,2',
+      'proj_id'         => 'required|numeric|gt:0',
+      'device_name'     => 'required|String',
+      'position'        => 'required|String',
     ]);
     $DA = $request->toArray();
 
-    $res = $this->inspection->saveInspection($DA,$this->user);
+    $res = $this->inspection->saveInspection($DA, $this->user);
     if (!$res) {
       return $this->error('巡检点保存失败！');
     }
@@ -156,17 +160,18 @@ class InspectionController extends BaseController
    *     )
    * )
    */
-  public function update(Request $request){
+  public function update(Request $request)
+  {
 
     $validatedData = $request->validate([
-        'id'              => 'required|numeric',
-        'proj_id'         => 'required|numeric|gt:0',
-        'device_name'     => 'required|String',
-        'position'        => 'required|String',
+      'id'              => 'required|numeric',
+      'proj_id'         => 'required|numeric|gt:0',
+      'device_name'     => 'required|String',
+      'position'        => 'required|String',
     ]);
     $DA = $request->toArray();
 
-    $res = $this->inspection->saveInspection($DA,$this->user);
+    $res = $this->inspection->saveInspection($DA, $this->user);
     if (!$res) {
       return $this->error('巡检更新失败！');
     }
@@ -201,9 +206,9 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $DA= $request->toArray();
+    $DA = $request->toArray();
     $data = $this->inspection->inspectionModel()
-    ->find($DA['id'])->toArray();
+      ->find($DA['id'])->toArray();
     return $this->success($data);
   }
 
@@ -236,8 +241,8 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $DA= $request->toArray();
-    $res = $this->inspection->inspectionModel()->whereIn('id',$request->Ids)->delete();
+    $DA = $request->toArray();
+    $res = $this->inspection->inspectionModel()->whereIn('id', $request->Ids)->delete();
     if ($res) {
       return $this->success("删除成功");
     }
@@ -271,37 +276,37 @@ class InspectionController extends BaseController
    *     )
    * )
    */
-  public function recordList(Request $request){
+  public function recordList(Request $request)
+  {
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
-        $pagesize = config('per_size');
+      $pagesize = config('per_size');
     }
-    if($pagesize == '-1'){
-        $pagesize = config('export_rows');
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
     }
 
     // 排序字段
     if ($request->input('orderBy')) {
-        $orderBy = $request->input('orderBy');
+      $orderBy = $request->input('orderBy');
     } else {
-        $orderBy = 'created_at';
+      $orderBy = 'created_at';
     }
     // 排序方式desc 倒叙 asc 正序
     if ($request->input('order')) {
-        $order = $request->input('order');
+      $order = $request->input('order');
     } else {
-        $order = 'desc';
+      $order = 'desc';
     }
     $data = $this->inspection->inspectionRecordModel()
-    ->where(function ($q) use($request){
-      $request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-      $request->start_date && $q->where('created_at','>=',$request->start_date);
-      $request->end_date && $q->where('created_at','<=',$request->end_date);
-      $request->c_uid && $q->where('c_uid',$request->uid);
-      $request->inspection_id && $q->where('inspection_id',$request->inspection_id);
-
-    })->with('inspection:id,name,device_name,proj_id,check_cycle')
-    ->paginate($pagesize)->toArray();
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->start_date && $q->where('created_at', '>=', $request->start_date);
+        $request->end_date && $q->where('created_at', '<=', $request->end_date);
+        $request->c_uid && $q->where('c_uid', $request->uid);
+        $request->inspection_id && $q->where('inspection_id', $request->inspection_id);
+      })->with('inspection:id,name,device_name,proj_id,check_cycle')
+      ->paginate($pagesize)->toArray();
     $data = $this->handleBackData($data);
     if ($data['result']) {
       foreach ($data['result'] as $k => &$v) {
@@ -313,7 +318,7 @@ class InspectionController extends BaseController
     return $this->success($data);
   }
 
-/**
+  /**
    * @OA\Post(
    *     path="/api/operation/inspection/record/add",
    *     tags={"巡检"},
@@ -337,14 +342,15 @@ class InspectionController extends BaseController
    *     )
    * )
    */
-  public function recordStore(Request $request){
+  public function recordStore(Request $request)
+  {
     $validatedData = $request->validate([
-        'inspection_id'    => 'required',
-        'is_unusual'        => 'required|numeric|in:0,1', //0 异常 1 正常
+      'inspection_id'    => 'required',
+      'is_unusual'        => 'required|numeric|in:0,1', //0 异常 1 正常
 
     ]);
     $DA = $request->toArray();
-    $res = $this->inspection->saveInspectionRecord($DA,$this->user);
+    $res = $this->inspection->saveInspectionRecord($DA, $this->user);
     if (!$res) {
       return $this->error('设备维护保存失败！');
     }
@@ -373,11 +379,12 @@ class InspectionController extends BaseController
    *     )
    * )
    */
-  public function inspectionCreateQr(Request $request){
+  public function inspectionCreateQr(Request $request)
+  {
     $validatedData = $request->validate([
-        'id'            => 'required|numeric|gt:0',
+      'id'            => 'required|numeric|gt:0',
     ]);
-    $res = $this->inspection->createQr($request->id,$request->id,$this->company_id);
+    $res = $this->inspection->createQr($request->id, $request->id, $this->company_id);
 
     if (!$res) {
       return $this->error('生成二维码失败！');
@@ -408,15 +415,16 @@ class InspectionController extends BaseController
    *     )
    * )
    */
-  public function recordUpdate(Request $request){
+  public function recordUpdate(Request $request)
+  {
     $validatedData = $request->validate([
-        'id'            => 'required|numeric|gt:0',
-        'inspection_id'    => 'required',
-        'is_unusual'        => 'required|int',
+      'id'            => 'required|numeric|gt:0',
+      'inspection_id'    => 'required',
+      'is_unusual'        => 'required|int',
 
     ]);
     $DA = $request->toArray();
-    $res = $this->inspection->saveInspectionRecord($DA,$this->user);
+    $res = $this->inspection->saveInspectionRecord($DA, $this->user);
     if (!$res) {
       return $this->error('设备维护更新失败！');
     }
@@ -451,15 +459,15 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $DA= $request->toArray();
+    $DA = $request->toArray();
     $data = $this->inspection->inspectionRecordModel()
-    ->with('inspection')
-    ->find($DA['id'])
-    ->toArray();
+      ->with('inspection')
+      ->find($DA['id'])
+      ->toArray();
     if ($data['is_unusual'] == 1) {
-      $data['is_unusual_label'] ='正常';
-    }else{
-      $data['is_unusual_label'] ='异常';
+      $data['is_unusual_label'] = '正常';
+    } else {
+      $data['is_unusual_label'] = '异常';
     }
     $data['name'] = $data['inspection']['name'];
     $data['device_name'] = $data['inspection']['device_name'];
@@ -495,16 +503,11 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $DA= $request->toArray();
-    $res = $this->inspection->inspectionRecordModel()->whereIn('id',$request->Ids)->delete();
+    $DA = $request->toArray();
+    $res = $this->inspection->inspectionRecordModel()->whereIn('id', $request->Ids)->delete();
     if ($res) {
       return $this->success("记录删除成功。");
     }
     return $this->error('删除失败！');
   }
-
 }
-
-
-
-
