@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Operation\SupplierService;
 use App\Api\Services\Common\ContactService;
+use App\Enums\AppEnum;
 
 /**
  *   供应商管理
@@ -25,7 +26,7 @@ class SupplierController extends BaseController
     $this->company_id = getCompanyId($this->uid);
     $this->supplier = new SupplierService;
     $this->user = auth('api')->user();
-    $this->parentType = 4;
+    $this->parentType = AppEnum::Supplier;
   }
 
 
