@@ -186,7 +186,7 @@ class TenantController extends BaseController
                     $baseInfo = $info->model()->where('name', $businessInfo['name'])->first();
                     if ($baseInfo) {
                         $businessInfo['id'] = $baseInfo->id;
-                        $business = $info->save($businessInfo, 2);   // 1 新增
+                        $business = $info->save($businessInfo, 2);   // 编辑
                     } else {
                         $business = $info->save($businessInfo, 1);   // 1 新增
                     }
@@ -277,7 +277,11 @@ class TenantController extends BaseController
                     $businessInfo['business_id'] = $DA['business_id'];
                     $businessInfo['name'] = $DA['name'];
                     $info = new BaseInfoService;
-                    $business = $info->save($businessInfo, 2);
+                    $res = $info->model()->where('name', $DA['name'])->first();
+                    if ($res) {
+                    } else {
+                        $business = $info->save($businessInfo, 2);
+                    }
                 }
             });
             return $this->success('客户更新成功。');

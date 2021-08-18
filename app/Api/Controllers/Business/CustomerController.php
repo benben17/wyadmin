@@ -378,7 +378,7 @@ class CustomerController extends BaseController
                         $businessData['business_id'] = $res->id;
                         $this->customerService->tenantModel()::whereId($DA['id'])->update($businessData);
                     } else {
-                        $info->save($businessInfo, 1);
+                        $info->save($businessInfo, 2);
                     }
                 }
                 $cusLog['content'] = '编辑客户【' . $DA['name'] . '】';
