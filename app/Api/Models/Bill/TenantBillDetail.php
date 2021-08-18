@@ -66,7 +66,14 @@ class TenantBillDetail extends Model
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      return $this->attributes['status'] ?  '已结清' : "未结清";
+      $status = $this->attributes['status'];
+      if ($status == 1) {
+        return '已结清';
+      } else if ($status == 0) {
+        return "未结清";
+      } else if ($status == 2) {
+        return '已退款';
+      }
     }
   }
   public function getBillStatusAttribute()

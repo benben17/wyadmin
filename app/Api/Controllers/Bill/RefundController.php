@@ -152,13 +152,11 @@ class RefundController extends BaseController
     }
 
     try {
-      DB::transaction(function () use ($billDetail, $request) {
+      DB::transaction(function () use ($billDetail, $request, $billService) {
         $chargeService = new ChargeService;
-
         $charge['type']         = AppEnum::chargeRefund;
         $charge['amount']       = $request->amount;
         $charge['charge_date']  = $request->refund_date;
-
         $charge['bank_id']      = $request->bank_id;
         $charge['proj_id']      = $billDetail->proj_id;
         $charge['fee_type']     = $billDetail->fee_type;
@@ -167,11 +165,16 @@ class RefundController extends BaseController
         $charge['remark']       = isset($request->remark) ? $request->remark : "";
         $chargeRes = $chargeService->save($charge, $this->user);
 
+        // 更新费用状态
+        if ($request->amount == $billDetail['receive_amount']) {
+          $billService->billDetailModel()->where('id', $billDetail['id'])->update(['status' => 2]);
+        }
+
         // Log::error($chargeRes);
         $DA = $request->toArray();
         $DA['charge_id'] = $chargeRes->id;
         $DA['proj_id'] = $billDetail->proj_id;
-        Log::error(json_encode($DA));
+        // Log::error(json_encode($DA));
         $this->refundService->save($DA, $this->user);
       }, 2);
       return $this->success("退款成功。");
