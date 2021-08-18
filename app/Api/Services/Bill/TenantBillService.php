@@ -112,6 +112,7 @@ class TenantBillService
           $billDetail->save();  // 费用等于0，写入数据
         }
       }, 3);
+      return true;
     } catch (Exception $e) {
       Log::error("账单详细保存失败" . $e);
       throw new Exception("账单详细保存失败" . $e);
