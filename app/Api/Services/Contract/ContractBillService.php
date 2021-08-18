@@ -269,7 +269,7 @@ class ContractBillService
           if ($free['free_num'] > 0) {
             $bill[$i]['remark'] = $free['remark'];
           }
-        } else if ($freeType == 2) {
+        } else if ($freeType == AppEnum::freeDay) {
           // 按天免租 获取免租后账单的结束日期
           // 开始时间 周期 免租列表 0 合同结束时间
           $free = $this->endDateByDays($startDate, $period, $DA['free_list'], 0, $rule['end_date']);
@@ -355,7 +355,7 @@ class ContractBillService
     }
     foreach ($freeList as $k => $v) {
       if (strtotime($v['start_date']) >= strtotime($billStart) && strtotime($v['start_date']) < strtotime($billEnd)) {
-        Log::error($billStart . "开始时间" . $billEnd . "结束时间");
+        // Log::error($billStart . "开始时间" . $billEnd . "结束时间");
         $free_num   += $v['free_num'];
         if ($freeType == AppEnum::freeMonth) {
           $free_amt += numFormat($rentRule['month_amt'] * $free_num);
