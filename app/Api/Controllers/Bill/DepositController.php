@@ -118,7 +118,7 @@ class DepositController extends BaseController
    *       @OA\Property(property="charge_date",type="date",description="收款日期"),
    *       @OA\Property(property="fee_type",type="int",description="费用类型")
    *     ),
-   *       example={"amount":"1","tenant_id":"1","charge_date":""}
+   *       example={"amount":"1","tenant_id":"1","charge_date":"","fee_type":"107"}
    *       )
    *     ),
    *     @OA\Response(
@@ -130,16 +130,63 @@ class DepositController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'type' => 'required',
       'amount' => 'required',
       'fee_type' => 'required|gt:0',
       'charge_date' => 'required|date',
       'tenant_id' => 'required',
       'proj_id' => 'required',
     ]);
-
+    $DA = $request->toArray();
+    $DA['type'] = AppEnum::depositFeeType;
     $billDetail = new TenantBillService;
-    $res = $billDetail->saveBillDetail($request->toArray(), $this->user);
+    $res = $billDetail->saveBillDetail($DA, $this->user);
+    if (!$res) {
+      return $this->error("押金保存失败!");
+    }
+    return $this->success("押金保存成功.");
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/bill/deposit/edit",
+   *     tags={"押金管理"},
+   *     summary="押金管理编辑",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"amount","tenant_id","charge_date","fee_type","id"},
+   *       @OA\Property(property="id",type="int",description="id"),
+   *       @OA\Property(property="amount",type="float",description="金额"),
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="proj_id",type="int",description="项目id"),
+   *       @OA\Property(property="charge_date",type="date",description="收款日期"),
+   *       @OA\Property(property="fee_type",type="int",description="费用类型")
+   *     ),
+   *       example={"id","amount":"1","tenant_id":"1","charge_date":"","fee_type":"107"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function edit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'      => 'required|gt:0',
+      'amount' => 'required',
+      'fee_type' => 'required|gt:0',
+      'charge_date' => 'required|date',
+      'tenant_id' => 'required',
+      'proj_id' => 'required',
+    ]);
+    $DA = $request->toArray();
+    $DA['type'] = AppEnum::depositFeeType;
+    $billDetail = new TenantBillService;
+    $res = $billDetail->saveBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金保存失败!");
     }
@@ -179,5 +226,37 @@ class DepositController extends BaseController
       }])
       ->find($request->id);
     return $this->success($data);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/bill/deposit/del",
+   *     tags={"押金管理"},
+   *     summary="押金管理删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids"},
+   *       @OA\Property(property="Ids",type="list",description="id集合")
+   *     ),
+   *       example={"Ids":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function del(Request $request)
+  {
+    $validatedData = $request->validate([
+      'Ids' => 'required|array',
+    ]);
+    $depositService = new TenantBillService;
+    $data = $depositService->billDetailModel()->whereIn('id', $request->Ids)->delete();
+    return $this->success('押金删除成功');
   }
 }

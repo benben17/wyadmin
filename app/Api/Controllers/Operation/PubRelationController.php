@@ -171,7 +171,6 @@ class PubRelationController extends BaseController
    */
   public function update(Request $request)
   {
-
     $validatedData = $request->validate([
       'id'          => 'required',
       'name'        => 'required',
