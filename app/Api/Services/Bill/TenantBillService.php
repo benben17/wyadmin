@@ -134,6 +134,7 @@ class TenantBillService
         $this->saveBillDetailLog($billDetail, $DA, $user);
         $billDetail->amount = $DA['amount'];
         $billDetail->discount_amount = $DA['discount_amount'];
+        $billDetail->fee_ftype = $DA['fee_type'];
         $billDetail->save();
       }, 2);
       return true;
