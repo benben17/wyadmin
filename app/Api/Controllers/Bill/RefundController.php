@@ -115,7 +115,7 @@ class RefundController extends BaseController
    *          schema="UserModel",
    *          required={"bill_detail_id,amount,refund_date","proj_id"},
    *       @OA\Property(property="bill_detail_id",type="int",description="费用ID"),
-   *       @OA\Property(property="amount",type="double",description="收款金额"),
+   *       @OA\Property(property="amount",type="double",description="退款金额"),
    *       @OA\Property(property="refund_date",type="date",description="退款日期"),
    *       @OA\Property(property="proj_id",type="int",description="项目id")
    *     ),

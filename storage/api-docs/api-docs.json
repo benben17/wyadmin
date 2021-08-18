@@ -1418,7 +1418,7 @@
                                         "type": "int"
                                     },
                                     "amount": {
-                                        "description": "收款金额",
+                                        "description": "退款金额",
                                         "type": "double"
                                     },
                                     "refund_date": {
