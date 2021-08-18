@@ -373,7 +373,7 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     // 押金
     Route::post('deposit/list', '\App\Api\Controllers\Bill\DepositController@list');
     Route::post('deposit/show', '\App\Api\Controllers\Bill\DepositController@show');
-    Route::post('deposit/add', '\App\Api\Controllers\Bill\DepositController@add');
+    Route::post('deposit/add', '\App\Api\Controllers\Bill\DepositController@store');
     Route::post('deposit/edit', '\App\Api\Controllers\Bill\DepositController@edit');
     Route::post('deposit/del', '\App\Api\Controllers\Bill\DepositController@del');
 });
