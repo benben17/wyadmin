@@ -100,89 +100,13 @@ class DepositController extends BaseController
     return $this->success($data);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/operation/tenant/bill/refund/add",
-   *     tags={"退款"},
-   *     summary="退款新增",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"bill_detail_id,amount,refund_date","proj_id"},
-   *       @OA\Property(property="bill_detail_id",type="int",description="费用ID"),
-   *       @OA\Property(property="amount",type="double",description="收款金额"),
-   *       @OA\Property(property="refund_date",type="date",description="退款日期"),
-   *       @OA\Property(property="proj_id",type="int",description="项目id")
-   *     ),
-   *       example={"bill_detail_id":1,"amount":"2","refund_date":"","charge_date":""}
-   *       )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description=""
-   *     )
-   * )
-   */
 
-  public function store(Request $request)
-  {
-    $validatedData = $request->validate([
-      'bill_detail_id' => 'required|numeric|gt:0',
-      'amount'    => 'required',
-      'refund_date' => 'required|date',
-      'bank_id'    => 'required|numeric|gt:0',
-    ]);
-
-    $billService = new TenantBillService;
-    $billDetail = $billService->billDetailModel()->find($request->bill_detail_id);
-    if (!$billDetail) {
-      return $this->error("未查询到费用记录。");
-    }
-    $refund = $this->refundService->model()->selectRaw('sum(amount) amount')->where('bill_detail_id', $request->bill_detail_id)->first();
-
-    $refundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
-    Log::error($refundAmt);
-    if ($refundAmt < $request->amount) {
-      return $this->error("已收金额小于退款记录！");
-    }
-
-    try {
-      DB::transaction(function () use ($billDetail, $request) {
-        $chargeService = new ChargeService;
-
-        $charge['type']         = AppEnum::chargeRefund;
-        $charge['amount']       = $request->amount;
-        $charge['charge_date']  = $request->refund_date;
-
-        $charge['bank_id']      = $request->bank_id;
-        $charge['proj_id']      = $billDetail->proj_id;
-        $charge['fee_type']     = $billDetail->fee_type;
-        $charge['tenant_id']    = $billDetail->tenant_id;
-        $charge['tenant_name']  = $billDetail->tenant_name;
-        $charge['remark']       = isset($request->remark) ? $request->remark : "";
-        $chargeRes = $chargeService->save($charge, $this->user);
-
-        // Log::error($chargeRes);
-        $DA = $request->toArray();
-        $DA['charge_id'] = $chargeRes->id;
-        $DA['proj_id'] = $billDetail->proj_id;
-        Log::error(json_encode($DA));
-        $this->refundService->save($DA, $this->user);
-      }, 2);
-      return $this->success("退款成功。");
-    } catch (Exception $th) {
-      Log::error("退款失败." . $th);
-      return $this->error("退款失败！");
-    }
-  }
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/refund/show",
-   *     tags={"退款"},
-   *     summary="退款详细",
+   *     path="/api/operation/bill/deposit/show",
+   *     tags={"押金管理"},
+   *     summary="押金管理详细",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -205,8 +129,8 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required',
     ]);
-
-    $data = $this->refundService->model()
+    $depositService = new TenantBillService;
+    $data = $depositService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
       }])
