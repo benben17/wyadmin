@@ -42,6 +42,9 @@ final class AppEnum extends Enum
   const chargeIncome = 1;  // 收入     
   const chargeRefund  = 2;    // 支出
 
+  // 免租类型
+  const freeMonth = 1;
+  const freeDay = 2;
 
   const chargeVerify  = 1;  // 
   const chargeUnVerify  = 0;
