@@ -191,7 +191,7 @@ class ChannelController extends BaseController
             $pagesize = config("per_size");
         }
         DB::enableQueryLog();
-        $data = Tenant::with('extraInfo:tenant_id,demand_area')
+        $data = Tenant::with('extraInfo:tenant_id,demand_area,id')
             ->withCount(['brokerageLog as brokerage_amount' => function ($q) {
                 $q->select(DB::Raw('sum(brokerage_amount)'));
             }])

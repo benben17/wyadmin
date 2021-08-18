@@ -117,7 +117,7 @@ class Tenant extends Model
 
   public function brokerageLog()
   {
-    return $this->hasMany(ChannelBrokerage::class, 'id', 'tenant_id');
+    return $this->hasMany(ChannelBrokerage::class, 'tenant_id', 'id');
   }
 
 
