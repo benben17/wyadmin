@@ -648,6 +648,9 @@ class PubSelectController extends BaseController
 		$service = new \App\Api\Services\Company\FeeTypeService;
 		$companyIds = getCompanyIds($this->uid);
 		$data = $service->model()->whereIn('company_id', $companyIds)
+			->where(function ($q) use ($request) {
+				$request->type && $q->where('type', $request->type);
+			})
 			->where('is_vaild', 1)
 			->orderBy('id', 'asc')
 			->get()->toArray();
