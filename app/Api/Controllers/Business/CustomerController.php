@@ -373,11 +373,13 @@ class CustomerController extends BaseController
                     $businessInfo['business_info_id'] = $DA['business_id'];
                     $businessInfo['name'] = $DA['name'];
                     $info = new BaseInfoService;
-                    $info->save($businessInfo, 2);
-                    // if ($business) {
-                    //     $businessData['business_info_id'] = $business->id;
-                    //     $updateCus = CustomerModel::whereId($DA['id'])->update($businessData);
-                    // }
+                    $res = $info->model()->where('name', $DA['name'])->first();
+                    if ($res) {
+                        $businessData['business_id'] = $res->id;
+                        $this->customerService->tenantModel()::whereId($DA['id'])->update($businessData);
+                    } else {
+                        $info->save($businessInfo, 1);
+                    }
                 }
                 $cusLog['content'] = '编辑客户【' . $DA['name'] . '】';
                 $cusLog['tenant_id'] = $DA['id'];
