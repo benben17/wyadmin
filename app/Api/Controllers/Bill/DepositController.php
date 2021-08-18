@@ -1,0 +1,216 @@
+<?php
+
+namespace App\Api\Controllers\Bill;
+
+use App\Api\Controllers\BaseController;
+use JWTAuth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Api\Services\Bill\RefundService;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\ChargeService;
+use App\Enums\AppEnum;
+use Exception;
+
+class DepositController extends BaseController
+{
+  public function __construct()
+  {
+    $this->uid  = auth()->payload()->get('sub');
+    if (!$this->uid) {
+      return $this->error('用户信息错误');
+    }
+
+    $this->user = auth('api')->user();
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/deposit/list",
+   *     tags={"押金管理"},
+   *     summary="押金管理列表",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"tenant_id"},
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="pagesize",type="int",description="行数"),
+   *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
+   *       @OA\Property(property="start_date",type="date",description="开始时间"),
+   *       @OA\Property(property="end_date",type="date",description="结束时间"),
+   *        @OA\Property(property="proj_ids",type="list",description="")
+   *     ),
+   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function list(Request $request)
+  {
+    // $validatedData = $request->validate([
+    //     'order_type' => 'required|numeric',
+    // ]);
+    $pagesize = $request->input('pagesize');
+    if (!$pagesize || $pagesize < 1) {
+      $pagesize = config('per_size');
+    }
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
+    }
+    $map = array();
+    // 排序字段
+    if ($request->input('orderBy')) {
+      $orderBy = $request->input('orderBy');
+    } else {
+      $orderBy = 'created_at';
+    }
+    // 排序方式desc 倒叙 asc 正序
+    if ($request->input('order')) {
+      $order = $request->input('order');
+    } else {
+      $order = 'desc';
+    }
+    if ($request->type) {
+      $map['type'] = $request->type;
+    }
+    if ($request->bill_detail_id) {
+      $map['bill_detail_id'] = $request->bill_detail_id;
+    }
+    $map['type'] = AppEnum::depositFeeType;
+    DB::enableQueryLog();
+    $depositService = new TenantBillService;
+    $data = $depositService->billDetailModel()
+      ->where($map)
+      ->where(function ($q) use ($request) {
+        $request->start_date && $q->where('refund_date', '>=',  $request->start_date);
+        $request->end_date && $q->where('refund_date', '<=',  $request->end_date);
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+      })
+      ->orderBy($orderBy, $order)
+      ->paginate($pagesize)->toArray();
+    // return response()->json(DB::getQueryLog());
+    $data = $this->handleBackData($data);
+    return $this->success($data);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/refund/add",
+   *     tags={"退款"},
+   *     summary="退款新增",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"bill_detail_id,amount,refund_date","proj_id"},
+   *       @OA\Property(property="bill_detail_id",type="int",description="费用ID"),
+   *       @OA\Property(property="amount",type="double",description="收款金额"),
+   *       @OA\Property(property="refund_date",type="date",description="退款日期"),
+   *       @OA\Property(property="proj_id",type="int",description="项目id")
+   *     ),
+   *       example={"bill_detail_id":1,"amount":"2","refund_date":"","charge_date":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function store(Request $request)
+  {
+    $validatedData = $request->validate([
+      'bill_detail_id' => 'required|numeric|gt:0',
+      'amount'    => 'required',
+      'refund_date' => 'required|date',
+      'bank_id'    => 'required|numeric|gt:0',
+    ]);
+
+    $billService = new TenantBillService;
+    $billDetail = $billService->billDetailModel()->find($request->bill_detail_id);
+    if (!$billDetail) {
+      return $this->error("未查询到费用记录。");
+    }
+    $refund = $this->refundService->model()->selectRaw('sum(amount) amount')->where('bill_detail_id', $request->bill_detail_id)->first();
+
+    $refundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
+    Log::error($refundAmt);
+    if ($refundAmt < $request->amount) {
+      return $this->error("已收金额小于退款记录！");
+    }
+
+    try {
+      DB::transaction(function () use ($billDetail, $request) {
+        $chargeService = new ChargeService;
+
+        $charge['type']         = AppEnum::chargeRefund;
+        $charge['amount']       = $request->amount;
+        $charge['charge_date']  = $request->refund_date;
+
+        $charge['bank_id']      = $request->bank_id;
+        $charge['proj_id']      = $billDetail->proj_id;
+        $charge['fee_type']     = $billDetail->fee_type;
+        $charge['tenant_id']    = $billDetail->tenant_id;
+        $charge['tenant_name']  = $billDetail->tenant_name;
+        $charge['remark']       = isset($request->remark) ? $request->remark : "";
+        $chargeRes = $chargeService->save($charge, $this->user);
+
+        // Log::error($chargeRes);
+        $DA = $request->toArray();
+        $DA['charge_id'] = $chargeRes->id;
+        $DA['proj_id'] = $billDetail->proj_id;
+        Log::error(json_encode($DA));
+        $this->refundService->save($DA, $this->user);
+      }, 2);
+      return $this->success("退款成功。");
+    } catch (Exception $th) {
+      Log::error("退款失败." . $th);
+      return $this->error("退款失败！");
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/bill/refund/show",
+   *     tags={"退款"},
+   *     summary="退款详细",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="id")
+   *     ),
+   *       example={"ids":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function show(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required',
+    ]);
+
+    $data = $this->refundService->model()
+      ->with(['chargeBillRecord' => function ($q) {
+        $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
+      }])
+      ->find($request->id);
+    return $this->success($data);
+  }
+}

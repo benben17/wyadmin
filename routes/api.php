@@ -369,6 +369,11 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     // 退款
     Route::post('refund/list', '\App\Api\Controllers\Bill\RefundController@list');
     Route::post('refund/add', '\App\Api\Controllers\Bill\RefundController@store');
+
+    // 押金
+
+    Route::post('deposit/list', '\App\Api\Controllers\Bill\DepositController@list');
+    Route::post('deposit/add', '\App\Api\Controllers\Bill\DepositController@store');
 });
 
 //发票
