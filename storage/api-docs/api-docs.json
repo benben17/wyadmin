@@ -902,13 +902,13 @@
                 }
             }
         },
-        "/api/operation/bill/deposit/add": {
+        "/api/operation/tenant/bill/deposit/add": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理新增",
-                "operationId": "227d2240b808ad06e15dae5c25ad54de",
+                "operationId": "214243f1e90027b05a97835d2f2bc56a",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -961,13 +961,13 @@
                 }
             }
         },
-        "/api/operation/bill/deposit/edit": {
+        "/api/operation/tenant/bill/deposit/edit": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理编辑",
-                "operationId": "9d996934b3d7599f891c8b20efb1013b",
+                "operationId": "78c2af2c7a8f8af5241ac7a5f3b05a06",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1025,13 +1025,13 @@
                 }
             }
         },
-        "/api/operation/bill/deposit/show": {
+        "/api/operation/tenant/bill/deposit/show": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理详细",
-                "operationId": "61dbb947729e433e758958849ef2705e",
+                "operationId": "db200919f53509b99dfc9378eca0c575",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1061,13 +1061,13 @@
                 }
             }
         },
-        "/api/operation/bill/deposit/del": {
+        "/api/operation/tenant/bill/deposit/del": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理删除",
-                "operationId": "6a761dd736be8496c1abe59d948b017d",
+                "operationId": "e4127e1f36e2421e39198568607ad9ea",
                 "requestBody": {
                     "content": {
                         "application/json": {

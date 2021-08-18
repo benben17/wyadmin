@@ -102,7 +102,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/deposit/add",
+   *     path="/api/operation/tenant/bill/deposit/add",
    *     tags={"押金管理"},
    *     summary="押金管理新增",
    *    @OA\RequestBody(
@@ -147,7 +147,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/deposit/edit",
+   *     path="/api/operation/tenant/bill/deposit/edit",
    *     tags={"押金管理"},
    *     summary="押金管理编辑",
    *    @OA\RequestBody(
@@ -197,7 +197,7 @@ class DepositController extends BaseController
   }
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/deposit/show",
+   *     path="/api/operation/tenant/bill/deposit/show",
    *     tags={"押金管理"},
    *     summary="押金管理详细",
    *    @OA\RequestBody(
@@ -238,7 +238,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/bill/deposit/del",
+   *     path="/api/operation/tenant/bill/deposit/del",
    *     tags={"押金管理"},
    *     summary="押金管理删除",
    *    @OA\RequestBody(
