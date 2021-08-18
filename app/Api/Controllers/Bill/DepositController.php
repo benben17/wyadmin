@@ -3,6 +3,7 @@
 namespace App\Api\Controllers\Bill;
 
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Bill\TenantBillDetail;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,8 +101,50 @@ class DepositController extends BaseController
     return $this->success($data);
   }
 
+  /**
+   * @OA\Post(
+   *     path="/api/operation/bill/deposit/add",
+   *     tags={"押金管理"},
+   *     summary="押金管理新增",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"amount","tenant_id","charge_date","fee_type","type"},
+   *       @OA\Property(property="amount",type="float",description="金额"),
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="proj_id",type="int",description="项目id"),
+   *       @OA\Property(property="charge_date",type="date",description="收款日期"),
+   *       @OA\Property(property="fee_type",type="int",description="费用类型")
+   *     ),
+   *       example={"amount":"1","tenant_id":"1","charge_date":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function store(Request $request)
+  {
+    $validatedData = $request->validate([
+      'type' => 'required',
+      'amount' => 'required',
+      'fee_type' => 'required|gt:0',
+      'charge_date' => 'required|date',
+      'tenant_id' => 'required',
+      'proj_id' => 'required',
+    ]);
 
-
+    $billDetail = new TenantBillService;
+    $res = $billDetail->saveBillDetail($request->toArray(), $this->user);
+    if (!$res) {
+      return $this->error("押金保存失败!");
+    }
+    return $this->success("押金保存成功.");
+  }
   /**
    * @OA\Post(
    *     path="/api/operation/bill/deposit/show",

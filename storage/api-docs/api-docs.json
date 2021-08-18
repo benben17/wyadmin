@@ -844,6 +844,158 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/deposit/list": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "start_date": {
+                                        "description": "开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "结束时间",
+                                        "type": "date"
+                                    },
+                                    "proj_ids": {
+                                        "description": "",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": "1",
+                                "tenant_name": "",
+                                "start_date": "",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/bill/deposit/add": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理新增",
+                "operationId": "227d2240b808ad06e15dae5c25ad54de",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "amount",
+                                    "tenant_id",
+                                    "charge_date",
+                                    "fee_type",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "description": "金额",
+                                        "type": "float"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
+                                    },
+                                    "charge_date": {
+                                        "description": "收款日期",
+                                        "type": "date"
+                                    },
+                                    "fee_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "amount": "1",
+                                "tenant_id": "1",
+                                "charge_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/bill/deposit/show": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理详细",
+                "operationId": "61dbb947729e433e758958849ef2705e",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "ids": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/invoice/list": {
             "post": {
                 "tags": [
@@ -8230,6 +8382,229 @@
                 }
             }
         },
+        "/api/operation/relation/list": {
+            "post": {
+                "tags": [
+                    "公共关系"
+                ],
+                "summary": "公共关系列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [],
+                                "properties": {
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "name": {
+                                        "description": "公共关系名称",
+                                        "type": "int"
+                                    },
+                                    "proj_ids": {
+                                        "description": "项目IDs",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "proj_ids": "[]",
+                                "name": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/relation/add": {
+            "post": {
+                "tags": [
+                    "公共关系"
+                ],
+                "summary": "公共关系新增",
+                "operationId": "292a436727d47dd6814e4c6a093ee9d7",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "proj_id",
+                                    "name",
+                                    "department",
+                                    "job_position"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "供应商名称",
+                                        "type": "String"
+                                    },
+                                    "department": {
+                                        "description": "部门",
+                                        "type": "String"
+                                    },
+                                    "address": {
+                                        "description": "地址",
+                                        "type": "String"
+                                    },
+                                    "c_username": {
+                                        "description": "添加人",
+                                        "type": "String"
+                                    },
+                                    "contacts": {
+                                        "description": "联系人，list",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "",
+                                "department": "",
+                                "address": "",
+                                "c_username": "",
+                                "contacts": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/relation/edit": {
+            "post": {
+                "tags": [
+                    "公共关系"
+                ],
+                "summary": "公共关系编辑",
+                "operationId": "6c727c1ec111b22de0a355a71e5eb3c6",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "department",
+                                    "job_position",
+                                    "contacts"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "公共关系",
+                                        "type": "String"
+                                    },
+                                    "department": {
+                                        "description": "部门",
+                                        "type": "String"
+                                    },
+                                    "contacts": {
+                                        "description": "联系人",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "",
+                                "department": "",
+                                "job_position": "",
+                                "contacts": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/relation/show": {
+            "post": {
+                "tags": [
+                    "公共关系"
+                ],
+                "summary": "公共关系查看",
+                "operationId": "959ae99981306452ba9d034221356fd3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/relation/del": {
+            "post": {
+                "tags": [
+                    "公共关系"
+                ],
+                "summary": "公共关系删除",
+                "operationId": "34793ffa57a700d661545ca6ad5a0713",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "Ids": {
+                                        "description": "Ids",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "Ids": "[]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/supplier/list": {
             "post": {
                 "tags": [
@@ -8445,12 +8820,12 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "id"
+                                    "Ids"
                                 ],
                                 "properties": {
                                     "Ids": {
-                                        "description": "Ids",
-                                        "type": "int"
+                                        "description": "id集合",
+                                        "type": "list"
                                     }
                                 },
                                 "type": "object"
@@ -8512,7 +8887,7 @@
                 "tags": [
                     "租户"
                 ],
-                "summary": "租户新增-分摊租户新增",
+                "summary": "租户新增",
                 "operationId": "ba0d0bfd649388b3ec51d21d31c5b8cd",
                 "requestBody": {
                     "content": {

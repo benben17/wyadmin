@@ -169,8 +169,7 @@ class SupplierController extends BaseController
    *       @OA\Property(property="maintain_depart",type="String",description="维护部门"),
    *       @OA\Property(property="contacts",type="list",description="联系人")
    *     ),
-   *       example={"name":"","supplier_type":"","service_content":"",
-   *       "maintain_depart":"","contacts":""}
+   *       example={"name":"","supplier_type":"","service_content":"","maintain_depart":"","contacts":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -205,9 +204,6 @@ class SupplierController extends BaseController
     }
     return $this->success('更新成功。');
   }
-
-
-
   /**
    * @OA\Post(
    *     path="/api/operation/supplier/show",
@@ -244,8 +240,6 @@ class SupplierController extends BaseController
       $data['contacts'] = $contactService->getContacts($request->id, $this->parentType);
       $data  = $data->toArray();
     }
-
-
     return $this->success($data);
   }
 
@@ -259,9 +253,8 @@ class SupplierController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"id"},
-   *       @OA\Property(property="Ids",type="int",description="Ids")
-   *
+   *          required={"Ids"},
+   *       @OA\Property(property="Ids",type="list",description="id集合"),
    *     ),
    *       example={"Ids":"[]"}
    *       )

@@ -198,9 +198,9 @@ class PubRelationController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/supplier/show",
-   *     tags={"供应商"},
-   *     summary="供应商查看",
+   *     path="/api/operation/relation/show",
+   *     tags={"公共关系"},
+   *     summary="公共关系查看",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -240,9 +240,9 @@ class PubRelationController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/supplier/del",
-   *     tags={"供应商"},
-   *     summary="供应商删除",
+   *     path="/api/operation/relation/del",
+   *     tags={"公共关系"},
+   *     summary="公共关系删除",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
