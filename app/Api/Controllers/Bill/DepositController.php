@@ -136,7 +136,7 @@ class DepositController extends BaseController
       'proj_id' => 'required',
     ]);
     $DA = $request->toArray();
-    $DA['type'] = AppEnum::depositFeeType;
+    // $DA['type'] = AppEnum::depositFeeType;
     $billDetail = new TenantBillService;
     $res = $billDetail->saveBillDetail($DA, $this->user);
     if (!$res) {
@@ -183,7 +183,7 @@ class DepositController extends BaseController
       'proj_id' => 'required',
     ]);
     $DA = $request->toArray();
-    $DA['type'] = AppEnum::depositFeeType;
+    // $DA['type'] = AppEnum::depositFeeType;
     $billDetail = new TenantBillService;
     $deposit = $billDetail->billDetailModel()->find($request->id);
     if ($deposit->receive_amount > 0.00) {
