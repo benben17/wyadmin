@@ -138,8 +138,8 @@ class TenantBillService
       }, 2);
       return true;
     } catch (Exception $th) {
-      Log::error("账单详细保存失败" . $th);
-      throw new Exception("账单详细保存失败" . $th);
+      Log::error("费用保存失败" . $th);
+      throw new Exception("费用保存失败" . $th);
     }
   }
   public function saveBillDetailLog($billDetail, $DA, $user)

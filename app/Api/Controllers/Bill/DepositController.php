@@ -83,7 +83,6 @@ class DepositController extends BaseController
     $map['type'] = AppEnum::depositFeeType;
     DB::enableQueryLog();
     $depositService = new TenantBillService;
-    $refundService = new RefundService;
     $data = $depositService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
@@ -92,7 +91,7 @@ class DepositController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->withCount(['refundRecord as refund_amount' => function ($q) {
-        $q->selectRaw('sum(amount)');
+        $q->selectRaw('FORMAT(sum(amount),2)');
       }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -190,7 +189,7 @@ class DepositController extends BaseController
     if ($deposit->receive_amount > 0.00) {
       return $this->error("已有收款不允许编辑!");
     }
-    $res = $billDetail->saveBillDetail($DA, $this->user);
+    $res = $billDetail->editBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金编辑失败!");
     }
@@ -230,7 +229,7 @@ class DepositController extends BaseController
       }])
       ->with('refundRecord')
       ->withCount(['refundRecord as refund_amount' => function ($q) {
-        $q->selectRaw('sum(amount)');
+        $q->selectRaw('FORMAT(sum(amount),2)');
       }])
       ->find($request->id);
 
