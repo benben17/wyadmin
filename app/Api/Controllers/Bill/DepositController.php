@@ -3,6 +3,7 @@
 namespace App\Api\Controllers\Bill;
 
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\RefundService;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,7 @@ class DepositController extends BaseController
     $map['type'] = AppEnum::depositFeeType;
     DB::enableQueryLog();
     $depositService = new TenantBillService;
+    $refundService = new RefundService;
     $data = $depositService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
@@ -89,7 +91,9 @@ class DepositController extends BaseController
         $request->end_date && $q->where('refund_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
-      ->with('refundRecord')
+      ->withCount(['refundRecord as refund_amount' => function ($q) {
+        $q->selectRaw('sum(amount)');
+      }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
@@ -225,7 +229,11 @@ class DepositController extends BaseController
         $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
       }])
       ->with('refundRecord')
+      ->withCount(['refundRecord as refund_amount' => function ($q) {
+        $q->selectRaw('sum(amount)');
+      }])
       ->find($request->id);
+
     return $this->success($data);
   }
 
