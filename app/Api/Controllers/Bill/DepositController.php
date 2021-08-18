@@ -186,11 +186,15 @@ class DepositController extends BaseController
     $DA = $request->toArray();
     $DA['type'] = AppEnum::depositFeeType;
     $billDetail = new TenantBillService;
+    $deposit = $billDetail->billDetailModel()->find($request->id);
+    if ($deposit->receive_amount > 0.00) {
+      return $this->error("已有收款不允许编辑!");
+    }
     $res = $billDetail->saveBillDetail($DA, $this->user);
     if (!$res) {
-      return $this->error("押金保存失败!");
+      return $this->error("押金编辑失败!");
     }
-    return $this->success("押金保存成功.");
+    return $this->success("押金编辑成功.");
   }
   /**
    * @OA\Post(
@@ -256,7 +260,12 @@ class DepositController extends BaseController
       'Ids' => 'required|array',
     ]);
     $depositService = new TenantBillService;
-    $data = $depositService->billDetailModel()->whereIn('id', $request->Ids)->delete();
+
+
+    $data = $depositService->billDetailModel()->whereIn('id', $request->Ids)
+      ->where('type', AppEnum::depositFeeType)
+      ->where('receive_amount', '0.00')
+      ->delete();
     return $this->success('押金删除成功');
   }
 }

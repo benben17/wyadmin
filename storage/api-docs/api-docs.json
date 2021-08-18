@@ -948,7 +948,72 @@
                             "example": {
                                 "amount": "1",
                                 "tenant_id": "1",
-                                "charge_date": ""
+                                "charge_date": "",
+                                "fee_type": "107"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/bill/deposit/edit": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理编辑",
+                "operationId": "9d996934b3d7599f891c8b20efb1013b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "amount",
+                                    "tenant_id",
+                                    "charge_date",
+                                    "fee_type",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "金额",
+                                        "type": "float"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目id",
+                                        "type": "int"
+                                    },
+                                    "charge_date": {
+                                        "description": "收款日期",
+                                        "type": "date"
+                                    },
+                                    "fee_type": {
+                                        "description": "费用类型",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "0": "id",
+                                "amount": "1",
+                                "tenant_id": "1",
+                                "charge_date": "",
+                                "fee_type": "107"
                             }
                         }
                     }
@@ -985,6 +1050,42 @@
                             },
                             "example": {
                                 "ids": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/bill/deposit/del": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理删除",
+                "operationId": "6a761dd736be8496c1abe59d948b017d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "Ids"
+                                ],
+                                "properties": {
+                                    "Ids": {
+                                        "description": "id集合",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "Ids": "1"
                             }
                         }
                     }
