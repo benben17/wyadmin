@@ -31,7 +31,10 @@ class BaseInfoService
       $company = $this->model();
       $company->skyeye_id = isset($DA['id']) ? $DA['id'] : 0; //天眼查ID
     } else {
-      $company = $this->model()->find($DA['id']);
+      $company = $this->model()->where('name', $DA['name'])->first();
+      if (!$company) {
+        $company = $this->model();
+      }
       $company->skyeye_id = isset($DA['skyeye_id']) ? $DA['skyeye_id'] : $DA['id'];
     }
     $company->name = isset($DA['name']) ? $DA['name'] : ""; //公司名
