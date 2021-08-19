@@ -238,7 +238,7 @@ class TenantController extends BaseController
             'business_id'       => 'required',
             'contacts'          => 'array',
             'invoice'           => 'array',
-            'tenant_share'      => 'array',
+            // 'tenant_share'      => 'array',
         ]);
         $DA = $request->toArray();
         $DA = $request->toArray();
@@ -268,6 +268,8 @@ class TenantController extends BaseController
                 // 更新发票信息
                 if ($DA['invoice']) {
                     $DA['invoice']['tenant_id'] = $DA['id'];
+                    $DA['invoice']['company_id'] = $this->company_id;
+                    $DA['invoice']['proj_id'] = $DA['proj_id'];
                     $this->tenantService->saveInvoice($DA['invoice'], $this->user);
                 }
 
