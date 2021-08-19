@@ -377,6 +377,8 @@ class CustomerController extends BaseController
                     if ($res) {
                         $businessData['business_id'] = $res->id;
                         $this->customerService->tenantModel()::whereId($DA['id'])->update($businessData);
+                        $businessInfo['id'] = $res->id;
+                        $info->save($businessInfo, 2);
                     } else {
                         $info->save($businessInfo, 2);
                     }
