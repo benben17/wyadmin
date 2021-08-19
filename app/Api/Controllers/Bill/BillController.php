@@ -227,6 +227,47 @@ class BillController extends BaseController
     return $this->success($billService->showBill($request->id));
   }
 
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/del",
+   *     tags={"账单"},
+   *     summary="账单删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="账单id")
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function del(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required'
+    ]);
+    try {
+      DB::transaction(function () use ($request) {
+        $billService = new TenantBillService;
+        $billService->billModel()->whereId($request->id)->delete();
+        $billService->billDetailModel()->where('bill_id', $request->id)->update(['bill_id' => 0]);
+      }, 2);
+      return $this->success("账单删除成功。");
+    } catch (Exception $e) {
+      Log::error("账单删除失败！" . $e);
+      return $this->success("账单删除失败！");
+    }
+  }
+
   public function billToWord(Request $request)
   {
     $validatedData = $request->validate([
