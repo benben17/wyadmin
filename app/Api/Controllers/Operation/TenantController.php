@@ -163,8 +163,8 @@ class TenantController extends BaseController
                 } else {
                     throw new Exception("租户保存失败!");
                 }
-                if ($DA['tenant_contact']) {
-                    $contacts = $DA['tenant_contact'];
+                if ($DA['contacts']) {
+                    $contacts = $DA['contacts'];
                     $this->user['parent_type'] = $this->parent_type;  // 联系人类型
                     $contacts = formatContact($contacts, $tenantId, $this->user, 1);
                     $contact = new ContactModel;
@@ -236,7 +236,7 @@ class TenantController extends BaseController
             'id'                => 'required|numeric|gt:0',
             'name'              => 'required',
             'business_id'       => 'required',
-            'tenant_contact'    => 'array',
+            'contacts'          => 'array',
             'invoice'           => 'array',
             'tenant_share'      => 'array',
         ]);
@@ -257,8 +257,8 @@ class TenantController extends BaseController
                     throw new Exception("租户更新失败!");
                 }
                 // 写入联系人 支持多联系人写入
-                if ($DA['tenant_contact']) {
-                    $contacts = $DA['tenant_contact'];
+                if ($DA['contacts']) {
+                    $contacts = $DA['contacts'];
                     $res = ContactModel::where('parent_id', $DA['id'])->delete();
                     $user['parent_type'] = $this->parent_type;
                     $contacts = formatContact($contacts, $DA['id'], $user, 2);
