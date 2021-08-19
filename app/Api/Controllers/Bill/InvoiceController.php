@@ -133,7 +133,7 @@ class InvoiceController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'invoice_no' => 'required',
+      // 'invoice_no' => 'required',
       'status'      => 'required|in:1,2,3',
       'amount'    => 'required',
       'proj_id'    => 'required|numeric|gt:0',
