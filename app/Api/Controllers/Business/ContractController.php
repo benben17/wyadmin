@@ -265,11 +265,10 @@ class ContractController extends BaseController
             'deposit_bill' => 'array'
         ]);
         $DA = $request->toArray();
-        if ($DA['save_type']) {
-            $DA['contract_state'] = 1;
-        } else {
-            $DA['contract_state'] = 0;
-        }
+
+        $DA['contract_state'] = $DA['save_type'];
+        $DA['contract_state'] = $DA['save_type'];
+
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
