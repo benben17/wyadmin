@@ -250,17 +250,18 @@ class TenantBillService
     try {
       // DB::enableQueryLog();
       DB::transaction(function () use ($contract,  $month, $feeType, $chargeDate, $user) {
-        // $startDate = date('Y-m-01', strtotime($month));
-        // $endDate = date('Y-m-t', strtotime($month));
+        $startDate = date('Y-m-01', strtotime($month));
+        $endDate = date('Y-m-t', strtotime($month));
         $billSum = $this->billDetailModel()
-          // ->whereBetween('charge_date', [$startDate, $endDate])
+          ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $contract['id'])
           ->where('status', 0)
           ->whereIn('fee_type', $feeType)
+          ->where('bill_id', 0)
           ->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
           ->groupBy('tenant_id')->first();
-        Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
-        Log::error(response()->json(DB::getQueryLog()));
+        // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
+        // Log::error(response()->json(DB::getQueryLog()));
         $tenant = TenantModel::find($contract['tenant_id']);
         $billData['tenant_id'] = $contract['tenant_id'];
         $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
@@ -269,12 +270,15 @@ class TenantBillService
         $billData['tenant_name'] = $tenant['name'];
         $billData['bill_no']    = $this->billNo($month);
         $billData['bill_title'] = $tenant['name'];
+        $billData['contract_id'] = $contract['id'];  // 合同id
         $bill = $this->saveBill($billData, $user);
         Log::error("账单ID------" . $bill['id']);
         $update['bill_id'] = $bill['id'];
         $this->billDetailModel()->where('contract_id', $contract['id'])
-          // ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('contract_id', $contract['id'])
           ->where('status', 0)
+          ->whereIn('fee_type', $feeType)
+          ->where('bill_id', 0)
           ->whereIn('fee_type', $feeType)->update($update);
       }, 3);
       return true;

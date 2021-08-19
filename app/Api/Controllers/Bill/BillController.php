@@ -137,7 +137,7 @@ class BillController extends BaseController
       'create_type' => 'required|in:0,1', // 0 所有 1 根据租户id生成
       // 'tenant_ids' => 'required|array',
       'bill_month' => 'required|String',
-      'bill_day' => 'required',
+      'bill_day' => 'required|between:1,31',
       'fee_types' => 'required|array',
       'proj_id' => 'required|gt:0',
     ]);
