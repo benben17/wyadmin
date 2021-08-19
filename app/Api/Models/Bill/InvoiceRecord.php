@@ -46,7 +46,7 @@ class InvoiceRecord extends Model
   {
     if (isset($this->attributes['tenant_id'])) {
       $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
-      return $tenant['realname'];
+      return $tenant['name'];
     }
   }
   public function BillDetail()
