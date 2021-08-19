@@ -116,7 +116,7 @@ class BillController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"tenantIds","bill_month","charge_date","fee_types"},
-   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合"),
+   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合,逗号隔开，0 所有"),
    *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
    *      @OA\Property(property="charge_date",type="String",description="应收日"),
    *      @OA\Property(property="fee_types",type="List",description="费用类型Id列表"),
@@ -133,7 +133,7 @@ class BillController extends BaseController
   public function createBill(Request $request)
   {
     $validatedData = $request->validate([
-      'tenantIds' => 'required|array',
+      'tenantIds' => 'required|String',
       'bill_month' => 'required|String',
       'charge_date' => 'required',
       'fee_types' => 'required|array',
@@ -146,7 +146,7 @@ class BillController extends BaseController
       $billService = new TenantBillService;
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where(function ($q) use ($request) {
-          $request->tenantIds && $q->whereIn('tenant_id', $request->tenantIds);
+          $request->tenantIds && $q->whereIn('tenant_id', str2Array($request->tenantIds));
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->whereIn('proj_id', $request->proj_ids)->get();
