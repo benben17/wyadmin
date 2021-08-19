@@ -191,7 +191,7 @@ class BuildingController extends BaseController
 
         $checkBuilding = BuildingModel::where($map)->exists();
         if ($checkBuilding) {
-            return $this->error('数据重复');
+            return $this->error('楼号重复！请核对后添加！');
         }
 
         $DA = $request->toArray();
