@@ -146,6 +146,7 @@ class BillController extends BaseController
 
       $contractService = new ContractService;
       $billService = new TenantBillService;
+      DB::enableQueryLog();
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
@@ -154,16 +155,22 @@ class BillController extends BaseController
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->where('proj_id', $request->proj_id)->get();
+
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
+      // return response()->json(DB::getQueryLog());
       foreach ($contracts as $k => $v) {
-        $bill = $billService->billModel()->where('contract_id', $v['id'])->whereBetween('charge_date', [$startDate, $endDate])->count();
+        Log::error("hetong" . $v['id'] . $billDay);
+        $bill = $billService->billModel()->where('contract_id', $v['id'])
+          ->where('tenant_id', $v['tenant_id'])
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->count();
         if ($bill > 0) {
           Log::error("已有账单，合同Id" . $v['id']);
           continue;
         }
-        $res = $billService->createBill($v['id'], $request->bill_month, $request->fee_types, $billDay, $this->user);
+        $res = $billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
           Log::error("生成账单日志" . $res);
         }

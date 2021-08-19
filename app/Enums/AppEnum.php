@@ -14,9 +14,9 @@ final class AppEnum extends Enum
   const Tenant        = 5;  // 租户
 
   // 招商合同状态
-  const contractSave      = 1;  // 保存
-  const contractAudit     = 2;  // 待审核状态
-  const contractExecute   = 3;  // 正在执行
+  const contractSave      = 0;  // 保存
+  const contractAudit     = 1;  // 待审核状态
+  const contractExecute   = 2;  // 正在执行
   const contractLeaseBack = 98; // 退租
   const contractCancel    = 99; // 取消
   /**

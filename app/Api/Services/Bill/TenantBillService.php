@@ -252,11 +252,12 @@ class TenantBillService
       DB::transaction(function () use ($contract,  $month, $feeType, $chargeDate, $user) {
         // $startDate = date('Y-m-01', strtotime($month));
         // $endDate = date('Y-m-t', strtotime($month));
-        $subQuery = $this->billDetailModel()->where('contract_id', $contract['id'])
+        $billSum = $this->billDetailModel()
           // ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('contract_id', $contract['id'])
           ->where('status', 0)
-          ->whereIn('fee_type', $feeType);
-        $billSum = $subQuery->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
+          ->whereIn('fee_type', $feeType)
+          ->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
           ->groupBy('tenant_id')->first();
         Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
         Log::error(response()->json(DB::getQueryLog()));
@@ -279,6 +280,7 @@ class TenantBillService
       return true;
     } catch (Exception $e) {
       Log::error("生成账单失败" . $e);
+      throw new Exception("生成账单失败" . $e);
       return false;
     }
   }
