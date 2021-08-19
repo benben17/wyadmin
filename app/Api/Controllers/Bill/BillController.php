@@ -170,6 +170,17 @@ class BillController extends BaseController
           Log::error("已有账单，合同Id" . $v['id']);
           continue;
         }
+        $billDetail = $billService->billDetailModel()
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('contract_id', $v['id'])
+          ->where('status', 0)
+          ->where('type', '!=', 2)
+          ->whereIn('fee_type', $request->fee_types)
+          ->where('bill_id', 0)
+          ->where('tenant_id', $v['tenant_id'])->count();
+        if ($billDetail == 0) {
+          continue;
+        }
         $res = $billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
           Log::error("生成账单日志" . $res);

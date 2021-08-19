@@ -54,6 +54,7 @@ class TenantBillService
       }
       $bill->tenant_id   = $DA['tenant_id'];
       $bill->tenant_name = $DA['tenant_name'];
+      $bill->contract_id   = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
       $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
       $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
       $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
@@ -252,12 +253,15 @@ class TenantBillService
       DB::transaction(function () use ($contract,  $month, $feeType, $chargeDate, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
+        $map['contract_id'] = $contract['id'];
+        $map['status'] = 0; // 未结清
+        $map['bill_id'] = 0; // 未生成账单
+        $map['tenant_id'] = $contract['tenant_id'];
         $billSum = $this->billDetailModel()
+          ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('contract_id', $contract['id'])
-          ->where('status', 0)
+          ->where('type', '!=', 2)
           ->whereIn('fee_type', $feeType)
-          ->where('bill_id', 0)
           ->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
           ->groupBy('tenant_id')->first();
         // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
@@ -274,11 +278,9 @@ class TenantBillService
         $bill = $this->saveBill($billData, $user);
         Log::error("账单ID------" . $bill['id']);
         $update['bill_id'] = $bill['id'];
-        $this->billDetailModel()->where('contract_id', $contract['id'])
-          ->where('contract_id', $contract['id'])
-          ->where('status', 0)
-          ->whereIn('fee_type', $feeType)
-          ->where('bill_id', 0)
+        $this->billDetailModel()->where($map)
+          ->whereBetween('charge_date', [$startDate, $endDate])
+          ->where('type', '!=', 2)  // 不生成押金类型费用
           ->whereIn('fee_type', $feeType)->update($update);
       }, 3);
       return true;
@@ -367,7 +369,7 @@ class TenantBillService
    */
   private function billNo($month)
   {
-    $no = dateFormat("ym", $month);
+    $no = dateFormat("ymd", $month);
     return  $no . "-" . mt_rand(1000, 9999);
   }
 
