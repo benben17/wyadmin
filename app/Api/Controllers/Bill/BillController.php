@@ -137,7 +137,7 @@ class BillController extends BaseController
       'create_type' => 'required|in:0,1', // 0 所有 1 根据租户id生成
       // 'tenant_ids' => 'required|array',
       'bill_month' => 'required|String',
-      'charge_date' => 'required',
+      'bill_day' => 'required',
       'fee_types' => 'required|array',
       'proj_ids' => 'required|array',
     ]);
@@ -156,13 +156,14 @@ class BillController extends BaseController
         ->whereIn('proj_id', $request->proj_ids)->get();
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
+      $billDay = $request->bill_month . '-' . $request->bill_day;
       foreach ($contracts as $k => $v) {
         $bill = $billService->billModel()->where('contract_id', $v['id'])->whereBetween('charge_date', [$startDate, $endDate])->count();
         if ($bill > 0) {
           Log::error("已有账单，合同Id" . $v['id']);
           continue;
         }
-        $res = $billService->createBill($v['id'], $request->bill_month, $request->fee_types, $request->charge_date, $this->user);
+        $res = $billService->createBill($v['id'], $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
           Log::error("生成账单日志" . $res);
         }
