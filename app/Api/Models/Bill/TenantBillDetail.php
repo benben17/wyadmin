@@ -79,7 +79,7 @@ class TenantBillDetail extends Model
   public function getBillStatusAttribute()
   {
     if (isset($this->attributes['bill_id'])) {
-      return $this->attributes['status'] ?  '已生成' : "未生成";
+      return $this->attributes['bill_id'] ?  '已生成' : "未生成";
     }
   }
 

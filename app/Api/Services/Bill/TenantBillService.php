@@ -394,14 +394,14 @@ class TenantBillService
     foreach ($billGroups as $k => $v) {
       $v['bank_info']   = BankAccount::find($v['bank_id']);
       // $v['receivable_amount'] = numFormat($v['total_amount'] - $v['discount_amount']);
-      $v['bill_detail'] = $this->billDetailModel()->where('bill_id', $billId)->where('bank_id', $v['bank_id'])->get();
+      $v['bill_detail'] = $this->billDetailModel()
+        ->where('bill_id', $billId)
+        ->where('bank_id', $v['bank_id'])->get();
     }
     $data['bills'] = $billGroups;
     $billCount = $this->billDetailModel()
       ->selectRaw('sum(amount) total_amount,sum(amount) discount_amount,sum(receive_amount) receive_amount')
       ->where('bill_id', $billId)->first();
-    // $billCount['receivable_amount'] = "aaa";
-    // numFormat($billCount['total_amount'] - $billCount['discount_amount']);
     $data['bill_count'] = $billCount;
     return $data;
   }
