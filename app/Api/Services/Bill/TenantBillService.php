@@ -388,6 +388,7 @@ class TenantBillService
     if (!$data) {
       return "";
     }
+    /**
     $billGroups = $this->billDetailModel()
       ->selectRaw('sum(amount) amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount,bank_id')
       ->where('bill_id', $billId)->groupBy('bank_id')->get();
@@ -398,10 +399,13 @@ class TenantBillService
         ->where('bill_id', $billId)
         ->where('bank_id', $v['bank_id'])->get();
     }
-    $data['bills'] = $billGroups;
+     */
+    $billDetail = $this->billDetailModel()->where('bill_id', $billId)->get();
+    $data['bills'] = $billDetail;
     $billCount = $this->billDetailModel()
-      ->selectRaw('sum(amount) total_amount,sum(amount) discount_amount,sum(receive_amount) receive_amount')
+      ->selectRaw('sum(amount) total_amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount')
       ->where('bill_id', $billId)->first();
+    $billCount['amount'] = numFormat($billCount['total_amount'] - $billCount['discount_amount'] - $billCount['receive_amount']);
     $data['bill_count'] = $billCount;
     return $data;
   }
