@@ -115,14 +115,14 @@ class BillController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"create_type","tenant_ids","bill_month","charge_date","fee_types"},
-   * @OA\Property(property="create_type",type="int",description="0 所有 1 根据租户id"),
+   *          required={"create_type","tenant_ids","bill_month","bill_day","fee_types"},
+   *      @OA\Property(property="create_type",type="int",description="0 所有 1 根据租户id"),
    *       @OA\Property(property="tenant_ids",type="List",description="客户Id集合),
    *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
-   *      @OA\Property(property="charge_date",type="String",description="应收日"),
+   *      @OA\Property(property="bill_day",type="String",description="应收日"),
    *      @OA\Property(property="fee_types",type="List",description="费用类型Id列表"),
    *     ),
-   *       example={"tenant_ids":"[]","bill_month":"2021-07","charge_date":"2021-07-05","fee_types":"[101]"}
+   *       example={"tenant_ids":"[]","bill_month":"2021-07","bill_day":"05","fee_types":"[101]"}
    *       )
    *     ),
    *     @OA\Response(
@@ -139,7 +139,7 @@ class BillController extends BaseController
       'bill_month' => 'required|String',
       'bill_day' => 'required',
       'fee_types' => 'required|array',
-      'proj_ids' => 'required|array',
+      'proj_id' => 'required|gt:0',
     ]);
     try {
       // DB::transaction(function () use ($request) {
@@ -153,7 +153,7 @@ class BillController extends BaseController
           }
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
-        ->whereIn('proj_id', $request->proj_ids)->get();
+        ->where('proj_id', $request->proj_id)->get();
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
@@ -206,7 +206,6 @@ class BillController extends BaseController
 
     DB::enableQueryLog();
     $billService = new TenantBillService;
-
     return $this->success($billService->showBill($request->id));
   }
 
