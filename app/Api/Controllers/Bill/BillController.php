@@ -115,7 +115,7 @@ class BillController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"tenantIds","billMonths","chargeDate","feeTypes"},
+   *          required={"tenantIds","bill_month","charge_date","fee_types"},
    *       @OA\Property(property="tenantIds",type="List",description="客户Id集合"),
    *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
    *      @OA\Property(property="charge_date",type="String",description="应收日"),

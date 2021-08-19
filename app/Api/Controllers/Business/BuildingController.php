@@ -389,15 +389,14 @@ class BuildingController extends BaseController
         DB::enableQueryLog();
         $buildId = $request->id;
         // 获取楼宇信息
-        $building = BuildingModel::whereId($buildId)
-            ->first()->toArray();
+        $building = BuildingModel::find($buildId)->toArray();
         // 获取楼层信息
         $floors = FloorModel::where('build_id', $buildId)
             ->withCount(['floorRoom' => function ($q) {
                 $q->where('room_type', 1);
             }])
             ->withCount(['floorRoom as room_area' => function ($q) {
-                $q->select(DB::Raw('sum(room_area)'));
+                $q->select(DB::Raw('ifnull(sum(room_area),0.00)'));
                 $q->where('room_type', 1);
             }])
             ->get();
