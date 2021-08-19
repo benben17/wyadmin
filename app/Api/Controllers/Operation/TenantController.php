@@ -337,9 +337,9 @@ class TenantController extends BaseController
         // return response()->json(DB::getQueryLog());
         if ($data) {
             $contractService = new ContractService;
-            $data['rooms'] = $contractService->getRoomsByTenantId($data['id']);
+            $data['rooms'] = $contractService->getRoomsByTenantId($request->id);
 
-            $invoice = Invoice::where('tenant_id', $data['id']);
+            $invoice = Invoice::where('tenant_id', $request->id)->first();
             if (!$invoice) {
                 $invoice = (object) null;
             }
