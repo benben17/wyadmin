@@ -115,13 +115,14 @@ class BillController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"tenantIds","bill_month","charge_date","fee_types"},
-   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合),
+   *          required={"create_type","tenant_ids","bill_month","charge_date","fee_types"},
+   * @OA\Property(property="create_type",type="int",description="0 所有 1 根据租户id"),
+   *       @OA\Property(property="tenant_ids",type="List",description="客户Id集合),
    *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
    *      @OA\Property(property="charge_date",type="String",description="应收日"),
    *      @OA\Property(property="fee_types",type="List",description="费用类型Id列表"),
    *     ),
-   *       example={"tenantIds":"[]","bill_month":"2021-07","charge_date":"2021-07-05","fee_types":"[101]"}
+   *       example={"tenant_ids":"[]","bill_month":"2021-07","charge_date":"2021-07-05","fee_types":"[101]"}
    *       )
    *     ),
    *     @OA\Response(
@@ -134,7 +135,7 @@ class BillController extends BaseController
   {
     $validatedData = $request->validate([
       'create_type' => 'required|in:0,1', // 0 所有 1 根据租户id生成
-      'tenantIds' => 'required|array',
+      'tenant_ids' => 'required|array',
       'bill_month' => 'required|String',
       'charge_date' => 'required',
       'fee_types' => 'required|array',
@@ -148,7 +149,7 @@ class BillController extends BaseController
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
-            $request->tenantIds && $q->whereIn('tenant_id', $request->tenantIds);
+            $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
           }
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
