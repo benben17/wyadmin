@@ -137,6 +137,7 @@ class BillController extends BaseController
       'bill_month' => 'required|String',
       'charge_date' => 'required',
       'fee_types' => 'required|array',
+      'proj_ids' => 'required|array',
     ]);
     try {
       // DB::transaction(function () use ($request) {
