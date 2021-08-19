@@ -582,7 +582,7 @@ class ChannelController extends BaseController
         $BA = $request->toArray();
         $policy = new ChannelService;
         if ($request->is_vaild == 0) {
-            if ($policy->policyIsUsed($DA)) {
+            if ($policy->policyIsUsed($BA)) {
                 return $this->error('渠道政策在被其他的渠道使用不能禁用！');
             }
         }
@@ -661,7 +661,7 @@ class ChannelController extends BaseController
         if ($type == 1) {
             $BA['company_id'] = $this->company_id;
             $BA['c_uid'] = $this->uid;
-            $BA['is_vaild'] = 1;
+            $BA['is_vaild'] = $DA['is_vaild'];
         } else {
             $BA['u_uid'] = $this->uid;
             $BA['id'] = $DA['id'];
