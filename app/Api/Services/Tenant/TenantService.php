@@ -124,8 +124,8 @@ class TenantService
         $invoice->company_id  = $user['company_id'];
         $invoice->proj_id     = $DA['proj_id'];
       }
-      $invoice->title         = $DA['title'];
-      $invoice->tax_number    = $DA['tax_number'];
+      $invoice->title         = isset($DA['title']) ? $DA['title'] : "";
+      $invoice->tax_number    = isset($DA['tax_number']) ? $DA['tax_number'] : "";
       $invoice->bank_name     = isset($DA['bank_name']) ? $DA['bank_name'] : "";
       $invoice->account_name  = isset($DA['account_name']) ? $DA['account_name'] : "";
       $invoice->addr          = isset($DA['addr']) ? $DA['addr'] : "";
