@@ -52,11 +52,11 @@ class InvoiceService
         $this->cancelInvoice($DA['id']);
       }
       $invoiceRecord->title        = $DA['title'];
-      $invoiceRecord->bank_name    = $DA['bank_name'];
-      $invoiceRecord->account_name = $DA['account_name'];
-      $invoiceRecord->tax_number   = $DA['tax_number'];
-      $invoiceRecord->addr         = $DA['addr'];
-      $invoiceRecord->tel_number   = $DA['tel_number'];
+      $invoiceRecord->bank_name    = isset($DA['bank_name']) ? $DA['bank_name'] : "";
+      $invoiceRecord->account_name = isset($DA['account_name']) ? $DA['account_name'] : "";
+      $invoiceRecord->tax_number   = isset($DA['tax_number']) ? $DA['tax_number'] : "";
+      $invoiceRecord->addr         = isset($DA['addr']) ? $DA['addr'] : "";
+      $invoiceRecord->tel_number   = isset($DA['tel_number']) ? $DA['tel_number'] : "";
       $invoiceRecord->save();
       return $invoiceRecord;
     } catch (Exception $e) {

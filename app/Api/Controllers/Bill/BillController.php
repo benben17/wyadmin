@@ -115,13 +115,13 @@ class BillController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"contractIds","billMonths","chargeDate","feeTypes"},
-   *       @OA\Property(property="contractIds",type="List",description="客户Id集合"),
-   *      @OA\Property(property="billMonths",type="String",description="账单年月例如：2021-07"),
-   *      @OA\Property(property="chargeDate",type="String",description="应收日"),
-   *      @OA\Property(property="feeTypes",type="List",description="费用类型Id列表"),
+   *          required={"tenantIds","billMonths","chargeDate","feeTypes"},
+   *       @OA\Property(property="tenantIds",type="List",description="客户Id集合"),
+   *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
+   *      @OA\Property(property="charge_date",type="String",description="应收日"),
+   *      @OA\Property(property="fee_types",type="List",description="费用类型Id列表"),
    *     ),
-   *       example={"contractIds":"[]","billMonths":"2021-07","chargeDate":"2021-07-05","feeTypes":"[101]"}
+   *       example={"tenantIds":"[]","bill_month":"2021-07","charge_date":"2021-07-05","fee_types":"[101]"}
    *       )
    *     ),
    *     @OA\Response(
@@ -133,7 +133,7 @@ class BillController extends BaseController
   public function createBill(Request $request)
   {
     $validatedData = $request->validate([
-      'contractIds' => 'required|array',
+      'tenantIds' => 'required|array',
       'bill_month' => 'required|String',
       'charge_date' => 'required',
       'fee_types' => 'required|array',
@@ -146,7 +146,7 @@ class BillController extends BaseController
       $billService = new TenantBillService;
       $contracts = $contractService->model()->select('id', 'tenant_id')
         ->where(function ($q) use ($request) {
-          $request->contractIds && $q->whereIn('id', $request->contractIds);
+          $request->tenantIds && $q->whereIn('tenant_id', $request->tenantIds);
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->whereIn('proj_id', $request->proj_ids)->get();

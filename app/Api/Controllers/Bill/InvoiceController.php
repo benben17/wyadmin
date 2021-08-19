@@ -142,7 +142,6 @@ class InvoiceController extends BaseController
     try {
       $DA = $request->toArray();
       DB::transaction(function () use ($DA) {
-
         $invoiceRecord = $this->invoiceService->invoiceRecordSave($DA, $this->user);
         $billService = new TenantBillService;
         $billService->billDetailModel()
