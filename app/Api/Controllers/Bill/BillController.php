@@ -135,7 +135,7 @@ class BillController extends BaseController
   {
     $validatedData = $request->validate([
       'create_type' => 'required|in:0,1', // 0 所有 1 根据租户id生成
-      'tenant_ids' => 'required|array',
+      // 'tenant_ids' => 'required|array',
       'bill_month' => 'required|String',
       'charge_date' => 'required',
       'fee_types' => 'required|array',
