@@ -49,6 +49,15 @@ Route::group(['prefix' => 'business/channel'], function () {
     // 获取此渠道带来的客户
     Route::post('customer', '\App\Api\Controllers\Business\ChannelController@getCustomer');
 });
+
+// 来电
+Route::group(['prefix' => 'business/income'], function () {
+    Route::post('list', '\App\Api\Controllers\Business\IncomeController@index');
+    Route::post('add', '\App\Api\Controllers\Business\IncomeController@store');
+    Route::post('edit', '\App\Api\Controllers\Business\IncomeController@update');
+    Route::post('del', '\App\Api\Controllers\Business\IncomeController@delete');
+    Route::post('show', '\App\Api\Controllers\Business\IncomeController@show');
+});
 //系统类路由
 Route::group(['prefix' => 'sys'], function () {
     Route::post('company/present', '\App\Api\Controllers\Sys\CompanyController@present'); //当前用户的公司信息

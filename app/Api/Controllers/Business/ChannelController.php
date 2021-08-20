@@ -441,13 +441,10 @@ class ChannelController extends BaseController
                 //更新或者新增渠道联系人
                 if ($data['channel_contact']) {
                     $contacts = formatContact($data['channel_contact'], $request->id, $userinfo, 2);
-                    foreach ($contacts as $k => $v) {
-                        if (isset($v['id'])) {
-                            $res = ContactModel::whereId($v['id'])->update($v);
-                        } else {
-                            $res = ContactModel::Create($v);
-                        }
-                    }
+                    $user['parent_type'] = $this->parent_type;
+                    ContactModel::where('parent_id', $data['id'])->where('parent_type', $this->parent_type)->delete();
+                    $contact = new ContactModel;
+                    $contact->addAll($contacts);
                 }
             });
             return $this->success('渠道更新成功');

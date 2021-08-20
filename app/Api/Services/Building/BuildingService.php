@@ -27,7 +27,7 @@ class BuildingService
       $DA['t_room_count']   += $v['build_room_count'];
       $DA['t_free_count']   += $v['free_room_count'];
     }
-    $stat[] = array('label' => '管理面积', 'value' => $DA['t_manager_area'] . ' ㎡');
+    $stat[] = array('label' => '招商面积', 'value' => $DA['t_manager_area'] . ' ㎡');
     $stat[] = array('label' => '可招商面积', 'value' => $DA['t_free_are'] . " ㎡");
     $stat[] = array('label' => '总房间数', 'value' => $DA['t_room_count']);
     $stat[] = array('label' => '可招商房间', 'value' => $DA['t_free_count']);
@@ -36,11 +36,11 @@ class BuildingService
       $rentalRate = 0;
       $freeRate = 0;
     } else {
-      $rentalRate = sprintf("%.2f", ($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100, 2);
-      $freeRate = sprintf("%.2f", ($DA['t_free_are']) / $DA['t_manager_area'] * 100, 2);
+      $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
+      $freeRate = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
     }
-    $stat[] = array('label' => '计租率', 'value' => $rentalRate . ' %');
-    $stat[] = array('label' => '空闲率', 'value' => $freeRate . ' %');
+    $stat[] = array('label' => '当前出租率', 'value' => $rentalRate . ' %');
+    $stat[] = array('label' => '当前空闲率', 'value' => $freeRate . ' %');
 
     return $stat;
   }
@@ -73,11 +73,11 @@ class BuildingService
     $price = $contract->contractAvgPrice();
 
     $stat = array(
-      ['title' => '总面积',   'value' => $room['total_area'] . '㎡'],
-      ['title' => '空闲面积',  'value' => $room['free_area'] . '㎡'],
+      ['title' => '可租面积',   'value' => $room['total_area'] . '㎡'],
+      ['title' => '可招租面积',  'value' => $room['free_area'] . '㎡'],
       ['title' => '总房间数',  'value' => $room['total_room']],
-      ['title' => '空闲房间数', 'value' => $room['free_room']],
-      ['title' => '空闲率',    'value' => $rentalRate . '%'],
+      ['title' => '可招租房间数', 'value' => $room['free_room']],
+      ['title' => '当前空置率',    'value' => $rentalRate . '%'],
       ['title' => '平均单价',  'value' => $price . '元/㎡·天']
     );
     return $stat;
