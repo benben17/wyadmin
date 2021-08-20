@@ -30,6 +30,7 @@ class ChannelController extends BaseController
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
+        $this->parent_type = AppEnum::Channel;
         $this->company_id = getCompanyId($this->uid);
         $this->user = auth('api')->user();
     }
@@ -435,14 +436,11 @@ class ChannelController extends BaseController
                 $channel = $this->formatChannel($data, 2); //编辑传入值
                 //更新渠道
                 DB::enableQueryLog();
-                // return $data['id'];
-                $res = channelModel::whereId($data['id'])->update($channel);
-                // return response()->json(DB::getQueryLog());
+                $res = channelModel::whereId($request->id)->update($channel);
                 //更新或者新增渠道联系人
                 if ($data['channel_contact']) {
                     $contacts = formatContact($data['channel_contact'], $request->id, $userinfo, 2);
-                    $user['parent_type'] = $this->parent_type;
-                    ContactModel::where('parent_id', $data['id'])->where('parent_type', $this->parent_type)->delete();
+                    ContactModel::where('parent_id', $request->id)->where('parent_type', $this->parent_type)->delete();
                     $contact = new ContactModel;
                     $contact->addAll($contacts);
                 }
