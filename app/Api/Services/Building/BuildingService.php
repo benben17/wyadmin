@@ -6,10 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 use App\Api\Models\Contract\ContractRoom;
-use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\Contract\ContractService;
 
 /**

@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Business\IncomeTelService;
 use App\Api\Services\Business\IncomingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -79,7 +80,7 @@ class IncomeController extends BaseController
     } else {
       $order = 'desc';
     }
-    $incomeService = new IncomingService;
+    $incomeService = new IncomeTelService;
     $result = $incomeService->model()->where($map)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -123,7 +124,7 @@ class IncomeController extends BaseController
     ]);
 
     // DB::transaction(function () use ($request) {
-    $incomeService = new IncomingService;
+    $incomeService = new IncomeTelService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('来电新增成功！');
@@ -165,10 +166,7 @@ class IncomeController extends BaseController
       'phone' => 'required',
       'sex' => 'required|numeric|in:1,2',
     ]);
-
-    // DB::transaction(function () use ($request) {
-    $userinfo = auth('api')->user();
-    $incomeService = new IncomingService;
+    $incomeService = new IncomeTelService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('来电编辑成功！');

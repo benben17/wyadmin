@@ -226,6 +226,7 @@ class CustomerService
         $tenant->u_uid = $user->uid;
       }
       $tenant->name = $DA['name'];
+      $tenant->source_type = isset($DA['source_type']) ? $DA['source_type'] : "";
       $tenant->room_type = isset($DA['room_type']) ? $DA['room_type'] : 1;
       $tenant->proj_id = isset($DA['proj_id']) ? $DA['proj_id'] : 0;
       $tenant->proj_name = isset($DA['proj_name']) ? $DA['proj_name'] : "";

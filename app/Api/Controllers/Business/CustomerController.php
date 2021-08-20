@@ -399,6 +399,53 @@ class CustomerController extends BaseController
 
     /**
      * @OA\Post(
+     *     path="/api/business/customer/distribute",
+     *     tags={"客户"},
+     *     summary="客户分配",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"Ids","belong_uid","distribute_uid"},
+     *       @OA\Property(property="Ids",type="int",description="客户id"),
+     *       @OA\Property(property="belong_uid",type="int",description="接收客户uid"),
+     *       @OA\Property(property="distribute_uid",type="int",description="分配客户uid"),
+     *     ),
+     *       example={
+     *              "id":1
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function distribute(Request $request)
+    {
+        $validatedData = $request->validate([
+            'Ids' => 'required|array',
+            'belong_uid' => 'required|int',
+            'distribute_uid' => 'required|int',
+        ]);
+        if (!$this->user['is_admin']) {
+            return $this->error("用户没有权限，请联系管理员。");
+        }
+        $data['belong_uid'] = $request->belong_uid;
+        $data['distribute_uid'] = $request->distribute_uid;
+        $res = $this->customerService->tenantModel()->whereIn('id', $request->Ids)->update($data);
+        if ($res) {
+            return $this->success("客户分配完成。");
+        } else {
+            return $this->error("客户分配失败！");
+        }
+    }
+
+
+    /**
+     * @OA\Post(
      *     path="/api/business/customer/show",
      *     tags={"客户"},
      *     summary="根据客户获取客户信息",

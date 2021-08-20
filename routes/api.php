@@ -180,6 +180,7 @@ Route::group(['prefix' => 'business/customer'], function () {
     Route::post('edit', '\App\Api\Controllers\Business\CustomerController@update');
     Route::post('del', '\App\Api\Controllers\Business\CustomerController@delete');
     Route::post('show', '\App\Api\Controllers\Business\CustomerController@show');
+    Route::post('distribute', '\App\Api\Controllers\Business\CustomerController@distribute');
     //工商信息
     Route::post('baseinfo', '\App\Api\Controllers\Business\CustomerController@getInfo');
     //编辑公司工商信息

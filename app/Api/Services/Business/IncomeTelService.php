@@ -11,7 +11,7 @@ use Exception;
 /**
  * 来电管理
  */
-class IncomingService
+class IncomeTelService
 {
   public function model()
   {
