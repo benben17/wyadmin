@@ -2,7 +2,6 @@
 
 namespace App\Api\Models\Business;
 
-use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -14,10 +13,10 @@ use App\Enums\AppEnum;
  * @Author leezhua
  * @DateTime 2021-08-20
  */
-class IncomingTel extends Model
+class CusClue extends Model
 {
   use SoftDeletes;
-  protected $table = 'bse_incoming_tel';
+  protected $table = 'bse_customer_clue';
 
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];

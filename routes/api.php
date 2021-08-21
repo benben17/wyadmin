@@ -51,12 +51,12 @@ Route::group(['prefix' => 'business/channel'], function () {
 });
 
 // 来电
-Route::group(['prefix' => 'business/income'], function () {
-    Route::post('list', '\App\Api\Controllers\Business\IncomeController@index');
-    Route::post('add', '\App\Api\Controllers\Business\IncomeController@store');
-    Route::post('edit', '\App\Api\Controllers\Business\IncomeController@update');
-    Route::post('del', '\App\Api\Controllers\Business\IncomeController@delete');
-    Route::post('show', '\App\Api\Controllers\Business\IncomeController@show');
+Route::group(['prefix' => 'business/clue'], function () {
+    Route::post('list', '\App\Api\Controllers\Business\CusClueController@index');
+    Route::post('add', '\App\Api\Controllers\Business\CusClueController@store');
+    Route::post('edit', '\App\Api\Controllers\Business\CusClueController@update');
+    Route::post('del', '\App\Api\Controllers\Business\CusClueController@delete');
+    Route::post('show', '\App\Api\Controllers\Business\CusClueController@show');
 });
 //系统类路由
 Route::group(['prefix' => 'sys'], function () {

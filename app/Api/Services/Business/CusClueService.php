@@ -2,20 +2,20 @@
 
 namespace App\Api\Services\Business;
 
-use App\Api\Models\Business\IncomingTel;
+use App\Api\Models\Business\CusClue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 use Exception;
 
 /**
- * 来电管理
+ * 客户线索管理
  */
-class IncomeTelService
+class CusClueService
 {
   public function model()
   {
-    return new IncomingTel;
+    return new CusClue;
   }
 
   public function save($DA, $user)

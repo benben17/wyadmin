@@ -6,16 +6,14 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
-use App\Api\Services\Business\IncomeTelService;
-use App\Api\Services\Business\IncomingService;
+use App\Api\Services\Business\CusClueService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-use App\Enums\AppEnum;
 
-class IncomeController extends BaseController
+class CusClueController extends BaseController
 {
 
   public function __construct()
@@ -30,7 +28,7 @@ class IncomeController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/business/income/list",
+   *     path="/api/business/clue/list",
    *     tags={"来电"},
    *     summary="来电列表",
    *    @OA\RequestBody(
@@ -80,7 +78,7 @@ class IncomeController extends BaseController
     } else {
       $order = 'desc';
     }
-    $incomeService = new IncomeTelService;
+    $incomeService = new CusClueService;
     $result = $incomeService->model()->where($map)
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -91,7 +89,7 @@ class IncomeController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/business/income/add",
+   *     path="/api/business/clue/add",
    *     tags={"来电"},
    *     summary="来电新增",
    *    @OA\RequestBody(
@@ -124,7 +122,7 @@ class IncomeController extends BaseController
     ]);
 
     // DB::transaction(function () use ($request) {
-    $incomeService = new IncomeTelService;
+    $incomeService = new CusClueService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('来电新增成功！');
@@ -134,7 +132,7 @@ class IncomeController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/business/income/edit",
+   *     path="/api/business/clue/edit",
    *     tags={"来电"},
    *     summary="来电编辑",
    *    @OA\RequestBody(
@@ -166,7 +164,7 @@ class IncomeController extends BaseController
       'phone' => 'required',
       'sex' => 'required|numeric|in:1,2',
     ]);
-    $incomeService = new IncomeTelService;
+    $incomeService = new CusClueService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('来电编辑成功！');
