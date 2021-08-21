@@ -148,6 +148,8 @@ class UserController extends BaseController
         $user->password = Hash::make($request->input('password'));
         $user->role_id = $request->input('role_id');
         $user->group_id = $request->input('group_id');
+        $user->depart_id = $request->input('depart_id');
+        $user->is_manager = $request->input('is_manager');
         $user->remark = $request->input('remark');
         $user->realname = $request->input('realname');
         $user->company_id =  $userinfo->company_id;
@@ -225,6 +227,8 @@ class UserController extends BaseController
         $user->phone = $request->input('phone');
         $user->role_id = $request->input('role_id');
         $user->group_id = $request->input('group_id');
+        $user->depart_id = $request->input('depart_id');
+        $user->is_manager = $request->input('is_manager');
         $user->remark = $request->input('remark');
         $user->company_id =  $userinfo->company_id;
 

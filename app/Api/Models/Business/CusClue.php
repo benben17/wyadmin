@@ -39,7 +39,7 @@ class CusClue extends Model
       } else if ($this->attributes['status'] == 2) {
         return "已转化";
       } else {
-        return "放弃";
+        return "无效";
       }
     }
   }
