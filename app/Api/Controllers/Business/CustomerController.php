@@ -160,6 +160,7 @@ class CustomerController extends BaseController
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$v) {
             $v['demand_area'] = $v['extra_info']['demand_area'];
+            $v['source_type_label'] = getDictName($v['source_type']);
         }
         $data['stat'] = $cusState;
         return $this->success($data);
@@ -484,6 +485,7 @@ class CustomerController extends BaseController
             ->find($request->id)->toArray();
 
         $info = new BaseInfoService;
+        $data['source_type_label'] = getDictName($data['source_type']);
         $business_info  = $info->getById($data['business_id']);
         if (empty($business_info)) {
             $business_info = (object)[];
@@ -578,11 +580,6 @@ class CustomerController extends BaseController
         }
         return $this->error('公司工商信息编辑失败！');
     }
-
-
-
-
-
 
     private function formatCusExtra($DA)
     {
