@@ -57,6 +57,7 @@ Route::group(['prefix' => 'business/clue'], function () {
     Route::post('edit', '\App\Api\Controllers\Business\CusClueController@update');
     Route::post('del', '\App\Api\Controllers\Business\CusClueController@delete');
     Route::post('show', '\App\Api\Controllers\Business\CusClueController@show');
+    Route::post('invalid', '\App\Api\Controllers\Business\CusClueController@invalid');
 });
 //系统类路由
 Route::group(['prefix' => 'sys'], function () {

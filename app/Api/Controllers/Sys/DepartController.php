@@ -7,7 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Sys\DepartService;
 use App\Models\Company as CompanyModel;
@@ -54,11 +54,11 @@ class DepartController extends BaseController
 
     // $map = array();
     $departService = new DepartService;
-    // $result = $departService->getDepartList(0);
-    return $departService->getDepartIds([0]);
-    // $data = $this->handleBackData($result);
-    // return $this->success($result);
+    $result = $departService->getDepartList(0);
+
+    return $this->success($result);
   }
+
   /**
    * @OA\Post(
    *     path="/api/sys/depart/add",
@@ -234,6 +234,56 @@ class DepartController extends BaseController
       return $this->success('部门迁移成功.');
     } else {
       return $this->error('部门迁移失败!');
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/sys/depart/move",
+   *     tags={"部门"},
+   *     summary="部门移动",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","new_parent_id"},
+   *       @OA\Property(
+   *          property="id",
+   *          type="String",
+   *          description="部门id"
+   *       ),
+   *       @OA\Property(
+   *          property="new_parent_id",
+   *          type="String",
+   *          description="父ID"
+   *       )
+   *     ),
+   *       example={
+   *              "name":"id","new_parent_id":"0"
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function enable(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'   => 'required|int',
+    ]);
+    $data = $request->toArray();
+    $departService = new DepartService;
+    $departIds = getDepartIds($request->id);
+    array_push($departIds, $request->id);
+    $res = $departService->model()->whereIn('id', $departIds)->update(['is_vaild' => 0]);
+    if ($res) {
+      return $this->success('部门以及子部门禁用成功.');
+    } else {
+      return $this->error('部门以及子部门禁用失败!');
     }
   }
 }

@@ -187,11 +187,11 @@ class CusClueController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"name","income_type","sex","phone","id"},
-   *       @OA\Property(property="name",type="String",description="来电名称")
+   *          required={"id"},
+   *       @OA\Property(property="id",type="String",description="id")
    *     ),
    *       example={
-   *              "name": "1","income_type":"type","sex":"","phone",""
+   *              "id": "1"
    *           }
    *       )
    *     ),
@@ -208,6 +208,40 @@ class CusClueController extends BaseController
     ]);
     $incomeService = new CusClueService;
     $data = $incomeService->model()->find($request->id);
+    return $this->success($data);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/business/clue/invalid",
+   *     tags={"来电"},
+   *     summary="来电设置无效",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="String",description="id")
+   *     ),
+   *       example={
+   *              "phone",""
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function invalid(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
+    ]);
+    $incomeService = new CusClueService;
+    $data = $incomeService->changeStatus($request->id, 3);
     return $this->success($data);
   }
 }

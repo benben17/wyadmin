@@ -167,6 +167,11 @@ class StatController extends BaseController
                 $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
                 $q->where('state', "来访");
             }])
+            ->withCount(['cusFollow as visit_count2' => function ($q) {
+                $q->selectRaw("tenant_id,ifnull(case when count(tenant_id)> 1 then 1 end),0) count");
+                $q->where('state', "来访");
+                $q->groupBy('tenant_id');
+            }])
             ->first();
         // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */

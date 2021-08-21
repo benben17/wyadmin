@@ -93,18 +93,5 @@ class DepartService
   // DB::enableQueryLog();
   // return response()->json(DB::getQueryLog());
 
-  function getDepartIds($parentIds, $arr = array())
-  {
-    $departs = $this->model()->selectRaw("concat_ws(',',id) ids")
-      ->wherein('parent_id', $parentIds)->first();
-    if (empty($departs['ids'])) {
-      Log::info("return" . json_encode($arr));
-      return $arr;
-    }
-    $depart_ids = str2Array($departs['ids']);
-    foreach ($depart_ids as $k => $v) {
-      array_push($arr, (int) $v);
-    }
-    $this->getDepartIds($depart_ids, $arr);
-  }
+
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 
@@ -367,4 +368,28 @@ function getDepartIdByUid($uid)
 {
     $user = \App\Models\User::find($uid);
     return $user->depart_id;
+}
+
+/**
+ * 获取部门以及子部门id，返回数组
+ *
+ * @Author leezhua
+ * @DateTime 2021-08-21
+ * @param [type] $parentIds
+ * @param array $arr
+ *
+ * @return void
+ */
+function getDepartIds($parentIds, &$arr = array()): array
+{
+    $departs = \App\Models\Depart::selectRaw("concat_ws(',',id) ids")
+        ->wherein('parent_id', $parentIds)->first();
+    if (empty($departs['ids'])) {
+        return $arr;
+    }
+    $depart_ids = str2Array($departs['ids']);
+    foreach ($depart_ids as $k => $v) {
+        array_push($arr, (int) $v);
+    }
+    return getDepartIds($depart_ids, $arr);
 }
