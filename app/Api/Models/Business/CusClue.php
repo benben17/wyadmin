@@ -22,13 +22,25 @@ class CusClue extends Model
 
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-  protected $appends = ['clue_type_label', 'c_user'];
+  protected $appends = ['clue_type_label', 'c_user', 'status_label'];
 
 
   public function getClueTypeLabelAttribute()
   {
     if (isset($this->attributes['clue_type'])) {
       return getDictName($this->attributes['clue_type']);
+    }
+  }
+  public function getStatusLabelAttribute()
+  {
+    if (isset($this->attributes['status'])) {
+      if ($this->attributes['status'] == 1) {
+        return "待转化";
+      } else if ($this->attributes['status'] == 2) {
+        return "已转化";
+      } else {
+        return "放弃";
+      }
     }
   }
   public function getCUserAttribute()
