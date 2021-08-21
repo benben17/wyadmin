@@ -68,7 +68,15 @@ class DepartService
     return $res;
   }
 
-
+  /**
+   * 组织结构列表
+   *
+   * @Author leezhua
+   * @DateTime 2021-08-21
+   * @param [type] $parentId
+   *
+   * @return void
+   */
   public function getDepartList($parentId)
   {
     DB::enableQueryLog();
@@ -82,23 +90,21 @@ class DepartService
     return $data;
   }
 
+  // DB::enableQueryLog();
+  // return response()->json(DB::getQueryLog());
 
-
-  function getDepartIds($parentId, $arr = array())
+  function getDepartIds($parentIds, $arr = array())
   {
-
-    // $count = \App\Models\Depart::where('parent_id', $parentId)->count();
-    // if ($count == 0) {
-    //   Log::error("fanhui-----" . json_encode($arr));
-    //   return "fanhui-----" . json_encode($arr);
-    // }
-    $departs = \App\Models\Depart::where('parent_id', $parentId)->get();
-    foreach ($departs as $k => $v) {
-      Log::error("-----" . json_encode($arr));
-      array_push($arr, $v['id']);
-      $this->getDepartIds($v['id'], $arr);
-      Log::error("after-----" . json_encode($arr));
+    $departs = $this->model()->selectRaw("concat_ws(',',id) ids")
+      ->wherein('parent_id', $parentIds)->first();
+    if (empty($departs['ids'])) {
+      Log::info("return" . json_encode($arr));
+      return $arr;
     }
-    return $arr;
+    $depart_ids = str2Array($departs['ids']);
+    foreach ($depart_ids as $k => $v) {
+      array_push($arr, (int) $v);
+    }
+    $this->getDepartIds($depart_ids, $arr);
   }
 }

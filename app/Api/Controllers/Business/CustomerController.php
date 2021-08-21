@@ -94,7 +94,7 @@ class CustomerController extends BaseController
         } else {
             $order = 'desc';
         }
-
+        $request->type = [1, 2, 3];
         DB::enableQueryLog();
         $result = $this->customerService->tenantModel()
             ->where($map)

@@ -51,18 +51,13 @@ class DepartController extends BaseController
 
   public function list(Request $request)
   {
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('app.pagesize');
-    }
-    if ($pagesize == -1) {
-      $pagesize = config('export_rows');
-    }
+
     // $map = array();
     $departService = new DepartService;
-    $result = $departService->getDepartList(0);
+    // $result = $departService->getDepartList(0);
+    return $departService->getDepartIds([0]);
     // $data = $this->handleBackData($result);
-    return $this->success($result);
+    // return $this->success($result);
   }
   /**
    * @OA\Post(
