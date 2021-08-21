@@ -55,7 +55,7 @@ class DepartController extends BaseController
     // $map = array();
     $departService = new DepartService;
     $result = $departService->getDepartList(0);
-
+    return $this->user;
     return $this->success($result);
   }
 

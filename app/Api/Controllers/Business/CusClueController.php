@@ -7,7 +7,6 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Business\CusClueService;
-use App\Api\Services\Sys\DepartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -240,8 +239,11 @@ class CusClueController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $incomeService = new CusClueService;
-    $data = $incomeService->changeStatus($request->id, 3);
-    return $this->success($data);
+    $clueService = new CusClueService;
+    $clue = $clueService->model()->find($request->id);
+    $clue->status = 3;
+    $clue->remark = $request->remark;
+    $res = $clue->save();
+    return $this->success($res);
   }
 }

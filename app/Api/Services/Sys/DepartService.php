@@ -89,9 +89,4 @@ class DepartService
     }
     return $data;
   }
-
-  // DB::enableQueryLog();
-  // return response()->json(DB::getQueryLog());
-
-
 }
