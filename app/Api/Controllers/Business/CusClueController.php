@@ -171,4 +171,38 @@ class CusClueController extends BaseController
     }
     return $this->error("来电编辑失败！");
   }
+
+  /**
+   * @OA\Post(
+   *     path="/api/business/clue/show",
+   *     tags={"来电"},
+   *     summary="来电查看",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"name","income_type","sex","phone","id"},
+   *       @OA\Property(property="name",type="String",description="来电名称")
+   *     ),
+   *       example={
+   *              "name": "1","income_type":"type","sex":"","phone",""
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function show(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
+    ]);
+    $incomeService = new CusClueService;
+    $data = $incomeService->model()->find($request->id);
+    return $this->success($data);
+  }
 }
