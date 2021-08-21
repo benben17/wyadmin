@@ -242,6 +242,7 @@ class CusClueController extends BaseController
     $clueService = new CusClueService;
     $clue = $clueService->model()->find($request->id);
     $clue->status = 3;
+    $clue->invalid_time = nowYmd();
     $clue->remark = $request->remark;
     $res = $clue->save();
     return $this->success($res);
