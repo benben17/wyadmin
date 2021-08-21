@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 
 
 /**
@@ -352,4 +353,18 @@ function getTenantNameById($tenantId)
     }
     $tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
     return $tenant['name'];
+}
+/**
+ * 通过UID获取部门ID
+ *
+ * @Author leezhua
+ * @DateTime 2021-08-21
+ * @param [type] $uid
+ *
+ * @return void
+ */
+function getDepartIdByUid($uid)
+{
+    $user = \App\Models\User::find($uid);
+    return $user->depart_id;
 }

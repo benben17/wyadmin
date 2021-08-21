@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Sys;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\Depart;
@@ -79,5 +80,25 @@ class DepartService
       $v['childs'] = $children;
     }
     return $data;
+  }
+
+
+
+  function getDepartIds($parentId, $arr = array())
+  {
+
+    // $count = \App\Models\Depart::where('parent_id', $parentId)->count();
+    // if ($count == 0) {
+    //   Log::error("fanhui-----" . json_encode($arr));
+    //   return "fanhui-----" . json_encode($arr);
+    // }
+    $departs = \App\Models\Depart::where('parent_id', $parentId)->get();
+    foreach ($departs as $k => $v) {
+      Log::error("-----" . json_encode($arr));
+      array_push($arr, $v['id']);
+      $this->getDepartIds($v['id'], $arr);
+      Log::error("after-----" . json_encode($arr));
+    }
+    return $arr;
   }
 }

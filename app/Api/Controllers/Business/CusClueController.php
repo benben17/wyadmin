@@ -7,6 +7,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Business\CusClueService;
+use App\Api\Services\Sys\DepartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -105,7 +106,7 @@ class CusClueController extends BaseController
    *          required={"name","clue_type","sex","phone"},
    *       @OA\Property(property="name",type="String",description="来电名称"),
    *       @OA\Property(property="clue_type",type="String",description="来源类型"),
-   *       @OA\Property( property="sex",type="int",description="1:男2 女")
+   *      @OA\Property(property="phone",type="String",description="电话"),
    *     ),
    *       example={
    *              "name": "1","clue_type":"type","sex":"","phone",""
@@ -123,7 +124,6 @@ class CusClueController extends BaseController
     $validatedData = $request->validate([
       'clue_type' => 'required|String|max:64',
       'phone' => 'required',
-      'sex' => 'required|numeric|in:1,2',
     ]);
 
     // DB::transaction(function () use ($request) {
@@ -148,7 +148,7 @@ class CusClueController extends BaseController
    *          required={"name","clue_type","sex","phone","id"},
    *       @OA\Property(property="name",type="String",description="来电名称"),
    *       @OA\Property(property="clue_type",type="String",description="来源类型"),
-   *       @OA\Property( property="sex",type="int",description="1:男2 女")
+   *       @OA\Property( property="phone",type="int",description="")
    *     ),
    *       example={
    *              "name": "1","clue_type":"type","sex":"","phone",""
@@ -165,9 +165,8 @@ class CusClueController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
-      'income_type' => 'required|String|max:64',
+      'clue_type' => 'required|String|max:64',
       'phone' => 'required',
-      'sex' => 'required|numeric|in:1,2',
     ]);
     $incomeService = new CusClueService;
     $res = $incomeService->save($request->toArray(), $this->user);
