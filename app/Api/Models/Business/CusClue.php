@@ -26,9 +26,9 @@ class CusClue extends Model
   {
     if (isset($this->attributes['sex'])) {
       if ($this->attributes['sex'] == 1) {
-        return "男";
+        return "先生";
       } else {
-        return "女";
+        return "女士";
       }
     }
   }
