@@ -22,13 +22,20 @@ class CusClue extends Model
 
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-  protected $appends = ['clue_type_label'];
+  protected $appends = ['clue_type_label', 'c_user'];
 
 
   public function getClueTypeLabelAttribute()
   {
     if (isset($this->attributes['clue_type'])) {
       return getDictName($this->attributes['clue_type']);
+    }
+  }
+  public function getCUserAttribute()
+  {
+    if (isset($this->attributes['c_uid'])) {
+      $user = getUserByUid($this->attributes['c_uid']);
+      return $user['realname'];
     }
   }
 

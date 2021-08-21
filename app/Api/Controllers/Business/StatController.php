@@ -168,7 +168,7 @@ class StatController extends BaseController
                 $q->where('state', "来访");
             }])
             ->first();
-        return response()->json(DB::getQueryLog());
+        // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
         $customerByState = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {

@@ -83,7 +83,6 @@ class CusClueController extends BaseController
     DB::enableQueryLog();
     $result = $incomeService->model()->where($map)
       ->where(function ($q) use ($request) {
-
         $request->start_time && $q->where('clue_time', '>=', $request->start_time);
         $request->end_time && $q->where('clue_time', '<=', $request->end_time);
       })
