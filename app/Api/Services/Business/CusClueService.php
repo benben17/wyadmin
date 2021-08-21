@@ -32,7 +32,7 @@ class CusClueService
     $income->tenant_id = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
     $income->name = isset($DA['name']) ? $DA['name'] : "";
     $income->clue_type = $DA['clue_type'];
-    $income->clue_time = isset($DA['clue_time']) ? $DA['clue_time'] : nowYmd();
+    $income->clue_time = isset($DA['clue_time']) ? $DA['clue_time'] : nowTime();
     $income->phone = isset($DA['phone']) ? $DA['phone'] : "";
     $income->demand_area = isset($DA['demand_area']) ? $DA['demand_area'] : "";
     $income->status = isset($DA['status']) ? $DA['status'] : 0;

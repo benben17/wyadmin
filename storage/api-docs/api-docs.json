@@ -2840,9 +2840,9 @@
         "/api/business/clue/list": {
             "post": {
                 "tags": [
-                    "来电"
+                    "客户线索"
                 ],
-                "summary": "来电列表",
+                "summary": "客户线索列表",
                 "operationId": "54af86a2b5126e2cfae6fa563d679d82",
                 "requestBody": {
                     "content": {
@@ -2876,9 +2876,9 @@
         "/api/business/clue/add": {
             "post": {
                 "tags": [
-                    "来电"
+                    "客户线索"
                 ],
-                "summary": "来电新增",
+                "summary": "客户线索新增",
                 "operationId": "8d58070643978a55ab0620339269dccc",
                 "requestBody": {
                     "content": {
@@ -2893,7 +2893,7 @@
                                 ],
                                 "properties": {
                                     "name": {
-                                        "description": "来电名称",
+                                        "description": "客户线索名称",
                                         "type": "String"
                                     },
                                     "clue_type": {
@@ -2927,9 +2927,9 @@
         "/api/business/clue/edit": {
             "post": {
                 "tags": [
-                    "来电"
+                    "客户线索"
                 ],
-                "summary": "来电编辑",
+                "summary": "客户线索编辑",
                 "operationId": "818cdeaa00d09d510da5ac291a6f692b",
                 "requestBody": {
                     "content": {
@@ -2945,7 +2945,7 @@
                                 ],
                                 "properties": {
                                     "name": {
-                                        "description": "来电名称",
+                                        "description": "客户线索名称",
                                         "type": "String"
                                     },
                                     "clue_type": {
@@ -2979,9 +2979,9 @@
         "/api/business/clue/show": {
             "post": {
                 "tags": [
-                    "来电"
+                    "客户线索"
                 ],
-                "summary": "来电查看",
+                "summary": "客户线索查看",
                 "operationId": "571b4415a69f104a9e513e955ed6fc71",
                 "requestBody": {
                     "content": {
@@ -3015,9 +3015,9 @@
         "/api/business/clue/invalid": {
             "post": {
                 "tags": [
-                    "来电"
+                    "客户线索"
                 ],
-                "summary": "来电设置无效",
+                "summary": "客户线索设置无效",
                 "operationId": "deb753c4d65a57f3e43ef7b124cfbd58",
                 "requestBody": {
                     "content": {

@@ -12,6 +12,7 @@ final class AppEnum extends Enum
   const Supplier      = 3;  //  供应商
   const Relationship  = 4;  // 公共关系
   const Tenant        = 5;  // 租户
+  const CusClue       = 6;  // 线索
 
   // 招商合同状态
   const contractSave      = 0;  // 保存

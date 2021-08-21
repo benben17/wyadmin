@@ -29,8 +29,8 @@ class CusClueController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/clue/list",
-   *     tags={"来电"},
-   *     summary="来电列表",
+   *     tags={"客户线索"},
+   *     summary="客户线索列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -96,15 +96,15 @@ class CusClueController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/clue/add",
-   *     tags={"来电"},
-   *     summary="来电新增",
+   *     tags={"客户线索"},
+   *     summary="客户线索新增",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"name","clue_type","sex","phone"},
-   *       @OA\Property(property="name",type="String",description="来电名称"),
+   *       @OA\Property(property="name",type="String",description="客户线索名称"),
    *       @OA\Property(property="clue_type",type="String",description="来源类型"),
    *      @OA\Property(property="phone",type="String",description="电话"),
    *     ),
@@ -130,23 +130,23 @@ class CusClueController extends BaseController
     $incomeService = new CusClueService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
-      return $this->success('来电新增成功！');
+      return $this->success('客户线索新增成功！');
     }
-    return $this->error("来电新增失败！");
+    return $this->error("客户线索新增失败！");
   }
 
   /**
    * @OA\Post(
    *     path="/api/business/clue/edit",
-   *     tags={"来电"},
-   *     summary="来电编辑",
+   *     tags={"客户线索"},
+   *     summary="客户线索编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"name","clue_type","sex","phone","id"},
-   *       @OA\Property(property="name",type="String",description="来电名称"),
+   *       @OA\Property(property="name",type="String",description="客户线索名称"),
    *       @OA\Property(property="clue_type",type="int",description="来源类型"),
    *       @OA\Property( property="phone",type="int",description="")
    *     ),
@@ -171,16 +171,16 @@ class CusClueController extends BaseController
     $incomeService = new CusClueService;
     $res = $incomeService->save($request->toArray(), $this->user);
     if ($res) {
-      return $this->success('来电编辑成功！');
+      return $this->success('客户线索编辑成功！');
     }
-    return $this->error("来电编辑失败！");
+    return $this->error("客户线索编辑失败！");
   }
 
   /**
    * @OA\Post(
    *     path="/api/business/clue/show",
-   *     tags={"来电"},
-   *     summary="来电查看",
+   *     tags={"客户线索"},
+   *     summary="客户线索查看",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -213,8 +213,8 @@ class CusClueController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/clue/invalid",
-   *     tags={"来电"},
-   *     summary="来电设置无效",
+   *     tags={"客户线索"},
+   *     summary="客户线索设置无效",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
