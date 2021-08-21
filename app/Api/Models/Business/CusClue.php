@@ -2,6 +2,8 @@
 
 namespace App\Api\Models\Business;
 
+use App\Api\Models\Tenant\Follow;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -20,24 +22,26 @@ class CusClue extends Model
 
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-  protected $appends = ['sex_label', 'clue_type_label'];
+  protected $appends = ['clue_type_label'];
 
-  public function getSexLabelAttribute()
-  {
-    if (isset($this->attributes['sex'])) {
-      if ($this->attributes['sex'] == 1) {
-        return "先生";
-      } else {
-        return "女士";
-      }
-    }
-  }
+
   public function getClueTypeLabelAttribute()
   {
     if (isset($this->attributes['clue_type'])) {
       return getDictName($this->attributes['clue_type']);
     }
   }
+
+  public function customer()
+  {
+    return $this->hasOne(Tenant::class, 'id', 'tenant_id');
+  }
+
+  public function cusFollow()
+  {
+    return $this->hasMany(Follow::class, 'tenant_id', 'tenant_id');
+  }
+
   protected static function boot()
   {
     parent::boot();

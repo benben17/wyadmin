@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Models\Building as BuildingModel;
+use App\Api\Models\Business\CusClue;
 use App\Api\Services\Common\DictServices;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Contract\ContractBill as ContractBillModel;
@@ -153,7 +154,21 @@ class StatController extends BaseController
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
         $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
-        // DB::enableQueryLog();
+        DB::enableQueryLog();
+
+        // 来电数量
+
+        $clueStat = CusClue::selectRaw('count(*) cule_total,ifnull(sum(case when status = 1 then 1 end),0) customer_count,ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
+                // $BA['proj_ids'] && $q->whereIn('proj_id', $BA['proj_ids']);
+            })
+            ->withCount(['cusFollow as visit_count' => function ($q) {
+                $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
+                $q->where('state', "来访");
+            }])
+            ->first();
+        return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
         $customerByState = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
@@ -164,7 +179,7 @@ class StatController extends BaseController
             })
             ->groupBy('state')->get();
 
-        // return response()->json(DB::getQueryLog());
+
         // 按照行业进行客户统计
         DB::enableQueryLog();
         $customerByIndustry = $this->customerService->tenantModel()->select('industry', DB::Raw('count(*) as cus_count'))
@@ -219,6 +234,7 @@ class StatController extends BaseController
         }
 
         // return $Stat;
+        $data['customerClueStat'] = $clueStat->toArray();
         $data['customerByState'] = $customerByState->toArray();
         $data['customerByIndustry'] = $customerByIndustry->toArray();
         $data['customerByChannel'] = $customerByChannel->toArray();

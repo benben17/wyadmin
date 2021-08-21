@@ -124,7 +124,7 @@ class CusClueController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'clue_type' => 'required|String|max:64',
+      'clue_type' => 'required|gt:0',
       'phone' => 'required',
     ]);
 
@@ -149,7 +149,7 @@ class CusClueController extends BaseController
    *          schema="UserModel",
    *          required={"name","clue_type","sex","phone","id"},
    *       @OA\Property(property="name",type="String",description="来电名称"),
-   *       @OA\Property(property="clue_type",type="String",description="来源类型"),
+   *       @OA\Property(property="clue_type",type="int",description="来源类型"),
    *       @OA\Property( property="phone",type="int",description="")
    *     ),
    *       example={
@@ -167,7 +167,7 @@ class CusClueController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
-      'clue_type' => 'required|String|max:64',
+      'clue_type' => 'required|gt:0',
       'phone' => 'required',
     ]);
     $incomeService = new CusClueService;
