@@ -80,6 +80,12 @@ Route::group(['prefix' => 'sys'], function () {
     Route::post('user/role/edit', '\App\Api\Controllers\Sys\UserRoleController@update');
     Route::post('user/role/show', '\App\Api\Controllers\Sys\UserRoleController@show');
 
+    // 部门
+    Route::post('depart/list', '\App\Api\Controllers\Sys\DepartController@list');
+    Route::post('depart/add', '\App\Api\Controllers\Sys\DepartController@store');
+    Route::post('depart/edit', '\App\Api\Controllers\Sys\DepartController@edit');
+    Route::post('depart/show', '\App\Api\Controllers\Sys\DepartController@show');
+    Route::post('depart/move', '\App\Api\Controllers\Sys\DepartController@move');
     /** 公司变量信息 */
     Route::post('company/variable/show', '\App\Api\Controllers\Sys\CompanyController@showVariable');
     Route::post('company/variable/edit', '\App\Api\Controllers\Sys\CompanyController@editVariable');

@@ -2,6 +2,8 @@
 
 namespace App\Api\Services\Sys;
 
+use Illuminate\Support\Facades\DB;
+use Exception;
 use App\Models\Depart;
 
 /**
@@ -63,5 +65,19 @@ class DepartService
     $depart->remark     = isset($DA['remark']) ? $DA['remark'] : "";
     $res = $depart->save();
     return $res;
+  }
+
+
+  public function getDepartList($parentId)
+  {
+    DB::enableQueryLog();
+    $data = $this->model()->where('parent_id', $parentId)->orderBy('seq', 'asc')->get();
+    // return response()->json(DB::getQueryLog());
+
+    foreach ($data as $k => &$v) {
+      $children = $this->getDepartList($v['id']);
+      $v['childs'] = $children;
+    }
+    return $data;
   }
 }

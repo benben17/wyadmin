@@ -30,7 +30,7 @@ class CusClueService
     }
     $income->proj_id = isset($DA['proj_id']) ? $DA['proj_id'] : "";
     $income->name = isset($DA['name']) ? $DA['name'] : "";
-    $income->income_type = $DA['income_type'];
+    $income->clue_type = $DA['clue_type'];
     $income->phone = isset($DA['phone']) ? $DA['phone'] : "";
     $income->demand_area = isset($DA['demand_area']) ? $DA['demand_area'] : "";
     $income->remark = isset($DA['remark']) ? $DA['remark'] : "";

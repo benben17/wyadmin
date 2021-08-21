@@ -321,7 +321,11 @@ function getFlowNo()
 function getDictName($dictId)
 {
     $res = \App\Api\Models\Company\CompanyDict::select('dict_value')->find($dictId);
-    return $res['dict_value'];
+    if ($res) {
+        return $res['dict_value'];
+    } else {
+        return "";
+    }
 }
 
 /** 获取费用名称 */

@@ -79,11 +79,16 @@ class CusClueController extends BaseController
       $order = 'desc';
     }
     $incomeService = new CusClueService;
-    $result = $incomeService->model()->where($map)
+    DB::enableQueryLog();
+    $result = $incomeService->model()
+      ->where(function ($q) use ($map) {
+        $map && $q->where($map);
+      })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($result);
-    return $this->success($data);
+
+    $result = $this->handleBackData($result);
+    return $this->success($result);
   }
 
 
@@ -97,13 +102,13 @@ class CusClueController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"name","income_type","sex","phone"},
+   *          required={"name","clue_type","sex","phone"},
    *       @OA\Property(property="name",type="String",description="来电名称"),
-   *       @OA\Property(property="income_type",type="String",description="来源类型"),
+   *       @OA\Property(property="clue_type",type="String",description="来源类型"),
    *       @OA\Property( property="sex",type="int",description="1:男2 女")
    *     ),
    *       example={
-   *              "name": "1","income_type":"type","sex":"","phone",""
+   *              "name": "1","clue_type":"type","sex":"","phone",""
    *           }
    *       )
    *     ),
@@ -116,7 +121,7 @@ class CusClueController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'income_type' => 'required|String|max:64',
+      'clue_type' => 'required|String|max:64',
       'phone' => 'required',
       'sex' => 'required|numeric|in:1,2',
     ]);
@@ -140,13 +145,13 @@ class CusClueController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"name","income_type","sex","phone","id"},
+   *          required={"name","clue_type","sex","phone","id"},
    *       @OA\Property(property="name",type="String",description="来电名称"),
-   *       @OA\Property(property="income_type",type="String",description="来源类型"),
+   *       @OA\Property(property="clue_type",type="String",description="来源类型"),
    *       @OA\Property( property="sex",type="int",description="1:男2 女")
    *     ),
    *       example={
-   *              "name": "1","income_type":"type","sex":"","phone",""
+   *              "name": "1","clue_type":"type","sex":"","phone",""
    *           }
    *       )
    *     ),

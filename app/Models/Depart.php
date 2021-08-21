@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
+use App\Api\Scopes\CompanyScope;
 
 class Depart extends Model
 {
@@ -16,5 +17,11 @@ class Depart extends Model
      */
     protected $table = 'bse_depart';
 
-    protected $hidden = [];
+    protected $hidden = ["updated_at", "u_uid", "company_id", 'deleted_at'];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::addGlobalScope(new CompanyScope);
+    }
 }

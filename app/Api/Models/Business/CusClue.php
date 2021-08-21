@@ -20,7 +20,7 @@ class CusClue extends Model
 
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-  protected $appends = ['sex_label'];
+  protected $appends = ['sex_label', 'clue_type_label'];
 
   public function getSexLabelAttribute()
   {
@@ -30,6 +30,12 @@ class CusClue extends Model
       } else {
         return "女";
       }
+    }
+  }
+  public function getClueTypeLabelAttribute()
+  {
+    if (isset($this->attributes['clue_type'])) {
+      return getDictName($this->attributes['clue_type']);
     }
   }
   protected static function boot()
