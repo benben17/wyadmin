@@ -393,22 +393,3 @@ class TenantBillService
     return $data;
   }
 }
-
-
-CREATE TABLE wy_bse_department (
-  `id` BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  `company_id` BIGINT UNSIGNED NOT NULL COMMENT '公司id',
-  `parent_id` BIGINT UNSIGNED NOT NULL COMMENT '父级主键id',
-  `name` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '部门名称',
-  `seq` BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序号',
-  `remark` varchar(512) DEFAULT '',
-  `is_vaild` tinyint(4) DEFAULT '1' COMMENT '1启用0 禁用',
-  `c_uid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '修改人',
-  `u_uid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建人',
-  `created_at` datetime DEFAULT NULL COMMENT '创建时间',
-  `updated_at` datetime DEFAULT NULL COMMENT '更新时间',
-  `deleted_at` datetime DEFAULT NULL COMMENT '删除时间',
-  PRIMARY KEY(`id`),
-  key(company_id,parent_id)
- )ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COMMENT '部门架构表';
- 
