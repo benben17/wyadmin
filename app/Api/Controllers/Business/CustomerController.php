@@ -63,9 +63,9 @@ class CustomerController extends BaseController
      */
     public function index(Request $request)
     {
-        $validatedData = $request->validate([
-            'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
-        ]);
+        // $validatedData = $request->validate([
+        //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
+        // ]);
         $pagesize = $request->input('pagesize');
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config('per_size');
