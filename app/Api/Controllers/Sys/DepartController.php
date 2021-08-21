@@ -239,9 +239,9 @@ class DepartController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/sys/depart/move",
+   *     path="/api/sys/depart/enable",
    *     tags={"部门"},
-   *     summary="部门移动",
+   *     summary="部门禁用/启用",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -274,12 +274,13 @@ class DepartController extends BaseController
   {
     $validatedData = $request->validate([
       'id'   => 'required|int',
+      'is_vaild' => 'required|in:0,1'
     ]);
     $data = $request->toArray();
     $departService = new DepartService;
     $departIds = getDepartIds($request->id);
     array_push($departIds, $request->id);
-    $res = $departService->model()->whereIn('id', $departIds)->update(['is_vaild' => 0]);
+    $res = $departService->model()->whereIn('id', $departIds)->update(['is_vaild' => $request->is_vaild]);
     if ($res) {
       return $this->success('部门以及子部门禁用成功.');
     } else {

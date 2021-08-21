@@ -117,12 +117,12 @@ class BillController extends BaseController
    *          schema="UserModel",
    *          required={"create_type","tenant_ids","bill_month","bill_day","fee_types"},
    *      @OA\Property(property="create_type",type="int",description="0 所有 1 根据租户id"),
-   *       @OA\Property(property="tenant_ids",type="List",description="客户Id集合),
-   *      @OA\Property(property="bill_month",type="String",description="账单年月例如：2021-07"),
-   *      @OA\Property(property="bill_day",type="String",description="应收日"),
-   *      @OA\Property(property="fee_types",type="List",description="费用类型Id列表"),
+   *      @OA\Property(property="tenant_ids",type="list",description="客户Id集合"),
+   *      @OA\Property(property="bill_month",type="string",description="账单年月例如：2021-07"),
+   *      @OA\Property(property="bill_day",type="string",description="应收日"),
+   *      @OA\Property(property="fee_types",type="list",description="费用类型Id列表"),
    *     ),
-   *       example={"tenant_ids":"[]","bill_month":"2021-07","bill_day":"05","fee_types":"[101]"}
+   *       example={"tenant_ids":"","bill_month":"2021-07","bill_day":"05","fee_types":"[101]"}
    *       )
    *     ),
    *     @OA\Response(
