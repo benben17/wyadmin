@@ -115,7 +115,7 @@ class CustomerController extends BaseController
                     $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
                     $q->whereIn('depart_id', $departIds);
                 } else if (!$request->depart_id) {
-                    $q->where('c_uid', $this->uid);
+                    $q->where('belong_uid', $this->uid);
                 }
             })
             ->with('contacts')
@@ -136,9 +136,18 @@ class CustomerController extends BaseController
             ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
-                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                if ($request->depart_id) {
+                    $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+                    $q->whereIn('depart_id', $departIds);
+                }
+                if ($this->user['is_manager']) {
+                    $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+                    $q->whereIn('depart_id', $departIds);
+                } else if (!$request->depart_id) {
+                    $q->where('belong_uid', $this->uid);
+                }
             })
             ->groupBy('state')->get()->toArray();
         // return response()->json(DB::getQueryLog());

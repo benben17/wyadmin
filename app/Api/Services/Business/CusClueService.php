@@ -35,7 +35,7 @@ class CusClueService
     $income->clue_time = isset($DA['clue_time']) ? $DA['clue_time'] : nowTime();
     $income->phone = isset($DA['phone']) ? $DA['phone'] : "";
     $income->demand_area = isset($DA['demand_area']) ? $DA['demand_area'] : "";
-    $income->status = isset($DA['status']) ? $DA['status'] : 0;
+    $income->status = isset($DA['status']) ? $DA['status'] : 1;
     $income->remark = isset($DA['remark']) ? $DA['remark'] : "";
     $res = $income->save();
     return $res;
