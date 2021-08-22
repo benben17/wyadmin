@@ -52,13 +52,19 @@ class CusClueService
    *
    * @return void
    */
-  public function changeStatus($clueId, $status, $tenantId = 0)
+  public function changeStatus($clueId, $status = 0, $tenantId = 0)
   {
     try {
-      $data['status'] = $status;
+
       if ($tenantId > 0) {
         $data['tenant_id'] = $tenantId;
+        $data['change_time'] = nowYmd();
+        $data['status'] = 2;
       }
+      if ($status > 0) {
+        $data['status'] = $status;
+      }
+
       return $this->model()->where('id', $clueId)->update($data);
     } catch (Exception $e) {
       Log::error("线索更新失败" . $e);

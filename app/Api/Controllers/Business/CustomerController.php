@@ -13,6 +13,7 @@ use Exception;
 use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Models\Common\Contact as ContactModel;
 use App\Api\Models\Tenant\ExtraInfo;
+use App\Api\Services\Business\CusClueService;
 use App\Api\Services\CustomerService;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Tenant\BaseInfoService;
@@ -94,6 +95,8 @@ class CustomerController extends BaseController
         } else {
             $order = 'desc';
         }
+
+
         $request->type = [1, 2, 3];
         DB::enableQueryLog();
         $result = $this->customerService->tenantModel()
@@ -102,11 +105,17 @@ class CustomerController extends BaseController
                 $request->type && $q->whereIn('type', $request->type);
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->state && $q->where('state', $request->state);
-                if (!$this->user['is_admin']) {
-                    $q->where('belong_uid', $this->uid);
+                if ($request->depart_id) {
+                    $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+                    $q->whereIn('depart_id', $departIds);
+                }
+                if ($this->user['is_manager']) {
+                    $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+                    $q->whereIn('depart_id', $departIds);
+                } else if (!$request->depart_id) {
+                    $q->where('c_uid', $this->uid);
                 }
             })
             ->with('contacts')
@@ -276,13 +285,11 @@ class CustomerController extends BaseController
                         $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
                     }
                 }
-                // 插入跟进
-                // $BA['cus_follow_type'] = $customer['cus_follow_type'];
-                // $BA['cus_id'] =  $parent_id;
-                // $BA['cus_follow_record'] = '首次跟进'.$customer['remark'];
-                // $BA['cus_follow_time'] = $customer['cus_visit_date'];
-                // $follow = new CustomerService;
-                // $follow->saveFollow($data,$this->user);
+                // 线索更新
+                if (isset($DA['clue_id']) && $DA['clue_id'] > 0) {
+                    $clueService = new CusClueService;
+                    $clueService->changeStatus($DA['clue_id'], 2, $parent_id);
+                }
 
                 //插入日志
                 $cusLog['content'] = $user['realname'] . "创建客户【" . $res->name . '】';

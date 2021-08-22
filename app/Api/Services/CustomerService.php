@@ -76,6 +76,7 @@ class CustomerService
     $remind->tenant_id = $tenantId;
 
     $remind->tenant_name = $this->getCusNameById($tenantId);
+    $remind->depart_id = getDepartIdByUid($user['id']);
     $remind->remind_date = $remindDate;
     $remind->remind_content = isset($DA['remind_content']) ? $DA['remind_content'] : "跟进提醒";
     $remind->c_uid = $user['id'];
@@ -115,8 +116,9 @@ class CustomerService
         $follow->loss_reason = isset($DA['loss_reason']) ? $DA['loss_reason'] : "";
         $follow->c_uid = $user['id'];
         $follow->follow_username = $user['realname'];
-        if ($DA['next_date']) {
+        if (isset($DA['next_date']) && $DA['next_date']) {
           $follow->next_date = $DA['next_date'];
+          $this->saveRemind($follow->tenant_id, $DA['next_date'], $user);
         }
         // 第几次跟进
         $followTimes = Follow::where('tenant_id', $DA['tenant_id'])->count();
@@ -125,9 +127,6 @@ class CustomerService
         $res = $follow->save();
         //更新客户状态
         $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
-        if (isset($DA['next_date'])) {
-          $this->saveRemind($follow->tenant_id, $DA['next_date'], $user);
-        }
       });
       return true;
     } catch (Exception $e) {

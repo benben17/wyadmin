@@ -380,7 +380,7 @@ function getDepartIdByUid($uid)
  *
  * @return void
  */
-function getDepartIds($parentIds, &$arr = array()): array
+function getDepartIds($parentIds, $arr = array()): array
 {
     $departs = \App\Models\Depart::selectRaw("concat_ws(',',id) ids")
         ->wherein('parent_id', $parentIds)->first();
