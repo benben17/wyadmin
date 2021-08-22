@@ -81,16 +81,17 @@ class CustomerRemindController extends BaseController
                     if (isset($DA['end_time'])) {
                          $q->where('remind_date', '<=', $DA['end_time']);
                     }
-
-                    if ($DA['depart_id']) {
-                         $departIds = getDepartIds([$DA['depart_id']], [$DA['depart_id']]);
-                         $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                         $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                         $q->whereIn('depart_id', $departIds);
-                    } else if (!$DA['depart_id']) {
-                         $q->where('c_uid', $this->uid);
+                    if (!$this->user['is_admin']) {
+                         if ($DA['depart_id']) {
+                              $departIds = getDepartIds([$DA['depart_id']], [$DA['depart_id']]);
+                              $q->whereIn('depart_id', $departIds);
+                         }
+                         if ($this->user['is_manager']) {
+                              $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+                              $q->whereIn('depart_id', $departIds);
+                         } else if (!$DA['depart_id']) {
+                              $q->where('c_uid', $this->uid);
+                         }
                     }
                })->whereHas('customer', function ($q) use ($request) {
                     $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);

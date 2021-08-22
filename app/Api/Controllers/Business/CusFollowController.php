@@ -98,15 +98,17 @@ class CusFollowController extends BaseController
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        if ($request->depart_id) {
-          $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-          $q->whereIn('depart_id', $departIds);
-        }
-        if ($this->user['is_manager']) {
-          $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-          $q->whereIn('depart_id', $departIds);
-        } else if (!$request->depart_id) {
-          $q->where('c_uid', $this->uid);
+        if (!$this->user['is_admin']) {
+          if ($request->depart_id) {
+            $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+            $q->whereIn('depart_id', $departIds);
+          }
+          if ($this->user['is_manager']) {
+            $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+            $q->whereIn('depart_id', $departIds);
+          } else if (!$request->depart_id) {
+            $q->where('c_uid', $this->uid);
+          }
         }
       })->whereHas('tenant', function ($q) use ($request) {
         $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
