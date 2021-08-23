@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\Depart;
+use App\Models\User;
 
 /**
  * 部门管理
@@ -80,10 +81,12 @@ class DepartService
   public function getDepartList($parentId)
   {
     DB::enableQueryLog();
-    $data = $this->model()->where('parent_id', $parentId)->orderBy('seq', 'asc')->get();
+    $data = $this->model()->where('parent_id', $parentId)
+      ->orderBy('seq', 'asc')->get();
     // return response()->json(DB::getQueryLog());
 
     foreach ($data as $k => &$v) {
+      $v['user_count'] = User::whereIn('depart_id', getDepartIds([$v['id']]))->count();
       $children = $this->getDepartList($v['id']);
       if (!$children) {
         continue;

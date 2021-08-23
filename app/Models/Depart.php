@@ -38,7 +38,10 @@ class Depart extends Model
             return "";
         }
     }
-
+    public function users()
+    {
+        return $this->hasMany(User::class, 'depart_id', 'id');
+    }
     protected static function boot()
     {
         parent::boot();

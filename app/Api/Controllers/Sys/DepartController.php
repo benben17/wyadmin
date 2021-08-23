@@ -275,9 +275,8 @@ class DepartController extends BaseController
       'id'   => 'required|int',
       'is_vaild' => 'required|in:0,1'
     ]);
-    $data = $request->toArray();
     $departService = new DepartService;
-    $departIds = getDepartIds($request->id);
+    $departIds = getDepartIds([$request->id]);
     array_push($departIds, $request->id);
     $res = $departService->model()->whereIn('id', $departIds)->update(['is_vaild' => $request->is_vaild]);
     if ($res) {
@@ -319,7 +318,6 @@ class DepartController extends BaseController
   {
     $validatedData = $request->validate([
       'id'   => 'required|int',
-
     ]);
 
     $departService = new DepartService;
