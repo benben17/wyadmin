@@ -509,9 +509,9 @@ class CustomerController extends BaseController
             $business_info = (object)[];
         }
         $clue = CusClue::where('tenant_id', $request->id)->first();
-        $data['cule'] = (object)[];
+        $data['clue'] = (object)[];
         if ($clue) {
-            $data['cule'] = $clue;
+            $data['clue'] = $clue;
         }
         $data['business_info'] = $business_info;
         return $this->success($data);
