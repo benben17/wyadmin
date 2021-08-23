@@ -32,4 +32,18 @@ class DictServices
     }
     return $data;
   }
+
+  public function getDicts($companyIds, $dictKey)
+  {
+    if (!is_array($companyIds)) {
+      $companyIds = str2Array($companyIds);
+    }
+    $data = DictModel::selectRaw('id, value')
+      ->whereIn('company_id', $companyIds)
+      ->where('dict_key', $dictKey)
+      ->where('is_vaild', 1)
+      ->first();
+
+    return $data;
+  }
 }

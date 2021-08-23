@@ -3,6 +3,7 @@
 namespace App\Api\Services\Business;
 
 use App\Api\Models\Business\CusClue;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
@@ -73,7 +74,16 @@ class CusClueService
     }
   }
 
-
+  /**
+   * List 列表 表头统计
+   *
+   * @Author leezhua
+   * @DateTime 2021-08-23
+   * @param [type] $request
+   * @param [type] $map
+   *
+   * @return void
+   */
   public function clueStat($request, $map)
   {
 
@@ -86,7 +96,7 @@ class CusClueService
       })
       ->withCount(['cusFollow as visit_count' => function ($q) {
         $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
-        $q->where('state', "来访");
+        $q->where('follow_type', AppEnum::followVisit);
       }])
       ->first();
 
@@ -95,12 +105,17 @@ class CusClueService
     } else {
       $visitRate =  numFormat($stat['visit_count'] / $stat['cule_total'] * 100) . "%";
     }
+    if ($stat['customer_count']  == 0) {
+      $cusRate = '0.00%';
+    } else {
+      $cusRate =  numFormat($stat['customer_count'] / $stat['cule_total'] * 100) . "%";
+    }
     $clueStat = array(
       ['label' => "线索总数", 'value' => $stat['cule_total']],
       ['label' => "转客户", 'value' => $stat['customer_count']],
       ['label' => "来访数", 'value' => $stat['visit_count']],
       ['label' => "无效数", 'value' => $stat['invalid_count']],
-      ['label' => "转客比例", 'value' => numFormat($stat['customer_count'] / $stat['cule_total'] * 100) . "%"],
+      ['label' => "转客比例", 'value' => $cusRate],
       ['label' => "来访比例", 'value' => $visitRate],
     );
     return $clueStat;

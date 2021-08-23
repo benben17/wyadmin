@@ -62,4 +62,7 @@ final class AppEnum extends Enum
   const monthPrice = "元/㎡/月";
 
   const projType = "办公园区";
+
+  // 跟进方式
+  const followVisit = 87;
 }

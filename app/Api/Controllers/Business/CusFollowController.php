@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 use App\Api\Models\Tenant\Follow;
+use App\Api\Services\Common\DictServices;
 use App\Api\Services\CustomerService;
 use App\Api\Services\Tenant\TenantService;
 
@@ -117,6 +118,32 @@ class CusFollowController extends BaseController
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($result);
+
+    $stat = Follow::where($map)
+      ->selectRaw('count(*) as count,follow_type')
+      ->where(function ($q) use ($request) {
+        $request->start_time && $q->where('follow_time', '>=', $request->start_time);
+        $request->end_time && $q->where('follow_time', '<=', $request->end_time);
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        if (!$this->user['is_admin']) {
+          if ($request->depart_id) {
+            $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+            $q->whereIn('depart_id', $departIds);
+          }
+          if ($this->user['is_manager']) {
+            $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+            $q->whereIn('depart_id', $departIds);
+          } else if (!$request->depart_id) {
+            $q->where('c_uid', $this->uid);
+          }
+        }
+      })->whereHas('tenant', function ($q) use ($request) {
+        $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
+      })
+      ->groupBy('follow_type')->get();
+
+    $dictService = new DictServices;
+    $dictKeys = $dictService->getDicts([0, $this->user['company_id']], 'follow_type');
     return $this->success($data);
   }
   /**

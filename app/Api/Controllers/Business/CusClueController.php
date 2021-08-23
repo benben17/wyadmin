@@ -63,9 +63,7 @@ class CusClueController extends BaseController
       $pagesize = config('export_rows');
     }
     $map = array();
-    if ($request->sex) {
-      $map['sex'] = $request->sex;
-    }
+
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -147,7 +145,7 @@ class CusClueController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"name","clue_type","sex","phone","id"},
+   *          required={"name","clue_type","phone","id"},
    *       @OA\Property(property="name",type="String",description="客户线索名称"),
    *       @OA\Property(property="clue_type",type="int",description="来源类型"),
    *       @OA\Property( property="phone",type="int",description="")

@@ -173,6 +173,20 @@ class StatController extends BaseController
                 $q->groupBy('tenant_id');
             }])
             ->first();
+
+        $clueStatPie = CusClue::selectRaw('clue_type,count(*) count')
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
+            })
+            ->groupBy('clue_type')->get();
+        $cluePieTotal = 0;
+
+        foreach ($clueStatPie as $k => &$v) {
+            $v['clue_type_label'] = getDictName($v['clue_type']);
+            $cluePieTotal += $v['count'];
+        }
+
+
         // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
         $customerByState = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
@@ -240,6 +254,7 @@ class StatController extends BaseController
 
         // return $Stat;
         $data['customerClueStat'] = $clueStat->toArray();
+        $data['customerCluepie'] =  $clueStatPie->toArray();
         $data['customerByState'] = $customerByState->toArray();
         $data['customerByIndustry'] = $customerByIndustry->toArray();
         $data['customerByChannel'] = $customerByChannel->toArray();
