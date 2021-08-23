@@ -286,4 +286,45 @@ class DepartController extends BaseController
       return $this->error('部门以及子部门禁用失败!');
     }
   }
+
+  /**
+   * @OA\Post(
+   *     path="/api/sys/depart/show",
+   *     tags={"部门"},
+   *     summary="查看",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(
+   *          property="id",
+   *          type="String",
+   *          description="部门id"
+   *       )
+   *     ),
+   *       example={
+   *              "id":"id"
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function show(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'   => 'required|int',
+
+    ]);
+
+    $departService = new DepartService;
+
+    $data = $departService->model()->find($request->id);
+    return $this->success($data);
+  }
 }

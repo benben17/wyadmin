@@ -115,11 +115,9 @@ class DepartService
     // return response()->json(DB::getQueryLog());
 
     foreach ($data as $k => &$v) {
-      $children = $this->getDepartSelect($v['id']);
-
-
       $v['id'] = $v['id'];
       $v['label'] = $v['name'];
+      $children = $this->getDepartSelect($v['id']);
       if (!$children) {
         continue;
       }
