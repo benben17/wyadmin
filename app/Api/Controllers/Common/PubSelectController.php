@@ -781,6 +781,7 @@ class PubSelectController extends BaseController
 			'is_vaild' => 'required|in:0,1',
 		]);
 		$departService = new DepartService;
-		return $departService->getDepartSelect(0, $request->is_vaild);
+		$data =  $departService->getDepartSelect(0, $request->is_vaild);
+		return $this->success($data);
 	}
 }

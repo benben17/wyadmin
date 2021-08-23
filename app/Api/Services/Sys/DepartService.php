@@ -111,11 +111,13 @@ class DepartService
       ->orderBy('seq', 'asc')->get();
     // return response()->json(DB::getQueryLog());
 
-    foreach ($data as $k => &$v) {
-      $children = $this->getDepartSelect($v['id']);
-      $v['id'] = $v['id'];
-      $v['label'] = $v['name'];
-      $v['children'] = $children;
+    if (count($data) > 0) {
+      foreach ($data as $k => &$v) {
+        $children = $this->getDepartSelect($v['id']);
+        $v['id'] = $v['id'];
+        $v['label'] = $v['name'];
+        $v['children'] = $children;
+      }
     }
     return $data;
   }
