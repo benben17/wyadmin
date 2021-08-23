@@ -12,6 +12,7 @@ use App\Api\Models\Tenant\Follow;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\CustomerService;
 use App\Api\Services\Tenant\TenantService;
+use App\Enums\AppEnum;
 
 /**
  *
@@ -120,7 +121,7 @@ class CusFollowController extends BaseController
     $data = $this->handleBackData($result);
 
     $stat = Follow::where($map)
-      ->selectRaw('count(distinct(tenant_id)) as count,follow_type')
+      ->selectRaw('count(*) as count,follow_type ,count(distinct(tenant_id)) tenant_count')
       ->where(function ($q) use ($request) {
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
@@ -149,9 +150,9 @@ class CusFollowController extends BaseController
       foreach ($stat as $k1 => $v1) {
         if ($v['id'] == $v1['follow_type']) {
           $v['count'] = $v1['count'];
+          $v['tenant_count'] = $v1['tenant_count'];
           break;
         }
-
         $v['count'] = 0;
       }
       unset($v['id']);

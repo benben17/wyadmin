@@ -10,6 +10,7 @@ use App\Api\Models\Tenant\Remind;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Models\Tenant\TenantLog;
 use App\Api\Services\Company\VariableService;
+use App\Enums\AppEnum;
 
 /**
  *
@@ -122,8 +123,11 @@ class CustomerService
         }
         // 第几次跟进
         $followTimes = Follow::where('tenant_id', $DA['tenant_id'])->count();
-        Log::error($followTimes);
         $follow->times = $followTimes + 1;
+        if (AppEnum::followVisit == $DA['follow_type']) {
+          $visitTimes = Follow::where('tenant_id', $DA['tenant_id'])->where('follow_type', AppEnum::followVisit)->count();
+          $follow->visit_times = $visitTimes + 1;
+        }
         $res = $follow->save();
         //更新客户状态
         $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
