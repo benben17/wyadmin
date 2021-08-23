@@ -25,6 +25,8 @@ class Depart extends Model
         if (isset($this->attributes['c_uid'])) {
             $user = getUserByUid($this->attributes['c_uid']);
             return $user['realname'];
+        } else {
+            return "";
         }
     }
 
@@ -32,6 +34,8 @@ class Depart extends Model
     {
         if (isset($this->attributes['is_vaild'])) {
             return $this->attributes['is_vaild'] ? "启用" : "禁用";
+        } else {
+            return "";
         }
     }
 

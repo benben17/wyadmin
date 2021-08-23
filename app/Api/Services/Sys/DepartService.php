@@ -85,6 +85,9 @@ class DepartService
 
     foreach ($data as $k => &$v) {
       $children = $this->getDepartList($v['id']);
+      if (!$children) {
+        continue;
+      }
       $v['children'] = $children;
     }
     return $data;
@@ -108,12 +111,15 @@ class DepartService
       ->where(function ($q) use ($isVaild) {
         $isVaild && $q->where('is_vaild', $isVaild);
       })
-      ->orderBy('seq', 'asc')->get();
+      ->orderBy('seq', 'asc')->get()->toArray();
     // return response()->json(DB::getQueryLog());
 
-    if (count($data) > 0) {
+    if ($data) {
       foreach ($data as $k => &$v) {
         $children = $this->getDepartSelect($v['id']);
+        if (!$children) {
+          continue;
+        }
         $v['id'] = $v['id'];
         $v['label'] = $v['name'];
         $v['children'] = $children;
