@@ -70,7 +70,9 @@ class UserController extends BaseController
             $request->input('realname') && $query->where('realname', 'like', '%' . $request->input('realname') . '%');
             $query->where('company_id', '=', $user->company_id);
             $user->is_admin || $query->where('is_admin', 0);
-        })->paginate($pagesize)->toArray();
+        })
+            ->with('depart:id,name')
+            ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
         if (!$result) {
             return $this->error('查询失败!');
