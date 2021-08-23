@@ -281,7 +281,7 @@ class UserController extends BaseController
         ]);
         DB::enableQueryLog();
         $id = $request->input('id');
-        $data = UserModel::with("role:id,name")->with("group:id,name")->find($id);
+        $data = UserModel::with("role:id,name")->with("group:id,name")->with('depart:id,name')->find($id);
         if ($data) {
             return $this->success($data);
         } else {
