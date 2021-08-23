@@ -22,7 +22,7 @@ class Follow extends Model
 
   public function tenant()
   {
-    return $this->hasOne(Tenant::class, 'id', 'tenant_id');
+    return $this->belongsTo(Tenant::class, 'id', 'tenant_id');
   }
   public function user()
   {

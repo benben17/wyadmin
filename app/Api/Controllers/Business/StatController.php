@@ -16,6 +16,7 @@ use App\Api\Models\Contract\ContractBill as ContractBillModel;
 use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Services\CustomerService;
+use App\Enums\AppEnum;
 
 /**
  *
@@ -165,11 +166,11 @@ class StatController extends BaseController
             })
             ->withCount(['cusFollow as visit_count' => function ($q) {
                 $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
-                $q->where('state', "来访");
+                $q->where('follow_type', AppEnum::followVisit);
             }])
             ->withCount(['cusFollow as visit_count2' => function ($q) {
                 $q->selectRaw("tenant_id,ifnull(case when count(tenant_id)> 1 then 1 end),0) count");
-                $q->where('state', "来访");
+                $q->where('follow_type', AppEnum::followVisit);
                 $q->groupBy('tenant_id');
             }])
             ->first();

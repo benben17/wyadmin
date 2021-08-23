@@ -144,6 +144,19 @@ class CusFollowController extends BaseController
 
     $dictService = new DictServices;
     $dictKeys = $dictService->getDicts([0, $this->user['company_id']], 'follow_type');
+    foreach ($dictKeys as $k => &$v) {
+      $v['label'] = $v['dict_value'];
+      foreach ($stat as $k1 => $v1) {
+        if ($v['id'] == $v1['follow_type']) {
+          $v['count'] = $v1['count'];
+          break;
+        }
+
+        $v['count'] = 0;
+      }
+      unset($v['id']);
+    }
+    $data['stat'] = $dictKeys;
     return $this->success($data);
   }
   /**

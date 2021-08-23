@@ -38,11 +38,11 @@ class DictServices
     if (!is_array($companyIds)) {
       $companyIds = str2Array($companyIds);
     }
-    $data = DictModel::selectRaw('id, value')
+    $data = DictModel::selectRaw('id, dict_value')
       ->whereIn('company_id', $companyIds)
       ->where('dict_key', $dictKey)
       ->where('is_vaild', 1)
-      ->first();
+      ->get();
 
     return $data;
   }
