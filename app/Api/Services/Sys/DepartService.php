@@ -86,7 +86,7 @@ class DepartService
     // return response()->json(DB::getQueryLog());
 
     foreach ($data as $k => &$v) {
-      $v['user_count'] = User::whereIn('depart_id', getDepartIds([$v['id']]))->count();
+      $v['user_count'] = User::whereIn('depart_id', getDepartIds([$v['id']], [$v['id']]))->count();
       $children = $this->getDepartList($v['id']);
       if (!$children) {
         continue;
