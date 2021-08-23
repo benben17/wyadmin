@@ -17,7 +17,26 @@ class User extends Model
     protected $table = 'users';
 
     protected $hidden = ['password', 'remember_token'];
+    protected $appends = ['manager_label', 'c_user',];
 
+    public function getCUserAttribute()
+    {
+        if (isset($this->attributes['c_uid'])) {
+            $user = getUserByUid($this->attributes['c_uid']);
+            return $user['realname'];
+        } else {
+            return "";
+        }
+    }
+
+    public function getManagerLabelAttribute()
+    {
+        if (isset($this->attributes['is_manager'])) {
+            return isset($this->attributes['c_uid']) ? "是" : "否";
+        } else {
+            return "";
+        }
+    }
 
     public function company()
     {
