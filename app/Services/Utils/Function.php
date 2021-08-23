@@ -353,6 +353,9 @@ function getTenantNameById($tenantId)
         return "公区";
     }
     $tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
+    if (!$tenant) {
+        return "";
+    }
     return $tenant['name'];
 }
 /**

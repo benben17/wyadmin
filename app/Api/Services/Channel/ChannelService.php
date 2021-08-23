@@ -68,7 +68,7 @@ class ChannelService
   }
 
   /** 渠道租金更新 */
-  public function saveBrokerage($DA)
+  public function saveBrokerage($DA, $companyId)
   {
     $channel = ChannelModel::find($DA['channel_id']);
     $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
@@ -89,6 +89,7 @@ class ChannelService
       $res = $channel->save();
       if ($res) {
         $brokerage = new BrokerageModel;
+        $brokerage->channel_id = $companyId;
         $brokerage->channel_id = $channel['id'];
         $brokerage->policy_name = $policy['name'];
         $brokerage->tenant_name = $DA['tenant_name'];
@@ -109,7 +110,7 @@ class ChannelService
 
 
   /** 渠道租金更新 */
-  public function updateBrokerage($ChannelId, $contractId, $tenant)
+  public function updateBrokerage($ChannelId, $contractId, $tenant, $companyId)
   {
 
     $billRuleService = new BillRuleService;
@@ -131,6 +132,7 @@ class ChannelService
       $res = $channel->save();
       if ($res) {
         $brokerage = new BrokerageModel;
+        $brokerage->channel_id = $companyId;
         $brokerage->channel_id = $channel['id'];
         $brokerage->policy_name = isset($policy['name']) ? $policy['name'] : "";
         $brokerage->tenant_name = $tenant['name'];

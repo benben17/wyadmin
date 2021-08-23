@@ -363,9 +363,30 @@ class ChannelController extends BaseController
         }
 
         $data = BrokerageModel::where($map)
+            ->where(function ($q) use ($request) {
+                $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
+            })
+            ->whereHas('tenant', function ($q) use ($request) {
+                if (!$this->user['is_admin']) {
+                    if ($request->depart_id) {
+                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+                        $q->whereIn('depart_id', $departIds);
+                    }
+                    if ($this->user['is_manager']) {
+                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+                        $q->whereIn('depart_id', $departIds);
+                    } else if (!$request->depart_id) {
+                        $q->where('belong_uid', $this->uid);
+                    }
+                }
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
-        $data = $this->handleBackData($data);
+        if ($data) {
+            $data = $this->handleBackData($data);
+        }
+
         return $this->success($data);
     }
 
