@@ -16,6 +16,7 @@ use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Company\FeeTypeService;
 use App\Api\Services\Energy\EnergyService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Channel\ChannelService;
 use App\Enums\AppEnum;
 
 /**
@@ -216,9 +217,9 @@ class ContractService
           // 同步押金信息到 tenant_bill_detail
           $tenantBillService  = new TenantBillService;
           $tenantBillService->batchSaveBillDetail($contract['id'], $user, $contract['proj_id']);
-
-          // $energyService = new EnergyService;
-          // $energyService->bindTenant($tenant['id'], $contract['id'], $user);
+          // 更新渠道佣金
+          $channelService = new ChannelService;
+          $channelService->updateBrokerage($tenant['channel_id'], $DA['id'], $tenant);
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";

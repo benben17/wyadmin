@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Channel\ChannelPolicy as PolicyModel;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+use App\Api\Services\Contract\BillRuleService;
+use App\Enums\AppEnum;
 use Exception;
 
 /**
@@ -95,6 +97,47 @@ class ChannelService
         // 计算本次佣金的金额
         $brokerage->brokerage_amount = $brokerageAmount;
         $brokerage->remark = $policy['name'] . $policy['remark'] . '|' . $policy['month'] . '个月租金';
+        $res = $brokerage->save();
+      }
+      return $res;
+    } catch (Exception $e) {
+      throw new Exception("更新佣金失败" . $e->getMessage());
+      log::error("佣金保存:" . $e->getMessage());
+      log::error($brokerage);
+    }
+  }
+
+
+  /** 渠道租金更新 */
+  public function updateBrokerage($ChannelId, $contractId, $tenant)
+  {
+
+    $billRuleService = new BillRuleService;
+    $contractRule = $billRuleService->model()->where('contract_id', $contractId)->where('fee_type', AppEnum::rentFeeType)->first();
+    $channel = ChannelModel::find($ChannelId);
+
+    if (!$channel) {
+      // Log::info('渠道不存在：'.$DA['channel_id']);
+      return true;
+    }
+    $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
+
+    // 目前只有一种政策，按照固定的几个月租金进行处理
+    $brokerageAmount = numFormat($contractRule['month_amt'] * $tenant['brokerage']);
+    /**  更新渠道的总佣金 */
+    try {
+
+      $channel->brokerage_amount = $channel['brokerage_amount'] +  $brokerageAmount;
+      $res = $channel->save();
+      if ($res) {
+        $brokerage = new BrokerageModel;
+        $brokerage->channel_id = $channel['id'];
+        $brokerage->policy_name = isset($policy['name']) ? $policy['name'] : "";
+        $brokerage->tenant_name = $tenant['name'];
+        $brokerage->tenant_id = $tenant['id'];
+        $brokerage->contract_id = $contractId;
+        $brokerage->brokerage_amount = $brokerageAmount;
+        $brokerage->remark = $policy['name'] . $policy['remark'] . '|' . $tenant['brokerage'] . '个月租金';
         $res = $brokerage->save();
       }
       return $res;

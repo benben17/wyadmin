@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Business\CusClue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -429,7 +430,6 @@ class CustomerController extends BaseController
      *          required={"Ids","belong_uid","distribute_uid"},
      *       @OA\Property(property="Ids",type="int",description="客户id"),
      *       @OA\Property(property="belong_uid",type="int",description="接收客户uid"),
-     *       @OA\Property(property="distribute_uid",type="int",description="分配客户uid"),
      *     ),
      *       example={
      *              "id":1
@@ -453,7 +453,7 @@ class CustomerController extends BaseController
             return $this->error("用户没有权限，请联系管理员。");
         }
         $data['belong_uid'] = $request->belong_uid;
-        $data['distribute_uid'] = $request->distribute_uid;
+        $data['distribute_uid'] = $this->uid;
         $res = $this->customerService->tenantModel()->whereIn('id', $request->Ids)->update($data);
         if ($res) {
             return $this->success("客户分配完成。");
@@ -507,6 +507,10 @@ class CustomerController extends BaseController
         $business_info  = $info->getById($data['business_id']);
         if (empty($business_info)) {
             $business_info = (object)[];
+        }
+        $clue = CusClue::where('tenant_id', $request->id)->first();
+        if ($clue) {
+            $data['cule'] = $clue;
         }
         $data['business_info'] = $business_info;
         return $this->success($data);
