@@ -89,4 +89,34 @@ class DepartService
     }
     return $data;
   }
+
+  /**
+   * Undocumented function
+   *
+   * @Author leezhua
+   * @DateTime 2021-08-23
+   * @param [type] $parentId
+   * @param integer $isVaild
+   *
+   * @return void
+   */
+  public function getDepartSelect($parentId, $isVaild = 1)
+  {
+    DB::enableQueryLog();
+    $data = $this->model()->selectRaw('id,name,seq')
+      ->where('parent_id', $parentId)
+      ->where(function ($q) use ($isVaild) {
+        $isVaild && $q->where('is_vaild', $isVaild);
+      })
+      ->orderBy('seq', 'asc')->get();
+    // return response()->json(DB::getQueryLog());
+
+    foreach ($data as $k => &$v) {
+      $children = $this->getDepartSelect($v['id']);
+      $v['value'] = $v['id'];
+      $v['title'] = $v['name'];
+      $v['children'] = $children;
+    }
+    return $data;
+  }
 }

@@ -279,7 +279,8 @@ Route::group(['prefix' => 'pub/'], function () {
     Route::post('dict/getAll', '\App\Api\Controllers\Common\PubSelectController@dictAll');
     Route::post('channel/getAll', '\App\Api\Controllers\Common\PubSelectController@channelAll');
     Route::post('select/space', '\App\Api\Controllers\Common\PubSelectController@selectSpace');
-    // Route::post('select/room','\App\Api\Controllers\Common\PubSelectController@selectRoom');
+    Route::post('depart/getAll', '\App\Api\Controllers\Common\PubSelectController@getDeparts');
+
     Route::post('channel/getPolicyAll', '\App\Api\Controllers\Common\PubSelectController@policyAll');
     Route::post('customer/getAll', '\App\Api\Controllers\Common\PubSelectController@cusList');
     Route::post('venue/getAll', '\App\Api\Controllers\Common\PubSelectController@venueList');

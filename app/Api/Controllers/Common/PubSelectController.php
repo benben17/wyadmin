@@ -17,6 +17,7 @@ use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Sys\DepartService;
 use App\Enums\AppEnum;
 
 /**
@@ -750,5 +751,36 @@ class PubSelectController extends BaseController
 			->where($where)->get();
 		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
+	}
+
+	/**
+	 * @OA\Post(
+	 *     path="/api/pub/tenant/charge/bill",
+	 *     tags={"选择公用接口"},
+	 *     summary="查询未核销完的收款费用",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"is_vaild"},
+	 *  				@OA\Property(property="is_vaild",type="int",description="0 全部 1 启用"),
+	 *     ),
+	 *       example={}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function getDeparts(Request $request)
+	{
+		$validatedData = $request->validate([
+			'is_vaild' => 'required|in:0,1',
+		]);
+		$departService = new DepartService;
+		return $departService->getDepartSelect(0, $request->is_vaild);
 	}
 }
