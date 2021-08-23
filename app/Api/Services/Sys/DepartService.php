@@ -87,6 +87,7 @@ class DepartService
 
     foreach ($data as $k => &$v) {
       $v['user_count'] = User::whereIn('depart_id', getDepartIds([$v['id']], [$v['id']]))->count();
+      $v['_expanded'] = true;
       $children = $this->getDepartList($v['id']);
       if (!$children) {
         continue;
