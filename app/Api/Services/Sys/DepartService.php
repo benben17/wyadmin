@@ -115,6 +115,8 @@ class DepartService
       $children = $this->getDepartSelect($v['id']);
       $v['value'] = $v['id'];
       $v['title'] = $v['name'];
+      $v['selected'] = "false";
+      $v['checked'] = "false";
       $v['children'] = $children;
     }
     return $data;
