@@ -113,10 +113,8 @@ class DepartService
 
     foreach ($data as $k => &$v) {
       $children = $this->getDepartSelect($v['id']);
-      $v['value'] = $v['id'];
-      $v['title'] = $v['name'];
-      $v['selected'] = "false";
-      $v['checked'] = "false";
+      $v['id'] = $v['id'];
+      $v['label'] = $v['name'];
       $v['children'] = $children;
     }
     return $data;
