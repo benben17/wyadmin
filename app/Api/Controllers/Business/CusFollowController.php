@@ -120,7 +120,7 @@ class CusFollowController extends BaseController
     $data = $this->handleBackData($result);
 
     $stat = Follow::where($map)
-      ->selectRaw('count(*) as count,follow_type')
+      ->selectRaw('count(distinct(tenant_id)) as count,follow_type')
       ->where(function ($q) use ($request) {
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);

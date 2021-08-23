@@ -85,7 +85,7 @@ class DepartService
 
     foreach ($data as $k => &$v) {
       $children = $this->getDepartList($v['id']);
-      $v['childs'] = $children;
+      $v['children'] = $children;
     }
     return $data;
   }
