@@ -114,16 +114,16 @@ class DepartService
       ->orderBy('seq', 'asc')->get()->toArray();
     // return response()->json(DB::getQueryLog());
 
-    if ($data) {
-      foreach ($data as $k => &$v) {
-        $children = $this->getDepartSelect($v['id']);
-        if (!$children) {
-          continue;
-        }
-        $v['id'] = $v['id'];
-        $v['label'] = $v['name'];
-        $v['children'] = $children;
+    foreach ($data as $k => &$v) {
+      $children = $this->getDepartSelect($v['id']);
+
+
+      $v['id'] = $v['id'];
+      $v['label'] = $v['name'];
+      if (!$children) {
+        continue;
       }
+      $v['children'] = $children;
     }
     return $data;
   }
