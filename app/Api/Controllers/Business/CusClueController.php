@@ -78,18 +78,20 @@ class CusClueController extends BaseController
     } else {
       $order = 'desc';
     }
-    $incomeService = new CusClueService;
+    $clueService = new CusClueService;
     DB::enableQueryLog();
-    $result = $incomeService->model()->where($map)
+    $result = $clueService->model()->where($map)
       ->where(function ($q) use ($request) {
         $request->start_time && $q->where('clue_time', '>=', $request->start_time);
         $request->end_time && $q->where('clue_time', '<=', $request->end_time);
+        $request->clue_type && $q->where('clue_type', $request->clue_type);
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
 
-    $result = $this->handleBackData($result);
-    return $this->success($result);
+    $data = $this->handleBackData($result);
+    $data['clueStat'] = $clueService->clueStat($request, $map);
+    return $this->success($data);
   }
 
 

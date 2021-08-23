@@ -72,4 +72,37 @@ class CusClueService
       return false;
     }
   }
+
+
+  public function clueStat($request, $map)
+  {
+
+    $stat = $this->model()->where($map)
+      ->selectRaw('count(*) cule_total,ifnull(sum(case when status = 2 then 1 end),0) customer_count,ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
+      ->where(function ($q) use ($request) {
+        $request->start_time && $q->where('clue_time', '>=', $request->start_time);
+        $request->end_time && $q->where('clue_time', '<=', $request->end_time);
+        $request->clue_type && $q->where('clue_type', $request->clue_type);
+      })
+      ->withCount(['cusFollow as visit_count' => function ($q) {
+        $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
+        $q->where('state', "来访");
+      }])
+      ->first();
+
+    if ($stat['visit_count']  == 0) {
+      $visitRate = '0.00%';
+    } else {
+      $visitRate =  numFormat($stat['visit_count'] / $stat['cule_total'] * 100) . "%";
+    }
+    $clueStat = array(
+      ['label' => "线索总数", 'value' => $stat['cule_total']],
+      ['label' => "转客户", 'value' => $stat['customer_count']],
+      ['label' => "来访数", 'value' => $stat['visit_count']],
+      ['label' => "无效数", 'value' => $stat['invalid_count']],
+      ['label' => "转客比例", 'value' => numFormat($stat['customer_count'] / $stat['cule_total'] * 100) . "%"],
+      ['label' => "来访比例", 'value' => $visitRate],
+    );
+    return $clueStat;
+  }
 }

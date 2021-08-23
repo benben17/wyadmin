@@ -150,7 +150,7 @@ function amountToCny(float $num)
 /** 保留两位小数 并格式化数据输出 */
 function numFormat($num)
 {
-    if (!$num || empty($num) || is_null($num) || $num === NULL) {
+    if (!$num || empty($num) || is_null($num) || $num === NULL || $num == 0) {
         return 0.00;
     }
     return  sprintf("%.2f", round($num, 2));
