@@ -114,6 +114,7 @@ class CustomerService
         $follow->follow_time = $DA['follow_time'];
         $follow->contact_id = isset($DA['contact_id']) ? $DA['contact_id'] : 0;
         $follow->contact_user = isset($DA['contact_user']) ? $DA['contact_user'] : "";
+        $follow->contact_phone = isset($DA['contact_phone']) ? $DA['contact_phone'] : "";
         $follow->loss_reason = isset($DA['loss_reason']) ? $DA['loss_reason'] : "";
         $follow->c_uid = $user['id'];
         $follow->follow_username = $user['realname'];
