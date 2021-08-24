@@ -128,6 +128,9 @@ class CustomerController extends BaseController
             })
             // ->with('customerRoom')
             ->withCount('follow')
+            ->withCount(['follow as visit_times' => function ($q) {
+                $q->where('follow_type', AppEnum::followVisit);
+            }])
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 

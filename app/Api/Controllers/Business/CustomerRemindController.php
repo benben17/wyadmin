@@ -26,6 +26,7 @@ class CustomerRemindController extends BaseController
           }
           $this->company_id = getCompanyId($this->uid);
           $this->remindService = new CustomerService;
+          $this->user = auth('api')->user();
      }
      /**
       * @OA\Post(
