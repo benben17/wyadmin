@@ -32,6 +32,7 @@ class PubSelectController extends BaseController
 			return $this->error('用户信息错误');
 		}
 		$this->company_id = getCompanyId($this->uid);
+		$this->user = auth('api')->user();
 	}
 
 	/**
