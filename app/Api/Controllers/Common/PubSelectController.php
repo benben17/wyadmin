@@ -427,6 +427,18 @@ class PubSelectController extends BaseController
 					$q->whereIn('type', [1, 3]);
 				}
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
+				if (!$this->user['is_admin']) {
+					if ($request->depart_id) {
+						$departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+						$q->whereIn('depart_id', $departIds);
+					}
+					if ($this->user['is_manager']) {
+						$departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+						$q->whereIn('depart_id', $departIds);
+					} else if (!$request->depart_id) {
+						$q->where('belong_uid', $this->uid);
+					}
+				}
 			})
 			->with('business:id,legalPersonName')
 			->orderBy('name', 'asc')
@@ -509,7 +521,20 @@ class PubSelectController extends BaseController
 				if ($request->type == 2) {
 					$q->where('type', AppEnum::TenantType);
 				}
+				if (!$this->user['is_admin']) {
+					if ($request->depart_id) {
+						$departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
+						$q->whereIn('depart_id', $departIds);
+					}
+					if ($this->user['is_manager']) {
+						$departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
+						$q->whereIn('depart_id', $departIds);
+					} else if (!$request->depart_id) {
+						$q->where('belong_uid', $this->uid);
+					}
+				}
 			})
+			->with('contacts')
 			->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();
