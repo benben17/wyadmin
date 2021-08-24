@@ -69,8 +69,6 @@ class CustomerRemindController extends BaseController
      public function list(Request $request)
      {
           $DA = $request->toArray();
-          $now = date('Y-m-d H:i:s');
-
           // DB::enableQueryLog();
           $data = RemindModel::select(DB::Raw("group_concat(concat_ws('-',tenant_id,tenant_name,
                DATE_FORMAT(remind_date,'%H:%i'),remind_content,remind_user)) as remind_info ,
@@ -78,6 +76,8 @@ class CustomerRemindController extends BaseController
                ->where(function ($q) use ($DA) {
                     if (isset($DA['start_time'])) {
                          $q->where('remind_date', '>=', $DA['start_time']);
+                    } else {
+                         $q->where('remind_date', '>=', nowYmd());
                     }
                     if (isset($DA['end_time'])) {
                          $q->where('remind_date', '<=', $DA['end_time']);
