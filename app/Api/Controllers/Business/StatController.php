@@ -148,7 +148,9 @@ class StatController extends BaseController
     public function getCustomerStat(Request $request)
     {
         $BA = $request->toArray();
-
+        // $validatedData = $request->validate([
+        //     'proj_ids' => 'required|array',
+        // ]);
         //如果没有传值，默认统计最近一年的数据
         if (!isset($BA['start_date']) || !isset($BA['end_date'])) {
             $BA['end_date']     = date('Y-m-d', time());
@@ -193,7 +195,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
+                    $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 }
             })
             ->groupBy('source_type')->get();
@@ -207,7 +209,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 if (!empty($BA['proj_ids'])) {
-                    $q->whereIn('proj_id', $BA['proj_ids']);
+                    $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 }
             })
             ->groupBy('state')->get();
@@ -218,7 +220,7 @@ class StatController extends BaseController
         $customerByIndustry = $this->customerService->tenantModel()->select('industry', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->groupBy('industry')->get();
         // return response()->json(DB::getQueryLog());
@@ -226,7 +228,7 @@ class StatController extends BaseController
         $customerByChannel = $this->customerService->tenantModel()->select('channel_id', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -236,7 +238,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $q->where('state', '成交客户');
-                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -247,7 +249,7 @@ class StatController extends BaseController
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
             })
             ->whereHas('tenant', function ($q) use ($BA) {
-                isset($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->groupBy('demand_area')->get();
 
@@ -269,7 +271,7 @@ class StatController extends BaseController
         // return $Stat;
         $data['customerClueStat'] = $clueStat->toArray();
         $data['cusBySource'] =  $cusBySource->toArray();
-        $data['customerCluepie'] =  $clueStatPie->toArray();
+        $data['customerCluepie'] =  $clueStatPie;
         $data['customerByState'] = $customerByState->toArray();
         $data['customerByIndustry'] = $customerByIndustry->toArray();
         $data['customerByChannel'] = $customerByChannel->toArray();
