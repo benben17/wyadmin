@@ -154,7 +154,7 @@ class StatController extends BaseController
             $BA['end_date']     = date('Y-m-d', time());
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
-        $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
+        // $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
         DB::enableQueryLog();
 
         // 来电数量
@@ -179,7 +179,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
             })
-            ->groupBy('clue_type')->get();
+            ->groupBy('clue_type')->get()->toArray();
         $cluePieTotal = 0;
 
         foreach ($clueStatPie as $k => &$v) {
@@ -187,10 +187,23 @@ class StatController extends BaseController
             $cluePieTotal += $v['count'];
         }
 
-
+        /** 统计每种状态下的客户  */
+        $cusBySource = $this->customerService->tenantModel()
+            ->selectRaw('count(*) as cus_count,source_type')
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                if (!empty($BA['proj_ids'])) {
+                    $q->whereIn('proj_id', $BA['proj_ids']);
+                }
+            })
+            ->groupBy('source_type')->get();
+        foreach ($cusBySource as $k => &$v) {
+            $v['source_type_label'] = getDictName($v['source_type']);
+        }
         // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
-        $customerByState = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
+        $customerByState = $this->customerService->tenantModel()
+            ->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 if (!empty($BA['proj_ids'])) {
@@ -255,6 +268,7 @@ class StatController extends BaseController
 
         // return $Stat;
         $data['customerClueStat'] = $clueStat->toArray();
+        $data['cusBySource'] =  $cusBySource->toArray();
         $data['customerCluepie'] =  $clueStatPie->toArray();
         $data['customerByState'] = $customerByState->toArray();
         $data['customerByIndustry'] = $customerByIndustry->toArray();
