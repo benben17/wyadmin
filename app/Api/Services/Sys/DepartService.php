@@ -35,7 +35,9 @@ class DepartService
   {
     $map['name'] = $DA['name'];
     if (isset($DA['id']) && $DA['id'] > 0) {
-      $res = $this->model()->where($map)->where('id', '!=', $DA['id'])->exists();
+      $res = $this->model()->where($map)->where('id', '!=', $DA['id'])
+        ->where('parent_id', $DA['parent_id'])
+        ->exists();
     } else {
       $res = $this->model()->where($map)->exists();
     }
