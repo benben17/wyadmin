@@ -80,9 +80,10 @@ class CusClueController extends BaseController
     DB::enableQueryLog();
     $result = $clueService->model()->where($map)
       ->where(function ($q) use ($request) {
-        $request->start_time && $q->where('clue_time', '>=', $request->start_time);
-        $request->end_time && $q->where('clue_time', '<=', $request->end_time);
+        $request->start_date && $q->where('clue_time', '>=', $request->start_date);
+        $request->end_date && $q->where('clue_time', '<=', $request->end_date);
         $request->clue_type && $q->where('clue_type', $request->clue_type);
+        $request->phone && $q->where('phone', 'like', $request->end_date . "%");
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();

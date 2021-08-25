@@ -128,6 +128,7 @@ class CusFollowController extends BaseController
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+
         if (!$this->user['is_admin']) {
           if ($request->depart_id) {
             $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);

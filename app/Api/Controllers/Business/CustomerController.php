@@ -107,6 +107,7 @@ class CustomerController extends BaseController
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
+                $request->source_type && $q->where('source_type', $request->source_type);
                 $request->state && $q->where('state', $request->state);
                 if (!$this->user['is_admin']) {
                     if ($request->depart_id) {
@@ -144,6 +145,7 @@ class CustomerController extends BaseController
                 $request->type && $q->whereIn('type', $request->type);
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->source_type && $q->where('source_type', $request->source_type);
                 if (!$this->user['is_admin']) {
                     if ($request->depart_id) {
                         $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
