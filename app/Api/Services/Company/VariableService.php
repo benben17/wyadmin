@@ -8,7 +8,9 @@ use Exception;
 
 use App\Api\Models\Company\CompanyVariable;
 use App\Api\Models\Project as ProjectModel;
+use App\Api\Services\Sys\DepartService;
 use App\Enums\AppEnum;
+use App\Models\Depart;
 
 /**
  *
@@ -107,7 +109,7 @@ class VariableService
   }
 
   // 创建客户的时候 初始化 公司变量信息
-  public function initCompanyVariable($companyId)
+  public function initCompanyVariable($companyId, $companyName)
   {
     try {
       $row = CompanyVariable::find($companyId);
@@ -124,6 +126,12 @@ class VariableService
       $project->company_id = $companyId;
       $project->is_vaild = 1;
       $project->save();
+
+      $depart = new Depart;
+      $depart->name = $companyName;
+      $depart->company_id = $companyId;
+      $depart->parent_id = 0;
+      $depart->save();
     } catch (Exception $e) {
       Log::error("初始化公司失败" . $e->getMessage());
       throw new Exception("初始化公司失败!");

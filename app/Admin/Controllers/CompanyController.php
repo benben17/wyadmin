@@ -200,7 +200,7 @@ class CompanyController extends AdminController
         //初始化公司变量
         $form->saved(function (Form $form) {
             $variableservice = new VariableService;
-            $variableservice->initCompanyVariable($form->model()->id);
+            $variableservice->initCompanyVariable($form->model()->id, $form->model()->name);
         });
         return $form;
     }

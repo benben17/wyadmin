@@ -64,7 +64,7 @@ class UserController extends BaseController
 
         $user = auth('api')->user();
         // $result = UserModel::with("role:id,name")->where('company_id',$user->company_id)->paginate($pagesize);
-        // DB::enableQueryLog();
+        DB::enableQueryLog();
         $result = UserModel::with("role:id,name")->with("group:id,name")->where(function ($query) use ($user, $request) {
             $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
             $request->input('realname') && $query->where('realname', 'like', '%' . $request->input('realname') . '%');

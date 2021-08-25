@@ -10,9 +10,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
+use App\Exports\UserExport;
 use App\Api\Services\Template\TemplateService;
 use App\Enums\AppEnum;
 use Exception;
+use Excel;
 
 /**
  * 租户账单
@@ -57,6 +59,8 @@ class BillController extends BaseController
    */
   public function list(Request $request)
   {
+
+
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
       $pagesize = config('per_size');
