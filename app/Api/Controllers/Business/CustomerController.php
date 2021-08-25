@@ -121,12 +121,15 @@ class CustomerController extends BaseController
                         $q->where('belong_uid', $this->uid);
                     }
                 }
+                if ($request->visit_times) {
+                    $q->whereHas('follow', function ($q) {
+                        $q->where('follow_type', AppEnum::followVisit);
+                        $q->havingRaw('count(*) >1');
+                    });
+                }
             })
             ->with('contacts')
             ->with('extraInfo')
-            ->whereHas('extraInfo', function ($q) use ($request) {
-                $request->demand_area && $q->where('demand_area', $request->demand_area);
-            })
             // ->with('customerRoom')
             ->withCount('follow')
             ->withCount(['follow as visit_times' => function ($q) {
@@ -157,6 +160,12 @@ class CustomerController extends BaseController
                     } else if (!$request->depart_id) {
                         $q->where('belong_uid', $this->uid);
                     }
+                }
+                if ($request->visit_times) {
+                    $q->whereHas('follow', function ($q) {
+                        $q->where('follow_type', AppEnum::followVisit);
+                        $q->havingRaw('count(*) >1');
+                    });
                 }
             })
             ->groupBy('state')->get()->toArray();
