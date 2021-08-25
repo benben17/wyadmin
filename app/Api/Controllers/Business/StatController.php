@@ -177,7 +177,7 @@ class StatController extends BaseController
             }])
             ->first();
 
-        $clueStatPie = CusClue::selectRaw('clue_type,count(*) count')
+        $clueStatPie = CusClue::selectRaw('clue_type,count(*) cus_count')
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
             })
@@ -186,7 +186,7 @@ class StatController extends BaseController
 
         foreach ($clueStatPie as $k => &$v) {
             $v['clue_type_label'] = getDictName($v['clue_type']);
-            $cluePieTotal += $v['count'];
+            $cluePieTotal += $v['cus_count'];
         }
 
         /** 统计每种状态下的客户  */
