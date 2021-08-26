@@ -303,7 +303,7 @@ class StatController extends BaseController
         if ($request->year) {
             $request->year = date('Y');
         }
-
+        $startDate = date('Y-01-01', strtotime($request->year));
         // return $startDate.'+++++++'.$endDate;
         // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
         $contract = ContractModel::select(DB::Raw('count(*) contract_total,
