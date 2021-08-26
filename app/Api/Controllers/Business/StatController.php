@@ -300,13 +300,8 @@ class StatController extends BaseController
         //     'end_date'=> 'required|date',
         //     // 'proj_id'=> 'array',
         // ]);
-        if ($request->start_date && $request->end_date) {
-            $startDate = date('Y-01-01', $request->start_date);
-            $endDate = date('Y-12-t', strtotime($startDate));
-        } else {
-            $thisMonth = date('Y-m-01', time());
-            $startDate = getPreYmd($thisMonth, 11);
-            $endDate = getNextYmd($thisMonth, 1);
+        if ($request->year) {
+            $request->year = date('Y');
         }
 
         // return $startDate.'+++++++'.$endDate;
@@ -320,8 +315,7 @@ class StatController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
-            ->where('sign_date', '>=', $startDate)
-            ->where('sign_date', '<', $endDate)
+            ->whereYear('sign_date', $request->year)
             ->groupBy('ym')->get();
 
         $i = 0;
