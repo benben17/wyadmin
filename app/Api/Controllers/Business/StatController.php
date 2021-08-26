@@ -300,7 +300,7 @@ class StatController extends BaseController
         //     'end_date'=> 'required|date',
         //     // 'proj_id'=> 'array',
         // ]);
-        if ($request->year) {
+        if (!$request->year) {
             $request->year = date('Y');
         }
         $startDate = date('Y-01-01', strtotime($request->year));
