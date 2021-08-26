@@ -300,10 +300,15 @@ class StatController extends BaseController
         //     'end_date'=> 'required|date',
         //     // 'proj_id'=> 'array',
         // ]);
-        $thisMonth = date('Y-m-01', time());
-        $startDate = getPreYmd($thisMonth, 11);
+        if ($request->start_date && $request->end_date) {
+            $startDate = date('Y-01-01', $request->start_date);
+            $endDate = date('Y-12-t', strtotime($startDate));
+        } else {
+            $thisMonth = date('Y-m-01', time());
+            $startDate = getPreYmd($thisMonth, 11);
+            $endDate = getNextYmd($thisMonth, 1);
+        }
 
-        $endDate = getNextYmd($thisMonth, 1);
         // return $startDate.'+++++++'.$endDate;
         // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
         $contract = ContractModel::select(DB::Raw('count(*) contract_total,

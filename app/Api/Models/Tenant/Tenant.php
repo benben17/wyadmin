@@ -88,7 +88,7 @@ class Tenant extends Model
     return $this->hasOne(ExtraInfo::class, 'tenant_id', 'id');
   }
 
-  public function business()
+  public function business_info()
   {
     return $this->hasOne(BaseInfo::class, 'id', 'business_id');
   }

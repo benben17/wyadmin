@@ -329,7 +329,7 @@ class TenantController extends BaseController
             ->with('contract')
             // ->with('tenantShare')
             // ->with('invoice')
-            ->with('business')
+            ->with('business_info')
             ->with('contacts')
             ->find($request->id)->toArray();
 
