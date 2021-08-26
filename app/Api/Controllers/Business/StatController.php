@@ -380,8 +380,14 @@ class StatController extends BaseController
         //     // 'proj_name'=> 'required',
         // ]);
         $DA = $request->toArray();
-        $DA['start_date'] = '2020-01-01';
-        $DA['end_date'] = '2020-12-31';
+        if ($request->start_date && $request->end_date) {
+            $DA['start_date'] = date('Y-01-01', $request->start_date);
+            $DA['end_date'] = date('Y-12-t', strtotime($DA['start_date']));
+        } else {
+            $thisMonth = date('Y-m-01', time());
+            $DA['start_date'] = getPreYmd($thisMonth, 11);
+            $DA['end_date'] = getNextYmd($thisMonth, 1);
+        }
         $dict = new DictServices;
         $cusState = $dict->getByKeyGroupBy('0,' . $this->company_id, 'cus_state');
         $State = str2Array($cusState['value']);
@@ -469,8 +475,14 @@ class StatController extends BaseController
         // $validatedData = $request->validate([
         //     'room_type' => 'required|int|in:1,2',
         // ]);
-        $startDate = date('Y-m-01');
-        $endDate = getNextYmd($startDate, 24);
+        if ($request->start_date && $request->end_date) {
+            $startDate = date('Y-01-01', $request->start_date);
+            $endDate = date('Y-12-t', strtotime($startDate));
+        } else {
+            $thisMonth = date('Y-m-01', time());
+            $startDate = getPreYmd($thisMonth, 11);
+            $endDate = getNextYmd($thisMonth, 1);
+        }
 
         DB::enableQueryLog();
         $res = ContractBillModel::whereBetween('charge_date', [$startDate, $endDate])
@@ -530,15 +542,18 @@ class StatController extends BaseController
      */
     public function getMonthReceive(Request $request)
     {
+        if (!$request->year) {
+            $request->year = date('Y');
+        }
         $data = ContractBillModel::select(DB::Raw('sum(amount) amount ,type
             ,count(distinct cus_id) cus_count'))
             ->whereHas('contract', function ($q)  use ($request) {
                 $q->where('contract_state', 2);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
+                $request->year && $q->whereYear('charge_date', $request->year);
             })
-            ->whereYear('charge_date', date('Y'))
-            ->whereMonth('charge_date', date('m'))
+
             ->groupBy('type')->get();
         return $this->success($data);
     }

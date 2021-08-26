@@ -60,11 +60,6 @@ class Tenant extends Model
       ->where('parent_type', $this->parentType);
   }
 
-  // 工商信息
-  public function businessInfo()
-  {
-    return $this->hasOne(BaseInfo::class, 'id', 'business_id');
-  }
 
   // 发票抬头
   public function invoice()
