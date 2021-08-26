@@ -161,22 +161,6 @@ class StatController extends BaseController
 
         // 来电数量
 
-        $clueStat = CusClue::selectRaw('count(*) cule_total,ifnull(sum(case when status = 1 then 1 end),0) customer_count,ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
-            ->where(function ($q) use ($BA) {
-                $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
-                // $BA['proj_ids'] && $q->whereIn('proj_id', $BA['proj_ids']);
-            })
-            ->withCount(['cusFollow as visit_count' => function ($q) {
-                $q->selectRaw("ifnull(count(distinct(tenant_id)),0) count");
-                $q->where('follow_type', AppEnum::followVisit);
-            }])
-            ->withCount(['cusFollow as visit_count2' => function ($q) {
-                $q->selectRaw("tenant_id,ifnull(case when count(tenant_id)> 1 then 1 end),0) count");
-                $q->where('follow_type', AppEnum::followVisit);
-                $q->groupBy('tenant_id');
-            }])
-            ->first();
-
         $clueStatPie = CusClue::selectRaw('clue_type,count(*) cus_count')
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('clue_time', [$BA['start_date'], $BA['end_date']]);
@@ -198,6 +182,7 @@ class StatController extends BaseController
                     $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 }
             })
+            ->where('parent_id', '>', 0)
             ->groupBy('source_type')->get();
         foreach ($cusBySource as $k => &$v) {
             $v['source_type_label'] = getDictName($v['source_type']);
@@ -205,6 +190,7 @@ class StatController extends BaseController
         // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
         $customerByState = $this->customerService->tenantModel()
+            ->where('parent_id', '>', 0)
             ->select('state', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
@@ -218,6 +204,7 @@ class StatController extends BaseController
         // 按照行业进行客户统计
         DB::enableQueryLog();
         $customerByIndustry = $this->customerService->tenantModel()->select('industry', DB::Raw('count(*) as cus_count'))
+            ->where('parent_id', '>', 0)
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
@@ -229,6 +216,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $q->where('parent_id', '>', 0);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -239,6 +227,7 @@ class StatController extends BaseController
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $q->where('state', '成交客户');
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $q->where('parent_id', '>', 0);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -250,7 +239,9 @@ class StatController extends BaseController
             })
             ->whereHas('tenant', function ($q) use ($BA) {
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                $q->where('parent_id', '>', 0);
             })
+
             ->groupBy('demand_area')->get();
 
         $dict = new DictServices;  // 根据ID 获取字典信息
@@ -269,7 +260,6 @@ class StatController extends BaseController
         }
 
         // return $Stat;
-        $data['customerClueStat'] = $clueStat->toArray();
         $data['cusBySource'] =  $cusBySource->toArray();
         $data['customerCluepie'] =  $clueStatPie;
         $data['customerByState'] = $customerByState->toArray();

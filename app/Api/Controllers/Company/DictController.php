@@ -97,11 +97,13 @@ class DictController extends BaseController
      *     )
      * )
      */
-    public function dictType()
+    public function dictType(Request $request)
     {
         // return $companyIds;
         DB::enableQueryLog();
-        $data = DictTypeModel::get()->toArray();
+        $data = DictTypeModel::where(function ($q) use ($request) {
+            $request->is_edit && $q->where('is_edit', $request->is_edit);
+        })->get()->toArray();
         // return response()->json(DB::getQueryLog());
         if ($data) {
             return $this->success($data);
