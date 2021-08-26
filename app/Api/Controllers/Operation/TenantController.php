@@ -344,8 +344,8 @@ class TenantController extends BaseController
                 $invoice = (object) null;
             }
             $data['invoice'] = $invoice;
-            if (!$data['business'] || empty($data['business'])) {
-                $data['business'] = (object) null;
+            if (!$data['business_info'] || empty($data['business_info'])) {
+                $data['business_info'] = (object) null;
             }
         }
         return $this->success($data);
