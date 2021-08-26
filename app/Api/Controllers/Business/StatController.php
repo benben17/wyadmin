@@ -431,7 +431,7 @@ class StatController extends BaseController
                     $v['lose'] = $cusCount;
                 }
             }
-            $v['followCount'] = Follow::whereHas('customer', function ($q) use ($DA, $v) {
+            $v['followCount'] = Follow::whereHas('tenant', function ($q) use ($DA, $v) {
                 $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
                 isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
                 $q->where('belong_person', $v['user']);
