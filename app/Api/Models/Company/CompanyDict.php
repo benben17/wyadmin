@@ -15,7 +15,7 @@ class CompanyDict extends Model
 	// use SoftDeletes;
 	protected $table = 'bse_dict';
 
-	protected $hidden = ['created_at', 'updated_at', 'c_uid', 'u_uid', 'is_vaild'];
+	protected $hidden = ['created_at', 'updated_at', 'c_uid', 'u_uid'];
 
 	protected $fillable = ['company_id', 'dict_key', 'dict_value', 'c_uid', 'u_uid', 'is_vaild'];
 
