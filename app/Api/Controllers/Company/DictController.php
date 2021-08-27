@@ -67,7 +67,10 @@ class DictController extends BaseController
             ->get()->toArray();
         // $DA[$v] = $data;
         // return response()->json(DB::getQueryLog());
-
+        foreach ($data as $k => &$v) {
+            $v['key'] = $v['dict_key'];
+            $v['value'] = $v['dict_value'];
+        }
         return $this->success($data);
     }
 
