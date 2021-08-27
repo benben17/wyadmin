@@ -322,6 +322,7 @@ class DictController extends BaseController
         ]);
         $data['is_vaild'] = $request['is_vaild'];
         $res = DictModel::whereIn('id', $request['dictIds'])
+            ->where('company_id', $this->company_id)
             ->update($data);
         if ($res) {
             return $this->success('更新成功！');
