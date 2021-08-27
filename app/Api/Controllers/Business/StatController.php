@@ -147,18 +147,20 @@ class StatController extends BaseController
      */
     public function getCustomerStat(Request $request)
     {
-        $BA = $request->toArray();
+
         // $validatedData = $request->validate([
         //     'proj_ids' => 'required|array',
         // ]);
         //如果没有传值，默认统计最近一年的数据
-        if (!isset($BA['start_date']) || !isset($BA['end_date'])) {
+        $BA = $request->toArray();
+        if (!isset($BA['start_date']) && !isset($BA['end_date'])) {
             $BA['end_date']     = date('Y-m-d', time());
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
         // $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
 
 
+        DB::enableQueryLog();
         // 来电数量
 
         $clueStatPie = CusClue::selectRaw('clue_type,count(*) cus_count')
@@ -168,11 +170,12 @@ class StatController extends BaseController
             ->groupBy('clue_type')->get()->toArray();
         $cluePieTotal = 0;
 
-        foreach ($clueStatPie as $k => &$v) {
-            $v['clue_type_label'] = getDictName($v['clue_type']);
-            $cluePieTotal += $v['cus_count'];
+        foreach ($clueStatPie as $k1 => &$v1) {
+            $v1['clue_type_label'] = getDictName($v1['clue_type']);
+            // $cluePieTotal += $v['cus_count'];
         }
-        DB::enableQueryLog();
+        // return $clueStatPie;
+        // return response()->json(DB::getQueryLog());
         /** 统计每种状态下的客户  */
         $cusBySource = $this->customerService->tenantModel()
             ->selectRaw('count(*) as cus_count,source_type')
@@ -184,10 +187,10 @@ class StatController extends BaseController
             })
             ->where('parent_id', '>', 0)
             ->groupBy('source_type')->get();
-        foreach ($cusBySource as $k => &$v) {
+        foreach ($cusBySource as $k2 => &$v2) {
             $v['source_type_label'] = getDictName($v['source_type']);
         }
-        // return response()->json(DB::getQueryLog());
+        // return $cusBySource;
         /** 统计每种状态下的客户  */
         $customerByState = $this->customerService->tenantModel()
             ->where('parent_id', '>', 0)
@@ -247,14 +250,14 @@ class StatController extends BaseController
         $dict = new DictServices;  // 根据ID 获取字典信息
         $demandArea = $dict->getByKey(getCompanyIds($this->uid), 'demand_area');
         $Stat = array();
-        foreach ($demandArea as $k => $v) {
+        foreach ($demandArea as $k3 => $v3) {
             foreach ($demandStat as $ks => $vs) {
-                if ($v['value'] == $vs['demand_area']) {
-                    $Stat[$k] = $vs;
+                if ($v3['value'] == $vs['demand_area']) {
+                    $Stat[$k3] = $vs;
                     break;
                 } else {
-                    $Stat[$k]['demand_area'] = $v['value'];
-                    $Stat[$k]['count'] = 0;
+                    $Stat[$k3]['demand_area'] = $v3['value'];
+                    $Stat[$k3]['count'] = 0;
                 }
             }
         }
