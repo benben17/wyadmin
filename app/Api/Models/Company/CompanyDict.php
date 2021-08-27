@@ -22,8 +22,8 @@ class CompanyDict extends Model
 
 	public function getIsVaildLabelAttribute()
 	{
-		if (isset($this->attributes['fee_type'])) {
-			return $this->attributes['fee_type'] ? "启用" : "禁用";
+		if (isset($this->attributes['is_vaild'])) {
+			return $this->attributes['is_vaild'] ? "启用" : "禁用";
 		}
 	}
 	public function extra()
