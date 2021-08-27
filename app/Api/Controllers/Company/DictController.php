@@ -52,18 +52,16 @@ class DictController extends BaseController
      */
     public function index(Request $request)
     {
-        $validatedData = $request->validate([
-            'dict_key' => 'required|String|min:1'
-        ]);   //
-
         $map = array();
         if ($request->is_vaild) {
             $map['is_vaild'] = $request->input('is_vaild');
         }
 
         DB::enableQueryLog();
-        $data = DictModel::where('dict_key', $request->dict_key)
-            ->where($map)
+        $data = DictModel::where($map)
+            ->where(function ($q) use ($request) {
+                $q->where('dict_key', $request->dict_key);
+            })
             ->whereIn('company_id', getCompanyIds($this->uid))
             ->orderBy('dict_key')
             ->get()->toArray();
