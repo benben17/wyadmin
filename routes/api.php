@@ -142,7 +142,7 @@ Route::group(['prefix' => 'company/dict'], function () {
     Route::post('list', '\App\Api\Controllers\Company\DictController@index');
     Route::post('add', '\App\Api\Controllers\Company\DictController@store');
     Route::post('edit', '\App\Api\Controllers\Company\DictController@update');
-    Route::post('del', '\App\Api\Controllers\Company\DictController@delete');
+    Route::post('enable', '\App\Api\Controllers\Company\DictController@enable');
     //字典类型
     Route::post('type', '\App\Api\Controllers\Company\DictController@dictType');
 });
