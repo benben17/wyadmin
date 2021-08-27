@@ -35,6 +35,7 @@ class BseMaintain
             $maintain->parent_type   = $DA['parent_type'];
             $maintain->maintain_date  = $DA['maintain_date'];
             $maintain->maintain_user = $DA['maintain_user'];
+            $maintain->maintain_phone = isset($DA['maintain_phone']) ? $DA['maintain_phone'] : "";
             $maintain->maintain_type = $DA['maintain_type'];
             $maintain->maintain_record = $DA['maintain_record'];
             $maintain->maintain_feedback = isset($DA['maintain_feedback']) ? $DA['maintain_feedback'] : "";
@@ -73,6 +74,7 @@ class BseMaintain
             $maintain->parent_type = $DA['parent_type'];
             $maintain->maintain_date  = $DA['maintain_date'];
             $maintain->maintain_user = $DA['maintain_user'];
+            $maintain->maintain_phone = isset($DA['maintain_phone']) ? $DA['maintain_phone'] : "";
             $maintain->maintain_type = $DA['maintain_type'];
             $maintain->maintain_record = $DA['maintain_record'];
             $maintain->maintain_feedback = isset($DA['maintain_feedback']) ? $DA['maintain_feedback'] : "";
