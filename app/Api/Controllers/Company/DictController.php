@@ -109,7 +109,7 @@ class DictController extends BaseController
         if ($data) {
             foreach ($data as $k => &$v) {
                 $v['key'] = $v['dict_type'];
-                $v['value'] = $v['dict_value'];
+                $v['value'] = $v['dict_type'];
             }
             return $this->success($data);
         }
