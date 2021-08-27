@@ -29,7 +29,7 @@ class CompanyDict extends Model
 	public function getCUserAttribute()
 	{
 		if (isset($this->attributes['c_uid']) && $this->attributes['c_uid'] > 0) {
-			return getUserByUid($this->attributes['c_uid']['realname']);
+			return getUserByUid($this->attributes['c_uid'])['realname'];
 		} else {
 			return "管理员";
 		}
