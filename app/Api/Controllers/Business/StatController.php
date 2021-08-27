@@ -159,7 +159,7 @@ class StatController extends BaseController
         }
         // $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
 
-
+        $BA['end_date'] = getNextYmdByDay($BA['end_date'], 1);
         DB::enableQueryLog();
         // 来电数量
 
