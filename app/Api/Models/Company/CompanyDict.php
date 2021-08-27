@@ -15,15 +15,21 @@ class CompanyDict extends Model
 	// use SoftDeletes;
 	protected $table = 'bse_dict';
 
-	protected $hidden = ['created_at', 'updated_at', 'c_uid', 'u_uid'];
+	protected $hidden = ['created_at', 'updated_at', 'u_uid'];
 
 	protected $fillable = ['company_id', 'dict_key', 'dict_value', 'c_uid', 'u_uid', 'is_vaild'];
-	protected $appends = ['is_vaild_label'];
+	protected $appends = ['is_vaild_label', 'c_user'];
 
 	public function getIsVaildLabelAttribute()
 	{
 		if (isset($this->attributes['is_vaild'])) {
 			return $this->attributes['is_vaild'] ? "启用" : "禁用";
+		}
+	}
+	public function getCUserAttribute()
+	{
+		if (isset($this->attributes['c_uid'])) {
+			return getUserByUid($this->attributes['c_uid']['realname']);
 		}
 	}
 	public function extra()
