@@ -321,7 +321,7 @@ class DictController extends BaseController
             'is_vaild' =>  'required|in:0,1',
         ]);
         $data['is_vaild'] = $request['is_vaild'];
-        $res = DictModel::whereIn('id', $request['dictIds'])
+        $res = DictModel::whereIn('id', $request->Ids)
             ->where('company_id', $this->company_id)
             ->update($data);
         if ($res) {
