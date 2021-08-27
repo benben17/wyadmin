@@ -60,7 +60,7 @@ class DictController extends BaseController
         DB::enableQueryLog();
         $data = DictModel::where($map)
             ->where(function ($q) use ($request) {
-                $q->where('dict_key', $request->dict_key);
+                $request->dict_key && $q->where('dict_key', $request->dict_key);
             })
             ->whereIn('company_id', getCompanyIds($this->uid))
             ->orderBy('dict_key')

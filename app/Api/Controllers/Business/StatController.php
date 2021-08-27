@@ -157,7 +157,7 @@ class StatController extends BaseController
             $BA['start_date']   = getPreYmd($BA['end_date'], 12);
         }
         // $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
-        DB::enableQueryLog();
+
 
         // 来电数量
 
@@ -172,15 +172,15 @@ class StatController extends BaseController
             $v['clue_type_label'] = getDictName($v['clue_type']);
             $cluePieTotal += $v['cus_count'];
         }
-
+        DB::enableQueryLog();
         /** 统计每种状态下的客户  */
         $cusBySource = $this->customerService->tenantModel()
             ->selectRaw('count(*) as cus_count,source_type')
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                if (!empty($BA['proj_ids'])) {
-                    $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
-                }
+                // if (!empty($BA['proj_ids'])) {
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                // }
             })
             ->where('parent_id', '>', 0)
             ->groupBy('source_type')->get();
