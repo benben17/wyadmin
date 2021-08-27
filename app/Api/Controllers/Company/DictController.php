@@ -107,6 +107,10 @@ class DictController extends BaseController
         })->get()->toArray();
         // return response()->json(DB::getQueryLog());
         if ($data) {
+            foreach ($data as $k => &$v) {
+                $v['key'] = $v['dict_type'];
+                $v['value'] = $v['dict_value'];
+            }
             return $this->success($data);
         }
         return $this->error('获取数据失败');
