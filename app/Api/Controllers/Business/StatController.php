@@ -188,7 +188,7 @@ class StatController extends BaseController
             ->where('parent_id', '>', 0)
             ->groupBy('source_type')->get();
         foreach ($cusBySource as $k2 => &$v2) {
-            $v['source_type_label'] = getDictName($v['source_type']);
+            $v['source_type_label'] = getDictName($v2['source_type']);
         }
         // return $cusBySource;
         /** 统计每种状态下的客户  */
