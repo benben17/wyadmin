@@ -487,6 +487,10 @@ Route::group(['prefix' => 'wxapp/customer'], function () {
 });
 
 
+Route::group(['prefix' => 'sys/excel'], function () {
+    Route::post('import', '\App\Api\Controllers\Excel\ExcelController@test');
+});
+
 
 // Route::get('/test', function() {
 

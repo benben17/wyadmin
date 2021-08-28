@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Building;
 
+use App\Api\Models\Building;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -155,6 +156,35 @@ class BuildingService
       case '0':
         return '在租';
         break;
+    }
+  }
+
+  public function formatBuilding($row, $companyId)
+  {
+    try {
+      $build = new Building;
+      $build->company_id = $companyId;
+      if (getProjIdByName($row[0])) {
+        $build->proj_id =  getProjIdByName($row[0]);
+      } else {
+        return false;
+      }
+      $build->proj_name = $row[0];
+      $build->build_no = $row[1];
+      $build->build_type = $row[3];
+      $build->build_usage = $row[4];
+
+      $build->build_certificate = $row[5];
+      $build->floor_height  = $row[6];
+      $build->build_area = $row[7];
+      if (isDate($row[8])) {
+        $build->build_date =  $row[8];
+      }
+      $build->remark = $row[9];
+      return $build;
+    } catch (Exception $th) {
+      Log::error("保存失败" . json_encode($row));
+      return false;
     }
   }
 }

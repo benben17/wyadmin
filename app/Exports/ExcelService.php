@@ -32,59 +32,10 @@ class ExcelService
    *
    * @return void
    */
-  public function exportExcel(string $fileName, array $title, array $data)
+  public function readExcel(string $fileName)
   {
-    try {
-      return Excel::create($fileName, function ($excel) use ($data, $title) {
-        /** @var LaravelExcelWriter $excel */
-        $excel->sheet('sheet', function ($sheet) use ($data, $title) {
-          /** @var LaravelExcelWorksheet $sheet */
-          $column = $this->cellLetter[count($data[0]) - 1];
-
-          try {
-            $sheet->fromArray($data, null, 'A1', true, false);
-          } catch (PHPExcel_Exception $e) {
-            throw new LaravelExcelException($e->getMessage());
-          }
-
-          /** 此为设置整体样式 */
-          $sheet->setStyle([
-            'font' => [
-              'name' => 'Calibri',
-              'size' => 12,
-              'bold' => false,
-            ]
-          ])
-            ->prependRow($title)
-            ->row(1, function ($row) {
-              /** @var CellWriter $row */
-              $row->setFont(array(   //设置标题的样式
-                'family' => 'Calibri',
-                'size' => '16',
-                'bold' => true
-              ));
-            })
-            ->mergeCells('A1:' . $column . '1')
-            ->cell('A2:' . $column . '2', function ($cells) {
-              /** @var CellWriter $cells */
-              $cells->setBackground('#AAAAFF');
-            })->setHeight(1, 30)
-            ->setAutoFilter('A2:' . $column . '2');  //设置自动过滤
-
-          /** 此为针对每行的高宽进行设置 */
-          for ($i = 2; $i <= count($data[0]) + 1; $i++) {
-            $sheet->setHeight($i, 20);
-            $sheet->setWidth($this->cellLetter[$i - 1], 30);
-            $sheet->row($i - 1, function ($row) {
-              /** @var CellWriter $row */
-              $row->setAlignment('center');
-              $row->setValignment('center');
-            });
-          }
-        });
-      })->export('xlsx');
-    } catch (LaravelExcelException $e) {
-      throw new LaravelExcelException($e->getMessage());
-    }
+    $data = Excel::load($fileName, function ($reader) {
+    }, 'GBK')->get();
+    return $data;
   }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Api\Models\Project;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -371,6 +372,11 @@ function getDepartIdByUid($uid)
 {
     $user = \App\Models\User::find($uid);
     return $user->depart_id;
+}
+function getProjIdByName($projName)
+{
+    $project = App\Api\Models\Project::select('id')->where('name', $projName)->fisrt();
+    return $project ? $project['id'] : "";
 }
 
 /**
