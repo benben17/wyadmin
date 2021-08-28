@@ -441,7 +441,7 @@ class PubSelectController extends BaseController
 					}
 				}
 			})
-			->with('business:id,legalPersonName')
+			->with('business_info:id,legalPersonName')
 			->orderBy('name', 'asc')
 			->get()->toArray();
 
