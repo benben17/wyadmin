@@ -203,6 +203,7 @@ class WxRoomController extends BaseController
         })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
+            ->with('project')
             ->find($request->id)->toArray();
         DB::enableQueryLog();
 

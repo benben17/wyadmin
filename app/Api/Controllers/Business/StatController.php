@@ -160,7 +160,7 @@ class StatController extends BaseController
         // $BA['end_date']     = getNextYmdByDay($BA['end_date'], 1);
 
         $BA['end_date'] = getNextYmdByDay($BA['end_date'], 1);
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
         // 来电数量
 
         $clueStatPie = CusClue::selectRaw('clue_type,count(*) cus_count')
@@ -176,7 +176,7 @@ class StatController extends BaseController
         }
         // return $clueStatPie;
         // return response()->json(DB::getQueryLog());
-        /** 统计每种状态下的客户  */
+        /** 客户来源分析  */
         $cusBySource = $this->customerService->tenantModel()
             ->selectRaw('count(*) as cus_count,source_type')
             ->where(function ($q) use ($BA) {
@@ -185,16 +185,17 @@ class StatController extends BaseController
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 // }
             })
-            ->where('parent_id', '>', 0)
+            ->where('parent_id', 0)
             ->groupBy('source_type')->get();
         foreach ($cusBySource as $k2 => &$v2) {
             $v['source_type_label'] = getDictName($v2['source_type']);
         }
         // return $cusBySource;
         /** 统计每种状态下的客户  */
+        DB::enableQueryLog();
         $customerByState = $this->customerService->tenantModel()
-            ->where('parent_id', '>', 0)
-            ->select('state', DB::Raw('count(*) as cus_count'))
+            ->where('parent_id', 0)
+            ->selectRaw('state, count(*) as cus_count')
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 if (!empty($BA['proj_ids'])) {
@@ -203,11 +204,11 @@ class StatController extends BaseController
             })
             ->groupBy('state')->get();
 
-
+        // return response()->json(DB::getQueryLog());
         // 按照行业进行客户统计
         DB::enableQueryLog();
         $customerByIndustry = $this->customerService->tenantModel()->select('industry', DB::Raw('count(*) as cus_count'))
-            ->where('parent_id', '>', 0)
+            ->where('parent_id', 0)
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
@@ -219,7 +220,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
-                $q->where('parent_id', '>', 0);
+                $q->where('parent_id', 0);
             })
             ->with('channel:id,channel_name')
             ->groupBy('channel_id')->get();
@@ -242,7 +243,7 @@ class StatController extends BaseController
             })
             ->whereHas('tenant', function ($q) use ($BA) {
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
-                $q->where('parent_id', '>', 0);
+                $q->where('parent_id', 0);
             })
 
             ->groupBy('demand_area')->get();

@@ -431,6 +431,8 @@ class ProjectController extends BaseController
         $DA['proj_usablearea'] = isset($data['proj_usablearea']) ? $data['proj_usablearea'] : 0;
         $DA['proj_far'] = isset($data['proj_far']) ? $data['proj_far'] : "";
         $DA['proj_pic'] = isset($data['proj_pic']) ? $data['proj_pic'] : "";
+        $DA['support'] = isset($data['support']) ? $data['support'] : "";
+        $DA['advantage'] = isset($data['advantage']) ? $data['advantage'] : "";
         $DA['is_vaild'] = isset($data['is_vaild']) ? $data['is_vaild'] : 1;
         return $DA;
     }

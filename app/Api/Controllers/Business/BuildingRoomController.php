@@ -464,6 +464,7 @@ class BuildingRoomController extends BaseController
         }
         $BA['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
         $BA['pics'] = isset($DA['pics']) ? $DA['pics'] : "";
+        $BA['detail'] = isset($DA['detail']) ? $DA['detail'] : "";
         return $BA;
     }
 }
