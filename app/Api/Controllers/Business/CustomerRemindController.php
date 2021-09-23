@@ -140,9 +140,9 @@ class CustomerRemindController extends BaseController
       */
      public function wxList(Request $request)
      {
-          $validatedData = $request->validate([
-               'proj_id' => 'required|numeric|gt:0',
-          ]);
+          // $validatedData = $request->validate([
+          //      'proj_id' => 'required|numeric|gt:0',
+          // ]);
           $DA = $request->toArray();
           if (!isset($DA['start_time'])) {
                $DA['start_time'] =  nowYmd();
@@ -167,7 +167,7 @@ class CustomerRemindController extends BaseController
                })
                ->with('customer')
                ->whereHas('customer', function ($q) use ($request) {
-                    $q->where('proj_id', $request->proj_id);
+                    $request->proj_id && $q->where('proj_id', $request->proj_id);
                })
                ->get()->toArray();
           // return response()->json(DB::getQueryLog());

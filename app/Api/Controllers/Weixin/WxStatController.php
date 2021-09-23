@@ -55,9 +55,9 @@ class WxStatController extends BaseController
      */
     public function customerStat(Request $request)
     {
-        $validatedData = $request->validate([
-            'proj_id' => 'required|gt:0',
-        ]);
+        // $validatedData = $request->validate([
+        //     'proj_id' => 'required|gt:0',
+        // ]);
         $today = strtotime(date('Y-m-d'));
         $weekday = date('w') == 0 ? 7 : date('w');
         $Monday = $today - ($weekday - 1) * 3600 * 24;
@@ -88,7 +88,10 @@ class WxStatController extends BaseController
         $data['cus']['month'] = $monthCount;
 
         // 统计跟进信息
-        $where['proj_id'] = $request->proj_id;
+        if ($request->proj_id) {
+            $where['proj_id'] = $request->proj_id;
+        }
+
         $where['c_uid'] = $this->uid;
         $f_today = Follow::where($where)->whereDate('created_at', nowYmd())->count();
         $f_week = Follow::where($where)->whereBetween('created_at', [$monday, $sunday])->count();
