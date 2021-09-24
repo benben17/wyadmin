@@ -83,7 +83,7 @@ class AuthController extends BaseController
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
-            'avatar' => env("OSS_BUCKET") . "." . env("OSS_ENDPOINT") . "/" . $user->avatar,
+            'avatar' => "https://" . env("OSS_BUCKET") . "." . env("OSS_ENDPOINT") . "/" . $user->avatar,
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
