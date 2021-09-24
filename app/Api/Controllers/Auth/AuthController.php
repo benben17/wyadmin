@@ -77,15 +77,18 @@ class AuthController extends BaseController
             'is_bind' => $isbind,
 
         ];
+
+        $depart = getDepartById($user->depart_id);
         $data['project_info'] = $project_info;
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
-            'avatar' => $user->avatar,
+            'avatar' => env("OSS_BUCKET") . "." . env("OSS_ENDPOINT") . "/" . $user->avatar,
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
             'nickname' => $nickname,
+            'depart_name' => $depart->name,
             'days' => getVariable($user['company_id'], 'year_days')
         ];
 

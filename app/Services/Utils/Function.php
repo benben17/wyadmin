@@ -373,6 +373,19 @@ function getDepartIdByUid($uid)
     $user = \App\Models\User::find($uid);
     return $user->depart_id;
 }
+
+/**
+ * 获取部门信息
+ *
+ * @Author leezhua
+ * @DateTime 2021-09-24
+ */
+function getDepartById($departId)
+{
+    $depart = \App\Models\Depart::find($departId);
+    return $depart;
+}
+
 function getProjIdByName($projName)
 {
     $project = App\Api\Models\Project::select('id')->where('name', $projName)->fisrt();

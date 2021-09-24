@@ -115,7 +115,7 @@ class UserServices
       'phone' => $user->phone
     ];
     $data['project_info'] = $project_info;
-
+    $depart = getDepartById($user->depart_id);
     $wxInfo = WxInfo::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
     $data['info'] = [
       'name' => $user->realname,
@@ -125,7 +125,8 @@ class UserServices
       'company_name' => $result->name,
       'company_access' => [$result->product->en_name],
       'avatar' => $wxInfo->avatar,
-      'nickname' => $wxInfo->nickname
+      'nickname' => $wxInfo->nickname,
+      'depart_name' => $depart->name
     ];
     // $data['menu_list'] = $this->userMenu($user);
     return $data;
