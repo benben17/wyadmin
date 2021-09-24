@@ -15,7 +15,7 @@ use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Building\BuildingService;
-
+use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 
 /**
  * 项目房源信息
@@ -203,11 +203,11 @@ class WxRoomController extends BaseController
         })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
-            ->with('project')
             ->find($request->id)->toArray();
         DB::enableQueryLog();
 
-
+        $project = ProjectModel::find($data['building']['proj_id']);
+        $data['project'] = $project;
         // $contract = new ContractService;
         // $data['contract'] = $contract->getContractByRoomId($request->id);
 
