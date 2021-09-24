@@ -207,14 +207,9 @@ class WxRoomController extends BaseController
             ->find($request->id)->toArray();
         DB::enableQueryLog();
 
-        $customer = TenantModel::whereHas('tenantRooms', function ($q) use ($request) {
-            $q->where('room_id', $request->id);
-        })
-            ->select('name', 'state', 'belong_person', 'industry', 'created_at')
-            ->get();
-        $data['customer'] = $customer;
-        $contract = new ContractService;
-        $data['contract'] = $contract->getContractByRoomId($request->id);
+
+        // $contract = new ContractService;
+        // $data['contract'] = $contract->getContractByRoomId($request->id);
 
         // return response()->json(DB::getQueryLog());
         // $data = $this->handleBackData($result);
