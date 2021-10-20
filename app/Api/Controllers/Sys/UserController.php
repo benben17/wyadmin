@@ -219,9 +219,9 @@ class UserController extends BaseController
             return $this->error($error);
         }
         $validatedData = $request->validate([
-            'realname' => 'required|max:10|min:1',
-            'role_id' => 'required|numeric|max:10|min:1',
-            'group_id' => 'required|numeric|max:10|min:1'
+            'realname' => 'required',
+            'role_id' => 'required|numeric',
+            'group_id' => 'required|numeric'
         ]);
         $userinfo = auth('api')->user();
         $user = UserModel::find($request->input('id'));

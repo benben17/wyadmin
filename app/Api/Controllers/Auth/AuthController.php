@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
 use App\Api\Services\Sys\UserServices;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class AuthController extends BaseController
@@ -80,10 +81,11 @@ class AuthController extends BaseController
 
         $depart = getDepartById($user->depart_id);
         $data['project_info'] = $project_info;
+        Log::error(config('app.env'));
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
-            'avatar' => "https://" . env('OSS_BUCKET') . "." . env('OSS_ENDPOINT') . "/" . $user->avatar,
+            'avatar' => "https://" . env("OSS_BUCKET") . "." . env('OSS_ENDPOINT') . "/" . $user->avatar,
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
