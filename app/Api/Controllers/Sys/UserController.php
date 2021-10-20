@@ -140,8 +140,8 @@ class UserController extends BaseController
             'realname' => 'required|max:20|min:2',
             'password' => 'required|max:20|min:4',
             'phone' => 'unique:users',
-            'role_id' => 'required|numeric|max:14|min:1',
-            'group_id' => 'required|numeric|max:14|min:1'
+            'role_id' => 'required|numeric',
+            'group_id' => 'required|numeric'
         ]);
         $userinfo = auth('api')->user();
         $user = new UserModel;
