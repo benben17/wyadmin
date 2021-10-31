@@ -222,12 +222,12 @@ class MaintainController extends BaseController
     {
 
         $validatedData = $request->validate([
-            'parent_id' => 'required|min:1',
-            'parent_type' => 'required|numeric|in:1,2,3,4,5',
-            'maintain_type' => 'required|String|min:1',
-            'maintain_date' => 'required|date',
+            'parent_id'       => 'required|min:1',
+            'parent_type'     => 'required|numeric|in:1,2,3,4,5',
+            'maintain_type'   => 'required|String|min:1',
+            'maintain_date'   => 'required|date',
             'maintain_record' => 'required|String|min:1',
-            'proj_id' => 'required|numeric',
+            // 'proj_id'         => 'required|numeric',
         ]);
 
         $DA =  $request->toArray();

@@ -244,6 +244,7 @@ class ChannelController extends BaseController
     {
         $validatedData = $request->validate([
             'channel_name' => 'required|String|max:64',
+            'channel_name' => Rule::unique('bse_channel'),
             'channel_type' => 'required',
             'is_vaild' => 'required|numeric',
             'channel_contact' => 'array',
