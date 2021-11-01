@@ -37,23 +37,8 @@ class Follow extends Model
   }
   public function getFollowTypeLabelAttribute()
   {
-    switch ($this->attributes['follow_type']) {
-      case '1':
-        return '来访';
-        break;
-      case '2':
-        return '电话';
-        break;
-      case '3':
-        return '微信';
-        break;
-      case '4':
-        return 'QQ';
-        break;
-      case '5':
-        return '其他';
-        break;
-    }
+    $followType = $this->attributes['follow_type'];
+    return getDictName($followType);
   }
 
   //跟进类型：1来访，2 电话，3微信  ，4QQ、5其他
