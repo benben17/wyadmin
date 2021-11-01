@@ -5,7 +5,7 @@ namespace App\Api\Models\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
-
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\User;
 
 class Follow extends Model
@@ -37,8 +37,11 @@ class Follow extends Model
   }
   public function getFollowTypeLabelAttribute()
   {
-    $followType = $this->attributes['follow_type'];
-    return getDictName($followType);
+
+    if (isset($this->attributes['follow_type'])) {
+      Log::error($this->attributes['follow_type']);
+      return getDictName($this->attributes['follow_type']);
+    }
   }
 
   //跟进类型：1来访，2 电话，3微信  ，4QQ、5其他
