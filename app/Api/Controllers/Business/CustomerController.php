@@ -117,6 +117,7 @@ class CustomerController extends BaseController
                     if ($this->user['is_manager']) {
                         $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
                         $q->whereIn('depart_id', $departIds);
+                        Log::error("depart_id" . $departIds);
                     } else if (!$request->depart_id) {
                         $q->where('belong_uid', $this->uid);
                     }

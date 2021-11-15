@@ -35,6 +35,11 @@ class Follow extends Model
       return $tenant['name'];
     }
   }
+
+
+
+
+
   public function getFollowTypeLabelAttribute()
   {
 
