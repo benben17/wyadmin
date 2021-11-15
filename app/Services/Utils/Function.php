@@ -409,6 +409,7 @@ function getDepartIds($parentIds, $arr): array
     if (empty($departs['ids'])) {
         return $arr;
     }
+
     $depart_ids = str2Array($departs['ids']);
     foreach ($depart_ids as $k => $v) {
         array_push($arr, (int) $v);
