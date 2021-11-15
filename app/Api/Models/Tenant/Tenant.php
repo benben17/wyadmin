@@ -95,7 +95,7 @@ class Tenant extends Model
 
   public function channel()
   {
-    return $this->hasMany(Channel::class,  'id', 'tenant_id');
+    return $this->hasOne(Channel::class,  'id', 'channel_id');
   }
 
   public function contractStat()
