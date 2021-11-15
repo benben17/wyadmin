@@ -63,7 +63,7 @@ class Tenant extends Model
   public function contactInfo()
   {
     return $this->hasOne('App\Api\Models\Common\Contact', 'parent_id', 'id')
-      ->selectRaw("GROUP_CONCAT(contact_name) as name,GROUP_CONCAT(contact_phone) as phone")
+      ->selectRaw("GROUP_CONCAT(contact_name) as name,GROUP_CONCAT(contact_phone) as phone,parent_id")
       ->where('parent_type', $this->parentType)
       ->groupBy("parent_id");
   }
