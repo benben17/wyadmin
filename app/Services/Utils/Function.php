@@ -404,7 +404,7 @@ function getProjIdByName($projName)
  */
 function getDepartIds($parentIds, $arr): array
 {
-    $departs = \App\Models\Depart::selectRaw("concat_ws(',',id) ids")
+    $departs = \App\Models\Depart::select("GROUP_CONCAT(',',id) ids")
         ->wherein('parent_id', $parentIds)->first();
     if (empty($departs['ids'])) {
         return $arr;

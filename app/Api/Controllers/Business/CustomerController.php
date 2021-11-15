@@ -139,7 +139,7 @@ class CustomerController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
+        return response()->json(DB::getQueryLog());
         $cusState = "";
         // if ($request->list_type == 1) {
         $customerStat = $this->customerService->tenantModel()
