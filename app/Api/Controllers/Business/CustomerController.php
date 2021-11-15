@@ -129,8 +129,8 @@ class CustomerController extends BaseController
                 }
             })
             ->with('contacts')
+            ->with('contactInfo')
             ->with('extraInfo')
-            // ->with('customerRoom')
             ->withCount('follow')
             ->withCount(['follow as visit_times' => function ($q) {
                 $q->where('follow_type', AppEnum::followVisit);
@@ -198,6 +198,8 @@ class CustomerController extends BaseController
         foreach ($data['result'] as $k => &$v) {
             $v['demand_area'] = $v['extra_info']['demand_area'];
             $v['source_type_label'] = getDictName($v['source_type']);
+            $v['contact_user'] = $v['contact_info']['name'];
+            $v['contact_phone'] = $v['contact_info']['phone'];
         }
         $data['stat'] = $cusState;
         return $this->success($data);

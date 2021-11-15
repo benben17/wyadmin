@@ -60,6 +60,14 @@ class Tenant extends Model
       ->where('parent_type', $this->parentType);
   }
 
+  public function contactInfo()
+  {
+    return $this->hasOne('App\Api\Models\Common\Contact', 'parent_id', 'id')
+      ->selectRaw("GROUP_CONCAT(contact_name) as name,GROUP_CONCAT(contact_phone) as phone")
+      ->where('parent_type', $this->parentType)
+      ->groupBy("parent_id");
+  }
+
 
   // 发票抬头
   public function invoice()
