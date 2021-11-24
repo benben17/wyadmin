@@ -4,6 +4,7 @@ namespace App\Api\Controllers\Business;
 
 use JWTAuth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Api\Controllers\BaseController;
@@ -314,16 +315,18 @@ class ChannelController extends BaseController
             ->with('channelMaintain')
             ->with('createUser:id,name')
             ->find($request->input('id'));
+        DB::enableQueryLog();
         if ($data) {
             if ($data['proj_ids']  == '') {
                 $data['proj_lable'] = "全部项目";
             } else {
                 $res = Project::selectRaw("group_concat(proj_name) as proj_name")
-                    ->whereIn("id", str2Array($data['proj_ids']))->get();
+                    ->whereIn("id", str2Array($data['proj_ids']))->first();
 
-                $data['proj_lable'] =  $res['proj_name'];
+                $data['proj_lable'] =  $res->proj_name;
             }
         }
+        // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }
 
