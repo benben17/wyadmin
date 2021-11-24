@@ -318,7 +318,7 @@ class ChannelController extends BaseController
             if ($data['proj_ids']  == '') {
                 $data['proj_lable'] = "全部项目";
             } else {
-                $res = Project::selectRaw("group_concat(name) as proj_name")
+                $res = Project::selectRaw("group_concat(proj_name) as proj_name")
                     ->whereIn("id", str2Array($data['proj_ids']))->get();
 
                 $data['proj_lable'] =  $res['proj_name'];
