@@ -12,6 +12,7 @@ use App\Api\Models\Common\Contact as ContactModel;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+use App\Api\Models\Project;
 use App\Api\Models\Tenant\Tenant;
 use App\Enums\AppEnum;
 use Exception;
@@ -313,7 +314,11 @@ class ChannelController extends BaseController
             ->with('channelMaintain')
             ->with('createUser:id,name')
             ->find($request->input('id'));
-
+        if ($data) {
+            $res = Project::selectRaw("group_concat(name) as proj_name")
+                ->whereIn("id", str2Array($data['proj_ids']))->get();
+            $data['proj_lable'] =  $res['proj_name'];
+        }
         return $this->success($data);
     }
 
