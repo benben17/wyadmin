@@ -361,6 +361,12 @@ class PubSelectController extends BaseController
 		$result = channelModel::select('id', 'channel_name')
 			->with('channelContact')
 			->where($map)
+			->where(function ($q) use ($request) {
+				if ($request->proj_ids) {
+					// $q->orWhere(DB::Raw("proj_ids = ''"));
+					$q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
+				}
+			})
 			->orderBy('created_at', 'desc')
 			->get()->toArray();
 		return $this->success($result);
