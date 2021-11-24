@@ -109,6 +109,10 @@ class ChannelController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
+                if ($request->proj_ids) {
+                    // $q->orWhere(DB::Raw("proj_ids = ''"));
+                    $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
+                }
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
@@ -700,6 +704,7 @@ class ChannelController extends BaseController
         if (isset($DA['remark'])) {
             $BA['remark'] = $DA['remark'];
         }
+        $BA['proj_ids'] = isset($DA['proj_ids']) ? $DA['proj_ids'] : "";
 
         return $BA;
     }

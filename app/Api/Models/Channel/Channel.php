@@ -26,7 +26,7 @@ class Channel extends Model
   protected $table = 'bse_channel';
   // protected $primaryKey = 'id';
 
-  protected $fillable = ['company_id', 'channel_name', 'channel_addr', 'policy_id', 'channel_type', 'channel_policy', 'brokerage', 'remark', 'c_uid', 'u_uid', 'is_vaild'];
+  protected $fillable = ['company_id', 'channel_name', 'channel_addr', 'policy_id', 'channel_type', 'channel_policy', 'brokerage', 'remark', 'c_uid', 'u_uid', 'is_vaild', 'proj_ids'];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
 
 

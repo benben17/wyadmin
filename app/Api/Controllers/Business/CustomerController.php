@@ -128,7 +128,7 @@ class CustomerController extends BaseController
                     });
                 }
             })
-            ->with('contacts')
+            // ->with('contacts')
             ->with('contactInfo')
             ->with('extraInfo')
             ->withCount('follow')
