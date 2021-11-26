@@ -28,7 +28,15 @@ class Channel extends Model
 
   protected $fillable = ['company_id', 'channel_name', 'channel_addr', 'policy_id', 'channel_type', 'channel_policy', 'brokerage', 'remark', 'c_uid', 'u_uid', 'is_vaild', 'proj_ids'];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
+  protected $appends = ['create_user'];
 
+  public function getCreateUserAttribute()
+  {
+    if (isset($this->attributes['c_uid'])) {
+      $user =  getUserByUid($this->attributes['c_uid']);
+      return $user['realname'];
+    }
+  }
 
   public function channelContact()
   {

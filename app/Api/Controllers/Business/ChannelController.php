@@ -322,7 +322,6 @@ class ChannelController extends BaseController
             } else {
                 $res = Project::selectRaw("group_concat(proj_name) as proj_name")
                     ->whereIn("id", str2Array($data['proj_ids']))->first();
-
                 $data['proj_label'] =  $res->proj_name;
             }
         }
