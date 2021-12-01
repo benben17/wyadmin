@@ -121,8 +121,8 @@ class ChannelController extends BaseController
         // DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
         $dict = new DictServices;  // 根据ID 获取字典信息
-        if ($data['result']) {
-            foreach ($data['result'] as $row => &$r) {
+        if ($data) {
+            foreach ($data as $row => &$r) {
                 $user = getUserByUid($r['c_uid']);
                 $r['create_name'] = $user['realname'];
             }
