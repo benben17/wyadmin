@@ -121,6 +121,12 @@ class ChannelController extends BaseController
         // DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
         $dict = new DictServices;  // 根据ID 获取字典信息
+        if ($data['result']) {
+            foreach ($data['result'] as $row => &$r) {
+                $user = getUserByUid($r['c_uid']);
+                $r['create_name'] = $user['realname'];
+            }
+        }
         $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
 
         /** 根据渠道类型统计有多少渠道 */
