@@ -84,7 +84,7 @@ class CompanyController extends BaseController
     {
         $variable = new VariableService;
         $data = $variable->getCompanyVariable($this->company_id);
-        $company = \App\Models\Company::select('name', 'expire_date', 'proj_count')->find($this->company_id);
+        $company = \App\Models\Company::select('name', 'expire_date', 'proj_count', 'logo')->find($this->company_id);
         $usedProjCount = \App\Api\Models\Project::where('company_id', $this->company_id)->count();
         $data['company_name']   = $company['name'];
         $data['expire_date']    = $company['expire_date'];
@@ -126,6 +126,11 @@ class CompanyController extends BaseController
         $variable = new VariableService;
         $user = auth('api')->user();
         $res  = $variable->editVariable($DA, $user);
+        if (isset($request->company_logo)) {
+            $company = \App\Models\Company::find($user['company_id']);
+            $company->logo = $request->company_logo;
+            $company->save();
+        }
         if ($res) {
             return $this->success('编辑成功。');
         }
