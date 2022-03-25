@@ -73,24 +73,24 @@ class CustomerRemindController extends BaseController
           $data = RemindModel::select(DB::Raw("group_concat(concat_ws('-',tenant_id,tenant_name,
                DATE_FORMAT(remind_date,'%H:%i'),remind_content,remind_user)) as remind_info ,
                DATE_FORMAT(remind_date,'%Y-%m-%d') as remind_date"))
-               ->where(function ($q) use ($DA) {
-                    if (isset($DA['start_time'])) {
-                         $q->where('remind_date', '>=', $DA['start_time']);
+               ->where(function ($q) use ($request) {
+                    if (isset($request->start_time)) {
+                         $q->where('remind_date', '>=', $request->start_time);
                     } else {
                          $q->where('remind_date', '>=', nowYmd());
                     }
-                    if (isset($DA['end_time'])) {
-                         $q->where('remind_date', '<=', $DA['end_time']);
+                    if (isset($request->end_time)) {
+                         $q->where('remind_date', '<=', $request->end_time);
                     }
                     if (!$this->user['is_admin']) {
-                         if ($DA['depart_id']) {
-                              $departIds = getDepartIds($DA['depart_id'], $DA['depart_id']);
+                         if ($request->depart_id) {
+                              $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
                               $q->whereIn('depart_id', $departIds);
                          }
                          if ($this->user['is_manager']) {
                               $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
                               $q->whereIn('depart_id', $departIds);
-                         } else if (!$DA['depart_id']) {
+                         } else if (!$request->depart_id) {
                               $q->where('c_uid', $this->uid);
                          }
                     }
