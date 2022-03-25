@@ -84,7 +84,7 @@ class CustomerRemindController extends BaseController
                     }
                     if (!$this->user['is_admin']) {
                          if ($DA['depart_id']) {
-                              $departIds = getDepartIds([$DA['depart_id']], [$DA['depart_id']]);
+                              $departIds = getDepartIds($DA['depart_id'], $DA['depart_id']);
                               $q->whereIn('depart_id', $departIds);
                          }
                          if ($this->user['is_manager']) {
