@@ -193,7 +193,7 @@ class ContractService
 
         // 写入合同日志
         $DA['remark'] .= $msgContent;
-        $this->saveLog($DA);
+        $this->saveLog($DA, $user);
         // 给合同提交人发送系统通知消息
         $msgContent .= '</br>' . $DA['remark'];
         $this->sendMsg($msgTitle, $msgContent, $user, $contract['belong_uid']);
