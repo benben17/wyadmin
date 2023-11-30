@@ -132,7 +132,7 @@ class ChannelService
       $res = $channel->save();
       if ($res) {
         $brokerage = new BrokerageModel;
-        $brokerage->channel_id = $companyId;
+        $brokerage->company_id = $companyId;
         $brokerage->channel_id = $channel['id'];
         $brokerage->policy_name = isset($policy['name']) ? $policy['name'] : "";
         $brokerage->tenant_name = $tenant['name'];
