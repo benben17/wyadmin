@@ -25,9 +25,7 @@ class BillDetailController extends BaseController
   /**
    * @var null
    */
-  private $company_id;
-  private ?\Illuminate\Contracts\Auth\Authenticatable $user;
-  private TenantBillService $billService;
+
 
   function __construct()
   {
