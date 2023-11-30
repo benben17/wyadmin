@@ -200,7 +200,7 @@ class TenantBillService
         //   ->where('type', 1)->update(['is_sync' => 1]);
         // Log::error('格式化账单成功');
       }, 3);
-      Log::error('账单保存成功');
+      Log::info('账单保存成功');
     } catch (Exception $th) {
       throw new Exception("账单保存失败" . $th);
       return false;
