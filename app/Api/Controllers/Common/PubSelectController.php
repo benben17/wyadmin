@@ -787,28 +787,7 @@ class PubSelectController extends BaseController
 		return $this->success($data);
 	}
 
-	/**
-	 * @OA\Post(
-	 *     path="/api/pub/tenant/charge/bill",
-	 *     tags={"选择公用接口"},
-	 *     summary="查询未核销完的收款费用",
-	 *    @OA\RequestBody(
-	 *       @OA\MediaType(
-	 *           mediaType="application/json",
-	 *       @OA\Schema(
-	 *          schema="UserModel",
-	 *          required={"is_vaild"},
-	 *  				@OA\Property(property="is_vaild",type="int",description="0 全部 1 启用"),
-	 *     ),
-	 *       example={}
-	 *       )
-	 *     ),
-	 *     @OA\Response(
-	 *         response=200,
-	 *         description=""
-	 *     )
-	 * )
-	 */
+
 	public function getDeparts(Request $request)
 	{
 		$validatedData = $request->validate([
