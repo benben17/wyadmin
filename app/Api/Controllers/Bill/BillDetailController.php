@@ -21,6 +21,14 @@ use App\Enums\AppEnum;
 class BillDetailController extends BaseController
 {
 
+  private $uid;
+  /**
+   * @var null
+   */
+  private $company_id;
+  private ?\Illuminate\Contracts\Auth\Authenticatable $user;
+  private TenantBillService $billService;
+
   function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
@@ -97,21 +105,21 @@ class BillDetailController extends BaseController
         $request->end_date && $q->where('charge_date', '<=', $request->end_date);
       });
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
-    return response()->json(DB::getQueryLog());
-    $feeStat =  FeeType::selectRaw('fee_name,id,type')
-      ->where('type', AppEnum::feeType)
-      ->whereIn('company_id', getCompanyIds($this->uid))->get();
-    // 统计每种类型费用的应收/实收/未收
-    foreach ($feeStat as $k => &$v) {
-      $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-        ->where('fee_type', $v['id'])
-        ->groupBy('fee_type')->first();
-      $v['total_amt'] =  $count['total_amt'] ? $count['total_amt'] : 0.00;
-      $v['receive_amt'] =  $count['receive_amt'] ? $count['receive_amt'] : 0.00;
-      $v['unreceive_amt'] = $count['total_amt'] - $count['receive_amt'];
-    }
+    // return response()->json(DB::getQueryLog());
+    // $feeStat =  FeeType::selectRaw('fee_name,id,type')
+    //   ->where('type', AppEnum::feeType)
+    //   ->whereIn('company_id', getCompanyIds($this->uid))->get();
+    // // 统计每种类型费用的应收/实收/未收
+    // foreach ($feeStat as $k => &$v) {
+    //   $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+    //     ->where('fee_type', $v['id'])
+    //     ->groupBy('fee_type')->first();
+    //   $v['total_amt'] =  $count['total_amt'] ? $count['total_amt'] : 0.00;
+    //   $v['receive_amt'] =  $count['receive_amt'] ? $count['receive_amt'] : 0.00;
+    //   $v['unreceive_amt'] = $count['total_amt'] - $count['receive_amt'];
+    // }
     $data = $this->handleBackData($result);
-    $data['stat'] = $feeStat;
+    // $data['stat'] = $feeStat;
     return $this->success($data);
   }
   /**
