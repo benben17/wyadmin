@@ -788,6 +788,15 @@ class PubSelectController extends BaseController
 	}
 
 
+	/**
+	 * 获取部门信息
+	 *
+	 * @Author leezhua
+	 * @DateTime 2023-11-30
+	 * @param Request $request
+	 *
+	 * @return void
+	 */
 	public function getDeparts(Request $request)
 	{
 		$validatedData = $request->validate([

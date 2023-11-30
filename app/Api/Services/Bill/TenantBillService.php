@@ -2,16 +2,17 @@
 
 namespace App\Api\Services\Bill;
 
+use String;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Models\Bill\TenantBill as BillModel;
-use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
-use App\Api\Models\Bill\TenantBillDetailLog;
-use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\ContractBill;
+use App\Api\Models\Bill\TenantBillDetailLog;
+use App\Api\Models\Bill\TenantBill as BillModel;
+use App\Api\Models\Tenant\Tenant as TenantModel;
+use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
 
 /**
  *   租户账单服务
@@ -180,23 +181,23 @@ class TenantBillService
   {
     try {
       DB::transaction(function () use ($contractId, $user, $projId) {
-        $depositBills = ContractBill::where('contract_id', $contractId)->where('type', 2)->get()->toArray();
+        $depositBills = ContractBill::where('contract_id', $contractId)->get()->toArray();
         $data = $this->formatBillDetail($depositBills, $user, $projId);
         $this->billDetailModel()->addAll($data);
         // 保存后同步更新状态
-        ContractBill::where('contract_id', $contractId)->where('type', 2)->update(['is_sync' => 1]);
+        ContractBill::where('contract_id', $contractId)->update(['is_sync' => 1]);
 
-        $startDate = date('Y-m-01', strtotime(nowYmd()));
-        $endDate = date('Y-m-t', strtotime(nowYmd()));
+        // $startDate = date('Y-m-01', strtotime(nowYmd()));
+        // $endDate = date('Y-m-t', strtotime(nowYmd()));
 
-        $bills = ContractBill::where('contract_id', $contractId)
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('type', 1)->get()->toArray();
-        $billData = $this->formatBillDetail($bills, $user, $projId);
-        $this->billDetailModel()->addAll($billData);
-        ContractBill::where('contract_id', $contractId)
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('type', 1)->update(['is_sync' => 1]);
+        // $bills = ContractBill::where('contract_id', $contractId)
+        //   ->whereBetween('charge_date', [$startDate, $endDate])
+        //   ->where('type', 1)->get()->toArray();
+        // $billData = $this->formatBillDetail($bills, $user, $projId);
+        // $this->billDetailModel()->addAll($billData);
+        // ContractBill::where('contract_id', $contractId)
+        //   ->whereBetween('charge_date', [$startDate, $endDate])
+        //   ->where('type', 1)->update(['is_sync' => 1]);
         // Log::error('格式化账单成功');
       }, 3);
       Log::error('账单保存成功');

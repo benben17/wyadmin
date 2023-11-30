@@ -6,6 +6,7 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Models\Company\FeeType;
 use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Tenant\ChargeService;
@@ -21,22 +22,8 @@ use App\Enums\AppEnum;
 class BillDetailController extends BaseController
 {
 
-  private $uid;
-  /**
-   * @var null
-   */
 
 
-  function __construct()
-  {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
-    $this->user = auth('api')->user();
-    $this->billService = new TenantBillService;
-  }
   /**
    * @OA\Post(
    *     path="/api/operation/tenant/bill/fee/list",
@@ -94,7 +81,8 @@ class BillDetailController extends BaseController
     // $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
-    $subQuery = $this->billService->billDetailModel()
+    $billService = new TenantBillService;
+    $subQuery = $billService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
@@ -148,7 +136,8 @@ class BillDetailController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     DB::enableQueryLog();
-    $data = $this->billService->billDetailModel()
+    $billService = new TenantBillService;
+    $data = $billService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('charge:id,charge_date,flow_no,amount,c_uid,status');
       }])->with('billDetailLog')
@@ -196,8 +185,8 @@ class BillDetailController extends BaseController
       'charge_id' => 'required|gt:0',
       'verify_amount' => 'required',
     ]);
-
-    $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
+    $billService = new TenantBillService;
+    $billDetail = $billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
@@ -261,8 +250,8 @@ class BillDetailController extends BaseController
       'amount' => 'required',
       'fee_type' => 'required',
     ]);
-
-    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
+    $billService = new TenantBillDetail();
+    $res = $billService->saveBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("新增费用失败!");
     }
@@ -305,8 +294,8 @@ class BillDetailController extends BaseController
       'amount' => 'required|gt:0',
       'edit_reason' => 'required',
     ]);
-
-    $res = $this->billService->editBillDetail($request->toArray(), $this->user);
+    $billService = new TenantBillDetail();
+    $res = $billService->editBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("编辑费用失败!");
     }
@@ -342,8 +331,8 @@ class BillDetailController extends BaseController
     $validatedData = $request->validate([
       'ids' => 'required|array',
     ]);
-
-    $res = $this->billService->billDetailModel()
+    $billService = new TenantBillDetail();
+    $res = $billService->billDetailModel()
       ->whereIn('id', $request->ids)
       ->where('status', '!=', 1)
       ->whereDoesntHave('chargeBillRecord')

@@ -217,7 +217,7 @@ class ContractService
           // 同步押金信息到 tenant_bill_detail
           $tenantBillService  = new TenantBillService;
           $tenantBillService->batchSaveBillDetail($contract['id'], $user, $contract['proj_id']);
-          
+
           // 更新渠道佣金
           //$channelService = new ChannelService;
           //$channelService->updateBrokerage($tenant['channel_id'], $DA['id'], $tenant, $this->user['company_id']);
