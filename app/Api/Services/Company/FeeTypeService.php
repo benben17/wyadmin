@@ -54,17 +54,17 @@ class FeeTypeService
   /**
    * 费用类型启用禁用，不允许删除
    *
-   * @param [type] $feeTypeId
-   * @param [type] $is_vaild
+   * @param [type] $feeTypeIds
+   * @param [type] $isValid
    * @param [type] $uid
    * @return void
    */
-  public function enable($feeTypeIds, $isVaild, $uid)
+  public function enable($feeTypeIds, $isValid, $uid)
   {
     $where['company_id']  = getCompanyId($uid);
 
-    $data['is_vaild'] = $isVaild;
-    DB::enableQueryLog();
+    $data['is_valid'] = $isValid;
+    // DB::enableQueryLog();
     return $this->model()->where($where)->whereIn('id', $feeTypeIds)->update($data);
     // return response()->json(DB::getQueryLog());
     // return $res;

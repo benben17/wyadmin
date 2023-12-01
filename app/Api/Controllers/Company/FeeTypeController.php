@@ -125,11 +125,11 @@ class FeeTypeController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"ids","is_vaild"},
-   *        @OA\Property(property="is_vaild",type="int",description="1启用0禁用"),
+   *          required={"ids","is_valid"},
+   *        @OA\Property(property="is_valid",type="int",description="1启用0禁用"),
    *        @OA\Property(property="ids",type="list",description="id集合")
    *     ),
-   *       example={ "is_vaild":"1","ids":"[]"
+   *       example={ "is_valid":"1","ids":"[]"
    *           }
    *       )
    *     ),
@@ -143,10 +143,10 @@ class FeeTypeController extends BaseController
   {
     $validatedData = $request->validate([
       'ids' => 'required|array',
-      'is_vaild' => 'required|numeric|in:0,1'
+      'is_valid' => 'required|numeric|in:0,1'
     ]);
 
-    $res = $this->feeService->enable($request->ids, $request->is_vaild, $this->uid);
+    $res = $this->feeService->enable($request->ids, $request->is_valid, $this->uid);
     if ($res) {
       return $this->success('数据更新成功。');
     } else {
