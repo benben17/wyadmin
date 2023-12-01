@@ -13,6 +13,9 @@ use App\Api\Controllers\Controller;
 class BaseController extends Controller
 {
 
+    protected $uid;
+    protected $company_id;
+    protected $user;
 
     public function __construct()
     {

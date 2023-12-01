@@ -3,7 +3,10 @@ php 版本为7.2 以上版本
 php-mysqlnd 模块
 MySQL 5.7 以上版本
 
+
 #安装所需组件
+`composer install`
+
 更改数据库链接串需要清理一下文件
 - `rm -rf bootstrap/cache/*.php`
 - `php artisan config:cache`
