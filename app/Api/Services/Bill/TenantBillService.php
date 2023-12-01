@@ -2,7 +2,6 @@
 
 namespace App\Api\Services\Bill;
 
-use String;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +27,7 @@ class TenantBillService
   /** 账单详情 */
   public function billDetailModel()
   {
-    $model = new BillDetailModel;
-    return $model;
+    return new BillDetailModel;
   }
 
   /**
@@ -317,7 +315,7 @@ class TenantBillService
           } else {
             $tenantName = $v['tenant_name'];
           }
-          $data[$k]['bank_id']         = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
+          $data[$k]['bank_id']     = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
           $data[$k]['tenant_name'] = $tenantName;
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型

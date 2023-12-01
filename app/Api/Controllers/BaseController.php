@@ -14,18 +14,14 @@ class BaseController extends Controller
 {
 
 
-    protected $uid;
-    protected $company_id;
-    protected $user;
-
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
+        $uid  = auth()->payload()->get('sub');
+        if (!$uid) {
             return $this->error('用户信息错误');
         }
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        $company_id = getCompanyId($uid);
+        $user = auth('api')->user();
     }
 
     //成功返回
