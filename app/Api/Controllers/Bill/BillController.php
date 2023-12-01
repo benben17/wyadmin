@@ -165,11 +165,8 @@ class BillController extends BaseController
         $bill = $billService->billModel()->where('contract_id', $v['id'])
           ->where('tenant_id', $v['tenant_id'])
           ->whereBetween('charge_date', [$startDate, $endDate])
-          ->count();
-        if ($bill > 0) {
-          Log::error("已有账单，合同Id" . $v['id']);
-          continue;
-        }
+          ->first();
+
         $billDetail = $billService->billDetailModel()
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $v['id'])
@@ -181,13 +178,29 @@ class BillController extends BaseController
         if ($billDetail == 0) {
           continue;
         }
+        $k++;
+        if ($bill) {
+          Log::info("已有账单，账单id：" . $bill['id']);
+          $billUpdateData['bill_id'] = $bill['id'];
+          $billService->billDetailModel()
+            ->whereBetween('charge_date', [$startDate, $endDate])
+            ->where('contract_id', $v['id'])
+            ->where('status', 0)
+            ->where('type', '!=', 2)
+            ->whereIn('fee_type', $request->fee_types)
+            ->where('bill_id', 0)
+            ->where('tenant_id', $v['tenant_id'])->update($billUpdateData);
+          continue;
+        }
         $res = $billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
           Log::error("生成账单日志" . $res);
         }
       }
       // }, 3);
-      return $this->success("账单生成成功。");
+      $billMsg = "共计生成" . $k . "份账单";
+
+      return $this->success($billMsg);
     } catch (Exception $th) {
       Log::error($th);
       return $this->error("账单生成失败！");

@@ -15,12 +15,7 @@ class DictController extends BaseController
 
     public function __construct()
     {
-
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
+        parent::__construct();
     }
     /**
      * @OA\Post(

@@ -19,10 +19,7 @@ class PubController extends BaseController
    private $uid = 0;
    public function __construct()
    {
-      $this->uid  = auth()->payload()->get('sub');
-      if (!$this->uid) {
-         return $this->error('用户信息错误!');
-      }
+      parent::__construct();
    }
 
    /**

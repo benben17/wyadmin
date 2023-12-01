@@ -3,14 +3,11 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
-
 use Illuminate\Support\Facades\DB;
 
 use App\Api\Models\BuildingRoom  as RoomModel;
-use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Services\Contract\ContractService;
@@ -25,13 +22,7 @@ class BuildingRoomController extends BaseController
 
     public function __construct()
     {
-        // Token 验证
-        // $this->middleware('jwt.api.auth');
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
+        parent::__construct();
     }
 
     /**

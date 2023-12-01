@@ -11,16 +11,11 @@ use App\Api\Services\Company\FeeTypeService;
 
 class FeeTypeController extends BaseController
 {
-
+  private $feeService;
   public function __construct()
   {
 
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->user = auth('api')->user();
-    $this->company_id = getCompanyId($this->uid);
+    parent::__construct();
     $this->feeService = new FeeTypeService;
   }
 

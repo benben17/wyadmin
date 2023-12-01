@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Common;
 
 use App\Api\Controllers\BaseController;
@@ -21,13 +22,10 @@ class RemarkController extends BaseController
 
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if(!$this->uid){
-            return $this->error('用户信息错误!');
-        }
+        parent::__construct();
     }
 
-	 /**
+    /**
      * @OA\Post(
      *     path="/api/common/remark/list",
      *     tags={"公共"},
@@ -85,7 +83,8 @@ class RemarkController extends BaseController
      *     )
      * )
      */
-    public function list(Request $request){
+    public function list(Request $request)
+    {
         $validatedData = $request->validate([
             'parent_type' => 'required|in:1,2,3,4,5',
             'parent_id' => 'required|min:1',
@@ -94,7 +93,7 @@ class RemarkController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config('per_size');
         }
-        if($pagesize == '-1'){
+        if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
 
@@ -158,8 +157,8 @@ class RemarkController extends BaseController
      *         description=""
      *     )
      * )
-    */
-	public function save(Request $request)
+     */
+    public function save(Request $request)
     {
         $validatedData = $request->validate([
             'parent_id' => 'required|min:1',
@@ -173,7 +172,7 @@ class RemarkController extends BaseController
         // $DA['parent_id'] = $DA['parent_id'];
         // $DA['parent_type'] = $DA['parent_type'];
         $remark = new remarkService;
-        $res = $remark->save($DA,$user);
+        $res = $remark->save($DA, $user);
 
         if ($res) {
             return $this->success('备注添加成功！');
@@ -182,7 +181,7 @@ class RemarkController extends BaseController
         }
     }
 
-      /**
+    /**
      * @OA\Post(
      *     path="/api/common/remark/del",
      *     tags={"公共"},
@@ -207,7 +206,7 @@ class RemarkController extends BaseController
      *         description=""
      *     )
      * )
-    */
+     */
     public function delete(Request $request)
     {
         $validatedData = $request->validate([
