@@ -31,6 +31,7 @@
         "namet/laravel-admin-tagsinput": "^0.2.1",
         "phpenum/phpenum": "^1.4",
         "phpoffice/phpword": "^0.17.0",
+        "predis/predis": "^2.2",
         "simplesoftwareio/simple-qrcode": "^2.0",
         "smallruraldog/light-box": "^1.0",
         "socialiteproviders/weixin": "^4.1",
@@ -62,7 +63,7 @@
             "database/seeds",
             "database/factories"
         ],
-        "files":[
+        "files": [
             "app/Services/Utils/Function.php"
         ]
     },

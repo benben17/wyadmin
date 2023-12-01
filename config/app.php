@@ -169,7 +169,7 @@ return [
         Illuminate\View\ViewServiceProvider::class,
         SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
         Cisco\Aliyunsms\AliyunsmsServiceProvider::class,
-
+        Illuminate\Redis\RedisServiceProvider::class,
 
         /*
          * Package Service Providers...
