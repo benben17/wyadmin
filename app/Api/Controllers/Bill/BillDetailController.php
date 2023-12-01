@@ -13,6 +13,7 @@ use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
 
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
 /**
@@ -22,8 +23,12 @@ use App\Enums\AppEnum;
 class BillDetailController extends BaseController
 {
 
-
-
+  private $billService;
+  public function __construct()
+  {
+    parent::__construct();
+    $this->billService = new TenantBillService;
+  }
   /**
    * @OA\Post(
    *     path="/api/operation/tenant/bill/fee/list",
@@ -81,8 +86,8 @@ class BillDetailController extends BaseController
     // $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     DB::enableQueryLog();
     $map['type'] =  AppEnum::feeType;
-    $billService = new TenantBillService;
-    $subQuery = $billService->billDetailModel()
+
+    $subQuery = $this->billService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
@@ -92,20 +97,21 @@ class BillDetailController extends BaseController
       });
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
-    // $feeStat =  FeeType::selectRaw('fee_name,id,type')
-    //   ->where('type', AppEnum::feeType)
-    //   ->whereIn('company_id', getCompanyIds($this->uid))->get();
-    // // 统计每种类型费用的应收/实收/未收
-    // foreach ($feeStat as $k => &$v) {
-    //   $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-    //     ->where('fee_type', $v['id'])
-    //     ->groupBy('fee_type')->first();
-    //   $v['total_amt'] =  $count['total_amt'] ? $count['total_amt'] : 0.00;
-    //   $v['receive_amt'] =  $count['receive_amt'] ? $count['receive_amt'] : 0.00;
-    //   $v['unreceive_amt'] = $count['total_amt'] - $count['receive_amt'];
-    // }
+    $feeStat =  FeeType::selectRaw('fee_name,id,type')
+      ->where('type', AppEnum::feeType)
+      ->whereIn('company_id', getCompanyIds($this->uid))->get();
+    // 统计每种类型费用的应收/实收/未收
+    foreach ($feeStat as $k => &$v) {
+      $count = $subQuery->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+        ->where('fee_type', $v['id'])
+        ->groupBy('fee_type')->first();
+
+      $v['total_amt'] =  $count['total_amt'] ??  0.00;
+      $v['receive_amt'] =  $count['receive_amt'] ?? 0.00;
+      $v['unreceive_amt'] = $v['total_amt'] - $v['receive_amt'];
+    }
     $data = $this->handleBackData($result);
-    // $data['stat'] = $feeStat;
+    $data['stat'] = $feeStat;
     return $this->success($data);
   }
   /**
@@ -136,8 +142,8 @@ class BillDetailController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     DB::enableQueryLog();
-    $billService = new TenantBillService;
-    $data = $billService->billDetailModel()
+
+    $data = $this->billService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('charge:id,charge_date,flow_no,amount,c_uid,status');
       }])->with('billDetailLog')
@@ -185,8 +191,8 @@ class BillDetailController extends BaseController
       'charge_id' => 'required|gt:0',
       'verify_amount' => 'required',
     ]);
-    $billService = new TenantBillService;
-    $billDetail = $billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
+
+    $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
@@ -243,15 +249,15 @@ class BillDetailController extends BaseController
    */
   public function store(Request $request)
   {
-    $validatedData = $request->validate([
+    $request->validate([
       'charge_date' => 'required|date',
       'tenant_id' => 'required',
       'proj_id' => 'required',
       'amount' => 'required',
       'fee_type' => 'required',
     ]);
-    $billService = new TenantBillDetail();
-    $res = $billService->saveBillDetail($request->toArray(), $this->user);
+
+    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("新增费用失败!");
     }
@@ -294,8 +300,8 @@ class BillDetailController extends BaseController
       'amount' => 'required|gt:0',
       'edit_reason' => 'required',
     ]);
-    $billService = new TenantBillDetail();
-    $res = $billService->editBillDetail($request->toArray(), $this->user);
+
+    $res = $this->billService->editBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("编辑费用失败!");
     }
@@ -331,7 +337,7 @@ class BillDetailController extends BaseController
     $validatedData = $request->validate([
       'ids' => 'required|array',
     ]);
-    $billService = new TenantBillDetail();
+    $billService = new TenantBillService();
     $res = $billService->billDetailModel()
       ->whereIn('id', $request->ids)
       ->where('status', '!=', 1)
