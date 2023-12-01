@@ -162,8 +162,19 @@ class TemplateService
         return $res;
     }
 
-    /** 创建账单 */
-    public function createBillToWord($param, array $feeTypes, $bill, $bankId)
+    /**
+     * word 账单
+     *
+     * @Author leezhua
+     * @DateTime 2023-12-01
+     * @param [type] $param
+     * @param array $feeTypes
+     * @param [type] $bill
+     * @param [type] $bankId
+     *
+     * @return bool
+     */
+    public function createBillToWord($param, array $feeTypes, $bill, $bankId): bool
     {
 
         try {
@@ -179,21 +190,19 @@ class TemplateService
             $bankData["收款账户"] = $bank['account_number'];
             $bankData["银行支行"] = $bank['bank_branch'];
             $totalAmt = 0.00;
-            if ($bills) {
-                $i = 1;
-                foreach ($bills as $k => &$v) {
-                    $v['序号'] = $i;
-                    $v['账单日期'] = $bill['charge_date'];
-                    $v['费用金额'] = numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
-                    $v['费用类型'] = $v['fee_type_label'];
-                    $v['账期'] = $v['bill_date'];
-                    $v['备注'] = $v['remark'];
-                    $totalAmt += numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
-                    $i++;
-                }
+
+            foreach ($bills as $k => &$v) {
+                $v['序号'] = $k + 1;
+                $v['账单日期'] = $bill['charge_date'];
+                $v['费用金额'] = numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
+                $v['费用类型'] = $v['fee_type_label'];
+                $v['账期'] = $v['bill_date'];
+                $v['备注'] = $v['remark'];
+                $totalAmt += numFormat($v['amount'] - $v['receive_amount'] - $v['discount_amount']);
             }
+
             $total['总金额'] = $totalAmt;
-            Log::error(json_encode($bills));
+
             $template = new TemplateProcessor($param['templateFile']);
             $template->cloneRowAndSetValues('num', $bills);
             $template->setValues($bankData);

@@ -29,10 +29,11 @@ final class AppEnum extends Enum
   const workorderClose    = 4;   // 关闭
   const workorderRate     = 5;   //评价
 
-  const rentFeeType       =   101;    // 租金类型id
+  const rentFeeType       =   101;    // 租金类型
   const managerFeeType    =   102;    // 管理费
   const waterFeeType      =   103;    // 水类型id
   const electricFeeType   =   104;     // 电类型
+  const maintenanceFeeType    = 105;  // 工程维修费
 
   const TenantType = 2;  // 客户类型  1 客户  2 租户
   const feeType  = 1;

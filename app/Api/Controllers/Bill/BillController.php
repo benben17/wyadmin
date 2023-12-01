@@ -5,6 +5,7 @@ namespace App\Api\Controllers\Bill;
 use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Bill\TenantBill;
 use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -23,11 +24,12 @@ use Excel;
 class BillController extends BaseController
 {
   private $parent_type;
-
+  private $billService;
   function __construct()
   {
     parent::__construct();
     $this->parent_type = AppEnum::Tenant;
+    $this->billService = new TenantBillService;
   }
 
 
@@ -56,7 +58,6 @@ class BillController extends BaseController
   public function list(Request $request)
   {
 
-
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
       $pagesize = config('per_size');
@@ -82,8 +83,8 @@ class BillController extends BaseController
       $map['tenant_id'] = $request->tenant_id;
     }
     DB::enableQueryLog();
-    $billService = new TenantBillService;
-    $data = $billService->billModel()
+
+    $data = $this->billService->billModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -94,13 +95,13 @@ class BillController extends BaseController
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
-      $billCount = $billService->billDetailModel()
+      $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
       $v['total_amount'] = $billCount['totalAmt'];
       $v['discount_amount'] = $billCount['disAmt'];
       $v['receive_amount'] = $billCount['receiveAmt'];
-      $v['unreceive_amount'] = numFormat($billCount['totalAmt'] - $billCount['receiveAmt']);
+      $v['unreceive_amount'] = $v['total_amount'] - $v['discount_amount'];
     }
     return $this->success($data);
   }
@@ -145,9 +146,9 @@ class BillController extends BaseController
       // DB::transaction(function () use ($request) {
 
       $contractService = new ContractService;
-      $billService = new TenantBillService;
+
       DB::enableQueryLog();
-      $contracts = $contractService->model()->select('id', 'tenant_id')
+      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
             $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
@@ -161,40 +162,25 @@ class BillController extends BaseController
       $billDay = $request->bill_month . '-' . $request->bill_day;
       // return response()->json(DB::getQueryLog());
       foreach ($contracts as $k => $v) {
-        Log::error("hetong" . $v['id'] . $billDay);
-        $bill = $billService->billModel()->where('contract_id', $v['id'])
-          ->where('tenant_id', $v['tenant_id'])
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->first();
+        Log::error("合同" . $v['id'] . $billDay);
 
-        $billDetail = $billService->billDetailModel()
+        $billDetail = $this->billService->billDetailModel()->selectRaw('CONCAT_GROUP(id) as billDetailIds')
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $v['id'])
           ->where('status', 0)
           ->where('type', '!=', 2)
           ->whereIn('fee_type', $request->fee_types)
           ->where('bill_id', 0)
-          ->where('tenant_id', $v['tenant_id'])->count();
-        if ($billDetail == 0) {
+          ->where('tenant_id', $v['tenant_id'])
+          ->first();
+        if (!$billDetail) {
+          log::info("合同" . $v->contract_no . "无费用信息");
           continue;
         }
         $k++;
-        if ($bill) {
-          Log::info("已有账单，账单id：" . $bill['id']);
-          $billUpdateData['bill_id'] = $bill['id'];
-          $billService->billDetailModel()
-            ->whereBetween('charge_date', [$startDate, $endDate])
-            ->where('contract_id', $v['id'])
-            ->where('status', 0)
-            ->where('type', '!=', 2)
-            ->whereIn('fee_type', $request->fee_types)
-            ->where('bill_id', 0)
-            ->where('tenant_id', $v['tenant_id'])->update($billUpdateData);
-          continue;
-        }
-        $res = $billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
+        $res = $this->billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
-          Log::error("生成账单日志" . $res);
+          Log::error("生成账单错误" . $v->contract_no);
         }
       }
       // }, 3);
@@ -236,8 +222,8 @@ class BillController extends BaseController
     ]);
 
     DB::enableQueryLog();
-    $billService = new TenantBillService;
-    return $this->success($billService->showBill($request->id));
+    $data = $this->billService->showBill($request->id);
+    return $this->success($data);
   }
 
 
@@ -270,9 +256,9 @@ class BillController extends BaseController
     ]);
     try {
       DB::transaction(function () use ($request) {
-        $billService = new TenantBillService;
-        $billService->billModel()->whereId($request->id)->delete();
-        $billService->billDetailModel()->where('bill_id', $request->id)->update(['bill_id' => 0]);
+
+        $this->billService->billModel()->whereId($request->id)->delete();
+        $this->billService->billDetailModel()->where('bill_id', $request->id)->update(['bill_id' => 0]);
       }, 2);
       return $this->success("账单删除成功。");
     } catch (Exception $e) {
@@ -291,8 +277,10 @@ class BillController extends BaseController
     $template = new TemplateService;
     $tem = $template->getTemplate($request->template_id);
 
-    $billService  = new TenantBillService;
-    $bill = $billService->billModel()->find($request->bill_id);
+    $bill = $this->billService->billModel()->find($request->bill_id);
+    if (!$bill) {
+      return $this->error("无账单可创建");
+    }
     $parm['templateFile'] = public_path('template/') . md5($tem['name']) . ".docx";
     try {
       if (!is_dir(public_path('template/'))) {
@@ -301,8 +289,8 @@ class BillController extends BaseController
       // 合同模版本地不存在则从OSS下载，OSS没有则报错
       if (!$parm['templateFile'] || !file_exists($parm['templateFile'])) {
         $fileUrl = getOssUrl($tem['file_path']);
-        $downloadTemlate = copy(trim($fileUrl), $parm['templateFile']);
-        if (!$downloadTemlate) {
+        $downloadTemplate = copy(trim($fileUrl), $parm['templateFile']);
+        if (!$downloadTemplate) {
           return $this->error('合同模版不存在');
         }
       }

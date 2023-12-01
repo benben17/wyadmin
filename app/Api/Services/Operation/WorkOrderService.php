@@ -10,6 +10,7 @@ use App\Api\Models\Operation\WorkOrderLog as WorkOrderLogModel;
 use App\Api\Services\Common\MessageService;
 use App\Api\Services\Common\SmsService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Enums\AppEnum;
 use Exception;
 
 /**
@@ -99,36 +100,35 @@ class WorkOrderService
   public function processWorkorder($DA, $user)
   {
     try {
-      // DB::transaction(function () use ($DA,$user){
-      $order = WorkOrderModel::find($DA['id']);
-      if ($order->status != 2) {
-        return false;
-      }
-      $order->process_result  = $DA['process_result'];
-      $order->return_time     = $DA['return_time'];
-      $order->time_used       = $DA['time_used'];
-      $order->maintain_pic    = isset($DA['maintain_pic']) ? $DA['maintain_pic'] : "";
-      $order->charge_amount   = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;
-      $order->engineering_type = isset($DA['engineering_type']) ? $DA['engineering_type'] : "";
-      $order->maintain_person = isset($DA['maintain_person']) ? $DA['maintain_person'] : "";
-      $order->status          = 3; // 处理完成
-      $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
-      $res = $order->save();
-
-      // 保存费用
-      if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
-        $BA['company_id']   = $order['company_id'];
-        $BA['proj_id']      = $order['proj_id'];
-        $BA['tenant_id']    = $order['tenant_id'];
-        $BA['tenant_name']  = $order['tenant_name'];
-        $BA['type']         = 1; // 收款
-        $BA['fee_type']     = "105";
-        $BA['amount']       = $DA['charge_amount'];
-        $BA['remark']       = $order['tenant_name'] . "-" . $order['repair_content'];
-        $billService = new TenantBillService;
-        $billService->saveBillDetail($BA, $user);
-      }
-      if ($res) {
+      DB::transaction(function () use ($DA, $user) {
+        $order = WorkOrderModel::find($DA['id']);
+        if ($order->status != 2) {
+          return false;
+        }
+        $order->process_result  = $DA['process_result'];
+        $order->return_time     = $DA['return_time'];
+        $order->time_used       = $DA['time_used'];
+        $order->maintain_pic    = isset($DA['maintain_pic']) ? $DA['maintain_pic'] : "";
+        $order->charge_amount   = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;
+        $order->engineering_type = isset($DA['engineering_type']) ? $DA['engineering_type'] : "";
+        $order->maintain_person = isset($DA['maintain_person']) ? $DA['maintain_person'] : "";
+        $order->status          = AppEnum::workorderProcess; // 处理完成
+        $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
+        $res = $order->save();
+        // 保存费用
+        if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
+          $BA['company_id']   = $order['company_id'];
+          $BA['proj_id']      = $order['proj_id'];
+          $BA['charge_date']  = $order['return_time'];
+          $BA['tenant_id']    = $order['tenant_id'];
+          $BA['tenant_name']  = $order['tenant_name'];
+          $BA['type']         = AppEnum::chargeIncome; // 收款
+          $BA['fee_type']     = AppEnum::maintenanceFeeType;
+          $BA['amount']       = $DA['charge_amount'];
+          $BA['remark']       = $order['tenant_name'] . "-工程维修-" . $order['repair_content'];
+          $billService = new TenantBillService;
+          $billService->saveBillDetail($BA, $user);
+        }
         // 发送短信通知
         if ($DA['is_notice'] && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
           $parm['open_time']      = $order['open_time'];
@@ -137,11 +137,12 @@ class WorkOrderService
           $smsService->sendSms($order['open_phone'], $parm);
         }
         // 写入日志
-        $this->saveOrderLog($DA['id'], 3, $user);
-      }
+        $this->saveOrderLog($DA['id'], $order->status, $user);
+      }, 3);
+
       return true;
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("处理失败" . $e->getMessage());
       throw new Exception("处理失败！");
       return false;
     }

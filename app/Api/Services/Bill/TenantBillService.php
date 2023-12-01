@@ -53,14 +53,14 @@ class TenantBillService
       }
       $bill->tenant_id   = $DA['tenant_id'];
       $bill->tenant_name = $DA['tenant_name'];
-      $bill->contract_id   = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
+      $bill->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
       $bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
       $bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
       $bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
-      $bill->amount       = isset($DA['amount']) ? $DA['amount'] : 0.00;
+      $bill->amount      = isset($DA['amount']) ? $DA['amount'] : 0.00;
       $bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
       $bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
-      $res = $bill->save();
+      $bill->save();
       return $bill;
     } catch (Exception $e) {
       Log::error("账单保存失败" . $e);
@@ -68,6 +68,7 @@ class TenantBillService
       return false;
     }
   }
+
 
   /**
    * 费用详细保存
@@ -89,14 +90,16 @@ class TenantBillService
         }
         $billDetail->company_id  = $user['company_id'];
         $billDetail->proj_id     = $DA['proj_id'];
-        $billDetail->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
+        $billDetail->contract_id = $DA['contract_id'] ?? 0;
         $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
         $billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
         $billDetail->type        = isset($DA['type']) ? $DA['type'] : 1;
         $billDetail->bill_type   = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
         $billDetail->fee_type    = $DA['fee_type']; // 费用类型
         $billDetail->amount      = $DA['amount'];
-        $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
+        if (isset($DA['contract_id'])) {
+          $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
+        }
         if (isset($DA['charge_date'])) {
           $billDetail->charge_date = $DA['charge_date']; //账单日期
         }
@@ -105,10 +108,10 @@ class TenantBillService
         if (isset($DA['receive_date'])) {
           $billDetail->receive_date = $DA['receive_date'];
         }
-        $billDetail->bill_date = isset($DA['bill_date']) ? $DA['bill_date'] : "";
+        $billDetail->bill_date  =  $DA['bill_date'] ?? $DA['charge_date'];
         $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
         $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
-        $billDetail->remark      = isset($DA['remark']) ? $DA['remark'] : "";
+        $billDetail->remark      = $DA['remark'] ?? "";
         // if ($DA['amount'] == 0 || $DA['amount'] == 0.00) {
         // }
         $billDetail->save();  // 费用等于0，写入数据
@@ -245,7 +248,7 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill($contract, String $month = "", $feeType, $billDay, $user)
+  public function createBill($contract, String $month = "", $feeType, $billDay, $user): bool
   {
     try {
       // DB::enableQueryLog();

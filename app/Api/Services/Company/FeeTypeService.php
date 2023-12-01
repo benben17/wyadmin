@@ -57,12 +57,11 @@ class FeeTypeService
    * @param [type] $feeTypeIds
    * @param [type] $isValid
    * @param [type] $uid
-   * @return void
+   * @return bool
    */
-  public function enable($feeTypeIds, $isValid, $uid)
+  public function enable($feeTypeIds, $isValid, $uid): bool
   {
     $where['company_id']  = getCompanyId($uid);
-
     $data['is_valid'] = $isValid;
     // DB::enableQueryLog();
     return $this->model()->where($where)->whereIn('id', $feeTypeIds)->update($data);
