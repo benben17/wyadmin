@@ -19,12 +19,12 @@ class BaseController extends Controller
 
     public function __construct()
     {
-        $uid  = auth()->payload()->get('sub');
-        if (!$uid) {
+        $this->uid  = auth()->payload()->get('sub');
+        if (!$this->uid) {
             return $this->error('用户信息错误');
         }
-        $company_id = getCompanyId($uid);
-        $user = auth('api')->user();
+        $this->company_id = getCompanyId($this->uid);
+        $this->user = auth('api')->user();
     }
 
     //成功返回

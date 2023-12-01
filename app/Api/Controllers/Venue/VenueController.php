@@ -14,15 +14,11 @@ use App\Api\Services\Venue\VenueServices;
 class VenueController extends BaseController
 {
 
+	private $venueServices;
 	public function __construct()
 	{
-		$this->uid  = auth()->payload()->get('sub');
-		if (!$this->uid) {
-			return $this->error('用户信息错误');
-		}
-		$this->company_id = getCompanyId($this->uid);
+		parent::__construct();
 		$this->venueServices = new VenueServices;
-		$this->user = auth('api')->user();
 	}
 	/**
 	 * @OA\Post(
@@ -71,10 +67,10 @@ class VenueController extends BaseController
 	{
 		$pagesize = $request->input('pagesize');
 		if (!$pagesize || $pagesize < 1) {
-               $pagesize = config('per_size');
-        }elseif($pagesize == '-1'){
-            $pagesize = config('export_rows');
-        }
+			$pagesize = config('per_size');
+		} elseif ($pagesize == '-1') {
+			$pagesize = config('export_rows');
+		}
 		$map = array();
 
 		if ($request->input('proj_id')) {
@@ -95,20 +91,19 @@ class VenueController extends BaseController
 		DB::enableQueryLog();
 
 		$data = $this->venueServices->VenueModel()
-		->where($map)
-		->where(function ($q) use($request){
-			$request->venue_name && $q->where('venue_name','like','%'.$request->venue_name.'%');
-			$request->proj_ids && $q->whereIn('proj_id',$request->proj_ids);
-		})
-		->with('project:id,proj_name')
-		->withCount('venueBook')
-		->withCount(['venueSettle as settle_amount' => function ($q)
-		{
-			$q->select(DB::Raw('ifnull(sum(amount),"0.00")'));
-		}])
-		->orderBy($orderBy, $orderByAsc)
-		->paginate($pagesize)->toArray();
-				// return response()->json(DB::getQueryLog());
+			->where($map)
+			->where(function ($q) use ($request) {
+				$request->venue_name && $q->where('venue_name', 'like', '%' . $request->venue_name . '%');
+				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+			})
+			->with('project:id,proj_name')
+			->withCount('venueBook')
+			->withCount(['venueSettle as settle_amount' => function ($q) {
+				$q->select(DB::Raw('ifnull(sum(amount),"0.00")'));
+			}])
+			->orderBy($orderBy, $orderByAsc)
+			->paginate($pagesize)->toArray();
+		// return response()->json(DB::getQueryLog());
 
 		$data = $this->handleBackData($data);
 		return $this->success($data);
@@ -154,7 +149,7 @@ class VenueController extends BaseController
 			return $this->error($data['venue_name'] . '场馆已存在！');
 		}
 
-		$res = $this->venueServices->saveVenue($data,$this->user);
+		$res = $this->venueServices->saveVenue($data, $this->user);
 		if ($res) {
 			return $this->success('场馆添加成功！');
 		} else {
@@ -200,11 +195,11 @@ class VenueController extends BaseController
 		$map['venue_name'] = $data['venue_name'];
 		$map['proj_id'] = $data['proj_id'];
 		$check_venue = $this->venueServices->VenueModel()
-		->where($map)->where('id', '!=', $data['id'])->exists();
+			->where($map)->where('id', '!=', $data['id'])->exists();
 		if ($check_venue) {
 			return $this->error($data['venue_name'] . '场馆已存在！');
 		}
-		$res = $this->venueServices->saveVenue($data,$this->user,2);
+		$res = $this->venueServices->saveVenue($data, $this->user, 2);
 		if ($res) {
 			return $this->success('场馆更新成功。');
 		} else {
@@ -296,14 +291,13 @@ class VenueController extends BaseController
 		]);
 		DB::enableQueryLog();
 		$res = $this->venueServices->whereId($request->id)
-		->update(['is_vaild',$request->is_vaild]);
+			->update(['is_vaild', $request->is_vaild]);
 
 		// return response()->json(DB::getQueryLog());
 		if ($res) {
 			return $this->success('场馆更新成功。');
-		}else{
+		} else {
 			return $this->success('场馆更新失败');
 		}
 	}
-
 }
