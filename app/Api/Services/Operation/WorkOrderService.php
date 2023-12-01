@@ -97,7 +97,7 @@ class WorkOrderService
    * @param    [type]     $DA [description]
    * @return   [type]         [description]
    */
-  public function processWorkorder($DA, $user)
+  public function processWorkOrder($DA, $user)
   {
     try {
       DB::transaction(function () use ($DA, $user) {

@@ -342,7 +342,7 @@ class WorkOrderController extends BaseController
 
 
     $DA = $request->toArray();
-    $res = $this->workService->processWorkorder($DA, $this->user);
+    $res = $this->workService->processWorkOrder($DA, $this->user);
     if (!$res) {
       return $this->error('工单处理失败！');
     }

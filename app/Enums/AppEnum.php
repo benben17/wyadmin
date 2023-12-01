@@ -5,7 +5,7 @@ namespace App\Enums;
 use MyCLabs\Enum\Enum;
 
 
-final class AppEnum extends Enum
+abstract class AppEnum extends Enum
 {
   const Channel       = 1;  //  渠道
   const Customer      = 2;
