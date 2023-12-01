@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Sys;
 
 use JWTAuth;
@@ -17,41 +18,37 @@ class ProductController extends BaseController
     private $uid = 0;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if(!$this->uid){
-            return $this->error('用户信息错误');
-        }
+        parent::__construct();
     }
 
     /**
-    * @OA\Post(
-    *     path="/api/sys/product/list",
-    *     tags={"公司信息"},
-    *     summary="获取当前产品列表",
-    *     description="",
-    *     @OA\Parameter(
-    *         name="Authorization",
-    *         description="Bearer {token}",
-    *         required=false,
-    *         in="header",
-    *         @OA\Schema(
-    *             type="string"
-    *         )
-    *     ),
-    *     @OA\Response(
-    *         response=200,
-    *         description="The result of tasks"
-    *     )
-    * )
-    */
+     * @OA\Post(
+     *     path="/api/sys/product/list",
+     *     tags={"公司信息"},
+     *     summary="获取当前产品列表",
+     *     description="",
+     *     @OA\Parameter(
+     *         name="Authorization",
+     *         description="Bearer {token}",
+     *         required=false,
+     *         in="header",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="The result of tasks"
+     *     )
+     * )
+     */
 
     public function index()
     {
-       $result = ProductModel::get()->toArray();
-       if(!$result){
-          return $this->error('产品列表查询失败!');
-       }
-       return $this->success($result);
+        $result = ProductModel::get()->toArray();
+        if (!$result) {
+            return $this->error('产品列表查询失败!');
+        }
+        return $this->success($result);
     }
-
 }

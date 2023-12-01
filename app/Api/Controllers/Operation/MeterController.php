@@ -19,15 +19,11 @@ use App\Api\Services\Tenant\TenantService;
 class MeterController extends BaseController
 {
 
+  private $meterService;
   public function __construct()
   {
-    $this->uid = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
+    parent::__construct();
     $this->meterService = new EnergyService;
-    $this->user = auth('api')->user();
   }
 
 

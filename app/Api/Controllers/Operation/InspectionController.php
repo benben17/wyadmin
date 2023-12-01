@@ -16,15 +16,11 @@ use PhpParser\Node\Stmt\TryCatch;
  */
 class InspectionController extends BaseController
 {
+  private $inspection;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
+    parent::__construct();
     $this->inspection = new InspectionService;
-    $this->user = auth('api')->user();
   }
   /**
    * @OA\Post(

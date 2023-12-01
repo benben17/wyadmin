@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Sys;
 
 use JWTAuth;
@@ -19,67 +20,62 @@ use App\Api\Services\Sys\UserServices;
 class UserRoleController extends BaseController
 {
 
-  private $uid = 0;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if(!$this->uid){
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
-
+    parent::__construct();
   }
-    /**
-     * @OA\Post(
-     *     path="/api/sys/user/role/list",
-     *     tags={"用户"},
-     *     summary="获取角色列表",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"pagesize","orderBy","order"},
-     *       @OA\Property(
-     *          property="name",
-     *          type="String",
-     *          description="角色名可模糊查询"
-     *       )
-     *     ),
-     *       example={"name":"","orderBy":"根据那个字段排序","order":"排序方式desc 倒叙 asc 正序"}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-    */
-  public function list(Request $request){
+  /**
+   * @OA\Post(
+   *     path="/api/sys/user/role/list",
+   *     tags={"用户"},
+   *     summary="获取角色列表",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"pagesize","orderBy","order"},
+   *       @OA\Property(
+   *          property="name",
+   *          type="String",
+   *          description="角色名可模糊查询"
+   *       )
+   *     ),
+   *       example={"name":"","orderBy":"根据那个字段排序","order":"排序方式desc 倒叙 asc 正序"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function list(Request $request)
+  {
     $pagesize = $request->input('pagesize');
-    if(!$pagesize || $pagesize <1){
+    if (!$pagesize || $pagesize < 1) {
       $pagesize = config('app.pagesize');
     }
-    if($pagesize==-1){
+    if ($pagesize == -1) {
       $pagesize = config('export_rows');
     }
-    if($request->input('orderBy')){
+    if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
-    }else{
+    } else {
       $orderBy = 'id';
     }
     // 排序方式desc 倒叙 asc 正序
-    if($request->input('order')){
+    if ($request->input('order')) {
       $order = $request->input('order');
-    }else{
+    } else {
       $order = 'desc';
     }
-    $companyId = array(0,$this->company_id);
-    $data = UserRoleModel::whereIn('company_id',$companyId)
-    ->where(function ($q) use ($request){
-      $request->name && $q->where('name','like','%'.$request->name.'%');
-    })->orderBy($orderBy,$order)
-    ->paginate($pagesize);
+    $companyId = array(0, $this->company_id);
+    $data = UserRoleModel::whereIn('company_id', $companyId)
+      ->where(function ($q) use ($request) {
+        $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+      })->orderBy($orderBy, $order)
+      ->paginate($pagesize);
     $data = $this->handleBackData($data->toArray());
     return $this->success($data);
   }
@@ -118,16 +114,17 @@ class UserRoleController extends BaseController
    *         description=""
    *     )
    * )
-  */
-  public function store(Request $request){
+   */
+  public function store(Request $request)
+  {
     $validator = \Validator::make($request->all(), [
-        'name' => 'required|String|max:64',
-        'menu_list' => 'required|String',
-      ]);
+      'name' => 'required|String|max:64',
+      'menu_list' => 'required|String',
+    ]);
     $user = auth('api')->user();
     $DA = $request->toArray();
     $roleService = new UserServices;
-    $checkRepeat = $roleService->isRepeat($DA,$user);
+    $checkRepeat = $roleService->isRepeat($DA, $user);
     if ($checkRepeat) {
       return $this->error('角色名称重复！');
     }
@@ -141,7 +138,7 @@ class UserRoleController extends BaseController
     $res = $role->save();
     if ($res) {
       return $this->success('角色新增成功。');
-    }else{
+    } else {
       return $this->error('角色新增失败!');
     }
   }
@@ -181,17 +178,18 @@ class UserRoleController extends BaseController
    *         description=""
    *     )
    * )
-  */
-  public function update(Request $request){
+   */
+  public function update(Request $request)
+  {
     $validator = \Validator::make($request->all(), [
-        'id' => 'required|int|gt:0',
-        'name' => 'required|String|max:64',
-        'menu_list' => 'required|String',
-      ]);
+      'id' => 'required|int|gt:0',
+      'name' => 'required|String|max:64',
+      'menu_list' => 'required|String',
+    ]);
     $user = auth('api')->user();
     $DA = $request->toArray();
     $roleService = new UserServices;
-    $checkRepeat = $roleService->isRepeat($DA,$user);
+    $checkRepeat = $roleService->isRepeat($DA, $user);
     if ($checkRepeat) {
       return $this->error('角色名称重复！');
     }
@@ -204,12 +202,12 @@ class UserRoleController extends BaseController
     $res = $role->save();
     if ($res) {
       return $this->success('角色编辑成功。');
-    }else{
+    } else {
       return $this->error('角色编辑失败!');
     }
   }
 
-    /**
+  /**
    * @OA\Post(
    *     path="/api/sys/user/role/show",
    *     tags={"用户"},
@@ -234,11 +232,12 @@ class UserRoleController extends BaseController
    *         description=""
    *     )
    * )
-  */
-  public function show(Request $request){
+   */
+  public function show(Request $request)
+  {
     $validator = \Validator::make($request->all(), [
-        'id' => 'required|int|gt:0',
-      ]);
+      'id' => 'required|int|gt:0',
+    ]);
     $user = auth('api')->user();
     $DA = $request->toArray();
     $roleService = new UserServices;
@@ -249,14 +248,13 @@ class UserRoleController extends BaseController
       if ($role['menu_list']) {
         $role['menu_list'] = str2Array($role['menu_list']);
       }
-      if ($role['company_id'] == 0 ) {
+      if ($role['company_id'] == 0) {
         $role['is_edit'] = 0;
-      }else{
+      } else {
         $role['is_edit'] = 1;
       }
       return $this->success($role);
     }
-      return $this->error('角色编辑失败!');
+    return $this->error('角色编辑失败!');
   }
-
 }

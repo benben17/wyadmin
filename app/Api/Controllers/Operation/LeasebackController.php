@@ -20,15 +20,11 @@ use App\Enums\AppEnum;
  */
 class LeasebackController extends BaseController
 {
-
+    private $parent_type;
+    private $leasebackService;
     function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        parent::__construct();
         $this->parent_type = AppEnum::Tenant;
         $this->leasebackService = new LeasebackService;
     }

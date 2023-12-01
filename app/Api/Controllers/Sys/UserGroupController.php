@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Api\Controllers\Sys;
 
 use JWTAuth;
@@ -18,56 +19,52 @@ class UserGroupController extends BaseController
      * 要求附带email和password（数据来源users表）
      * @return void
      */
-    private $uid = 0;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if(!$this->uid){
-            return $this->error('用户信息错误');
-        }
+        parent::__construct();
     }
 
     /**
-    * @OA\Post(
-    *     path="/api/sys/usergroup/list",
-    *     tags={"用户"},
-    *     summary="获取用户组列表",
-    *     description="",
-    *     @OA\Parameter(
-    *         name="Authorization",
-    *         description="Bearer {token}",
-    *         required=false,
-    *         in="header",
-    *         @OA\Schema(
-    *             type="string"
-    *         )
-    *     ),
-    *     @OA\Response(
-    *         response=200,
-    *         description="The result of tasks"
-    *     )
-    * )
-    */
+     * @OA\Post(
+     *     path="/api/sys/usergroup/list",
+     *     tags={"用户"},
+     *     summary="获取用户组列表",
+     *     description="",
+     *     @OA\Parameter(
+     *         name="Authorization",
+     *         description="Bearer {token}",
+     *         required=false,
+     *         in="header",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="The result of tasks"
+     *     )
+     * )
+     */
 
     public function index(Request $request)
     {
-       $pagesize = $request->input('pagesize');
-       if(!$pagesize || $pagesize <1){
-       	$pagesize = config('app.pagesize');
-       }
-       if($pagesize==-1){
-           $pagesize = config('export_rows');
-       }
-       $user = auth('api')->user();
-       $result = UserGroupModel::withCount('user')->where(function ($query) use($user,$request) {
-           $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
-           $query->where('company_id', $user->company_id);
-       })->paginate($pagesize)->toArray();
-       if(!$result){
-          return $this->error('查询失败!');
-       }
-       $data = $this->handleBackData($result);
-       return $this->success($data);
+        $pagesize = $request->input('pagesize');
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('app.pagesize');
+        }
+        if ($pagesize == -1) {
+            $pagesize = config('export_rows');
+        }
+        $user = auth('api')->user();
+        $result = UserGroupModel::withCount('user')->where(function ($query) use ($user, $request) {
+            $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
+            $query->where('company_id', $user->company_id);
+        })->paginate($pagesize)->toArray();
+        if (!$result) {
+            return $this->error('查询失败!');
+        }
+        $data = $this->handleBackData($result);
+        return $this->success($data);
     }
     /**
      * @OA\Post(
@@ -105,7 +102,7 @@ class UserGroupController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-                    'name' => 'required|max:20|min:1',
+            'name' => 'required|max:20|min:1',
         ]);
         $project_limit = implode(",", $request->input('project_limit'));
         $userinfo = auth('api')->user();
@@ -116,11 +113,11 @@ class UserGroupController extends BaseController
         $user->c_uid = $userinfo->id;
         $user->company_id = $userinfo->company_id;
 
-        $result=$user->save();
-        if(!$result){
-             return $this->error("添加用户组失败！");
+        $result = $user->save();
+        if (!$result) {
+            return $this->error("添加用户组失败！");
         }
-        return $this->success("","添加用户组成功！");
+        return $this->success("", "添加用户组成功！");
     }
     /**
      * @OA\Post(
@@ -159,7 +156,7 @@ class UserGroupController extends BaseController
     {
 
         $validatedData = $request->validate([
-                    'name' => 'required|max:20|min:1',
+            'name' => 'required|max:20|min:1',
         ]);
         $project_limit = implode(",", $request->input('project_limit'));
         $userinfo = auth('api')->user();
@@ -170,11 +167,11 @@ class UserGroupController extends BaseController
         $user->c_uid = $userinfo->id;
         $user->company_id = $userinfo->company_id;
 
-        $result=$user->save();
-        if(!$result){
-             return $this->error("修改用户失败！");
+        $result = $user->save();
+        if (!$result) {
+            return $this->error("修改用户失败！");
         }
-        return $this->success("","修改用户成功！");
+        return $this->success("", "修改用户成功！");
     }
 
     /**
@@ -204,18 +201,18 @@ class UserGroupController extends BaseController
      *         description=""
      *     )
      * )
-    */
-    public function show(Request $request){
-    	$validatedData = $request->validate([
-                    'id' => 'required'
+     */
+    public function show(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required'
         ]);
         $id = $request->input('id');
-    	$data = UserGroupModel::find($id)->toArray();
-    	if ($data) {
-    		return $this->success($data);
-    	}else{
-    		return $this->error('未查询到数据！');
-    	}
-
+        $data = UserGroupModel::find($id)->toArray();
+        if ($data) {
+            return $this->success($data);
+        } else {
+            return $this->error('未查询到数据！');
+        }
     }
 }

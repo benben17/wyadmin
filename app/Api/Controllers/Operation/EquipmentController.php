@@ -17,13 +17,8 @@ class EquipmentController extends BaseController
 {
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
+    parent::__construct();
     $this->equipment = new EquipmentService;
-    $this->user = auth('api')->user();
   }
 
 

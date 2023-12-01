@@ -18,14 +18,10 @@ use App\Enums\AppEnum;
  */
 class PubRelationController extends BaseController
 {
+  private $parentType;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
-    $this->user = auth('api')->user();
+    parent::__construct();
     $this->parentType = AppEnum::Relationship;
   }
 
