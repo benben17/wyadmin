@@ -138,8 +138,8 @@ class TenantBillService
         $billDetail->u_uid       = $user['id'];
         $this->saveBillDetailLog($billDetail, $DA, $user);
         $billDetail->amount = $DA['amount'];
-        $billDetail->discount_amount = $DA['discount_amount'];
-        $billDetail->fee_ftype = $DA['fee_type'];
+        $billDetail->discount_amount = $DA['discount_amount'] ?? 0;
+        $billDetail->fee_type = $billDetail['fee_type'];
         $billDetail->save();
       }, 2);
       return true;
@@ -155,8 +155,8 @@ class TenantBillService
       $detailLogModel->company_id     = $user['company_id'];
       $detailLogModel->amount         = $billDetail->amount;
       $detailLogModel->edit_amount    = $DA['amount'];
-      $detailLogModel->discount_amount = $billDetail->discount_amount;
-      $detailLogModel->edit_discount_amount = $DA['discount_amount'];
+      $detailLogModel->discount_amount = $billDetail['discount_amount'] ?? 0;
+      $detailLogModel->edit_discount_amount = $DA['discount_amount'] ?? 0;
       $detailLogModel->edit_reason    = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
       $detailLogModel->bill_detail_id = $DA['id'];
       $detailLogModel->edit_user      = $user->realname;
