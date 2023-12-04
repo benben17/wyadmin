@@ -23,16 +23,13 @@ class FeeType extends Model
   protected $appends = ['type_label'];
   public function getTypeLabelAttribute()
   {
-    if (isset($this->attributes['type'])) {
-      $type = $this->attributes['type'];
-      if ($type == 1) {
-        return '费用';
-      } else if ($type == 2) {
-        return '押金';
-      } else if ($type == 3) {
-        return '日常费用';
-      }
-    }
+    $typeLabels = [
+      1 => '费用',
+      2 => '押金',
+      3 => '日常费用',
+    ];
+    $type = $this->attributes['type'] ?? null;
+    return $typeLabels[$type] ?? '';
   }
   public function feeStat()
   {

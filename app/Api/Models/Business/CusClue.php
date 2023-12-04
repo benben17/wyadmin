@@ -33,15 +33,13 @@ class CusClue extends Model
   }
   public function getStatusLabelAttribute()
   {
-    if (isset($this->attributes['status'])) {
-      if ($this->attributes['status'] == 1) {
-        return "待转化";
-      } else if ($this->attributes['status'] == 2) {
-        return "已转化";
-      } else {
-        return "无效";
-      }
-    }
+    $statusLabels = [
+      1 => "待转化",
+      2 => "已转化",
+    ];
+
+    $status = $this->attributes['status'] ?? '';
+    return $statusLabels[$status] ?? "无效";
   }
   public function getCUserAttribute()
   {

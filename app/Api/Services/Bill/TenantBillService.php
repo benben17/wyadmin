@@ -152,15 +152,15 @@ class TenantBillService
   {
     try {
       $detailLogModel = new TenantBillDetailLog;
-      $detailLogModel->company_id = $user['company_id'];
-      $detailLogModel->amount      = $billDetail->amount;
-      $detailLogModel->edit_amount = $DA['amount'];
+      $detailLogModel->company_id     = $user['company_id'];
+      $detailLogModel->amount         = $billDetail->amount;
+      $detailLogModel->edit_amount    = $DA['amount'];
       $detailLogModel->discount_amount = $billDetail->discount_amount;
       $detailLogModel->edit_discount_amount = $DA['discount_amount'];
-      $detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
+      $detailLogModel->edit_reason    = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
       $detailLogModel->bill_detail_id = $DA['id'];
-      $detailLogModel->edit_user = $user['realname'];
-      $detailLogModel->c_uid = $user['id'];
+      $detailLogModel->edit_user      = $user->realname;
+      $detailLogModel->c_uid          = $user->id;
       $detailLogModel->save();
     } catch (Exception $e) {
       Log::error("费用修改失败:" . $e);

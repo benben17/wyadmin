@@ -164,7 +164,7 @@ class BillController extends BaseController
       foreach ($contracts as $k => $v) {
         Log::error("合同" . $v['id'] . $billDay);
 
-        $billDetail = $this->billService->billDetailModel()->selectRaw('CONCAT_GROUP(id) as billDetailIds')
+        $billDetail = $this->billService->billDetailModel()->selectRaw('group_concat(id) as billDetailIds')
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $v['id'])
           ->where('status', 0)
