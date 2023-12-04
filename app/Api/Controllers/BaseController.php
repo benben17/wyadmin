@@ -52,9 +52,15 @@ class BaseController extends Controller
     //如果返回的数据中有 null 则那其值修改为空 （安卓和IOS 对null型的数据不友好，会报错）
     public function parseNull(&$data)
     {
-        array_walk_recursive($data, function (&$value) {
-            $value = is_null($value) ? '' : $value;
-        });
+        if (is_array($data)) {
+            foreach ($data as &$v) {
+                $this->parseNull($v);
+            }
+        } else {
+            if (is_null($data)) {
+                $data = "";
+            }
+        }
     }
 
     public function handleBackData($data)
