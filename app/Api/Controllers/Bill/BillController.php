@@ -6,6 +6,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\TenantBill;
+use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -148,21 +149,28 @@ class BillController extends BaseController
       $contractService = new ContractService;
 
       DB::enableQueryLog();
-      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no')
-        ->where(function ($q) use ($request) {
-          if ($request->create_type == 1) {
-            $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
-          }
-        })
-        ->where('contract_state', AppEnum::contractExecute) // 执行状态
+      // $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no')
+      //   ->where(function ($q) use ($request) {
+      //     if ($request->create_type == 1) {
+      //       $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
+      //     }
+      //   })
+      //   ->where('contract_state', AppEnum::contractExecute) // 执行状态
+      //   ->where('proj_id', $request->proj_id)->get();
+      $tenants = Tenant::where(function ($q) use ($request) {
+        if ($request->create_type == 1) {
+          $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
+        }
+      })
+        ->where('on_rent', '1') // 是否在租
         ->where('proj_id', $request->proj_id)->get();
-
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
       // return response()->json(DB::getQueryLog());
-      foreach ($contracts as $k => $v) {
-        Log::error("合同" . $v['id'] . $billDay);
+      $billCount = 0;
+      foreach ($tenants as $k => $v) {
+        Log::info("账单生成合同：" . $v['id'] . $billDay);
 
         $billDetail = $this->billService->billDetailModel()->selectRaw('group_concat(id) as billDetailIds')
           ->whereBetween('charge_date', [$startDate, $endDate])
@@ -174,17 +182,17 @@ class BillController extends BaseController
           ->where('tenant_id', $v['tenant_id'])
           ->first();
         if (!$billDetail) {
-          log::info("合同" . $v->contract_no . "无费用信息");
+          log::info("租户" . $v->tenant_no . "无费用信息");
           continue;
         }
-        $k++;
+        $billCount++;
         $res = $this->billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res) {
           Log::error("生成账单错误" . $v->contract_no);
         }
       }
       // }, 3);
-      $billMsg = "共计生成" . $k . "份账单";
+      $billMsg = "共计生成" . $billCount . "份账单";
 
       return $this->success($billMsg);
     } catch (Exception $th) {

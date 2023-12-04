@@ -248,17 +248,17 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill($contract, String $month = "", $feeType, $billDay, $user): bool
+  public function createBill($tenant, String $month = "", $feeType, $billDay, $user): bool
   {
     try {
       // DB::enableQueryLog();
-      DB::transaction(function () use ($contract,  $month, $feeType, $billDay, $user) {
+      DB::transaction(function () use ($tenant,  $month, $feeType, $billDay, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
-        $map['contract_id'] = $contract['id'];
+        // $map['contract_id'] = $contract['id'];
         $map['status'] = 0; // 未结清
         $map['bill_id'] = 0; // 未生成账单
-        $map['tenant_id'] = $contract['tenant_id'];
+        $map['tenant_id'] = $tenant->id;
         $billSum = $this->billDetailModel()->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
           ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
@@ -267,15 +267,15 @@ class TenantBillService
           ->groupBy('tenant_id')->first();
         // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
         // Log::error(response()->json(DB::getQueryLog()));
-        $tenant = TenantModel::find($contract['tenant_id']);
-        $billData['tenant_id'] = $contract['tenant_id'];
+
+        $billData['tenant_id'] = $tenant->id;
         $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
         $billData['charge_date'] = $billDay;
         $billData['proj_id'] = $tenant['proj_id'];
         $billData['tenant_name'] = $tenant['name'];
         $billData['bill_no']    = $tenant['tenant_no'] . date('Ymd', strtotime($billDay));
         $billData['bill_title'] = $tenant['name'];
-        $billData['contract_id'] = $contract['id'];  // 合同id
+        // $billData['contract_id'] = $contract['id'];  // 合同id
         $bill = $this->saveBill($billData, $user);
         // Log::error("账单ID------" . $bill['id']);
         $update['bill_id'] = $bill['id'];
