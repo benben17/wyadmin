@@ -16,7 +16,7 @@ class PubController extends BaseController
     * 要求附带email和password（数据来源users表）
     * @return void
     */
-   private $uid = 0;
+
    public function __construct()
    {
       parent::__construct();
