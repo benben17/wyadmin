@@ -55,7 +55,7 @@ class BuildingController extends BaseController
      *          description="楼号"
      *       ),
      *       @OA\Property(
-     *          property="is_vaild",
+     *          property="is_valid",
      *          type="int",
      *          description="1启用 2 禁用"
      *       )
@@ -80,8 +80,8 @@ class BuildingController extends BaseController
 
         $map = array();
 
-        if ($request->is_vaild) { //是否可用
-            $map['is_vaild'] = $request->is_vaild;
+        if ($request->is_valid) { //是否可用
+            $map['is_valid'] = $request->is_valid;
         }
 
         if ($request->build_id) { // 楼号ID
