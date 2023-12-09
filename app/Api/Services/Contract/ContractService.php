@@ -230,8 +230,10 @@ class ContractService
         $contract->contract_state = $DA['contract_state'];
         $contract->save();
         // 写入合同日志
+
         $DA['remark'] = $msgContent;
         $this->saveLog($DA);
+
         // 给合同提交人发送系统通知消息
         $this->sendMsg($msgTitle, $msgContent, $user, $contract['belong_uid']);
       });
