@@ -83,7 +83,7 @@ class BillDetailController extends BaseController
     }
     // $request->end_date = date('Y-m-t', strtotime(nowYmd()));
     DB::enableQueryLog();
-    $map['type'] =  AppEnum::feeType;
+    // $map['type'] =  AppEnum::feeType;
 
     $subQuery = $this->billService->billDetailModel()
       ->where($map)
@@ -92,6 +92,7 @@ class BillDetailController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->start_date && $q->where('charge_date', '>=', $request->start_date);
         $request->end_date && $q->where('charge_date', '<=', $request->end_date);
+        $q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
       });
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
