@@ -37,7 +37,7 @@ abstract class AppEnum extends Enum
 
   const TenantType = 2;  // 客户类型  1 客户  2 租户
   const feeType  = 1;
-  const depositFeeType = 2; // 押金类型
+  const depositFeeType = 3; // 押金类型
 
 
   // charge

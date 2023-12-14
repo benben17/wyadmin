@@ -86,8 +86,8 @@ class DepositController extends BaseController
     $data = $depositService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
-        $request->start_date && $q->where('refund_date', '>=',  $request->start_date);
-        $request->end_date && $q->where('refund_date', '<=',  $request->end_date);
+        $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
+        $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->withCount(['refundRecord as refund_amount' => function ($q) {
