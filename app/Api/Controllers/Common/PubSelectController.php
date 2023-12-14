@@ -168,10 +168,10 @@ class PubSelectController extends BaseController
 			'room_type' => 'required|in:1,2,3',
 		]);
 		$map['proj_id'] = $request->proj_id;
-		$map['is_vaild'] = 1; // 启用状态
+		$map['is_valid'] = 1; // 启用状态
 
 		$subMap['room_type'] =  $request->room_type;
-		$subMap['is_vaild']  = 1;
+		$subMap['is_valid']  = 1;
 		if ($request->room_state) {
 			$subMap['room_state'] = $request->room_state;
 		}
