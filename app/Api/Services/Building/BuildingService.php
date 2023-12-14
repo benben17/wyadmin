@@ -111,7 +111,7 @@ class BuildingService
         ->where('room_id', $v['id'])
         ->first();
       $v['view_num']  = $num['count'];
-      $v['IsVaild']   = $this->getIsVaild($v['is_vaild']);
+      $v['IsValid']   = $this->getIsValid($v['is_valid']);
       $v['Status']    = $this->getStatus($v['channel_state']);
       $v['roomState'] = $this->getRoomState($v['room_state']);
       $v['proj_name'] = $v['building']['proj_name'];
@@ -123,7 +123,7 @@ class BuildingService
 
 
 
-  public function getIsVaild($value)
+  public function getIsValid($value)
   {
     switch ($value) {
       case '1':
