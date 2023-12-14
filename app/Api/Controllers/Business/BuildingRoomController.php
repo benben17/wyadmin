@@ -92,7 +92,7 @@ class BuildingRoomController extends BaseController
         $data = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $request->is_valid && $q->where('is_valid', $request->is_valid);
+                $q->where('is_valid', 1);
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
