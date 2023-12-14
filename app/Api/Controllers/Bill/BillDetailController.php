@@ -77,9 +77,7 @@ class BillDetailController extends BaseController
     } else {
       $order = 'desc';
     }
-    if (!$request->start_date) {
-      $request->start_date = date('Y-01-01', strtotime(nowYmd()));
-    }
+
     if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
