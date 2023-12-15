@@ -78,10 +78,14 @@ class AuthController extends BaseController
             'is_bind' => $isbind,
 
         ];
+        if ($user->depart_id == 0) {
+            $departName = '系统管理员';
+        } else {
+            $depart = getDepartById($user->depart_id);
+            $departName = $depart->name;
+        }
 
-        $depart = getDepartById($user->depart_id);
         $data['project_info'] = $project_info;
-        Log::error(config('app.env'));
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
@@ -90,7 +94,7 @@ class AuthController extends BaseController
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
             'nickname' => $nickname,
-            'depart_name' => $depart->name,
+            'depart_name' => $departName,
             'days' => getVariable($user['company_id'], 'year_days')
         ];
 
