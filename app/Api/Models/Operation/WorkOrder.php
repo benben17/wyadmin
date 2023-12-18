@@ -12,10 +12,10 @@ use App\Api\Scopes\CompanyScope;
 class WorkOrder extends Model
 {
 
-   /**
-    * 关联到模型的数据表
-    * @var string
-    */
+  /**
+   * 关联到模型的数据表
+   * @var string
+   */
 
   protected $table = 'bse_workorder';
   protected $fillable = [];
@@ -24,7 +24,8 @@ class WorkOrder extends Model
 
   protected $appends = ['status_label'];
 
-  public function getStatusLabelAttribute () {
+  public function getStatusLabelAttribute()
+  {
     $status = $this->attributes['status'];
     switch ($status) {
       case '1':
@@ -47,13 +48,12 @@ class WorkOrder extends Model
 
   public function orderLogs()
   {
-    return $this->hasMany(WorkOrderLog::class,'workorder_id','id')->orderBy('id','desc');
+    return $this->hasMany(WorkOrderLog::class, 'workorder_id', 'id')->orderBy('id', 'desc');
   }
 
-  protected static function boot(){
+  protected static function boot()
+  {
     parent::boot();
     static::addGlobalScope(new CompanyScope);
   }
-
-
 }
