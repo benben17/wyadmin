@@ -176,7 +176,6 @@ class BillController extends BaseController
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $v['id'])
           ->where('status', 0)
-          ->where('type', '!=', 2)
           ->whereIn('fee_type', $request->fee_types)
           ->where('bill_id', 0)
           ->where('tenant_id', $v['tenant_id'])

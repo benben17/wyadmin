@@ -198,10 +198,14 @@ class ProjectController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'proj_name' => 'required|unique:bse_project|String|max:64',
+            'proj_name' => 'required|String|max:64',
         ]);
         $data = $request->toArray();
 
+        $projCheck = ProjectModel::where('proj_name', $data['proj_name'])->count();
+        if ($projCheck > 0) {
+            return $this->error($data['proj_name'] . '项目名称重复');
+        }
         // 判断公司的项目是否到达限制数量
         $companyServices = new CompanyServices;
         if ($companyServices->checkProjCount($this->company_id)) {
