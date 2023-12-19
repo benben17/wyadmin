@@ -262,7 +262,6 @@ class TenantBillService
         $billSum = $this->billDetailModel()->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
           ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('type', '!=', 2)
           ->whereIn('fee_type', $feeType)
           ->groupBy('tenant_id')->first();
         // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
@@ -281,7 +280,7 @@ class TenantBillService
         $update['bill_id'] = $bill['id'];
         $this->billDetailModel()->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('type', '!=', 2)  // 不生成押金类型费用
+          // ->where('type', '!=', 2)  // 不生成押金类型费用
           ->whereIn('fee_type', $feeType)->update($update);
       }, 3);
       return true;
