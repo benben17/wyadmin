@@ -177,7 +177,7 @@ class ContractController extends BaseController
             ->where('contract_state', 2)
             ->where(function ($q) use ($request) {
                 if ($request->room_type) {
-                    $q->whre('room_type', $request->room_type);
+                    $q->where('room_type', $request->room_type);
                 }
             })
             ->groupBy("ym")

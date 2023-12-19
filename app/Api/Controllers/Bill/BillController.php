@@ -143,6 +143,7 @@ class BillController extends BaseController
       'fee_types' => 'required|array',
       'proj_id' => 'required|gt:0',
     ]);
+    Log::info($request->tenant_ids);
     try {
       // DB::transaction(function () use ($request) {
 
@@ -157,13 +158,15 @@ class BillController extends BaseController
       //   })
       //   ->where('contract_state', AppEnum::contractExecute) // 执行状态
       //   ->where('proj_id', $request->proj_id)->get();
-      $tenants = Tenant::where(function ($q) use ($request) {
-        if ($request->create_type == 1) {
-          $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
-        }
-      })
-        ->where('on_rent', '1') // 是否在租
-        ->where('proj_id', $request->proj_id)->get();
+      $tenants = Tenant::where('on_rent', 1) // 是否在租
+        ->where('proj_id', $request->proj_id)
+        ->when($request->create_type == 1 && $request->tenant_ids, function ($q) use ($request) {
+          return $q->whereIn('id', $request->tenant_ids);
+        })->get();
+
+      if (!$tenants) {
+        return $this->error("请选择租户！");
+      }
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
