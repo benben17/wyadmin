@@ -38,7 +38,7 @@ class WorkOrderService
         $order->order_no = isset($DA['order_no']) ? $DA['order_no'] :  $this->workorderNo($user['company_id']);
       }
       $order->proj_id         = $DA['proj_id'];
-      $order->open_time       = nowTime();
+      $order->open_time       = $DA['open_time'] ?? nowTime();
       $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $order->tenant_name     = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $order->building_floor_room = isset($DA['building_floor_room']) ? $DA['building_floor_room'] : "";
