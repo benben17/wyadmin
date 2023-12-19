@@ -172,6 +172,7 @@ class BillController extends BaseController
       $billDay = $request->bill_month . '-' . $request->bill_day;
       // return response()->json(DB::getQueryLog());
       $billCount = 0;
+
       foreach ($tenants as $k => $v) {
         Log::info("账单生成合同：" . $v['id'] . $billDay);
 
