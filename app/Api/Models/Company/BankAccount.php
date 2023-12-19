@@ -17,7 +17,7 @@ class BankAccount extends Model
   // use SoftDeletes;
   protected $table = 'bse_bank_account';
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'updated_at'];
-  protected $fillable = ['company_id', 'bank_name', 'account_name', 'account_number', 'c_uid', 'u_uid', 'remark', 'is_vaild'];
+  protected $fillable = ['company_id', 'bank_name', 'account_name', 'account_number', 'c_uid', 'u_uid', 'remark', 'is_valid', 'proj_id'];
 
 
   public function project()
