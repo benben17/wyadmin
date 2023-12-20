@@ -8,7 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\BseMaintain as maintainService;
-
+use App\Enums\AppEnum;
+use App\Api\Models\Channel\Channel as  ChannelModel;
+use App\Api\Models\Tenant\Tenant as TenantModel;
+use App\Api\Models\Operation\Supplier as SupplierModel;
+use App\Api\Models\Operation\PubRelations as RelationsModel;
 
 /**
  *  parent_type  1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -120,10 +124,11 @@ class MaintainController extends BaseController
         }
         // Log::error($this->user);
         DB::enableQueryLog();
+        $parentType = $request->parent_type;
         $maintainService  = new maintainService;
         $maintain = $maintainService->maintainModel()->where($map)
             ->with('createUser:id,realname')
-            ->where(function ($q) use ($request) {
+            ->where(function ($q) use ($request, $parentType) {
                 $request->parent_type && $q->where('parent_type', $request->parent_type);
                 $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
                 if ($request->start_time) {
@@ -134,6 +139,15 @@ class MaintainController extends BaseController
                 }
                 if (!$this->user['is_admin']) {
                     $q->where('role_id', $this->user['role_id']);
+                }
+                if ($parentType == AppEnum::Channel) {
+                    $res = ChannelModel::select('channel_name as name')->find($parentId);
+                } else if ($parentType == AppEnum::Supplier) {
+                    $res = SupplierModel::select('name as name')->find($parentId);
+                } else if ($parentType == AppEnum::Relationship) {
+                    $res = RelationsModel::select('name as name')->find($parentId);
+                } else if ($parentType == AppEnum::Tenant) {
+                    $res = TenantModel::select('name as name')->find($parentId);
                 }
             })
             ->orderBy($orderBy, $order)

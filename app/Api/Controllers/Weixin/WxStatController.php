@@ -144,7 +144,7 @@ class WxStatController extends BaseController
     public function list(Request $request)
     {
         $validatedData = $request->validate([
-            'proj_id' => 'required|gt:0',
+            'proj_ids' => 'required',
         ]);
         $pagesize = $request->input('pagesize');
         if (!$pagesize || $pagesize < 1) {

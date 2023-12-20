@@ -80,6 +80,7 @@ class SupplierController extends BaseController
     }
     $data = $this->supplier->supplierModel()
       ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->supplier_type && $q->where('supplier_type', 'like', '%' . $request->supplier_type . '%');
         $request->name && $q->where('name', 'like', '%' . $request->name . '%');
       })

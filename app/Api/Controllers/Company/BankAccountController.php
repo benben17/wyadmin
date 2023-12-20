@@ -66,6 +66,7 @@ class BankAccountController extends BaseController
         $data = bankAccountModel::where(function ($q) use ($request) {
             $request->account_name && $q->where('account_name', 'like', '%' . $request->account_name . '%');
             $request->is_vaild && $q->where('is_vaild', $request->type);
+            $request->proj_id && $q->where('proj_id', $request->proj_id);
         })
             ->orderBy($orderBy, $order)->get()->toArray();
         // return response()->json(DB::getQueryLog());
