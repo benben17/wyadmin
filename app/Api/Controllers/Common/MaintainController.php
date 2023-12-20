@@ -140,15 +140,6 @@ class MaintainController extends BaseController
                 if (!$this->user['is_admin']) {
                     $q->where('role_id', $this->user['role_id']);
                 }
-                if ($parentType == AppEnum::Channel) {
-                    $res = ChannelModel::select('channel_name as name')->find($parentId);
-                } else if ($parentType == AppEnum::Supplier) {
-                    $res = SupplierModel::select('name as name')->find($parentId);
-                } else if ($parentType == AppEnum::Relationship) {
-                    $res = RelationsModel::select('name as name')->find($parentId);
-                } else if ($parentType == AppEnum::Tenant) {
-                    $res = TenantModel::select('name as name')->find($parentId);
-                }
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
