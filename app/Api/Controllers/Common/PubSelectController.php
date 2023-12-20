@@ -654,7 +654,7 @@ class PubSelectController extends BaseController
 
 	/**
 	 * @OA\Post(
-	 *     path="/api/pub/freetype/getAll",
+	 *     path="/api/pub/feetype/getAll",
 	 *     tags={"选择公用接口"},
 	 *     summary="费用类型接口",
 	 *    @OA\RequestBody(

@@ -96,6 +96,7 @@ class MeterController extends BaseController
     } else {
       $order = 'desc';
     }
+    DB::enableQueryLog();
     $currentDate = date('Y-m-01');
     $data = $this->meterService->meterModel()
       ->where($map)
@@ -108,6 +109,7 @@ class MeterController extends BaseController
       }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
+    return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $record = $this->meterService->getNewMeterRecord($v['id']);

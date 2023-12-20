@@ -34,6 +34,7 @@ class Maintain extends Model
   {
     return $this->hasOne('App\Models\User', 'id', 'c_uid');
   }
+
   protected static function boot()
   {
     parent::boot();

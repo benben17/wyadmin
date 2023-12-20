@@ -98,7 +98,7 @@ class CustomerController extends BaseController
         }
 
 
-        $request->type = [1, 2, 3];
+        $request->type = [1, 3];  // 只显示客户，和退租客户 不显示租户
         DB::enableQueryLog();
         $result = $this->customerService->tenantModel()
             ->where($map)
