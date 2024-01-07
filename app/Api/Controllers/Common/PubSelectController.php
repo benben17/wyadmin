@@ -471,9 +471,12 @@ class PubSelectController extends BaseController
 	 *     )
 	 * )
 	 */
-	public function venueList()
+	public function venueList(Request $request)
 	{
 		$map['is_vaild'] = 1;
+		if ($request->proj_id) {
+			$map['proj_id'] = $request->proj_id;
+		}
 		$venue = new \App\Api\Services\Venue\VenueServices;
 		$data = $venue->venueModel()->select('id', 'proj_id', 'venue_name', 'venue_area')
 			->with('project:id,proj_name')

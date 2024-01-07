@@ -214,6 +214,14 @@ class StatController extends BaseController
                 $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->groupBy('industry')->get();
+
+        $customerCount = $this->customerService->tenantModel()
+            ->where('parent_id', 0)
+            ->where(function ($q) use ($BA) {
+                $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
+                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+            })
+            ->count();
         // return response()->json(DB::getQueryLog());
         // 按照渠道统计统计每种渠道带来的客户
         $customerByChannel = $this->customerService->tenantModel()->select('channel_id', DB::Raw('count(*) as cus_count'))
@@ -263,11 +271,14 @@ class StatController extends BaseController
             }
         }
 
+        foreach ($customerByIndustry as $k3 => &$v3) {
+            $v3['cus_rate'] = numFormat($v3['cus_count'] / $customerCount * 100);
+        }
         // return $Stat;
         $data['cusBySource'] =  $cusBySource->toArray();
         $data['customerCluepie'] =  $clueStatPie;
         $data['customerByState'] = $customerByState->toArray();
-        $data['customerByIndustry'] = $customerByIndustry->toArray();
+        $data['customerByIndustry'] = $customerByIndustry;
         $data['customerByChannel'] = $customerByChannel->toArray();
         $data['customerByChannelDeal'] = $customerByChannelDeal->toArray();
         $data['demandArea'] = $Stat;

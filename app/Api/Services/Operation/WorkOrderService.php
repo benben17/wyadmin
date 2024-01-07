@@ -174,13 +174,16 @@ class WorkOrderService
     try {
       DB::transaction(function () use ($DA, $user) {
         $order = WorkOrderModel::find($DA['id']);
-        if ($order->status != 3) {
+        if ($order->status >= 3) {
           return false;
         }
-        $order->feedback = isset($DA['feedback']) ? $DA['feedback'] : "";
-        $order->feedback_rate = $DA['feedback_rate'];
+        $order->feedback = $DA['feedback'] ?? "";
+        $order->feedback_rate = $DA['feedback_rate'] ?? 5;
         // $order->is_notice       = $DA['is_notice']; // 工单关闭
-        $order->status          = 4; // 工单关闭
+
+        if ($order->status != 4) {
+          $order->status          = 4; // 工单关闭
+        }
         $res = $order->save();
         if ($res) {
           // 写入日志

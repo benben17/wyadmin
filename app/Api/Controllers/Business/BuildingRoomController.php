@@ -75,7 +75,9 @@ class BuildingRoomController extends BaseController
         } else {
             $map['room_type'] = 1;
         }
-
+        if ($request->room_trim_state) {
+            $map['room_trim_state'] = $request->room_trim_state;
+        }
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -96,6 +98,7 @@ class BuildingRoomController extends BaseController
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->floor_no && $q->where('floor_no', 'like', '%' . $request->floor_no . '%');
             })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')

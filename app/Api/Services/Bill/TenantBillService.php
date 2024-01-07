@@ -272,7 +272,7 @@ class TenantBillService
         $billData['charge_date'] = $billDay;
         $billData['proj_id'] = $tenant['proj_id'];
         $billData['tenant_name'] = $tenant['name'];
-        $billData['bill_no']    = $tenant['tenant_no'] . date('Ymd', strtotime($billDay));
+        $billData['bill_no']    = date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999);
         $billData['bill_title'] = $tenant['name'];
         // $billData['contract_id'] = $contract['id'];  // 合同id
         $bill = $this->saveBill($billData, $user);

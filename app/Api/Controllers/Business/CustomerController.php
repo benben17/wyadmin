@@ -98,7 +98,7 @@ class CustomerController extends BaseController
         }
 
 
-        $request->type = [1, 3];  // 只显示客户，和退租客户 不显示租户
+        $request->type = [1, 2, 3];  // 只显示客户，和退租客户 不显示租户
         DB::enableQueryLog();
         $result = $this->customerService->tenantModel()
             ->where($map)
@@ -108,6 +108,8 @@ class CustomerController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->source_type && $q->where('source_type', $request->source_type);
+                $request->industry && $q->where('industry', $request->industry);
+
                 $request->state && $q->where('state', $request->state);
                 if (!$this->user['is_admin']) {
                     if ($request->depart_id) {

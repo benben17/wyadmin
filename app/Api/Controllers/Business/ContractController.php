@@ -309,7 +309,7 @@ class ContractController extends BaseController
                     throw new Exception("无账单数据");
                 }
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
-                if ($DA['deposit_bill']) {
+                if (isset($DA['deposit_bill'])) {
                     $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
                 }
                 $contractService->contractLog($contract, $user);
@@ -458,7 +458,7 @@ class ContractController extends BaseController
                 // 保存费用账单
                 $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 // 保存押金账单
-                if ($DA['deposit_bill']) {
+                if (isset($DA['deposit_bill'])) {
                     $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
                 }
                 $contractService->contractLog($contract, $user);
