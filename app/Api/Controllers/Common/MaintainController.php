@@ -34,7 +34,7 @@ class MaintainController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"pagesize","parent_type","parent_type","proj_ids"},
+     *          required={"pagesize","parent_type","parent_type","proj_ids","maintain_types},
      *       @OA\Property(
      *          property="pagesize",
      *          type="int",
@@ -54,6 +54,11 @@ class MaintainController extends BaseController
      *          property="proj_ids",
      *          type="String",
      *          description="项目id 多个ID（,）逗号隔开 "
+     *       ),
+     *      @OA\Property(
+     *          property="maintain_types",
+     *          type="array",
+     *          description="维护类型中文数组"
      *       ),
      *       @OA\Property(
      *          property="start_time",
@@ -91,7 +96,7 @@ class MaintainController extends BaseController
     {
         $validatedData = $request->validate([
             'parent_type' => 'required|numeric|in:1,2,3,4,5',
-            // 'proj_ids' => 'required',
+            'maintain_types' => 'required|array',
         ]);
 
         $pagesize = $request->input('pagesize');
@@ -136,6 +141,12 @@ class MaintainController extends BaseController
                 }
                 if ($request->end_time) {
                     $q->where('maintain_date', '<=', $request->end_time);
+                }
+                if ($request->maintain_user) {
+                    $q->where('maintain_user', 'like', "%" . $request->maintain_user . "%");
+                }
+                if ($request->maintain_type) {
+                    $q->where('maintain_type', 'in', $request->maintain_types);
                 }
                 if (!$this->user['is_admin']) {
                     $q->where('role_id', $this->user['role_id']);

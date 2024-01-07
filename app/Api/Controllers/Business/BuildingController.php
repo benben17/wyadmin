@@ -89,7 +89,7 @@ class BuildingController extends BaseController
         }
 
         $DA = $request->toArray();
-        // DB::enableQueryLog();
+
 
         if ($request->room_type) {
             $subMap['room_type'] = $request->room_type;
@@ -99,13 +99,14 @@ class BuildingController extends BaseController
         if ($request->room_state) {
             $subMap['room_state'] = $request->room_state;
         }
-
+        DB::enableQueryLog();
         $data = BuildingModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
             ->withCount('floor')
+
             //统计所有房间
             ->withCount(['buildRoom' => function ($q) use ($subMap) {
                 $q->where($subMap);
@@ -126,6 +127,20 @@ class BuildingController extends BaseController
                 $q->where($subMap);
                 $q->where('room_state', 1);
             }])
+            ->whereHas('floor', function ($q) use ($request) {
+                $request->floor_count && $q->havingRaw('count(*) = ?', [$request->floor_count]);
+            })
+            ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+                $q->where($subMap);
+                $request->room_count && $q->havingRaw('count(*) = ?', [$request->room_count]);
+            })
+            ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+                if ($request->free_room_count) {
+                    $q->havingRaw('count(*) = ?', [$request->free_room_count]);
+                    $q->where($subMap);
+                    $q->where('room_state', 1);
+                }
+            })
             ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
 

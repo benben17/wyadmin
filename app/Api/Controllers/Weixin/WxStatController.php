@@ -116,8 +116,7 @@ class WxStatController extends BaseController
         // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }
-
-    /**
+788
      * @OA\Post(
      *     path="/api/wxapp/customer/list",
      *     tags={"微信招商"},

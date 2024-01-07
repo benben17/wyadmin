@@ -65,11 +65,15 @@ class BankAccountController extends BaseController
         DB::enableQueryLog();
         $data = bankAccountModel::where(function ($q) use ($request) {
             $request->account_name && $q->where('account_name', 'like', '%' . $request->account_name . '%');
-            $request->is_vaild && $q->where('is_vaild', $request->type);
+            $request->is_valid && $q->where('is_valid', $request->type);
             $request->proj_id && $q->where('proj_id', $request->proj_id);
         })
             ->orderBy($orderBy, $order)->get()->toArray();
+
         // return response()->json(DB::getQueryLog());
+        foreach ($data as $k => &$v) {
+            $v['proj_name'] = getProjNameById($v['proj_id']);
+        }
         return $this->success($data);
     }
 
@@ -110,6 +114,7 @@ class BankAccountController extends BaseController
         $validatedData = $request->validate([
             'account_name' => 'required|String|unique:bse_bank_account',
             'account_number' => 'required|String',
+
             'bank_name' => 'required|String|min:1',
         ]);
 
@@ -120,8 +125,9 @@ class BankAccountController extends BaseController
         $bankAccount['account_number'] = $DA['account_number'];
         $bankAccount['bank_name']   = $DA['bank_name'];
         $bankAccount['bank_addr']   = isset($DA['bank_addr']) ? $DA['bank_addr'] : "";
+        $bankAccount['proj_id']       = $DA['proj_id'] ?? 0;
         $bankAccount['c_uid']       = $user->id;
-        $bankAccount['is_vaild']    = 1;
+        $bankAccount['is_valid']    = 1;
         $bankAccount['company_id']  = $user->company_id;
         $bankAccount['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
         $res = $bankAccount->save();
@@ -173,6 +179,7 @@ class BankAccountController extends BaseController
         }
         $user = auth('api')->user();
         $bankAccount = bankAccountModel::find($DA['id']);
+        $bankAccount['proj_id']       = $DA['proj_id'] ?? 0;
         $bankAccount['account_name'] = $DA['account_name'];
         $bankAccount['account_number'] = $DA['account_number'];
         $bankAccount['bank_name'] = $DA['bank_name'];

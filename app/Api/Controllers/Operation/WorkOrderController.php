@@ -387,6 +387,46 @@ class WorkOrderController extends BaseController
       return $this->success('工单关闭成功。');
     }
   }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/workorder/rate",
+   *     tags={"工单"},
+   *     summary="工单关闭，并提交评价",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"feedback_rate"},
+   *       @OA\Property(property="feedback_rate",type="int",description="评分"),
+   *       @OA\Property(property="feedback",type="String",description="评价内容")
+   *     ),
+   *       example={"feedback_rate":1,"feedback":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function rate(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric',
+      "feedback_rate" => 'required|numeric',
+      // 'is_notice' =>'required|numeric',
+    ]);
+    $DA = $request->toArray();
+
+    $res = $this->workService->closeWork($DA, $this->user);
+    if (!$res) {
+      return $this->error('工单评分失败！');
+    } else {
+      return $this->success('工单评分成功。');
+    }
+  }
   /**
    * @OA\Post(
    *     path="/api/operation/workorder/show",
