@@ -83,20 +83,36 @@ class DepositController extends BaseController
     $map['type'] = AppEnum::depositFeeType;
     DB::enableQueryLog();
     $depositService = new TenantBillService;
-    $data = $depositService->billDetailModel()
+    $subQuery = $depositService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->year && $q->whereYear('charge_date', $request->year);
       })
       ->withCount(['refundRecord as refund_amount' => function ($q) {
         $q->selectRaw('FORMAT(sum(amount),2)');
-      }])
-      ->orderBy($orderBy, $order)
+      }]);
+
+    $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
+    $list = $subQuery->get();
     // return response()->json(DB::getQueryLog());
+    // 统计每种类型费用的应收/实收/未收
+    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'unreceive_amt' => 0.00];
+    foreach ($list as $k => $v) {
+      $totalAmt = $v['amount']  ?? 0.00;
+      $receiveAmt = $v['receive_amt'] ?? 0.00;
+      $unreceiveAmt = $totalAmt - $receiveAmt;
+
+      $stat['total_amt'] +=  $totalAmt;
+      $stat['receive_amt'] += $receiveAmt;
+      $stat['unreceive_amt'] += $unreceiveAmt;
+    }
+
     $data = $this->handleBackData($data);
+    $data['stat'] = $stat;
     return $this->success($data);
   }
 
