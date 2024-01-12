@@ -1550,7 +1550,7 @@
                                         "description": "楼号",
                                         "type": "String"
                                     },
-                                    "is_vaild": {
+                                    "is_valid": {
                                         "description": "1启用 2 禁用",
                                         "type": "int"
                                     }
@@ -5677,13 +5677,13 @@
                 }
             }
         },
-        "/api/pub/freetype/getAll": {
+        "/api/pub/feetype/getAll": {
             "post": {
                 "tags": [
                     "选择公用接口"
                 ],
                 "summary": "费用类型接口",
-                "operationId": "93401e4c363af961710ae6493ac98510",
+                "operationId": "b924cc68566386673f4b380e4cb98620",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -6567,10 +6567,10 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "ids",
-                                    "is_vaild"
+                                    "is_valid"
                                 ],
                                 "properties": {
-                                    "is_vaild": {
+                                    "is_valid": {
                                         "description": "1启用0禁用",
                                         "type": "int"
                                     },
@@ -6582,7 +6582,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "is_vaild": "1",
+                                "is_valid": "1",
                                 "ids": "[]"
                             }
                         }
