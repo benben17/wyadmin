@@ -89,6 +89,7 @@ class BillController extends BaseController
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->year && $q->whereYear('charge_date', $request->year);
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
