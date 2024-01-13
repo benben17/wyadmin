@@ -2,14 +2,19 @@
 
 namespace App\Api\Controllers\Bill;
 
+use Illuminate\Validation\ValidationException;
 use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Services\Tenant\ChargeService;
+use App\Enums\AppEnum;
+use App\Api\Services\Bill\TenantBillService;
 
 class ChargeController extends BaseController
 {
+  private $chargeService;
+
   public function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
@@ -173,7 +178,7 @@ class ChargeController extends BaseController
     $validatedData = $request->validate([
       'id'        => 'required|numeric|gt:0',
       'tenant_id' => 'required|numeric|gt:0',
-      'type'      => 'requird|in:1,2', // 1 收入 2 支出
+      'type'      => 'required|in:1,2', // 1 收入 2 支出
       'amount'    => 'required',
       'proj_id'    => 'required|numeric|gt:0',
       'charge_date' => 'required|date',
@@ -264,5 +269,53 @@ class ChargeController extends BaseController
       }])
       ->find($request->id);
     return $this->success($data);
+  }
+
+
+  public function writeOff(Request $request)
+  {
+    try {
+      $validatedData = $request->validate([
+        'id' => 'required',
+        'bill_detail_ids' => 'array',
+      ]);
+
+      $verifyDate = $request->verify_date ?? nowYmd();
+
+      $charge = $this->chargeService->model()
+        ->where('id', $request->id)
+        ->where('status', AppEnum::chargeUnVerify)
+        ->firstOrFail();
+
+      $billDetailService = new TenantBillService;
+      $billDetailIds = $request->bill_detail_ids;
+
+      $billDetailList = $billDetailService->billDetailModel()
+        ->whereIn('id', $billDetailIds)
+        ->where('status', AppEnum::chargeUnVerify)
+        ->get();
+
+      if ($billDetailList->isEmpty()) {
+        return $this->error("未找到应收记录");
+      }
+
+      $totalVerifyAmt = $billDetailList->sum(function ($billDetail) {
+        return $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
+      });
+
+      if ($charge['unverify_amount'] < $totalVerifyAmt) {
+        return $this->error("充值金额不足，请重新选择应收款项");
+      }
+
+      $writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList, $charge, $verifyDate, $this->user);
+
+      return $writeOffRes
+        ? $this->success("核销成功")
+        : $this->error("核销失败");
+    } catch (ValidationException $e) {
+      return $this->error($e->validator->errors()->first());
+    } catch (\Exception $e) {
+      return $this->error("发生错误：" . $e->getMessage());
+    }
   }
 }

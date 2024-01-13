@@ -191,7 +191,10 @@ class BillDetailController extends BaseController
       'verify_amount' => 'required',
     ]);
 
-    $billDetail = $this->billService->billDetailModel()->where('status', 0)->findOrFail($request->bill_detail_id);
+    $billDetail = $this->billService->billDetailModel()
+      ->where('status', 0)
+      ->findOrFail($request->bill_detail_id);
+
     if (!$billDetail) {
       return $this->error("未发账单现数据！");
     }
@@ -207,7 +210,7 @@ class BillDetailController extends BaseController
     if ($unreceiveAmt < $request->verify_amount) {
       return $this->error("核销金额大于未收款金额！");
     }
-    $verifyDate = nowYmd();
+    $verifyDate = $request->verify_date ?? nowYmd();
     $chargeService = new ChargeService;
     $res =  $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_amount, $verifyDate, $this->user);
     if ($res) {

@@ -14,13 +14,11 @@ class ChargeService
 {
   public function model()
   {
-    $model = new ChargeBill;
-    return $model;
+    return new ChargeBill;
   }
   public function chargeBillRecord()
   {
-    $model = new ChargeBillRecord;
-    return $model;
+    return new ChargeBillRecord;
   }
 
   public function save($BA, $user)
@@ -75,7 +73,7 @@ class ChargeService
    *
    * @return void
    */
-  public  function detailBillVerify(array $detailBill, array $chargeBill, $verifyAmt, $verifyDate, $user)
+  public function detailBillVerify(array $detailBill, array $chargeBill, $verifyAmt, $verifyDate, $user)
   {
 
     try {
@@ -115,6 +113,69 @@ class ChargeService
       return false;
     }
   }
+
+
+  /**
+   * 在充值记录中进行 应收核销 ，可以核销多个应收款项
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-13
+   * @param array $detailBillList
+   * @param array $chargeBill
+   * @param [type] $verifyDate
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function detailBillListWriteOff(array $detailBillList, array $chargeBill, $verifyDate, $user)
+  { {
+      $totalVerifyAmt = 0.00;
+
+      try {
+        DB::transaction(function () use (&$totalVerifyAmt, $detailBillList, $chargeBill, $verifyDate, $user) {
+          foreach ($detailBillList as $detailBill) {
+            $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+            $totalVerifyAmt += $verifyAmt;
+
+            $detailBillData = [
+              'status' => 1,
+              'receive_date' => $verifyDate,
+            ];
+
+            $billRecord = [
+              'amount' => $verifyAmt,
+              'charge_id' => $chargeBill['id'],
+              'bill_detail_id' => $detailBill['id'],
+              'type' => $detailBill['type'],
+              'fee_type' => $detailBill['fee_type'],
+              'proj_id' => $detailBill['proj_id'],
+              'verify_date' => $verifyDate,
+            ];
+
+            $billService = new TenantBillService;
+            $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
+
+            $this->chargeBillRecordSave($billRecord, $user);
+          }
+
+          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $totalVerifyAmt);
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $totalVerifyAmt;
+
+          if ($chargeBill['unverify_amount'] == 0) {
+            $chargeBill['status'] = AppEnum::chargeVerify;
+          }
+
+          $this->save($chargeBill, $user);
+        }, 3);
+
+        return true;
+      } catch (\Exception $e) {
+        Log::error("核销失败: " . $e->getMessage());
+        return false;
+      }
+    }
+  }
+
 
   public function chargeBillRecordSave($DA, $user)
   {

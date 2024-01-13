@@ -480,12 +480,18 @@ Route::group(['prefix' => 'wx'], function () {
     Route::post('/user/bind', '\App\Api\Controllers\Weixin\WeiXinController@bindWx');
     Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
     Route::post('/auth/login', '\App\Api\Controllers\Weixin\WeiXinController@wxAppAuth');
+
+    // 微信支付
+    Route::post('/activity/reg/pay', '\App\Api\Controllers\Venue\ActivityController@activityPay');
+    Route::post('/pay/notify_url', '\App\Api\Controllers\Venue\ActivityController@WxPayNotify');
 });
 
 Route::group(['prefix' => 'wxapp/customer'], function () {
     Route::post('/stat', '\App\Api\Controllers\Weixin\WxStatController@customerStat');
     Route::post('/list', '\App\Api\Controllers\Weixin\WxStatController@list');
 });
+
+
 
 
 Route::group(['prefix' => 'sys/excel'], function () {
