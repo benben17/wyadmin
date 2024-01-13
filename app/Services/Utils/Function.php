@@ -80,6 +80,16 @@ function getContractNo()
 }
 
 /**
+ * 获取合同编号
+ *
+ * @return void
+ */
+function getTradeNo()
+{
+    return date("ymdHis") . mt_rand(1000, 9999);
+}
+
+/**
  * 数字转大写金额
  * @Author   leezhua
  * @DateTime 2020-06-11
