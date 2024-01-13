@@ -96,7 +96,7 @@ class MaintainController extends BaseController
     {
         $validatedData = $request->validate([
             'parent_type' => 'required|numeric|in:1,2,3,4,5',
-            'maintain_types' => 'required|array',
+
         ]);
 
         $pagesize = $request->input('pagesize');
@@ -145,7 +145,7 @@ class MaintainController extends BaseController
                 if ($request->maintain_user) {
                     $q->where('maintain_user', 'like', "%" . $request->maintain_user . "%");
                 }
-                if ($request->maintain_type) {
+                if ($request->maintain_types) {
                     $q->where('maintain_type', 'in', $request->maintain_types);
                 }
                 if (!$this->user['is_admin']) {
