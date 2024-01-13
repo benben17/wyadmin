@@ -464,6 +464,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
     Route::post('/cancel', '\App\Api\Controllers\Bill\ChargeController@cancel');
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
+    Route::post('/writeOff', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOff');
 });
 
 

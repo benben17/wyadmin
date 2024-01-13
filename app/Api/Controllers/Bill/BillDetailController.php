@@ -258,7 +258,16 @@ class BillDetailController extends BaseController
       'amount' => 'required',
       'fee_type' => 'required',
     ]);
-
+    if (!$request->ignore) {
+      $map['tenant_id'] = $request->tenant_id;
+      $map['fee_type'] = $request->fee_type;
+      $billDetail = $this->billService->billDetailModel()->where($map)
+        ->whereYear('charge_date', dateFormat("Y", $request->charge_date))
+        ->whereMonth('charge_date', dateFormat("m", $request->charge_date))->first();
+      if ($billDetail) {
+        return $this->error("此费用类型已存在，是否继续添加？");
+      }
+    }
     $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
     if (!$res) {
       return $this->error("新增费用失败!");
