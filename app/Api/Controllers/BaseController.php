@@ -69,6 +69,7 @@ class BaseController extends Controller
         $backData['pageInfo'] =  ['currentPage' => $data['current_page'], 'totalPage' => $data['last_page'], 'totalNum' => $data['total']];
         return $backData;
     }
+
     public function formatArray($data)
     {
         return array_map(function ($value) {

@@ -302,6 +302,10 @@ class WorkOrderController extends BaseController
       'order_uid' => 'required|numeric|gt:0',
     ]);
     $DA = $request->toArray();
+    $workOrder = $this->workService->workModel()->find($DA['id']);
+    if (compareTime($workOrder->open_time, $request->order_time)) {
+      return $this->error('接单时间不允许小于下单时间！');
+    }
     $res = $this->workService->orderWork($DA, $this->user);
     if (!$res) {
       return $this->error('接单失败！');
@@ -342,6 +346,10 @@ class WorkOrderController extends BaseController
 
 
     $DA = $request->toArray();
+    $workOrder = $this->workService->workModel()->find($DA['id']);
+    if (compareTime($workOrder->order_time, $request->return_time)) {
+      return $this->error('返单时间不允许小于接单时间！');
+    }
     $res = $this->workService->processWorkOrder($DA, $this->user);
     if (!$res) {
       return $this->error('工单处理失败！');

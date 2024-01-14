@@ -258,7 +258,14 @@ Route::group(['prefix' => 'venue'], function () {
     Route::post('book/stat', '\App\Api\Controllers\Venue\VenueBookController@settleStat');
 });
 
-
+// 活动管理
+Route::group(['prefix' => 'activity'], function () {
+    Route::post('list', '\App\Api\Controllers\Venue\VenueController@index');
+    Route::post('add', '\App\Api\Controllers\Venue\VenueController@store');
+    Route::post('show', '\App\Api\Controllers\Venue\VenueController@show');
+    Route::post('edit', '\App\Api\Controllers\Venue\VenueController@update');
+    Route::post('reg/pay', '\App\Api\Controllers\Venue\ActivityController@activityPay');
+});
 //消息接收
 Route::group(['prefix' => 'common/msg'], function () {
     Route::post('list', '\App\Api\Controllers\Common\MessageController@list');

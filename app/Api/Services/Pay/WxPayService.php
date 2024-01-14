@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Pay;
 
+use App\Enums\ConfEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Exception;
@@ -10,67 +11,36 @@ use WeChatPay\Crypto\Rsa;
 use WeChatPay\Util\PemUtil;
 use WeChatPay\Crypto\AesGcm;
 use WeChatPay\Formatter;
+use App\Api\Services\Weixin\WxConfService;
 
 class WxPayService
 {
-  private const MERCHANT_ID = '1664888422';
-  private const MERCHANT_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDolrLJ6/1VituG
-nzh9BvVHLvbjgg1Xfp+KjmBv1qunhOLal0GVtkDL6tqdsfiN5uZaV3ksee4dWIOD
-m8oicPihLfuZsoUe6xD0gazL/wNDld/fJZ6lgegt0Uf6yZbA0yPJo6pcVHXUyMw8
-CuiJsdHXLO2nAdPnEHN2YteMBVfi8PObkOjA8CmFQiqi+ZSeje4D+a8iXO8dpNx+
-PDwj0AHvlhShHm5S91m7L0pbAOMvU0ttm+het0mMOgck5qR4sVCQGVXrCT/ihuqo
-WMbt/J0RVVZz9xo/wqGfzkd6ubdgAXjJs6Iub3aoBfGb85BqxvgFLlCx6GwZpZqt
-yDS0T1/HAgMBAAECggEBAN2eajF4iWUu8EnwALUxIhl3qIvTab8Kyh4N19n45Iq0
-ViwOn9F1XXxwBWrpH3qmnqtKWg2FCNwxcO7ATPRQTLfXxrsGnU1+kiNIREwEaynE
-7xIDGI1/oKm3lixiVSDajmkdZ8CeQcBErEYx5qz9IIM1LiVJ2o164WnWeKfUl4+G
-Uj1TCEN/QrutxdCqWx4SdpI7GaSZqEohfMxvlol8MAGII3cqFmXY26nmOGRoZaBj
-TCT0NZsMwd5GFA6o1AOdxs/A5GWvgYD/YxEFG8tGDqFITomsmymkLxeRwdS/WKmX
-K08GJj6A6aUjdxj2FCeChVJUAXQDXn9vA0dXioGAouECgYEA/y0wP6pI1takEyKD
-ju//F5gzOiz7HavnO8/gpDOEBbpV/eNoZC0XOuhh5E/IV9BH2cxH5OlqcgpaizgT
-3AgvtUI/fn5JnNtraGVxJ388p/NvDGtOC78M3+rJ2Q4FRu55aj/UzU0iZS2dvwYa
-tef2KbgOBG0QgKlaFjWwXViWEfkCgYEA6VbZZMm3IT738piOs8u9fvVhvWYOiVFd
-C/2y4IEdQKOC00YONMiQkyxtT/YML+6OxDO+9+A9RJu5lA9nSkt0meVScPNFdzGC
-bGi8EN+iq7aN8d6BExGS9wbZUJgjhdjyfEQfgDBmrGQ1Ifr+jnuKUJ9KvL5utxN1
-cdTFr+I1b78CgYEAkHsSjYmqElKXtend2WnT4pUftDnRuTwjAf+yruYoQ2H83HMN
-IWNSet0myDHQOsBIXm5G6rqqtYVdPOR0gin0cUngT4vLvE+UYhjF19o4CtRPtRVw
-rD/xVztGLGq+3Cmcf2dC4zdgWS9Z2NXo+8Qp4fc/oIvsQx0gT+D4SfIljmkCgYBz
-a/SJOIaPuXgo1nHwWh3YSUUZzPvvzQF7xvjOuM9hhABYxdSNI5DwXA+OeCU7KIQS
-ZY5XSuLDp0w7AwuS4pRA9AC9wnhgJ2teeMheiGENE3ZPaELszcqmywqAJWGc+d2o
-voHehRKkv8TQlDmK/W1DyCfOCVz2zndP4XIQOJM6PQKBgFTTvbnQr3SoDjymU8+m
-MLvyOWvs4OADJneKrasGXPhNx0B86lgmulaW5f8QZDXyfBeNBuXO5PhBqTFkBEM1
-B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
-7Lh8e3kwrq4lJ+4wwj5e6BPm
------END PRIVATE KEY-----';
 
-  // private const MERCHANT_CERTIFICATE_SERIAL = '1ddb4d864b24dac869267344d532a45e';
-  private const MERCHANT_CERTIFICATE_SERIAL = '45860A6925389C877CF838A36DA11A41BF6C8716';
-
-  private const PLATFORM_CERTIFICATE_PATH = 'file:///Users/benben/Desktop/weixin/apiclient_cert.pem';
-
-
+  private $appid;
+  private $companyId;
   private $merchantId;
-  private $merchantPrivateKeyInstance;
-  private $merchantCertificateSerial;
-  private $platformPublicKeyInstance;
-  private $platformCertificateSerial;
+  private $mchPrivateKey;
+  private $apiv3Key;
   private $notifyUrl;
-
+  private $platformCert;
+  private $mchPrivateCertSerial;
+  private $confService;
   public function __construct()
   {
-    $this->merchantId = self::MERCHANT_ID;
-    // Load "Merchant API Private Key" from a local file
-    $this->merchantPrivateKeyInstance = Rsa::from(self::MERCHANT_PRIVATE_KEY, Rsa::KEY_TYPE_PRIVATE);
+    $user = auth('api')->user();
 
-    // Set "Merchant API Certificate" serial number
-    $this->merchantCertificateSerial = self::MERCHANT_CERTIFICATE_SERIAL;
+    $this->companyId = $user->company_id;
 
-    $paltformCert = "file:///Users/benben/Desktop/weixin/wechatpay_cert.pem";
+    $this->confService = new WxConfService;
 
-    // Load "WeChat Pay Platform Certificate" from a local file
-    $this->platformPublicKeyInstance = Rsa::from($paltformCert, Rsa::KEY_TYPE_PUBLIC);
-    $this->platformCertificateSerial = PemUtil::parseCertificateSerialNo($paltformCert);
-    $this->notifyUrl = 'https://admin.rss2rbook.com/api/wx/pay/notify_url';
+    $conf = $this->confService->getWechatPayConf();
+    $this->appid = Cache::get(ConfEnum::XCX_APPID . $this->companyId) ?? $conf['app_id'];
+    $this->merchantId = Cache::get(ConfEnum::MERCHANT_ID . $this->companyId) ?? $conf['mch_id'];
+    $this->notifyUrl = Cache::get(ConfEnum::NOTIFY_URL . $this->companyId) ?? $conf['notify_url'];
+    $this->platformCert = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $this->companyId) ?? $conf['platform_cert'];
+    $this->mchPrivateKey = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $this->companyId) ?? $conf['mch_key'];
+    $this->apiv3Key = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $this->companyId) ?? $conf['api_key'];
+    $this->mchPrivateCertSerial = Cache::get(ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $this->companyId) ?? $conf['mch_key_serial'];
   }
 
 
@@ -78,12 +48,15 @@ B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
   public function instance()
   {
 
-    $instance =  Builder::factory([
+    $certSerial   = PemUtil::parseCertificateSerialNo($this->platformCert);
+
+    $merchantPrivateKey = Rsa::from($this->mchPrivateKey, Rsa::KEY_TYPE_PRIVATE);
+    $instance     =  Builder::factory([
       'mchid'      => $this->merchantId,
-      'serial'     => $this->merchantCertificateSerial,
-      'privateKey' => $this->merchantPrivateKeyInstance,
+      'serial'     => $this->mchPrivateCertSerial,
+      'privateKey' => $merchantPrivateKey,
       'certs'      => [
-        $this->platformCertificateSerial => $this->platformPublicKeyInstance,
+        $certSerial => Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC),
       ],
     ]);
 
@@ -112,7 +85,7 @@ B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
         ->post(['json' => [
           'mchid'        => $this->merchantId,
           'out_trade_no' => $order['out_trade_no'],
-          'appid'        => "wx3deff7fd66b83f61",
+          'appid'        => $this->appid,
           'description'  => $order['description'],
           'notify_url'   => $this->notifyUrl,
           'amount'       => [
@@ -123,7 +96,7 @@ B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
             'openid' => $openid,
           ]
         ]]);
-      Log::error($resp->getBody());
+      // Log::error($resp->getBody());
 
       return (array)json_decode($resp->getBody(), true);
     } catch (\Exception $e) {
@@ -191,7 +164,7 @@ B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
    */
   function wxPayNotify($wxSignature, $wxTimestamp, $wxpayNonce, $wxBody)
   {
-    $platformPublicKeyInstance = Rsa::from(self::PLATFORM_CERTIFICATE_PATH, Rsa::KEY_TYPE_PUBLIC);
+    $platformPublicKeyInstance = Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC);
     // // 检查通知时间偏移量，允许5分钟之内的偏移
     $timeOffsetStatus = 300 >= abs(Formatter::timestamp() - (int)$wxTimestamp);
     $verifiedStatus = Rsa::verify(
@@ -210,7 +183,7 @@ B/xhrUwYK+zs7hdrM2zMquRlbUiVSZ0K8ehsC+/HhlQncnO+WFIF7iFhz31JBHk+
         'associated_data' => $aad
       ]] = $inBodyArray;
       // 加密文本消息解密
-      $inBodyResource = AesGcm::decrypt($ciphertext, self::MERCHANT_CERTIFICATE_SERIAL, $nonce, $aad);
+      $inBodyResource = AesGcm::decrypt($ciphertext, $this->apiv3Key, $nonce, $aad);
       // 把解密后的文本转换为PHP Array数组
       $inBodyResourceArray = (array)json_decode($inBodyResource, true);
       // print_r($inBodyResourceArray);// 打印解密后的结果
