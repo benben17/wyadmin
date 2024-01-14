@@ -142,8 +142,8 @@ class ChannelController extends BaseController
         $channelTotal = 0;
         $cusCount = 0;
         // $stat = array();
-        foreach ($stat as $key => &$value) {
-            $channelData = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
+        foreach ($stat as $key => &$v) {
+            $channel = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
                 ->where($map)
                 ->where(function ($q) use ($request) {
                     $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
@@ -152,20 +152,23 @@ class ChannelController extends BaseController
                         $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
                     }
                 })
-                ->where('channel_type', $value['value'])
+                ->where('channel_type', $v['value'])
                 ->with('channelPolicy:id,name')
                 ->whereHas('channelPolicy', function ($q) use ($request) {
                     $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
                 })
                 ->first();
 
-            $channelTypeCounts[$value['value']] = [
-                'count' => $channelData['count'],
-                'channel_type' => $value['value'],
-                'cus_count' => empty($channelData['Ids']) ? 0 : Tenant::whereIn('channel_id', explode(",", $channelData['Ids']))->count(),
-            ];
-            $channelTotal += $channelTypeCounts[$value['value']]['count'];
-            $cusCount += $channelTypeCounts[$value['value']]['cus_count'];
+            $v['count'] = $channel['count'];
+            $v['channel_type'] = $v['value'];
+            if (empty($channel['Ids']) || !$channel['Ids']) {
+                $v['cus_count'] = 0;
+            } else {
+                $Ids = explode(",", $channel['Ids']);
+                $v['cus_count'] = Tenant::whereIn('channel_id', $Ids)->count();
+            }
+            $cusCount += $v['cus_count'];
+            $channelTotal += $v['count'];
         }
 
         $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
