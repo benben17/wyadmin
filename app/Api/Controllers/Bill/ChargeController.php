@@ -271,8 +271,30 @@ class ChargeController extends BaseController
     return $this->success($data);
   }
 
-
-  public function writeOff(Request $request)
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/writeOff",
+   *     tags={"核销"},
+   *     summary="充值核销",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","bill_detail_ids"},
+   *       @OA\Property(property="id",type="int",description="id"),
+   *       @OA\Property(property="bill_detail_ids",type="list",description="应收费用ids 数组"),
+   *     ),
+   *       example={"id":"1","bill_detail_ids":[]}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function chargeWriteOff(Request $request)
   {
     try {
       $validatedData = $request->validate([

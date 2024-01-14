@@ -307,9 +307,8 @@ function uuid($prefix = '')
  */
 function getFlowNo()
 {
-    $no = date('Ymd', strtotime(nowTime()));
-
-    return  'AC-' . $no . mt_rand(1000, 9999);
+    $no = date('ymdHis', strtotime(nowTime()));
+    return  'AC' . $no . mt_rand(10, 99);
 }
 
 /** 通过id获取值 */
@@ -409,4 +408,13 @@ function getDepartIds($parentIds, $arr): array
         array_push($arr, (int) $v);
     }
     return getDepartIds($depart_ids, $arr);
+}
+
+
+function compareTime(string $dateString1, string $dateString2): bool
+{
+    $date1 = new DateTime($dateString1);
+    $date2 = new DateTime($dateString2);
+
+    return $date1 > $date2;
 }

@@ -113,7 +113,7 @@ class ActivityController extends BaseController
 
 	/**
 	 * @OA\Post(
-	 *     path="/api/activity/pay",
+	 *     path="/api/activity/reg/pay",
 	 *     tags={"活动报名支付"},
 	 *     summary="活动报名支付",
 	 *    @OA\RequestBody(
@@ -148,7 +148,7 @@ class ActivityController extends BaseController
 		// 	return $this->error($data['venue_name'] . '场馆已存在！');
 		// }
 		$param['out_trade_no'] = getTradeNo();
-		$param['amount'] = '0.01';
+		$param['amount'] = '1';
 		$param['description'] = '测试活动报名';
 		$param['openid'] = "o2Hy06_8zLxwGDsYpfmfYmhhM6CI";
 		$res = $this->WxPayService->wxJsapiPay($param, $param['openid']);
