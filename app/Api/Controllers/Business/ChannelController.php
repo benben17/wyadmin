@@ -87,6 +87,8 @@ class ChannelController extends BaseController
         if ($request->input('is_vaild')) {
             $map['is_vaild'] = $request->input('is_vaild');
         }
+
+        // 渠道类型
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -101,51 +103,69 @@ class ChannelController extends BaseController
         }
 
         // return $map;
-        $data = channelModel::where($map)
-            ->with('channelPolicy:id,name')
-            ->with('channelContact')
+        // Use a single query to fetch the main data
+        $dataQuery = channelModel::where($map)
+            ->with([
+                'channelPolicy:id,name',
+                'channelContact',
+            ])
             ->withCount('customer')
-            ->withCount(['customer as cus_deal_count' => function ($q) {
-                $q->where('state', '成交客户');
-            }])
+            ->withCount([
+                'customer as cus_deal_count' => function ($q) {
+                    $q->where('state', '成交客户');
+                }
+            ])
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
                 if ($request->proj_ids) {
-                    // $q->orWhere(DB::Raw("proj_ids = ''"));
                     $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
                 }
             })
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            ->whereHas('channelPolicy', function ($q) use ($request) {
+                $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
+            });
+
+        // Fetch the main data
+        $data = $dataQuery->orderBy($orderBy, $order)
+            ->paginate($pagesize)
+            ->toArray();
+
         // DB::enableQueryLog();
         // return response()->json(DB::getQueryLog());
-        $dict = new DictServices;  // 根据ID 获取字典信息
 
-        $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
 
         /** 根据渠道类型统计有多少渠道 */
+        $dict = new DictServices;
+        $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
+        $channelTypeCounts = [];
         $channelTotal = 0;
         $cusCount = 0;
         // $stat = array();
-        foreach ($stat as $k => &$v) {
-            $channel = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
+        foreach ($stat as $key => &$value) {
+            $channelData = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
                 ->where($map)
                 ->where(function ($q) use ($request) {
                     $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
+                    if ($request->proj_ids) {
+                        // $q->orWhere(DB::Raw("proj_ids = ''"));
+                        $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
+                    }
                 })
-                ->where('channel_type', $v['value'])->first();
+                ->where('channel_type', $value['value'])
+                ->with('channelPolicy:id,name')
+                ->whereHas('channelPolicy', function ($q) use ($request) {
+                    $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
+                })
+                ->first();
 
-            $v['count'] = $channel['count'];
-            $v['channel_type'] = $v['value'];
-            if (empty($channel['Ids']) || !$channel['Ids']) {
-                $v['cus_count'] = 0;
-            } else {
-                $Ids = explode(",", $channel['Ids']);
-                $v['cus_count'] = Tenant::whereIn('channel_id', $Ids)->count();
-            }
-            $cusCount += $v['cus_count'];
-            $channelTotal += $v['count'];
+            $channelTypeCounts[$value['value']] = [
+                'count' => $channelData['count'],
+                'channel_type' => $value['value'],
+                'cus_count' => empty($channelData['Ids']) ? 0 : Tenant::whereIn('channel_id', explode(",", $channelData['Ids']))->count(),
+            ];
+            $channelTotal += $channelTypeCounts[$value['value']]['count'];
+            $cusCount += $channelTypeCounts[$value['value']]['cus_count'];
         }
 
         $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
@@ -463,7 +483,7 @@ class ChannelController extends BaseController
         if ($error) {
             return $this->error($error);
         }
-        $checkChannel = channelModel::whereId($request->id)->exists();
+        $checkChannel = channelModel::findOrFail($request->id);
         if (!$checkChannel) {
             return $this->error('渠道不存在');
         }
@@ -643,6 +663,15 @@ class ChannelController extends BaseController
         return $this->success($data);
     }
 
+    /**
+     * 渠道政策列表
+     *
+     * @Author leezhua
+     * @DateTime 2024-01-14
+     * @param Request $request
+     *
+     * @return void
+     */
     public function policyList(Request $request)
     {
         $pagesize = $request->input('pagesize');
@@ -660,6 +689,7 @@ class ChannelController extends BaseController
         if ($request->input('is_vaild')) {
             $map['is_vaild'] = $request->input('is_vaild');
         }
+
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -680,6 +710,8 @@ class ChannelController extends BaseController
         $data =  $policy->policyModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+                $request->policy_type && $q->where('policy_type', $request->policy_type);
+                $request->month && $q->where('month', $request->month);
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
