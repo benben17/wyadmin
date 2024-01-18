@@ -17,6 +17,11 @@ use App\Api\Services\Contract\ContractService;
 class BuildingService
 {
 
+  public function buildRoomModel()
+  {
+    return new BuildingRoomModel();
+  }
+
   public function getBuildingAllStat($data)
   {
     $DA = array('t_manager_area' => 0, 't_free_are' => 0, 't_room_count' => 0, 't_free_count' => 0);
