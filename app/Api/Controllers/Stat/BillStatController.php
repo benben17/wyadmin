@@ -275,4 +275,128 @@ class BillStatController extends BaseController
     }
     return $this->success($statNew);
   }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/stat/bill/year/report",
+   *     tags={"应收统计"},
+   *     summary="应收统计",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"type","year"},
+   *  				@OA\Property(property="year",type="int",description="2021,默认为本年度"),
+   *        @OA\Property(property="proj_ids",type="list",description="项目id集合"),
+   * 				@OA\Property(property="fee_types",type="list",description="费用类型"),
+   *        @OA\Property(property="tenant_name",type="str",description="租户名称"),
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function bill_year_stat(Request $request)
+  {
+
+    $validatedData = $request->validate([
+      'year' => 'required', // 0 所有 1 根据租户id生成
+      'proj_ids' => 'required|array',
+      // 'bill_month' => 'required|String',
+      // 'bill_day' => 'required|between:1,31',
+      'fee_types' => 'array',
+
+    ]);
+    $year = $request->year;
+    $billService  = new TenantBillService;
+    $monthlySummaries = $billService->billDetailModel()->select(
+      'tenant_id',
+      'tenant_name',
+      DB::raw('sum(amount - discount_amount) as amount'),
+      DB::raw('sum(receive_amount) as receive_amount'),
+      DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceive_amount'),
+      DB::raw('date_format(charge_date, "%Y-%m") as ym')
+    )->where(function ($q) use ($request) {
+      $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+      $request->year && $q->whereYear('charge_date', $request->year);
+      $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . "%");
+      $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+    })
+      ->groupBy('tenant_id', 'ym')
+      ->orderBy('tenant_id')
+      ->orderBy('ym')
+      ->get();
+
+    // return $monthlySummaries;
+    $formattedData = [];
+
+    // Create a template for all months
+    $monthsTemplate = array_fill_keys(
+      array_map(function ($month) use ($year) {
+        return $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
+      }, range(1, 12)),
+      [
+        'ym' => '',
+        'amount' => 0.00,
+        'receive_amount' => 0.00,
+        'unreceive_amount' => 0.00,
+      ]
+    );
+
+
+    // return $monthsTemplate;
+    $total_amt = 0.00;
+    $total_receiveAmount = 0.00;
+    $total_unreceiveAmount = 0.00;
+    foreach ($monthlySummaries as $summary) {
+      $tenantId = $summary->tenant_id;
+      $tenantName = $summary->tenant_name;
+      $ym = $summary->ym;
+      // Check if the values are numeric before formatting
+      $amount = numFormat($summary->amount);
+      $receiveAmount = numFormat($summary->receive_amount);
+      $unreceiveAmount = numFormat($summary->unreceive_amount);
+      $total_amt += $amount;
+      $total_receiveAmount += $receiveAmount;
+      $total_unreceiveAmount += $unreceiveAmount;
+      // return $summary;
+
+      // Create an entry for the tenant if not exists
+      if (!isset($formattedData[$tenantId])) {
+        $formattedData[$tenantId] = [
+          'tenant_id' => $tenantId,
+          'tenant_name' => $tenantName,
+          'bill_list' => $monthsTemplate,
+          'total_amt' => 0.00,
+          'total_receive_amt' => 0.00,
+          'total_unreceive_amt' => 0.00,
+        ];
+      }
+
+      // Add data to the corresponding month
+      $formattedData[$tenantId]['bill_list'][$ym] = [
+        'ym' => $ym,
+        'amount' => $amount,
+        'receive_amount' => $receiveAmount,
+        'unreceive_amount' => $unreceiveAmount,
+      ];
+      Log::info($amount);
+      // Update total amounts
+      $formattedData[$tenantId]['total_amt'] += $amount;
+      $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
+      $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
+    }
+    $data = array_values($formattedData);
+    $data['totalAmt'] = $total_amt;
+    $data['total_receive_amt'] = $total_receiveAmount;
+    $data['total_unreceive_amt'] = $total_unreceiveAmount;
+    return $this->success($data);
+  }
 }

@@ -480,6 +480,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
 Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('bill', '\App\Api\Controllers\Stat\BillStatController@billStat');
     Route::post('/bill/month/report', '\App\Api\Controllers\Stat\BillStatController@monthlyStat');
+    Route::post('/bill/year/report', '\App\Api\Controllers\Stat\BillStatController@bill_year_stat');
     Route::post('/charge/month/report', '\App\Api\Controllers\Stat\BillStatController@chargeStat');
 });
 
