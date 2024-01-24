@@ -613,11 +613,7 @@ class BuildingController extends BaseController
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
-
-        if ($BA) {
-            return $this->success($BA);
-        }
-        return $this->error('租控信息失败');
+        return $this->success($BA);
     }
 
 
