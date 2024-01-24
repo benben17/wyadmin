@@ -266,7 +266,9 @@ class TenantBillService
           ->groupBy('tenant_id')->first();
         // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
         // Log::error(response()->json(DB::getQueryLog()));
-
+        if (!$billSum) {
+          throw new Exception("未找到应收");
+        }
         $billData['tenant_id'] = $tenant->id;
         $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
         $billData['charge_date'] = $billDay;
