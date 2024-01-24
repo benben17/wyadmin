@@ -163,6 +163,9 @@ class BillController extends BaseController
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->where('proj_id', $request->proj_id)->get();
+      if (!$contracts) {
+        return $this->error("未找到对应合同");
+      }
       // $tenants = Tenant::where('on_rent', 1) // 是否在租
       //   ->where('proj_id', $request->proj_id)
       //   ->when($request->create_type == 1 && sizeof($request->tenant_ids) > 0, function ($q) use ($request) {
