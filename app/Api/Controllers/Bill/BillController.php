@@ -46,7 +46,7 @@ class BillController extends BaseController
    *          schema="UserModel",
    *          required={"pagesize","orderBy","order"},
    *       @OA\Property(property="name",type="String",description="客户名称")
-   *        @OA\Property(property="start_date",type="String",description="客户名称")
+   *        @OA\Property(property="start_date",type="String",description="开始日期")
    *     ),
    *       example={}
    *       )
@@ -95,7 +95,7 @@ class BillController extends BaseController
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
+    return response()->json(DB::getQueryLog());
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
