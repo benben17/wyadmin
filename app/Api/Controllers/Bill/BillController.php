@@ -95,7 +95,7 @@ class BillController extends BaseController
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    return response()->json(DB::getQueryLog());
+    // return response()->json(DB::getQueryLog());
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
