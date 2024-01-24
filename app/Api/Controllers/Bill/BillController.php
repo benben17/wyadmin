@@ -140,7 +140,7 @@ class BillController extends BaseController
   {
     $validatedData = $request->validate([
       'create_type' => 'required|in:0,1', // 0 所有 1 根据租户id生成
-      // 'tenant_ids' => 'required|array',
+      'tenant_ids' => 'array',
       'bill_month' => 'required|String',
       'bill_day' => 'required|between:1,31',
       'fee_types' => 'required|array',
@@ -164,17 +164,17 @@ class BillController extends BaseController
 
       $tenants = Tenant::where('on_rent', 1) // 是否在租
         ->where('proj_id', $request->proj_id)
-        ->when($request->create_type == 1 && $request->tenant_ids, function ($q) use ($request) {
+        ->when($request->create_type == 1 && sizeof($request->tenant_ids) > 0, function ($q) use ($request) {
           return $q->whereIn('id', $request->tenant_ids);
         })->get();
-
+      return response()->json(DB::getQueryLog());
       if (!$tenants) {
         return $this->error("请选择租户！");
       }
       $startDate = date('Y-m-01', strtotime($request->bill_month));
       $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
-      // return response()->json(DB::getQueryLog());
+
       $billCount = 0;
 
       foreach ($tenants as $k => $v) {
