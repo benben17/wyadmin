@@ -46,6 +46,7 @@ class BillController extends BaseController
    *          schema="UserModel",
    *          required={"pagesize","orderBy","order"},
    *       @OA\Property(property="name",type="String",description="客户名称")
+   *        @OA\Property(property="start_date",type="String",description="客户名称")
    *     ),
    *       example={}
    *       )
@@ -90,6 +91,7 @@ class BillController extends BaseController
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
+        $request->start_date && $q->whereBetween('charge_date', [$request->start_date, $request->end_date]);
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();

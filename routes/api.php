@@ -157,7 +157,7 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('del', '\App\Api\Controllers\Business\BuildingController@delete');
     Route::post('show', '\App\Api\Controllers\Business\BuildingController@show');
     Route::post('floor/del', '\App\Api\Controllers\Business\BuildingController@delFloor');
-
+    Route::post('stat', '\App\Api\Controllers\Business\BuildingController@buildingStat');
     //房源route
     Route::post('room/list', '\App\Api\Controllers\Business\BuildingRoomController@index');
     Route::post('room/add', '\App\Api\Controllers\Business\BuildingRoomController@store');
@@ -480,6 +480,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
 Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('bill', '\App\Api\Controllers\Stat\BillStatController@billStat');
     Route::post('/bill/month/report', '\App\Api\Controllers\Stat\BillStatController@monthlyStat');
+    Route::post('/bill/year/report', '\App\Api\Controllers\Stat\BillStatController@bill_year_stat');
     Route::post('/charge/month/report', '\App\Api\Controllers\Stat\BillStatController@chargeStat');
 });
 

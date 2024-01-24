@@ -14,6 +14,9 @@ use App\Api\Models\BuildingFloor as FloorModel;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
+use App\Api\Models\Contract\ContractRoom;
+use Illuminate\Support\Arr;
+use PSpell\Dictionary;
 
 /**
  * 房源管理
@@ -533,6 +536,87 @@ class BuildingController extends BaseController
         }
         return $this->error('获取楼层信息失败！');
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/building/stat",
+     *     tags={"租控管理"},
+     *     summary="租控管理统计",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={},
+     *       @OA\Property(
+     *          property="build_id",
+     *          type="int",
+     *          description="楼号ID"
+     *       ),
+     *       @OA\Property( property="proj_ids",type="list",description="项目IDs")
+     *     ),
+     *       example={
+     *
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function buildingStat(Request $request)
+    {
+        $validatedData = $request->validate([
+            'proj_ids' => 'required|array',
+        ]);
+        DB::enableQueryLog();
+        $building = BuildingModel::select(DB::Raw('group_concat(id) build_ids'))
+            ->where(function ($q) use ($request) {
+                $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->first()->toArray();
+
+        $buildId = explode(",", $building['build_ids']);
+
+        // return response()->json(DB::getQueryLog());
+        // $map['company_id'] = $this->company_id;
+
+        $data = FloorModel::with('building')
+            ->withCount('floorRoom')
+            ->with('floorRoom')
+            ->where(function ($q) use ($request) {
+                $request->floor_no && $q->where('floor_no', 'like', $request->floor_no);
+            })
+            ->whereIn('build_id', $buildId)
+            ->get();
+
+        $BA = [];
+        foreach ($data as $k => $v) {
+            $BA[$k]['building_name'] = $v['building']['build_no'];
+            $BA[$k]['floor_no'] = $v['floor_no'];
+            $BA[$k]['room_count'] = $v['floor_room_count'];
+            $BA[$k]['room_list'] = [];
+            $room_list = array();
+            foreach ($v->floorRoom as $k1 => &$v1) {
+                if ($v1->room_state == 0) {
+                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->whereHas('contract')->first();
+                    if ($contractRoom) {
+                        $room_list['tenant_name'] = $contractRoom['contract']['tenant_name'];
+                    }
+                }
+                $room_list['room_state'] = $v1->room_state;
+                $room_list['room_area'] = $v1->room_area;
+                $room_list['room_type'] = $v1->room_type;
+                $BA[$k]['room_list'][$k1] = $room_list;
+            }
+        }
+        return $this->success($BA);
+    }
+
+
 
     /**
      * 格式化楼层数据
