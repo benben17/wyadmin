@@ -4,6 +4,7 @@ namespace App\Api\Services\Bill;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
@@ -12,6 +13,7 @@ use App\Api\Models\Bill\TenantBillDetailLog;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
+
 
 /**
  *   租户账单服务
@@ -248,48 +250,61 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill($tenant, String $month = "", $feeType, $billDay, $user): bool
+  public function createBill($tenant, String $month = "", $feeType, $billDay, $user): array
   {
     try {
-      // DB::enableQueryLog();
-      DB::transaction(function () use ($tenant,  $month, $feeType, $billDay, $user) {
+      DB::transaction(function () use ($tenant, $month, $feeType, $billDay, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
-        // $map['contract_id'] = $contract['id'];
-        $map['status'] = 0; // 未结清
-        $map['bill_id'] = 0; // 未生成账单
-        $map['tenant_id'] = $tenant->id;
-        $billSum = $this->billDetailModel()->selectRaw('sum(amount) totalAmt,sum(discount_amount) discountAmt')
+
+        $map = [
+          'status' => 0,
+          'bill_id' => 0,
+          'tenant_id' => $tenant->id,
+        ];
+
+        $billSum = $this->billDetailModel()
+          ->selectRaw('sum(amount) totalAmt, sum(discount_amount) discountAmt')
           ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->whereIn('fee_type', $feeType)
-          ->groupBy('tenant_id')->first();
-        // Log::error("amount" . $billSum['totalAmt'] . "aa" . $billSum['discountAmt']);
-        // Log::error(response()->json(DB::getQueryLog()));
+          // ->groupBy('tenant_id')
+          ->first();
+
         if (!$billSum) {
           throw new Exception("未找到应收");
         }
-        $billData['tenant_id'] = $tenant->id;
-        $billData['amount'] = $billSum['totalAmt'] - $billSum['discountAmt'];
-        $billData['charge_date'] = $billDay;
-        $billData['proj_id'] = $tenant['proj_id'];
-        $billData['tenant_name'] = $tenant['name'];
-        $billData['bill_no']    = date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999);
-        $billData['bill_title'] = $tenant['name'];
-        // $billData['contract_id'] = $contract['id'];  // 合同id
+
+        $billData = [
+          'tenant_id' => $tenant->id,
+          'amount'    => $billSum['totalAmt'] - $billSum['discountAmt'],
+          'charge_date' => $billDay,
+          'proj_id' => $tenant['proj_id'],
+          'tenant_name' => $tenant['name'],
+          'bill_no' => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
+          'bill_title' => $tenant['name'],
+        ];
+
         $bill = $this->saveBill($billData, $user);
-        // Log::error("账单ID------" . $bill['id']);
-        $update['bill_id'] = $bill['id'];
-        $this->billDetailModel()->where($map)
+
+        $update = ['bill_id' => $bill['id']];
+
+        $this->billDetailModel()
+          ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
-          // ->where('type', '!=', 2)  // 不生成押金类型费用
-          ->whereIn('fee_type', $feeType)->update($update);
+          ->whereIn('fee_type', $feeType)
+          ->update($update);
       }, 3);
-      return true;
+
+      return ['flag' => true, 'message' => ''];
+    } catch (QueryException $e) {
+      Log::error("生成账单失败: " . $e->getMessage());
+      // throw new Exception("生成账单失败: " . $e->getMessage());
+      return ['flag' => false, 'message' => "生成账单失败: " . $e->getMessage()];
     } catch (Exception $e) {
-      Log::error("生成账单失败" . $e);
-      throw new Exception("生成账单失败" . $e);
-      return false;
+      Log::error("生成账单失败: " . $e->getMessage());
+      // throw $e;
+      return ['flag' => false, 'message' => "生成账单失败: " . $e->getMessage()];
     }
   }
 

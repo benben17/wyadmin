@@ -179,10 +179,9 @@ class BillController extends BaseController
       $billDay = $request->bill_month . '-' . $request->bill_day;
 
       $billCount = 0;
-
+      $msg = "";
       foreach ($contracts as $k => $v) {
         // Log::info("账单生成合同：" . $v['id'] . $billDay);
-
         $billDetail = $this->billService->billDetailModel()->selectRaw('group_concat(id) as billDetailIds')
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->where('contract_id', $v['id'])
@@ -191,20 +190,22 @@ class BillController extends BaseController
           ->where('bill_id', 0)
           ->where('tenant_id', $v['tenant_id'])
           ->first();
-        if (!$billDetail) {
-          Log::warning("租户" . $v['tenant_name'] . "无费用信息");
+        if (!$billDetail['billDetailIds']) {
+          Log::warning("租户-" . $v['tenant_name'] . "无费用信息");
+          $msg .= "租户-" . $v['tenant_name'] . "无费用信息";
           continue;
         }
-        $billCount++;
+
         $res = $this->billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
-        if (!$res) {
-          Log::error("生成账单错误" . $v->contract_no);
+        if (!$res['flag']) {
+          Log::error("生成账单错误" . $v->contract_no . $res['message']);
+        } else {
+          $billCount++;
         }
       }
       // }, 3);
-      $billMsg = "共计生成" . $billCount . "份账单";
-
-      return $this->success($billMsg);
+      $msg = "共计生成" . $billCount . "份账单" . $msg;
+      return $this->success($msg);
     } catch (Exception $th) {
       Log::error($th);
       return $this->error("账单生成失败！");
