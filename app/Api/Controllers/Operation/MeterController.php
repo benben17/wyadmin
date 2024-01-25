@@ -534,7 +534,8 @@ class MeterController extends BaseController
     foreach ($data['result'] as $k => &$v) {
       $v['meter_no'] = $v['meter']['meter_no'];
       $v['proj_name'] = $v['meter']['proj_name'];
-      $v['tenant_name'] = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
+      $tenantInfo = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
+      $v['tenant_name'] = $tenantInfo['tenant_name'];
       $v['is_virtual'] = $v['meter']['is_virtual'];
       $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
