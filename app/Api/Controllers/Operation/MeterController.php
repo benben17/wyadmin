@@ -102,7 +102,7 @@ class MeterController extends BaseController
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->tenant_id && $q->where('tenant_id',  $request->tenant_id);
+        // $request->tenant_id && $q->where('tenant_id',  $request->tenant_id);
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
@@ -115,7 +115,8 @@ class MeterController extends BaseController
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value;
       $v['last_date'] = $record->record_date;
-      $v['tenant_name'] = $this->meterService->getTenantByRoomId($v['room_id']);
+      $DA = $this->meterService->getTenantByRoomId($v['room_id']);
+      $v['tenant_name'] = $DA['tenant_name'];
     }
     return $this->success($data);
   }
