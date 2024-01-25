@@ -290,13 +290,11 @@ class EnergyService
     $meterRecord->record_date = $DA['record_date'];
     $meterRecord->meter_id    = $DA['meter_id'];
 
-    if ($meter['tenant_id'] > 0) {
-      $tenant = $this->getTenantByRoomId($meter['room_id']);
-      $meterRecord->tenant_name = $tenant['tenant_name'];
-      $meterRecord->tenant_id = $tenant['id'];
-    } else {
-      $meterRecord->tenant_name = '公区';
-    }
+
+    $tenant = $this->getTenantByRoomId($meter['room_id']);
+    $meterRecord->tenant_name = $tenant['tenant_name'];
+    $meterRecord->tenant_id = $tenant['id'];
+
 
     $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
     $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
