@@ -127,6 +127,13 @@ class ProjectController extends BaseController
                     $q->where($subMap);
                     $q->where('room_state', 1);
                 }])
+                ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+                    if ($request->free_room_count) {
+                        $q->havingRaw('count(*) = ?', [$request->free_room_count]);
+                        $q->where($subMap);
+                        $q->where('room_state', 1);
+                    }
+                })
                 //统计管理房间面积
                 ->withCount(['buildRoom as total_area' => function ($q)  use ($subMap) {
                     $q->select(DB::raw("sum(room_area)"));

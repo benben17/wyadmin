@@ -46,11 +46,11 @@ class BillStatController extends BaseController
       $endYmd = date('Y-m-01');
       $endYmd = date('Y-m-t');
     }
-    Log::error("startymd" . $startYmd . $endYmd);
+    Log::error("startYmd" . $startYmd . $endYmd);
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
-              ifnull(sum(discount_amount),0.00) discountAmt,
-              ifnull(sum(receive_amount),0.00) receiveAmt';
+    ifnull(sum(discount_amount),0.00) discountAmt,
+    ifnull(sum(receive_amount),0.00) receiveAmt';
     $totalStat = $billService->billDetailModel()
       ->selectRaw($select)
       ->whereBetween('charge_date', [$startYmd, $endYmd])
@@ -69,7 +69,7 @@ class BillStatController extends BaseController
       ->selectRaw($select)
       ->whereBetween('charge_date', [$startYmd, $endYmd])
       ->whereNotIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType])
-      ->whereDoesntHave('feetype', function ($q) {
+      ->whereDoesntHave('feeType', function ($q) {
         $q->where('type', '!=', 2);
       })
       ->first();
