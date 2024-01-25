@@ -151,9 +151,7 @@ class BillController extends BaseController
     }
     try {
       // DB::transaction(function () use ($request) {
-
       $contractService = new ContractService;
-
       DB::enableQueryLog();
       $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name')
         ->where(function ($q) use ($request) {

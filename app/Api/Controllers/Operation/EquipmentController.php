@@ -15,6 +15,7 @@ use App\Api\Services\Operation\EquipmentService;
  */
 class EquipmentController extends BaseController
 {
+  private $equipment;
   public function __construct()
   {
     parent::__construct();
