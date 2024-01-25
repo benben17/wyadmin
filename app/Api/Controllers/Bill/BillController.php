@@ -155,7 +155,7 @@ class BillController extends BaseController
       $contractService = new ContractService;
 
       DB::enableQueryLog();
-      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no')
+      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
             $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
@@ -194,7 +194,7 @@ class BillController extends BaseController
           ->where('tenant_id', $v['tenant_id'])
           ->first();
         if (!$billDetail) {
-          log::info("租户" . $v->tenant_no . "无费用信息");
+          Log::warning("租户" . $v['tenant_name'] . "无费用信息");
           continue;
         }
         $billCount++;
