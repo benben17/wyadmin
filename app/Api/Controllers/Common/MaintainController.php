@@ -124,9 +124,7 @@ class MaintainController extends BaseController
         } else {
             $order = 'desc';
         }
-        if (is_array($request->proj_ids)) {
-            $request->proj_ids = implode(",", ($request->proj_ids));
-        }
+
         // Log::error($this->user);
         DB::enableQueryLog();
         $parentType = $request->parent_type;
@@ -136,6 +134,7 @@ class MaintainController extends BaseController
             ->where(function ($q) use ($request, $parentType) {
                 $request->parent_type && $q->where('parent_type', $request->parent_type);
                 $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
+                $request->create_person && $q->where('c_username', 'like', '%' . $request->create_person . '%');
                 if ($request->start_time) {
                     $q->where('maintain_date', '>=', $request->start_time);
                 }
@@ -146,7 +145,7 @@ class MaintainController extends BaseController
                     $q->where('maintain_user', 'like', "%" . $request->maintain_user . "%");
                 }
                 if ($request->maintain_types) {
-                    $q->where('maintain_type', 'in', $request->maintain_types);
+                    $q->whereIn('maintain_type', $request->maintain_types);
                 }
                 if (!$this->user['is_admin']) {
                     $q->where('role_id', $this->user['role_id']);
@@ -154,13 +153,13 @@ class MaintainController extends BaseController
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
-
+        // return response()->json(DB::getQueryLog());
         // 获取主表名称
         foreach ($maintain['data'] as $k => &$v) {
             $v['name'] = $maintainService->getParentName($v['parent_id'], $request->parent_type);
             // $v['maintain_type_label'] = getDictName($v['maintain_type']);
         }
-        // return response()->json(DB::getQueryLog());
+
         $data = $this->handleBackData($maintain);
         return $this->success($data);
     }
