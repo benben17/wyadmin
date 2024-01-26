@@ -84,8 +84,8 @@ class ChannelController extends BaseController
             $map['id'] = $request->id;
         }
         // 是否可用 1 可用0禁用
-        if ($request->input('is_vaild')) {
-            $map['is_vaild'] = $request->input('is_vaild');
+        if ($request->input('is_valid')) {
+            $map['is_valid'] = $request->input('is_valid');
         }
 
         // 渠道类型
@@ -102,9 +102,14 @@ class ChannelController extends BaseController
             $order = 'desc';
         }
 
-        // return $map;
+        DB::enableQueryLog();
         // Use a single query to fetch the main data
-        $dataQuery = channelModel::where($map)
+        $data = channelModel::where($map)
+            ->where(function ($q) use ($request) {
+                $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
+                $request->channel_type && $q->where('channel_type', $request->channel_type);
+                $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
+            })
             ->with([
                 'channelPolicy:id,name',
                 'channelContact',
@@ -115,24 +120,15 @@ class ChannelController extends BaseController
                     $q->where('state', '成交客户');
                 }
             ])
-            ->where(function ($q) use ($request) {
-                $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
-                $request->channel_type && $q->where('channel_type', $request->channel_type);
-                if ($request->proj_ids) {
-                    $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
-                }
-            })
+
             ->whereHas('channelPolicy', function ($q) use ($request) {
                 $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
-            });
-
-        // Fetch the main data
-        $data = $dataQuery->orderBy($orderBy, $order)
+            })->orderBy($orderBy, $order)
             ->paginate($pagesize)
             ->toArray();
 
-        // DB::enableQueryLog();
-        // return response()->json(DB::getQueryLog());
+        // 
+        return response()->json(DB::getQueryLog());
 
 
         /** 根据渠道类型统计有多少渠道 */
