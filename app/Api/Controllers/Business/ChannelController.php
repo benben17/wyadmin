@@ -108,7 +108,10 @@ class ChannelController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
-                $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
+                if ($request->proj_ids) {
+                    // $q->orWhere(DB::Raw("proj_ids = ''"));
+                    $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
+                }
             })
             ->with([
                 'channelPolicy:id,name',
@@ -123,12 +126,13 @@ class ChannelController extends BaseController
 
             ->whereHas('channelPolicy', function ($q) use ($request) {
                 $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
-            })->orderBy($orderBy, $order)
+            })
+            ->orderBy($orderBy, $order)
             ->paginate($pagesize)
             ->toArray();
 
         // 
-        return response()->json(DB::getQueryLog());
+        // return response()->json(DB::getQueryLog());
 
 
         /** 根据渠道类型统计有多少渠道 */
