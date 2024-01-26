@@ -110,7 +110,7 @@ class ChannelController extends BaseController
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
                 if ($request->proj_ids) {
                     // $q->orWhere(DB::Raw("proj_ids = ''"));
-                    $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
+                    $q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
                 }
             })
             ->with([
