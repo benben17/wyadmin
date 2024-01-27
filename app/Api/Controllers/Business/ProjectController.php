@@ -88,6 +88,9 @@ class ProjectController extends BaseController
         if ($request->input('city_id') && $request->input('city_id') > 0) {
             $map['proj_city_id'] = $request->input('city_id');
         }
+        if ($request->input('is_valid')) {
+            $map['is_valid'] = $request->input('is_valid');
+        }
 
         // 排序字段
         if ($request->input('orderBy')) {
@@ -444,7 +447,7 @@ class ProjectController extends BaseController
         $DA['proj_pic'] = isset($data['proj_pic']) ? $data['proj_pic'] : "";
         $DA['support'] = isset($data['support']) ? $data['support'] : "";
         $DA['advantage'] = isset($data['advantage']) ? $data['advantage'] : "";
-        $DA['is_vaild'] = isset($data['is_vaild']) ? $data['is_vaild'] : 1;
+        $DA['is_valid'] = isset($data['is_valid']) ? $data['is_valid'] : 1;
         return $DA;
     }
 }
