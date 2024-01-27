@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingFloor as FloorModel;
-use App\Api\Models\BuildingRoom as RoomModel;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
 use App\Api\Models\Channel\Channel as channelModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Company\CompanyDict as DictModel;
@@ -75,7 +75,7 @@ class PubSelectController extends BaseController
 					$q->whereIn('id', $DA['proj_limit']);
 				}
 			})
-			->where('is_vaild', 1)
+			->where('is_valid', 1)
 			->get()->toArray();
 		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
@@ -268,9 +268,9 @@ class PubSelectController extends BaseController
 		if ($request->room_type && $request->room_type > 0) {
 			$map['room_type'] = $request->room_type;
 		}
-		$map['is_vaild'] = 1;
+		$map['is_valid'] = 1;
 		// $map['room_state'] =1;
-		$data = RoomModel::where($map)->get()->toArray();
+		$data = BuildingRoomModel::where($map)->get()->toArray();
 		return $this->success($data);
 	}
 
