@@ -357,7 +357,10 @@ class PubSelectController extends BaseController
 			->with('channelContact')
 			->where($map)
 			->where(function ($q) use ($request) {
-				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
+				if ($request->proj_ids) {
+					// $q->orWhere(DB::Raw("proj_ids = ''"));
+					$q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
+				}
 			})
 			->orderBy('created_at', 'desc')
 			->get()->toArray();
