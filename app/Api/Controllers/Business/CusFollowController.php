@@ -75,7 +75,7 @@ class CusFollowController extends BaseController
     }
     // $map['company_id'] = $this->company_id;
     $map = array();
-    if ($request->tenant_id && $request->tenant_id > 0) {
+    if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
     }
     if ($request->follow_type) {
