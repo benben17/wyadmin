@@ -299,7 +299,7 @@ class ChargeController extends BaseController
     try {
       $validatedData = $request->validate([
         'id' => 'required',
-        'bill_detail_ids' => 'array',
+        'bill_detail_ids' => 'required|array',
       ]);
 
       $verifyDate = $request->verify_date ?? nowYmd();
@@ -330,6 +330,45 @@ class ChargeController extends BaseController
       }
 
       $writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList, $charge, $verifyDate, $this->user);
+
+      return $writeOffRes
+        ? $this->success("核销成功")
+        : $this->error("核销失败");
+    } catch (ValidationException $e) {
+      return $this->error($e->validator->errors()->first());
+    } catch (\Exception $e) {
+      return $this->error("发生错误：" . $e->getMessage());
+    }
+  }
+
+
+  public function chargeWriteOffOne(Request $request)
+  {
+    try {
+      $validatedData = $request->validate([
+        'id' => 'required',
+        'bill_detail_id' => 'required|gt:0',
+      ]);
+
+      $verifyDate = $request->verify_date ?? nowYmd();
+
+      $charge = $this->chargeService->model()
+        ->where('id', $request->id)
+        ->where('status', AppEnum::chargeUnVerify)
+        ->firstOrFail();
+
+      $billDetailService = new TenantBillService;
+      $billDetail = $billDetailService->billDetailModel()
+        ->where('id', $request->bill_detail_id)
+        ->where('status', AppEnum::chargeUnVerify)
+        ->first();
+
+      if ($billDetail->isEmpty()) {
+        return $this->error("未找到应收记录");
+      }
+
+
+      $writeOffRes = $this->chargeService->detailBillListWriteOffOne($billDetail, $charge, $verifyDate, $this->user);
 
       return $writeOffRes
         ? $this->success("核销成功")

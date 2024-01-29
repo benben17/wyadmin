@@ -176,6 +176,78 @@ class ChargeService
     }
   }
 
+  /**
+   *  核销一条应收
+   * 共计3种情况
+   * 收款金额小于 应收 
+   * 收款金额等于应收
+   * 收款金额 大于应收 
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-29
+   * @param array $detailBill
+   * @param array $chargeBill
+   * @param [type] $verifyDate
+   * @param [type] $user
+   *
+   * @return void
+   */
+
+
+  public function detailBillListWriteOffOne(array $detailBill, array $chargeBill, $verifyDate, $user)
+  { {
+
+
+      try {
+        DB::transaction(function () use ($detailBill, $chargeBill, $verifyDate, $user) {
+          $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+
+          $detailBillData = [
+
+            'receive_date' => $verifyDate,
+          ];
+          if ($chargeBill['unverify_amount'] >= $verifyAmt) {
+            $detailBillData['status'] = 1;
+            $actVerifyAmt = $verifyAmt;
+            $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $actVerifyAmt);
+          } else {
+            $actVerifyAmt = $chargeBill['unverify_amount'];
+            $chargeBill['unverify_amount'] = 0;
+          }
+          // 充值账单剩余金额
+
+
+          $billRecord = [
+            'amount' => $actVerifyAmt,
+            'charge_id' => $chargeBill['id'],
+            'bill_detail_id' => $detailBill['id'],
+            'type' => $detailBill['type'],
+            'fee_type' => $detailBill['fee_type'],
+            'proj_id' => $detailBill['proj_id'],
+            'verify_date' => $verifyDate,
+          ];
+
+          $billService = new TenantBillService;
+          $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
+
+          $this->chargeBillRecordSave($billRecord, $user);
+
+          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $actVerifyAmt;
+
+          if ($chargeBill['unverify_amount'] == 0) {
+            $chargeBill['status'] = AppEnum::chargeVerify;
+          }
+          $this->save($chargeBill, $user);
+        }, 3);
+
+        return true;
+      } catch (\Exception $e) {
+        Log::error("核销失败: " . $e->getMessage());
+        return false;
+      }
+    }
+  }
+
 
   public function chargeBillRecordSave($DA, $user)
   {

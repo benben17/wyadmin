@@ -472,7 +472,11 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
     Route::post('/cancel', '\App\Api\Controllers\Bill\ChargeController@cancel');
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
+
+    // 核销 多条应收
     Route::post('/writeOff', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOff');
+    // 核销单条
+    Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
 });
 
 
