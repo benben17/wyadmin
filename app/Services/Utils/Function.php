@@ -305,7 +305,7 @@ function uuid($prefix = '')
  *
  * @return void
  */
-function getFlowNo()
+function getChargeNo()
 {
     $no = date('ymdHis', strtotime(nowTime()));
     return  'AC' . $no . mt_rand(10, 99);

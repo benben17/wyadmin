@@ -50,6 +50,7 @@ class WorkOrderService
       $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";
       $order->pic             = isset($DA['pic']) ? $DA['pic'] : "";
       $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
+      $order->work_type       = $DA['work_type'];
       $order->status          = 1;   // 开单
       $res = $order->save();
       Log::error(json_encode($order));
@@ -108,7 +109,7 @@ class WorkOrderService
         }
         $order->process_result  = $DA['process_result'];
         $order->return_time     = $DA['return_time'];
-        $order->time_used       = $DA['time_used'];
+        $order->time_used       = $DA['time_used'] ?? 0;
         $order->maintain_pic    = isset($DA['maintain_pic']) ? $DA['maintain_pic'] : "";
         $order->charge_amount   = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;
         $order->engineering_type = isset($DA['engineering_type']) ? $DA['engineering_type'] : "";
@@ -125,7 +126,7 @@ class WorkOrderService
           $BA['tenant_name']  = $order['tenant_name'];
           $BA['type']         = AppEnum::chargeIncome; // 收款
           $BA['fee_type']     = AppEnum::maintenanceFeeType;
-          $BA['amount']       = $DA['charge_amount'];
+          $BA['amount']       = $DA['charge_amount'] ?? 0;
           $BA['remark']       = $order['tenant_name'] . "-工程维修-" . $order['repair_content'];
           $billService = new TenantBillService;
           $billService->saveBillDetail($BA, $user);
@@ -169,6 +170,55 @@ class WorkOrderService
     return $res;
   }
 
+  /**
+   * 隐患工单审核
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-30
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function auditWorkOrder($DA, $user)
+  {
+    try {
+      DB::transaction(function () use ($DA, $user) {
+        $order = WorkOrderModel::where('work_type', $DA['work_type'])->find($DA['id']);
+        if ($order->status >= 3) {
+          return false;
+        }
+        $order->remark = $DA['remark'] ?? "";
+        $order->audit_time = $DA['audit_time'] ?? nowYmd();
+        $order->audit_person = $user->username;
+        if ($DA['audit_status'] == 1) {
+          $order->status          = AppEnum::workorderClose; // 工单关闭
+        } else {
+          $order->status          = AppEnum::workorderTake; //返回到接单状态
+        }
+        $res = $order->save();
+        if ($res) {
+          // 写入日志
+          $this->saveOrderLog($DA['id'], $order->status, $user);
+        }
+      });
+      return true;
+    } catch (Exception $e) {
+      Log::error($e->getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * 工单关闭
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-30
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
   public function closeWork($DA, $user)
   {
     try {
@@ -181,13 +231,13 @@ class WorkOrderService
         $order->feedback_rate = $DA['feedback_rate'] ?? 5;
         // $order->is_notice       = $DA['is_notice']; // 工单关闭
 
-        if ($order->status != 4) {
-          $order->status          = 4; // 工单关闭
+        if ($order->status != AppEnum::workorderClose) {
+          $order->status          = AppEnum::workorderClose; // 工单关闭
         }
         $res = $order->save();
         if ($res) {
           // 写入日志
-          $this->saveOrderLog($DA['id'], 4, $user);
+          $this->saveOrderLog($DA['id'], $order->status, $user);
         }
       });
       return true;
@@ -199,7 +249,7 @@ class WorkOrderService
   /** 生成工单编号 */
   private function workorderNo($companyId)
   {
-    return "WS-" . $companyId . date('ymdHis');
+    return "WS-" . date('ymdHis');
   }
 
   /**

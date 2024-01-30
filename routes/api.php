@@ -353,6 +353,8 @@ Route::group(['prefix' => 'operation/workorder'], function () {
     Route::post('/order', '\App\Api\Controllers\Operation\WorkOrderController@order');
     Route::post('/process', '\App\Api\Controllers\Operation\WorkOrderController@process');
     Route::post('/close', '\App\Api\Controllers\Operation\WorkOrderController@close');
+
+    Route::post('/audit', '\App\Api\Controllers\Operation\WorkOrderController@audit');
 });
 
 Route::group(['prefix' => 'operation/tenant'], function () {

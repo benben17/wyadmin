@@ -53,6 +53,7 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'status' => 'required|array',
+      'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
@@ -78,7 +79,7 @@ class WorkOrderController extends BaseController
     } else {
       $order = 'desc';
     }
-
+    $map['work_type'] = $request->work_type;
 
     $data = $this->workService->workModel()
       ->where($map)
@@ -171,7 +172,8 @@ class WorkOrderController extends BaseController
       'proj_id'       => 'required|numeric',
       'open_time'     => 'required|date',
       'order_source'  => 'required|String',
-      'repair_content' => 'required|String'
+      'repair_content' => 'required|String',
+      'work_type'     => 'required|in:1,2'
     ]);
     $DA = $request->toArray();
     if (!isset($DA['tenant_id'])) {
@@ -217,6 +219,7 @@ class WorkOrderController extends BaseController
       'id'            => 'required|numeric|gt:0',
       'proj_id'       => 'required|numeric',
       // 'tenant_id'        => 'required|numeric',
+      'work_type'     => 'required|in:1,2',
       'open_time'     => 'required|date',
       'order_source'  => 'required|String',
       'repair_content' => 'required|String'
@@ -259,6 +262,7 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
+
     ]);
     $DA = $request->toArray();
     $res = $this->workService->cancelWorkorder($request->id, $this->user);
@@ -268,9 +272,11 @@ class WorkOrderController extends BaseController
     return $this->success('工单取消成功。');
   }
 
+
+
   /**
    * @OA\Post(
-   *     path="/api/operation/workorder/order/",
+   *     path="/api/operation/workorder/order",
    *     tags={"工单"},
    *     summary="工单派单接单",
    *    @OA\RequestBody(
@@ -356,6 +362,48 @@ class WorkOrderController extends BaseController
     }
     return $this->success('工单处理成功。');
   }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/workorder/audit",
+   *     tags={"工单"},
+   *     summary="隐患工单审核",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="工单id"),
+   *       @OA\Property(property="work_type",type="int",description="工单类型 2 隐患工单")
+   *     ),
+   *       example={"id":1,"audit_stats":"1 审核通过 其他审核不通过","remark":"","audit_time":"审核时间 年-月-日 分:时:秒"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function audit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric',
+      // "feedback_rate" => 'required|numeric',
+      'work_type' => 'required|gt:0',
+    ]);
+    $DA = $request->toArray();
+
+    $res = $this->workService->auditWorkOrder($DA, $this->user);
+    if (!$res) {
+      return $this->error('工单审核失败！');
+    } else {
+      return $this->success('工单审核成功。');
+    }
+  }
+
   /**
    * @OA\Post(
    *     path="/api/operation/workorder/close",
@@ -366,11 +414,11 @@ class WorkOrderController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"feedback_rate"},
-   *       @OA\Property(property="feedback_rate",type="int",description="评分"),
-   *       @OA\Property(property="feedback",type="String",description="评价内容")
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="工单id"),
+   *       @OA\Property(property="feedback_rate",type="int",description="评分")
    *     ),
-   *       example={"feedback_rate":1,"feedback":""}
+   *       example={"feedback_rate":1,"feedback":"","id":1}
    *       )
    *     ),
    *     @OA\Response(

@@ -327,7 +327,7 @@ class ChargeController extends BaseController
       });
 
       if ($charge['unverify_amount'] < $totalVerifyAmt) {
-        return $this->error("充值金额不足，请重新选择应收款项");
+        return $this->error("充值金额不足，请重新选择应收款项!");
       }
 
       $writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge, $verifyDate, $this->user);
