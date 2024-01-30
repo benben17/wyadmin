@@ -127,7 +127,7 @@ class ChargeService
    *
    * @return void
    */
-  public function detailBillListWriteOff(array $detailBillList, array $chargeBill, $verifyDate, $user)
+  public function detailBillListWriteOff(array $detailBillList, $chargeBill, $verifyDate, $user)
   { {
       $totalVerifyAmt = 0.00;
 

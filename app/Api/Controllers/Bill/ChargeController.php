@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use App\Api\Services\Bill\TenantBillService;
+use Maatwebsite\Excel\Concerns\ToArray;
 
 class ChargeController extends BaseController
 {
@@ -317,7 +318,7 @@ class ChargeController extends BaseController
         ->where('status', AppEnum::chargeUnVerify)
         ->get();
 
-      if ($billDetailList->isEmpty()) {
+      if (!$billDetailList) {
         return $this->error("未找到应收记录");
       }
 
@@ -329,7 +330,7 @@ class ChargeController extends BaseController
         return $this->error("充值金额不足，请重新选择应收款项");
       }
 
-      $writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList, $charge, $verifyDate, $this->user);
+      $writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge, $verifyDate, $this->user);
 
       return $writeOffRes
         ? $this->success("核销成功")
