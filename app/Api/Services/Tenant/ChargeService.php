@@ -33,7 +33,7 @@ class ChargeService
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
         $charge->unverify_amount = $BA['amount'];
-        $charge->flow_no = getFlowNo();
+        $charge->flow_no = getChargeNo();
       }
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
@@ -50,11 +50,7 @@ class ChargeService
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
       $chargeRes = $charge->save();
       // });
-      if ($chargeRes) {
-        return $charge;
-      } else {
-        return false;
-      }
+      return $chargeRes ? $charge : false;
     } catch (Exception $e) {
       Log::error("保存收款失败:" . $e);
       return false;
