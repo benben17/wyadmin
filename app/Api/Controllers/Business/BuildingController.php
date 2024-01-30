@@ -15,8 +15,9 @@ use App\Api\Services\Building\BuildingService;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 use App\Api\Models\Contract\ContractRoom;
-use Illuminate\Support\Arr;
-use PSpell\Dictionary;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Api\Excel\Business\BuildingExcel;
+use Common;
 
 /**
  * 房源管理
@@ -77,7 +78,7 @@ class BuildingController extends BaseController
         $pagesize = $request->input('pagesize');
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config('per_size');
-        } else if ($pagesize == '-1') {
+        } else if ($request->export) {
             $pagesize = config('export_rows');
         }
 
@@ -154,6 +155,11 @@ class BuildingController extends BaseController
             // $v['free_area'] = numFormat($v['free_area']);
             $v['total_area'] = numFormat($v['total_area']);
         }
+
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], BuildingExcel::class);
+        }
+
         $data['stat'] = $buildingService->getBuildingAllStat($data['result']);
         return $this->success($data);
     }
@@ -616,6 +622,15 @@ class BuildingController extends BaseController
         return $this->success($BA);
     }
 
+
+
+
+    public function export(Request $request)
+    {
+        $param['proj_id'] = 16;
+
+        return null;
+    }
 
 
     /**

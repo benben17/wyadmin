@@ -10,6 +10,9 @@ use App\Api\Services\Business\CusClueService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Api\Excel\Business\CusClueExcel;
+use App\Api\Excel\Business\CusClueImport;
 use Exception;
 
 
@@ -59,7 +62,7 @@ class CusClueController extends BaseController
     if (!$pagesize || $pagesize < 1) {
       $pagesize = config('per_size');
     }
-    if ($pagesize == '-1') {
+    if ($request->export) {
       $pagesize = config('export_rows');
     }
     $map = array();
@@ -89,6 +92,9 @@ class CusClueController extends BaseController
       ->paginate($pagesize)->toArray();
 
     $data = $this->handleBackData($result);
+    if ($request->export) {
+      return $this->exportToExcel($data['result'], CusClueExcel::class);
+    }
     $data['clueStat'] = $clueService->clueStat($request, $map);
     return $this->success($data);
   }
@@ -247,5 +253,30 @@ class CusClueController extends BaseController
     $clue->invalid_reason = $request->invalid_reason;
     $res = $clue->save();
     return $this->success($res);
+  }
+
+
+  public function import(Request $request)
+  {
+    $request->validate([
+      'file' => 'required|mimes:csv,txt,xlsx',
+    ]);
+
+    // Get the file from the request
+    $file = $request->file('file');
+
+    // Pass additional parameters (e.g., user) to the import class
+    $user = auth()->user(); // or get the user in any other way
+    $import = new CusClueImport($user);
+
+    // Import the data using the CusClueImport class
+    try {
+      Excel::import($import, $file);
+
+      return $this->success("导入成功");
+    } catch (\Exception $e) {
+      // Handle the import error
+      return $this->error("导入失败" . $e->getMessage());
+    }
   }
 }

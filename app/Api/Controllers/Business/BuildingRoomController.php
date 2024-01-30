@@ -13,6 +13,7 @@ use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Building\BuildingService;
 
+use App\Api\Excel\Business\BuildingRoomExcel;
 
 /**
  * 项目房源信息
@@ -111,6 +112,9 @@ class BuildingRoomController extends BaseController
 
         if ($data['result']) {
             $data['result'] = $buildService->formatData($data['result']);
+        }
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
 
         $data['stat'] = $buildService->areaStat($map, $request->proj_ids);

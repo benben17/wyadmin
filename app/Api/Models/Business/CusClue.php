@@ -20,7 +20,17 @@ class CusClue extends Model
   use SoftDeletes;
   protected $table = 'bse_customer_clue';
 
-  protected $fillable = [];
+  protected $fillable = [
+    'clue_type',
+    'clue_time',
+    'status',
+    'name',
+    'phone',
+    'remark',
+    'company_id',
+    'proj_id',
+    'c_uid', 'deleted_at', "company_id", 'u_uid', 'created_at', 'updated_at'
+  ];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
   protected $appends = ['clue_type_label', 'c_user', 'status_label'];
 

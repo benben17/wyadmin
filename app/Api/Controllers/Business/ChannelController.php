@@ -15,6 +15,7 @@ use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
 use App\Api\Models\Project;
 use App\Api\Models\Tenant\Tenant;
+use App\Api\Excel\Business\ChannelExcel;
 use App\Enums\AppEnum;
 use Exception;
 
@@ -25,6 +26,7 @@ use Exception;
 
 class ChannelController extends BaseController
 {
+    private $parent_type;
     public function __construct()
     {
         // $this->channel = 'bse_channel';
@@ -75,7 +77,7 @@ class ChannelController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config("per_size");
         }
-        if ($pagesize == '-1') {
+        if ($request->export) {
             $pagesize = config('export_rows');
         }
         $map = array();
@@ -131,10 +133,13 @@ class ChannelController extends BaseController
             ->paginate($pagesize)
             ->toArray();
 
-        // 
+
+        $data = $this->handleBackData($data);
         // return response()->json(DB::getQueryLog());
 
-
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], ChannelExcel::class);
+        }
         /** 根据渠道类型统计有多少渠道 */
         $dict = new DictServices;
         $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
@@ -173,7 +178,7 @@ class ChannelController extends BaseController
 
         $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
         // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($data);
+
         $data['stat'] = $stat;
         return $this->success($data);
     }
