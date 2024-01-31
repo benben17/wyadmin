@@ -308,9 +308,14 @@ function uuid($prefix = '')
 function getChargeNo()
 {
     $no = date('ymdHis', strtotime(nowTime()));
-    return  'AC-' . $no . mt_rand(10, 99);
+    return  'IE-' . $no . mt_rand(10, 99);
 }
 
+function getChargeVerifyNo()
+{
+    $no = date('ymdHis', strtotime(nowTime()));
+    return  'VN-' . $no . mt_rand(10, 99);
+}
 /** 通过id获取值 */
 function getDictName($dictId)
 {

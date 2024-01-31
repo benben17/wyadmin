@@ -16,7 +16,7 @@ class ChargeBill extends Model
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
 
-  protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label'];
+  protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label', 'category_label'];
 
   public function getTenantNameAttribute()
   {
@@ -48,6 +48,14 @@ class ChargeBill extends Model
       } else if ($this->attributes['type'] == 2) {
         return "支出";
       }
+    }
+  }
+  public function getCategoryLabelAttribute()
+  {
+    if (isset($this->attributes['category_label'])) {
+      return getDictName($this->attributes['category_label']);
+    } else {
+      return "";
     }
   }
   public function getcUserAttribute()

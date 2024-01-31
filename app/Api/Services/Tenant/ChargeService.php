@@ -40,6 +40,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type        = $BA['type'];
+      $charge->category     = $BA['category'] ?? 1;
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
 
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
@@ -250,8 +251,9 @@ class ChargeService
   {
     try {
       $billRecord = $this->chargeBillRecord();
-      $billRecord->flow_no    = getChargeNo();
+      $billRecord->flow_no    = getChargeVerifyNo();   // 核销单编号
       $billRecord->charge_id  = $DA['charge_id'];
+      // $billRecord->charge_type  = $DA['charge_id'];
       $billRecord->company_id  = $user['company_id'];
       $billRecord->proj_id  = $DA['proj_id'];
       $billRecord->bill_detail_id = isset($DA['bill_detail_id']) ? $DA['bill_detail_id'] : 0;

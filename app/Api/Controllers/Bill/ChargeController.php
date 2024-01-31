@@ -84,6 +84,7 @@ class ChargeController extends BaseController
     if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
+
     DB::enableQueryLog();
     $data = $this->chargeService->model()
       ->where($map)
@@ -93,6 +94,7 @@ class ChargeController extends BaseController
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->category && $q->where('category',  $request->category);
       })
       ->withCount('chargeBillRecord')
       ->orderBy($orderBy, $order)
