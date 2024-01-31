@@ -80,7 +80,7 @@ class ChargeService
         if ($unreceiveAmt == $verifyAmt) {
           $detail_bill_data['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
           $detail_bill_data['status'] = 1;
-        } elseif ($unreceiveAmt > $verifyAmt) {
+        } else if ($unreceiveAmt > $verifyAmt) {
           $detail_bill_data['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detail_bill_data['status'] = 0;
         }
@@ -136,6 +136,7 @@ class ChargeService
             $detailBillData = [
               'status' => 1,
               'receive_date' => $verifyDate,
+              'receive_amount' => $verifyAmt,
             ];
 
             $billRecord = [
@@ -249,7 +250,7 @@ class ChargeService
   {
     try {
       $billRecord = $this->chargeBillRecord();
-      $billRecord->flow_no    = getFlowNo();
+      $billRecord->flow_no    = getChargeNo();
       $billRecord->charge_id  = $DA['charge_id'];
       $billRecord->company_id  = $user['company_id'];
       $billRecord->proj_id  = $DA['proj_id'];

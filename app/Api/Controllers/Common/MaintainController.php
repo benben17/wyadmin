@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\BseMaintain as maintainService;
 use App\Enums\AppEnum;
+use App\Api\Excel\Common\MaintainExcel;
 use App\Api\Models\Channel\Channel as  ChannelModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Operation\Supplier as SupplierModel;
@@ -103,7 +104,7 @@ class MaintainController extends BaseController
         if (!$pagesize || $pagesize < 1) {
             $pagesize = config('per_size');
         }
-        if ($pagesize == '-1') {
+        if ($request->export) {
             $pagesize = config('export_rows');
         }
 
@@ -161,6 +162,9 @@ class MaintainController extends BaseController
         }
 
         $data = $this->handleBackData($maintain);
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], MaintainExcel::class);
+        }
         return $this->success($data);
     }
 

@@ -15,6 +15,7 @@ use Exception;
 
 class RefundController extends BaseController
 {
+  private $refundService;
   public function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
@@ -148,7 +149,7 @@ class RefundController extends BaseController
     $refundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
     Log::error($refundAmt);
     if ($refundAmt < $request->amount) {
-      return $this->error("已收金额小于退款记录！");
+      return $this->error("已收金额小于退款金额！");
     }
 
     try {

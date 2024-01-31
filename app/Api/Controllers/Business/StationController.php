@@ -13,7 +13,7 @@ use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Building\BuildingService;
-
+use App\Api\Excel\Business\BuildingRoomExcel;
 
 /**
  * 项目工位信息
@@ -135,9 +135,11 @@ class StationController extends BaseController
         if ($result['result']) {
             $result['result'] = $buildService->formatData($result['result']);
         }
-
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
+        }
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
-        Log::error($avgPrice);
+        // Log::error($avgPrice);
         $stat = array(
             ['title' => '空闲工位', 'value' => $data['free_count']],
             ['title' => '总工位', 'value' => $data['total_count']],

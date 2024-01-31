@@ -12,13 +12,14 @@ use App\Enums\AppEnum;
 
 class DepositController extends BaseController
 {
+  private $depositService;
   public function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
-
+    $this->depositService = new TenantBillService;
     $this->user = auth('api')->user();
   }
 
@@ -82,8 +83,7 @@ class DepositController extends BaseController
     }
     $map['type'] = AppEnum::depositFeeType;
     DB::enableQueryLog();
-    $depositService = new TenantBillService;
-    $subQuery = $depositService->billDetailModel()
+    $subQuery = $this->depositService->billDetailModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
@@ -150,11 +150,19 @@ class DepositController extends BaseController
       'charge_date' => 'required|date',
       'tenant_id' => 'required',
       'proj_id' => 'required',
+    ], [
+      'amount.required' => '金额字段是必填的。',
+      'fee_type.required' => '费用类型字段是必填的。',
+      'fee_type.gt' => '费用类型必须大于0。',
+      'charge_date.required' => '收费日期字段是必填的。',
+      'charge_date.date' => '收费日期必须是有效的日期。',
+      'tenant_id.required' => '租户ID字段是必填的。',
+      'proj_id.required' => '项目ID字段是必填的。',
     ]);
     $DA = $request->toArray();
     $DA['type'] = AppEnum::depositFeeType;
-    $billDetail = new TenantBillService;
-    $res = $billDetail->saveBillDetail($DA, $this->user);
+    // $billDetail = new TenantBillService;
+    $res = $this->depositService->saveBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金保存失败!");
     }
@@ -197,15 +205,22 @@ class DepositController extends BaseController
       'charge_date' => 'required|date',
       'tenant_id' => 'required',
       'proj_id' => 'required',
+    ],  [
+      'amount.required' => '金额字段是必填的。',
+      'fee_type.required' => '费用类型字段是必填的。',
+      'fee_type.gt' => '费用类型必须大于0。',
+      'charge_date.required' => '收费日期字段是必填的。',
+      'charge_date.date' => '收费日期必须是有效的日期。',
+      'tenant_id.required' => '租户ID字段是必填的。',
+      'proj_id.required' => '项目ID字段是必填的。',
     ]);
     $DA = $request->toArray();
     $DA['type'] = AppEnum::depositFeeType;
-    $billDetail = new TenantBillService;
-    $deposit = $billDetail->billDetailModel()->find($request->id);
+    $deposit = $this->depositService->billDetailModel()->find($request->id);
     if ($deposit->receive_amount > 0.00) {
       return $this->error("已有收款不允许编辑!");
     }
-    $res = $billDetail->editBillDetail($DA, $this->user);
+    $res = $this->depositService->editBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金编辑失败!");
     }
@@ -238,8 +253,8 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required',
     ]);
-    $depositService = new TenantBillService;
-    $data = $depositService->billDetailModel()
+
+    $data = $this->depositService->billDetailModel()
       ->with(['chargeBillRecord' => function ($q) {
         $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
       }])
@@ -279,10 +294,7 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $depositService = new TenantBillService;
-
-
-    $data = $depositService->billDetailModel()->whereIn('id', $request->Ids)
+    $this->depositService->billDetailModel()->whereIn('id', $request->Ids)
       ->where('type', AppEnum::depositFeeType)
       ->where('receive_amount', '0.00')
       ->delete();

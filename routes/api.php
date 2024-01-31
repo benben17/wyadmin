@@ -60,6 +60,7 @@ Route::group(['prefix' => 'business/clue'], function () {
     Route::post('del', '\App\Api\Controllers\Business\CusClueController@delete');
     Route::post('show', '\App\Api\Controllers\Business\CusClueController@show');
     Route::post('invalid', '\App\Api\Controllers\Business\CusClueController@invalid');
+    Route::post('import', '\App\Api\Controllers\Business\CusClueController@import');
 });
 //系统类路由
 Route::group(['prefix' => 'sys'], function () {
@@ -158,6 +159,7 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('show', '\App\Api\Controllers\Business\BuildingController@show');
     Route::post('floor/del', '\App\Api\Controllers\Business\BuildingController@delFloor');
     Route::post('stat', '\App\Api\Controllers\Business\BuildingController@buildingStat');
+    Route::post('export', '\App\Api\Controllers\Business\BuildingController@export');
     //房源route
     Route::post('room/list', '\App\Api\Controllers\Business\BuildingRoomController@index');
     Route::post('room/add', '\App\Api\Controllers\Business\BuildingRoomController@store');

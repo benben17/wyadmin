@@ -2,7 +2,9 @@
 
 namespace App\Api\Controllers;
 
+use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\Controller;
+
 
 /**
  * @OA\Info(
@@ -23,6 +25,7 @@ class BaseController extends Controller
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
+
         $this->company_id = getCompanyId($this->uid);
         $this->user = auth('api')->user();
     }
@@ -75,5 +78,14 @@ class BaseController extends Controller
         return array_map(function ($value) {
             return is_null($value) ? '' : $value;
         }, $data);
+    }
+
+
+    public function exportToExcel($data, $exportClass)
+    {
+        $export = new $exportClass($data);
+        $fileName = date('Ymd') . ".xlsx";
+        // return $fileName;
+        return Excel::download($export, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 }
