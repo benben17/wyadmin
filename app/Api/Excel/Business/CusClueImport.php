@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
-use Maatwebsite\Excel\Concerns\WithValidation;
+// use Maatwebsite\Excel\Concerns\WithUpserts;
 use App\Api\Models\Business\CusClue;
 use App\Api\Models\Company\CompanyDict;
 
@@ -45,7 +45,7 @@ class CusClueImport implements ToModel, WithStartRow, WithBatchInserts, SkipsEmp
       $this->clueTypeId = $dict ? $dict->id : 0;
     }
 
-    return new CusClue([
+    $data = [
       'clue_type' => $this->clueTypeId,
       'clue_time' => $row[1],
       'status' => 1,
@@ -54,7 +54,20 @@ class CusClueImport implements ToModel, WithStartRow, WithBatchInserts, SkipsEmp
       'remark' => $row[5],
       'company_id' => $this->user->company_id,
       'c_uid' => $this->user->id,
-    ]);
+    ];
+
+    // Manually implement upsert using updateOrInsert
+    CusClue::updateOrInsert(
+      [
+        'clue_type' => $this->clueTypeId,
+        'clue_time' => $row[1],
+        'name' => $row[3],
+        'phone' => $row[4],
+      ],
+      $data
+    );
+
+    return new CusClue($data);
   }
 
   public function batchSize(): int
@@ -85,6 +98,6 @@ class CusClueImport implements ToModel, WithStartRow, WithBatchInserts, SkipsEmp
    */
   // public function uniqueBy()
   // {
-  //   return 'phone';
+  //   return ['name', 'phone'];
   // }
 }

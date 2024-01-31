@@ -308,7 +308,7 @@ function uuid($prefix = '')
 function getChargeNo()
 {
     $no = date('ymdHis', strtotime(nowTime()));
-    return  'AC' . $no . mt_rand(10, 99);
+    return  'AC-' . $no . mt_rand(10, 99);
 }
 
 /** 通过id获取值 */

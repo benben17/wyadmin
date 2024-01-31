@@ -316,10 +316,11 @@ class ChargeController extends BaseController
       $billDetailList = $billDetailService->billDetailModel()
         ->whereIn('id', $billDetailIds)
         ->where('status', AppEnum::chargeUnVerify)
+        ->where('bill_id', '>', 0)
         ->get();
-
-      if (!$billDetailList) {
-        return $this->error("未找到应收记录");
+      // Check if all selected bill details are found
+      if ($billDetailList->count() < count($billDetailIds)) {
+        return $this->error("所选应收里包含未生成账单的应收");
       }
 
       $totalVerifyAmt = $billDetailList->sum(function ($billDetail) {
