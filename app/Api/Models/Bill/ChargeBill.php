@@ -6,6 +6,7 @@ use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
+use App\Enums\AppEnum;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChargeBill extends Model
@@ -52,10 +53,16 @@ class ChargeBill extends Model
   }
   public function getCategoryLabelAttribute()
   {
-    if (isset($this->attributes['category_label'])) {
-      return getDictName($this->attributes['category_label']);
-    } else {
-      return "";
+    $category = $this->attributes['category'] ?? null;
+    switch ($category) {
+      case 1:
+        return "费用";
+      case 2:
+        return "违约金";
+      case 3:
+        return "押金转费用";
+      default:
+        return "";
     }
   }
   public function getcUserAttribute()
