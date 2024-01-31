@@ -55,9 +55,13 @@ class ChargeController extends BaseController
    */
   public function list(Request $request)
   {
-    // $validatedData = $request->validate([
-    //     'order_type' => 'required|numeric',
-    // ]);
+    $request->validate([
+      'category' => 'required|in:1,2',
+    ], [
+      'category.required' => '类别字段是必填的。',
+      'category.in' => '类别字段必须是1或2。',
+    ]);
+
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
       $pagesize = config('per_size');
@@ -299,26 +303,38 @@ class ChargeController extends BaseController
    */
   public function chargeWriteOff(Request $request)
   {
+    $request->validate([
+      'id' => 'required',
+      'bill_detail_ids' => 'required|array',
+      'category' => 'required|in:1,2',
+    ], [
+      'id.required' => '收支字段是必填的。',
+      'bill_detail_ids.required' => '账单明细IDS字段是必填的。',
+      'bill_detail_ids.array' => '账单明细IDS必须是一个数组。',
+      'category.required' => '类别字段是必填的。',
+      'category.in' => '类别字段必须是1或2。',
+    ]);
+
     try {
-      $validatedData = $request->validate([
-        'id' => 'required',
-        'bill_detail_ids' => 'required|array',
-      ]);
 
       $verifyDate = $request->verify_date ?? nowYmd();
 
+      $cMap['id'] = $request->id;
+      $cMap['status'] = AppEnum::chargeUnVerify;
+      $cMap['category'] = $request->category;
       $charge = $this->chargeService->model()
-        ->where('id', $request->id)
-        ->where('status', AppEnum::chargeUnVerify)
+        ->where($cMap)
         ->firstOrFail();
 
       $billDetailService = new TenantBillService;
       $billDetailIds = $request->bill_detail_ids;
+      $feeType = ($request->category == AppEnum::chargeCategoryFee) ? [AppEnum::feeType, AppEnum::dailyFeeType] : [AppEnum::depositFeeType];
 
       $billDetailList = $billDetailService->billDetailModel()
         ->whereIn('id', $billDetailIds)
         ->where('status', AppEnum::chargeUnVerify)
         ->where('bill_id', '>', 0)
+        ->whereIn('type', $feeType)
         ->get();
       // Check if all selected bill details are found
       if ($billDetailList->count() < count($billDetailIds)) {

@@ -13,7 +13,7 @@ use App\Api\Models\Bill\TenantBillDetailLog;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
-
+use App\Enums\AppEnum;
 
 /**
  *   租户账单服务
@@ -91,6 +91,7 @@ class TenantBillService
           $billDetail->c_uid       = $user['id'];
         }
         $billDetail->company_id  = $user['company_id'];
+        $billDetail->category    = $DA['category'] ?? AppEnum::billCategoryFee;
         $billDetail->proj_id     = $DA['proj_id'];
         $billDetail->contract_id = $DA['contract_id'] ?? 0;
         $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;

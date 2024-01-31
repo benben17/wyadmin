@@ -8,11 +8,13 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 
 class DepositController extends BaseController
 {
   private $depositService;
+  private $depositType = AppEnum::depositFeeType;
   public function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
@@ -81,7 +83,7 @@ class DepositController extends BaseController
     if ($request->bill_detail_id) {
       $map['bill_detail_id'] = $request->bill_detail_id;
     }
-    $map['type'] = AppEnum::depositFeeType;
+    $map['type'] = $this->depositType;
     DB::enableQueryLog();
     $subQuery = $this->depositService->billDetailModel()
       ->where($map)
@@ -160,7 +162,7 @@ class DepositController extends BaseController
       'proj_id.required' => '项目ID字段是必填的。',
     ]);
     $DA = $request->toArray();
-    $DA['type'] = AppEnum::depositFeeType;
+    $DA['type'] = $this->depositType;
     // $billDetail = new TenantBillService;
     $res = $this->depositService->saveBillDetail($DA, $this->user);
     if (!$res) {
@@ -215,7 +217,7 @@ class DepositController extends BaseController
       'proj_id.required' => '项目ID字段是必填的。',
     ]);
     $DA = $request->toArray();
-    $DA['type'] = AppEnum::depositFeeType;
+    $DA['type'] = $this->depositType;
     $deposit = $this->depositService->billDetailModel()->find($request->id);
     if ($deposit->receive_amount > 0.00) {
       return $this->error("已有收款不允许编辑!");
@@ -299,5 +301,62 @@ class DepositController extends BaseController
       ->where('receive_amount', '0.00')
       ->delete();
     return $this->success('押金删除成功');
+  }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/deposit/tocharge",
+   *     tags={"押金转收入/违约金"},
+   *     summary="押金转收入/违约金",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="id")
+   *     ),
+   *       example={"id":"1","amount":"0.00","category": "2 3"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function toCharge(Request $request)
+  {
+    $request->validate([
+      'id' => 'required',
+      'amount' => 'required|gt:0',
+      'category' => 'required',
+    ], [
+      'id.required' => 'ID字段是必填的。',
+      'amount.required' => '金额字段是必填的。',
+      'amount.gt' => '金额必须大于0。',
+      'category.required' => '类别字段是必填的。',
+    ]);
+
+    $deposit = $this->depositService->billDetailModel()
+      ->with(['chargeBillRecord' => function ($q) {
+        // $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
+      }])
+      ->with('refundRecord')
+      ->withCount(['refundRecord as refund_amount' => function ($q) {
+        $q->selectRaw('FORMAT(sum(amount),2)');
+      }])
+      ->find($request->id);
+    if (!$deposit) {
+      return $this->error("未找到押金信息");
+    }
+    $usedAmt = $deposit['receive_amount']  - $deposit['refund_amount'];
+    if ($usedAmt <= 0 || $request->amount > $usedAmt) {
+      return $this->error("可使用金额不足");
+    }
+    $data['category']  = $request->category;
+    $this->depositService->billDetailModel()->where('id', $request->id)->update($data);
+    return $this->success($deposit);
   }
 }

@@ -9,6 +9,7 @@ use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
+use App\Api\Services\Bill\RefundService;
 
 class ChargeService
 {
@@ -40,7 +41,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type        = $BA['type'];
-      $charge->category     = $BA['category'] ?? 1;
+      $charge->category     = $BA['category'] ?? AppEnum::billCategoryFee;
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
 
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
@@ -144,7 +145,7 @@ class ChargeService
               'amount' => $verifyAmt,
               'charge_id' => $chargeBill['id'],
               'bill_detail_id' => $detailBill['id'],
-              'type' => $detailBill['type'],
+              'type' => $chargeBill['type'],
               'fee_type' => $detailBill['fee_type'],
               'proj_id' => $detailBill['proj_id'],
               'verify_date' => $verifyDate,
@@ -219,7 +220,7 @@ class ChargeService
             'amount' => $actVerifyAmt,
             'charge_id' => $chargeBill['id'],
             'bill_detail_id' => $detailBill['id'],
-            'type' => $detailBill['type'],
+            'type' => $chargeBill['type'],
             'fee_type' => $detailBill['fee_type'],
             'proj_id' => $detailBill['proj_id'],
             'verify_date' => $verifyDate,
@@ -245,6 +246,7 @@ class ChargeService
       }
     }
   }
+
 
 
   public function chargeBillRecordSave($DA, $user)

@@ -26,7 +26,8 @@ use App\Enums\AppEnum;
  */
 class CustomerController extends BaseController
 {
-
+    private $customerService;
+    private $parent_type;
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');

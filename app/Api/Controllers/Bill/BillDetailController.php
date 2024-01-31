@@ -191,9 +191,11 @@ class BillDetailController extends BaseController
       'charge_id' => 'required|gt:0',
       'verify_amount' => 'required',
     ]);
+    $feeTypes = ($request->category == AppEnum::chargeCategoryFee) ? [AppEnum::feeType, AppEnum::dailyFeeType] : [AppEnum::depositFeeType];
 
     $billDetail = $this->billService->billDetailModel()
       ->where('status', 0)
+      ->where('type', $feeTypes)
       ->findOrFail($request->bill_detail_id);
 
     if (!$billDetail) {
@@ -203,6 +205,7 @@ class BillDetailController extends BaseController
     $chargeService = new ChargeService;
     $chargeBill =  $chargeService->model()
       ->where('status', AppEnum::chargeUnVerify)
+      ->where('category', $request->category)
       ->findOrFail($request->charge_id);
     if (!$chargeBill) {
       return $this->error("未发现充值数据！");
