@@ -35,8 +35,9 @@ class WorkOrderService
         $order = new WorkOrderModel;
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
-        $order->order_no = isset($DA['order_no']) ? $DA['order_no'] :  $this->workorderNo($user['company_id']);
+        $order->order_no = $DA['order_no'] ??  $this->workorderNo($DA['work_type']);
       }
+      $order->work_type       = $DA['work_type'];
       $order->proj_id         = $DA['proj_id'];
       $order->open_time       = $DA['open_time'] ?? nowTime();
       $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
@@ -50,10 +51,9 @@ class WorkOrderService
       $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";
       $order->pic             = isset($DA['pic']) ? $DA['pic'] : "";
       $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
-      $order->work_type       = $DA['work_type'];
-      $order->status          = 1;   // 开单
+      $order->status          = AppEnum::workorderOpen;  // 开单
       $res = $order->save();
-      Log::error(json_encode($order));
+      // Log::error(json_encode($order));
       if ($res) {
         $msg = new MessageService;
         $DA['title']    = '报修工单消息通知';
@@ -247,9 +247,10 @@ class WorkOrderService
     }
   }
   /** 生成工单编号 */
-  private function workorderNo($companyId)
+  private function workorderNo($workType)
   {
-    return "WS-" . date('ymdHis');
+    $prefix = ($workType == 1) ? 'WS-' : 'YH-';
+    return $prefix . date('ymdHis');
   }
 
   /**
