@@ -19,7 +19,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'updated_at', 'company_id', 'u_uid'];
 
-  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount', 'bill_status'];
+  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount', 'bill_status', 'category_label'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -44,6 +44,10 @@ class TenantBillDetail extends Model
       return 0.00;
     }
   }
+  public function getCategoryLabelAttribute()
+  {
+    return $this->getCategoryLabels()[$this->attributes['category']] ?? '';
+  }
 
   // 实际应收
   public function getReceivableAmountAttribute()
@@ -65,16 +69,18 @@ class TenantBillDetail extends Model
   }
   public function getStatusLabelAttribute()
   {
-    if (isset($this->attributes['status'])) {
-      $status = $this->attributes['status'];
-      if ($status == 1) {
-        return '已结清';
-      } else if ($status == 0) {
-        return "未结清";
-      } else if ($status == 2) {
-        return '已退款';
-      }
-    }
+    $status = $this->attributes['status'] ?? null;
+    return $this->statusMap()[$status] ?? '';
+  }
+
+  protected function statusMap()
+  {
+    return [
+      0 => "未结清",
+      1 => "已结清",
+      2 => "已退款",
+      3 => "部分退款"
+    ];
   }
   public function getBillStatusAttribute()
   {
@@ -118,6 +124,16 @@ class TenantBillDetail extends Model
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;
+  }
+
+
+  protected function getCategoryLabels()
+  {
+    return [
+      1 => "费用",
+      2 => "违约金",
+      3 => "押金转费用",
+    ];
   }
 
   protected static function boot()

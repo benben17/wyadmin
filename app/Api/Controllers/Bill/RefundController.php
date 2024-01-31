@@ -18,12 +18,12 @@ class RefundController extends BaseController
   private $refundService;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
+    $this->user = auth('api')->user();
+    $this->uid  = $this->user->id;
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
     $this->refundService = new RefundService;
-    $this->user = auth('api')->user();
   }
 
   /**
@@ -153,31 +153,7 @@ class RefundController extends BaseController
     }
 
     try {
-      DB::transaction(function () use ($billDetail, $request, $billService) {
-        $chargeService = new ChargeService;
-        $charge['type']         = AppEnum::chargeRefund;
-        $charge['amount']       = $request->amount;
-        $charge['charge_date']  = $request->refund_date;
-        $charge['bank_id']      = $request->bank_id;
-        $charge['proj_id']      = $billDetail->proj_id;
-        $charge['fee_type']     = $billDetail->fee_type;
-        $charge['tenant_id']    = $billDetail->tenant_id;
-        $charge['tenant_name']  = $billDetail->tenant_name;
-        $charge['remark']       = isset($request->remark) ? $request->remark : "";
-        $chargeRes = $chargeService->save($charge, $this->user);
-
-        // 更新费用状态
-        if ($request->amount == $billDetail['receive_amount']) {
-          $billService->billDetailModel()->where('id', $billDetail['id'])->update(['status' => 2]);
-        }
-
-        // Log::error($chargeRes);
-        $DA = $request->toArray();
-        $DA['charge_id'] = $chargeRes->id;
-        $DA['proj_id'] = $billDetail->proj_id;
-        // Log::error(json_encode($DA));
-        $this->refundService->save($DA, $this->user);
-      }, 2);
+      $this->refundService->refund($billDetail, $request, $this->user);
       return $this->success("退款成功。");
     } catch (Exception $th) {
       Log::error("退款失败." . $th);

@@ -43,8 +43,14 @@ abstract class AppEnum extends Enum
   // charge
   const chargeIncome = 1;  // 收入     
   const chargeRefund  = 2;    // 支出
-  const chargeDeposit  = 3;    // 押金转收
-  const chargePenalty  = 4;    // 违约金收入
+
+  const chargeCategoryFee  = 1;   //费用 类型
+  const chargeCategoryDeposit  = 2;    //押金类型
+
+
+  const billCategoryFee  = 1;   //费用
+  const billCategoryDeposit  = 2;    // 押金转收入
+  const billCategoryPenalty  = 3;    // 违约金收入
 
   // 免租类型
   const freeMonth = 1;
