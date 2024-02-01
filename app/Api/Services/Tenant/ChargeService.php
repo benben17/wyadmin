@@ -218,12 +218,12 @@ class ChargeService
 
 
           $billRecord = [
-            'amount' => $actVerifyAmt,
-            'charge_id' => $chargeBill['id'],
+            'amount'      => $actVerifyAmt,
+            'charge_id'   => $chargeBill['id'],
             'bill_detail_id' => $detailBill['id'],
-            'type' => $chargeBill['type'],
-            'fee_type' => $detailBill['fee_type'],
-            'proj_id' => $detailBill['proj_id'],
+            'type'        => $chargeBill['type'],
+            'fee_type'    => $detailBill['fee_type'],
+            'proj_id'     => $detailBill['proj_id'],
             'verify_date' => $verifyDate,
           ];
 
