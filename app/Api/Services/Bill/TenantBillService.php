@@ -91,7 +91,6 @@ class TenantBillService
           $billDetail->c_uid       = $user['id'];
         }
         $billDetail->company_id  = $user['company_id'];
-        $billDetail->category    = $DA['category'] ?? AppEnum::billCategoryFee;
         $billDetail->proj_id     = $DA['proj_id'];
         $billDetail->contract_id = $DA['contract_id'] ?? 0;
         $billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
