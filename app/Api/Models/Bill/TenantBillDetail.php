@@ -19,7 +19,7 @@ class TenantBillDetail extends Model
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'updated_at', 'company_id', 'u_uid'];
 
-  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount', 'bill_status', 'category_label'];
+  protected $appends = ['fee_type_label', 'c_user', 'proj_name', 'status_label', 'unreceive_amount', 'receivable_amount', 'bill_status'];
 
   public function getFeeTypeLabelAttribute()
   {
@@ -44,10 +44,7 @@ class TenantBillDetail extends Model
       return 0.00;
     }
   }
-  public function getCategoryLabelAttribute()
-  {
-    return $this->getCategoryLabels()[$this->attributes['category']] ?? '';
-  }
+
 
   // 实际应收
   public function getReceivableAmountAttribute()
@@ -127,14 +124,6 @@ class TenantBillDetail extends Model
   }
 
 
-  protected function getCategoryLabels()
-  {
-    return [
-      1 => "费用",
-      2 => "违约金",
-      3 => "押金转费用",
-    ];
-  }
 
   protected static function boot()
   {

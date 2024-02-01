@@ -41,7 +41,8 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type        = $BA['type'];
-      $charge->category     = $BA['category'] ?? AppEnum::billCategoryFee;
+      $charge->category     = $BA['category'] ?? AppEnum::chargeCategoryFee;
+      $charge->source      = $BA['source'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
 
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
