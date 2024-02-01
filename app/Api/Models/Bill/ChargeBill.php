@@ -88,8 +88,9 @@ class ChargeBill extends Model
   protected function getCategoryLabels()
   {
     return [
-      1 => "费用",
-      2 => "押金",
+      1 => "费用收入",
+      2 => "押金转收入",
+      2 => "违约金收入",
     ];
   }
 }
