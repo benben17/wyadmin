@@ -306,13 +306,10 @@ class ChargeController extends BaseController
     $request->validate([
       'id' => 'required',
       'bill_detail_ids' => 'required|array',
-      'category' => 'required|in:1,2',
     ], [
       'id.required' => '收支字段是必填的。',
       'bill_detail_ids.required' => '账单明细IDS字段是必填的。',
       'bill_detail_ids.array' => '账单明细IDS必须是一个数组。',
-      'category.required' => '类别字段是必填的。',
-      'category.in' => '类别字段必须是1或2。',
     ]);
 
     try {
@@ -321,20 +318,18 @@ class ChargeController extends BaseController
 
       $whereMap['id'] = $request->id;
       $whereMap['status'] = AppEnum::chargeUnVerify;
-      $whereMap['category'] = $request->category;
+
       $charge = $this->chargeService->model()
         ->where($whereMap)
         ->firstOrFail();
 
       $billDetailService = new TenantBillService;
       $billDetailIds = $request->bill_detail_ids;
-      $feeType = ($request->category == AppEnum::chargeCategoryFee) ? [AppEnum::feeType, AppEnum::dailyFeeType] : [AppEnum::depositFeeType];
 
       $billDetailList = $billDetailService->billDetailModel()
         ->whereIn('id', $billDetailIds)
         ->where('status', AppEnum::chargeUnVerify)
         ->where('bill_id', '>', 0)
-        ->whereIn('type', $feeType)
         ->get();
       // Check if all selected bill details are found
       if ($billDetailList->count() < count($billDetailIds)) {
