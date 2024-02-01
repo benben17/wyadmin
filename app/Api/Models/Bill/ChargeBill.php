@@ -25,21 +25,28 @@ class ChargeBill extends Model
 
   public function getStatusLabelAttribute()
   {
-    return $this->getStatusLabels()[$this->attributes['status']] ?? '';
+    if (isset($this->attributes['status'])) {
+      return $this->getStatusLabels()[$this->attributes['status']] ?? '';
+    }
   }
 
   public function getTypeLabelAttribute()
   {
-    return $this->getTypeLabels()[$this->attributes['type']] ?? '';
+    if (isset($this->attributes['type'])) {
+      return $this->getTypeLabels()[$this->attributes['type']] ?? '';
+    }
   }
 
   public function getCategoryLabelAttribute()
   {
-    return $this->getCategoryLabels()[$this->attributes['category']] ?? '';
+    if (isset($this->attributes['category'])) {
+      return $this->getCategoryLabels()[$this->attributes['category']] ?? '';
+    }
   }
 
   public function getcUserAttribute()
   {
+
     return $this->belongsTo(\App\Models\User::class, 'c_uid')->value('realname');
   }
 
