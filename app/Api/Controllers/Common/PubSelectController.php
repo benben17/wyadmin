@@ -767,11 +767,13 @@ class PubSelectController extends BaseController
 		$validatedData = $request->validate([
 			'proj_id' => 'required',
 			'tenant_id' => 'required',
+			'source'  => 'required',
 		]);
 
 		$service = new ChargeService;
 		$where['proj_id'] = $request->proj_id;
 		$where['tenant_id'] = $request->tenant_id;
+		$where['source'] = $request->source;
 		DB::enableQueryLog();
 		$data = $service->model()
 			->where(function ($q) use ($request) {
