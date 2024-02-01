@@ -777,6 +777,7 @@ class PubSelectController extends BaseController
 		DB::enableQueryLog();
 		$data = $service->model()
 			->where(function ($q) use ($request) {
+				$request->type && $q->where('type', $request->type);
 				$q->where('unverify_amount', '>', '0.00');
 				if (isset($request->status)) {
 					$q->where('status', $request->status);
