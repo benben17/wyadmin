@@ -286,14 +286,14 @@ class ChannelController extends BaseController
         ]);
         try {
             DB::transaction(function () use ($request) {
-                $userinfo = auth('api')->user();
+                $userInfo = auth('api')->user();
                 $channel = $request->toArray();
                 $channel = $this->formatChannel($channel); // 格式化数据
                 $result = channelModel::Create($channel);
                 if ($result &&  $request->channel_contact) {
                     $channel_id = $result->id;
-                    $userinfo['parent_type'] = AppEnum::Channel;
-                    $contacts = formatContact($request->channel_contact, $channel_id, $userinfo);
+                    $userInfo['parent_type'] = AppEnum::Channel;
+                    $contacts = formatContact($request->channel_contact, $channel_id, $userInfo);
                     if ($contacts) {
                         $contact = new ContactModel;
                         $contact->addAll($contacts);
@@ -347,7 +347,7 @@ class ChannelController extends BaseController
         DB::enableQueryLog();
         if ($data) {
             if ($data['proj_ids']  == '') {
-                $data['proj_lable'] = "全部项目";
+                $data['proj_label'] = "全部项目";
             } else {
                 $res = Project::selectRaw("group_concat(proj_name) as proj_name")
                     ->whereIn("id", str2Array($data['proj_ids']))->first();
