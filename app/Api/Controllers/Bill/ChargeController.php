@@ -18,12 +18,12 @@ class ChargeController extends BaseController
 
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
+    $this->user = auth('api')->user();
+    $this->uid = $this->user->id;
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
     $this->chargeService = new ChargeService;
-    $this->user = auth('api')->user();
   }
 
   /**
@@ -56,10 +56,10 @@ class ChargeController extends BaseController
   public function list(Request $request)
   {
     $request->validate([
-      'category' => 'required|in:1,2',
+      'source' => 'required|in:1,2',
     ], [
-      'category.required' => '类别字段是必填的。',
-      'category.in' => '类别字段必须是1或2。',
+      'source.required' => '类别字段是必填的。',
+      'source.in' => '类别字段必须是1或2。',
     ]);
 
     $pagesize = $request->input('pagesize');
@@ -88,7 +88,7 @@ class ChargeController extends BaseController
     if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
-
+    $map['source'] = $request->source;
     DB::enableQueryLog();
     $data = $this->chargeService->model()
       ->where($map)
@@ -319,11 +319,11 @@ class ChargeController extends BaseController
 
       $verifyDate = $request->verify_date ?? nowYmd();
 
-      $cMap['id'] = $request->id;
-      $cMap['status'] = AppEnum::chargeUnVerify;
-      $cMap['category'] = $request->category;
+      $whereMap['id'] = $request->id;
+      $whereMap['status'] = AppEnum::chargeUnVerify;
+      $whereMap['category'] = $request->category;
       $charge = $this->chargeService->model()
-        ->where($cMap)
+        ->where($whereMap)
         ->firstOrFail();
 
       $billDetailService = new TenantBillService;

@@ -84,6 +84,7 @@ class DepositController extends BaseController
       $map['bill_detail_id'] = $request->bill_detail_id;
     }
     $map['type'] = $this->depositType;
+    $map['source'] = $request->source;
     DB::enableQueryLog();
     $subQuery = $this->depositService->billDetailModel()
       ->where($map)
