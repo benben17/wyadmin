@@ -53,34 +53,39 @@ class RefundService
     try {
       DB::transaction(function () use ($billDetail, $request, $user) {
         $chargeService = new ChargeService;
-        $charge['type']         = AppEnum::chargeRefund;
-        $charge['amount']       = $request->amount;
-        $charge['charge_date']  = $request->refund_date;
-        $charge['bank_id']      = $request->bank_id;
-        $charge['proj_id']      = $billDetail->proj_id;
-        $charge['fee_type']     = $billDetail->fee_type;
-        $charge['tenant_id']    = $billDetail->tenant_id;
-        $charge['tenant_name']  = $billDetail->tenant_name;
-        $charge['remark']       = isset($request->remark) ? $request->remark : "";
-        $chargeRes = $chargeService->save($charge, $user);
+        $charge = $chargeService->model();
+        $charge->type     = AppEnum::chargeRefund;
+        $charge->amount   = $request->amount;
+        $charge->charge_date = $request->refund_date;
+        $charge->bank_id  = $request->bank_id;
+        $charge->proj_id  = $billDetail->proj_id;
+        $charge->fee_type = $billDetail->fee_type;
+        $charge->tenant_id = $billDetail->tenant_id;
+        $charge->tenant_name = $billDetail->tenant_name;
+        $charge->remark   = $request->filled('remark') ? $request->remark : "";
+        $charge->flow_no  = "RF-" . date('ymdHis') . mt_rand(10, 99);;
+        $charge->source   = 2;
+        $charge->c_uid    = $user->id; // Assuming $user is an Eloquent model instance
+        $charge->company_id    = $user->company_id; //
+        $charge->save();
 
-        // 更新费用状态
-        if ($request->amount == $billDetail['receive_amount']) {
+        // Update the bill status based on the refund amount
+        // $billData = ['status' => 1]; // Assuming the default status is 1
+        if ($request->amount == $billDetail->receive_amount) {
           $billData['status'] = 2;
-        } else if ($request->amount < $billDetail['receive_amount']) {
-          $billData['status'] = 3; //  部分退款
+        } elseif ($request->amount < $billDetail->receive_amount) {
+          $billData['status'] = 3; // Partial refund
         }
-        $billService = new TenantBillService;
-        $billService->billDetailModel()->where('id', $billDetail['id'])->update($billData);
 
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->where('id', $billDetail->id)->update($billData);
+
+        // Create a refund record
         $refundService = new RefundService;
-        // Log::error($chargeRes);
-        // 写入退款记录
-        $DA = $request->toArray();
-        $DA['charge_id'] = $chargeRes->id;
-        $DA['proj_id'] = $billDetail->proj_id;
-        // Log::error(json_encode($DA));
-        $refundService->save($DA, $user);
+        $refundData = $request->all();
+        $refundData['charge_id'] = $charge->id;
+        $refundData['proj_id'] = $billDetail->proj_id;
+        $refundService->save($refundData, $user);
       }, 3);
       return true;
     } catch (Exception $th) {
