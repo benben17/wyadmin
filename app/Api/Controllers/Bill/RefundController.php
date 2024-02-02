@@ -153,8 +153,11 @@ class RefundController extends BaseController
     }
 
     try {
-      $this->refundService->refund($billDetail, $request, $this->user);
-      return $this->success("退款成功。");
+      $res =  $this->refundService->refund($billDetail, $request, $this->user);
+      if ($res) {
+        return $this->success("退款成功。");
+      }
+      return $this->error("退款失败！");
     } catch (Exception $th) {
       Log::error("退款失败." . $th);
       return $this->error("退款失败！");
