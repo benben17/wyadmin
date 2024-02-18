@@ -190,7 +190,7 @@ class PubSelectController extends BaseController
 						$q->where($subMap);
 					})->get();
 				foreach ($floors as $kr => &$vr) {
-					$rooms = RoomModel::where('floor_id', $vr['id'])
+					$rooms = BuildingRoomModel::where('floor_id', $vr['id'])
 						->where(function ($q) use ($subMap) {
 							$q->where($subMap);
 						})

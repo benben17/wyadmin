@@ -23,7 +23,7 @@ class WeChatPayConf extends Model
 
   use SoftDeletes;
 
-  protected $table = 'base_wechatpay_conf';
+  protected $table = 'base_pay_conf';
   protected $fillable = ['*'];
   protected $hidden = ['deleted_at', "company_id"];
 

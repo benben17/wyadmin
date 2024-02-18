@@ -22,7 +22,7 @@ class Project extends Model
   protected $table = 'bse_project';
 
   protected $hidden = ['deleted_at', 'company_id', 'c_uid', 'u_uid', 'updated_at'];
-  protected $fillable = ['proj_type', 'company_id', 'proj_name', 'proj_addr', 'proj_logo', 'u_uid', 'c_uid', 'proj_province_id', 'proj_city_id', 'proj_district_id', 'proj_province', 'proj_city', 'proj_district', 'proj_occupy', 'proj_buildarea', 'proj_usablearea', 'proj_far', 'proj_pic', 'is_vaild', 'water_price', 'electric_price'];
+  protected $fillable = ['proj_type', 'company_id', 'proj_name', 'proj_addr', 'proj_logo', 'u_uid', 'c_uid', 'proj_province_id', 'proj_city_id', 'proj_district_id', 'proj_province', 'proj_city', 'proj_district', 'proj_occupy', 'proj_buildarea', 'proj_usablearea', 'proj_far', 'proj_pic', 'is_valid', 'water_price', 'electric_price'];
   // protected $fillable=['*'];
   //
   //
