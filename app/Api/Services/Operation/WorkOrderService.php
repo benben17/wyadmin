@@ -188,13 +188,13 @@ class WorkOrderService
         if ($order->status >= 3) {
           return false;
         }
-        $order->remark = $DA['remark'] ?? "";
-        $order->audit_time = $DA['audit_time'] ?? nowYmd();
+        $order->remark      = $DA['remark'] ?? "";
+        $order->audit_time  = $DA['audit_time'] ?? nowYmd();
         $order->audit_person = $user->username;
         if ($DA['audit_status'] == 1) {
-          $order->status          = AppEnum::workorderClose; // 工单关闭
+          $order->status     = AppEnum::workorderClose; // 工单关闭
         } else {
-          $order->status          = AppEnum::workorderTake; //返回到接单状态
+          $order->status     = AppEnum::workorderTake; //返回到接单状态
         }
         $res = $order->save();
         if ($res) {

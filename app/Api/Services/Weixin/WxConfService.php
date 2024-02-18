@@ -29,7 +29,7 @@ class WxConfService
 
   public function getWechatPayConf()
   {
-    $wxPayConf =  $this->wxPayConfModel->firstOrFail();
+    $wxPayConf =  $this->wxPayConfModel->where('type', 1)->firstOrFail();
     if ($wxPayConf) {
       Cache::set(ConfEnum::MERCHANT_ID . $this->companyId, $wxPayConf['mch_id']);
       Cache::set(ConfEnum::XCX_APPID . $this->companyId, $wxPayConf['app_id']);
