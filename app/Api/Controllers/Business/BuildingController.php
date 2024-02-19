@@ -24,6 +24,7 @@ use Common;
  */
 class BuildingController extends BaseController
 {
+    private $buildService;
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -31,6 +32,7 @@ class BuildingController extends BaseController
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
+        $this->buildService = new BuildingService;
     }
 
     /**
@@ -585,7 +587,7 @@ class BuildingController extends BaseController
             })
             ->first()->toArray();
 
-        $buildId = explode(",", $building['build_ids']);
+        $buildIds = explode(",", $building['build_ids']);
 
         // return response()->json(DB::getQueryLog());
         // $map['company_id'] = $this->company_id;
@@ -596,7 +598,7 @@ class BuildingController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->floor_no && $q->where('floor_no', 'like', $request->floor_no);
             })
-            ->whereIn('build_id', $buildId)
+            ->whereIn('build_id', $buildIds)
             ->get();
 
         // return $data;
@@ -621,7 +623,13 @@ class BuildingController extends BaseController
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
-        return $this->success($BA);
+        $map = array();
+
+
+
+        $DA['data'] = $BA;
+        $DA['stat'] = $this->buildService->areaStat($map, $request->proj_ids, $buildIds);
+        return $this->success($DA);
     }
 
 

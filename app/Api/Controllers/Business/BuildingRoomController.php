@@ -20,7 +20,7 @@ use App\Api\Excel\Business\BuildingRoomExcel;
  */
 class BuildingRoomController extends BaseController
 {
-
+    private $buildService;
     public function __construct()
     {
         parent::__construct();
@@ -117,7 +117,7 @@ class BuildingRoomController extends BaseController
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
 
-        $data['stat'] = $buildService->areaStat($map, $request->proj_ids);
+        $data['stat'] = $buildService->areaStat($map, $request->proj_ids, array());
         return $this->success($data);
     }
 
