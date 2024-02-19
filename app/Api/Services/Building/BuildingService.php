@@ -57,9 +57,12 @@ class BuildingService
    * @param    array      $projWhere     [description]
    * @return   [type]                    [description]
    */
-  public function areaStat($buildingWhere = array(), $projWhere = array())
+  public function areaStat($buildingWhere = array(), $projWhere = array(), $buildIds = array())
   {
-    $room = BuildingRoomModel::where($buildingWhere)
+    $room = BuildingRoomModel::where(function ($q) use ($buildingWhere, $buildIds) {
+      $buildingWhere && $q->where($buildingWhere);
+      $buildIds && $q->whereIn('build_id', $buildIds);
+    })
       ->whereHas('building', function ($q) use ($projWhere) {
         $projWhere && $q->whereIn('proj_id', $projWhere);
       })
