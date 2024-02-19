@@ -599,6 +599,7 @@ class BuildingController extends BaseController
             ->whereIn('build_id', $buildId)
             ->get();
 
+        // return $data;
         $BA = [];
         foreach ($data as $k => $v) {
             $BA[$k]['building_name'] = $v['building']['build_no'];
@@ -616,6 +617,7 @@ class BuildingController extends BaseController
                 $room_list['room_state'] = $v1->room_state;
                 $room_list['room_area'] = $v1->room_area;
                 $room_list['room_type'] = $v1->room_type;
+                $room_list['room_no'] = $v1->room_no;
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
