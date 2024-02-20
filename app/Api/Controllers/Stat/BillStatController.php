@@ -314,14 +314,15 @@ class BillStatController extends BaseController
       'fee_types' => 'array',
 
     ]);
+    DB::enableQueryLog();
     $year = $request->year;
     $billService  = new TenantBillService;
     $monthlySummaries = $billService->billDetailModel()->select(
       'tenant_id',
       'tenant_name',
       DB::raw('sum(amount - discount_amount) as amount'),
-      DB::raw('sum(receive_amount) as receive_amount'),
-      DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceive_amount'),
+      DB::raw('sum(receive_amount) as receiveAmt'),
+      DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceiveAmt'),
       DB::raw('date_format(charge_date, "%Y-%m") as ym')
     )->where(function ($q) use ($request) {
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -334,7 +335,8 @@ class BillStatController extends BaseController
       ->orderBy('tenant_id')
       ->orderBy('ym')
       ->get();
-
+    // return response()->json(DB::getQueryLog());
+    // return $monthlySummaries;
     // return $monthlySummaries;
     $formattedData = [];
 
@@ -360,10 +362,11 @@ class BillStatController extends BaseController
       $tenantId = $summary->tenant_id;
       $tenantName = $summary->tenant_name;
       $ym = $summary->ym;
+      Log::info($summary);
       // Check if the values are numeric before formatting
       $amount = numFormat($summary->amount);
-      $receiveAmount = numFormat($summary->receive_amount);
-      $unreceiveAmount = numFormat($summary->unreceive_amount);
+      $receiveAmount = numFormat($summary->receiveAmt);
+      $unreceiveAmount = numFormat($summary->unreceiveAmt);
       $total_amt += $amount;
       $total_receiveAmount += $receiveAmount;
       $total_unreceiveAmount += $unreceiveAmount;
