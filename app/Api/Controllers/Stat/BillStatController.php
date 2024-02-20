@@ -394,9 +394,17 @@ class BillStatController extends BaseController
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
     $data = array_values($formattedData);
-    $data['totalAmt'] = $total_amt;
-    $data['total_receive_amt'] = $total_receiveAmount;
-    $data['total_unreceive_amt'] = $total_unreceiveAmount;
-    return $this->success($data);
+    $DA['data'] = $data;
+
+
+    $DA['total'] = array(
+      array("title" => "总金额", "data" => $total_amt),
+      array("title" => "总收款金额", "data" => $total_receiveAmount),
+      array("title" => "总未收款金额", "data" => $total_unreceiveAmount)
+    );
+    // $DA['totalAmt'] = $total_amt;
+    // $DA['total_receive_amt'] = $total_receiveAmount;
+    // $DA['total_unreceive_amt'] = $total_unreceiveAmount;
+    return $this->success($DA);
   }
 }
