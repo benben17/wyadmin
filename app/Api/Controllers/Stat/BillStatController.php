@@ -402,9 +402,9 @@ class BillStatController extends BaseController
 
 
     $DA['total'] = array(
-      array("title" => "总金额", "data" => $total_amt),
-      array("title" => "总收款金额", "data" => $total_receiveAmount),
-      array("title" => "总未收款金额", "data" => $total_unreceiveAmount)
+      ["title" => "总金额", "amount" => $total_amt],
+      ["title" => "总收款金额", "amount" => $total_receiveAmount],
+      ["title" => "总未收款金额", "amount" => $total_unreceiveAmount]
     );
     // $DA['totalAmt'] = $total_amt;
     // $DA['total_receive_amt'] = $total_receiveAmount;
