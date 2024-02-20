@@ -307,7 +307,7 @@ class BillStatController extends BaseController
   {
 
     $validatedData = $request->validate([
-      'year' => 'required', // 0 所有 1 根据租户id生成
+      // 'year' => 'required', // 0 所有 1 根据租户id生成
       'proj_ids' => 'required|array',
       // 'bill_month' => 'required|String',
       // 'bill_day' => 'required|between:1,31',
@@ -327,6 +327,7 @@ class BillStatController extends BaseController
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       $request->year && $q->whereYear('charge_date', $request->year);
       $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . "%");
+      $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
       $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
     })
       ->groupBy('tenant_id', 'ym')
@@ -387,7 +388,7 @@ class BillStatController extends BaseController
         'receive_amount' => $receiveAmount,
         'unreceive_amount' => $unreceiveAmount,
       ];
-      Log::info($amount);
+      // Log::info($amount);
       // Update total amounts
       $formattedData[$tenantId]['total_amt'] += $amount;
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
