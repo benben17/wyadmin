@@ -335,7 +335,7 @@ class BillStatController extends BaseController
       ->orderBy('tenant_id')
       ->orderBy('ym')
       ->get();
-    // return response()->json(DB::getQueryLog());
+    // 
     // return $monthlySummaries;
     // return $monthlySummaries;
     $formattedData = [];
@@ -362,7 +362,7 @@ class BillStatController extends BaseController
       $tenantId = $summary->tenant_id;
       $tenantName = $summary->tenant_name;
       $ym = $summary->ym;
-      Log::info($summary);
+      // Log::info($summary);
       // Check if the values are numeric before formatting
       $amount = numFormat($summary->amount);
       $receiveAmount = numFormat($summary->receiveAmt);
@@ -397,18 +397,14 @@ class BillStatController extends BaseController
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
-    $data = array_values($formattedData);
-    $DA['data'] = $data;
 
-
+    $DA['data'] = array_values($formattedData);
     $DA['total'] = array(
       ["title" => "总金额", "amount" => $total_amt],
       ["title" => "总收款金额", "amount" => $total_receiveAmount],
       ["title" => "总未收款金额", "amount" => $total_unreceiveAmount]
     );
-    // $DA['totalAmt'] = $total_amt;
-    // $DA['total_receive_amt'] = $total_receiveAmount;
-    // $DA['total_unreceive_amt'] = $total_unreceiveAmount;
+
     return $this->success($DA);
   }
 }

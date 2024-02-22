@@ -61,9 +61,9 @@ class EquipmentController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-    if (!$request->year) {
-      $request->year = date('Y');
-    }
+    // if (!$request->year) {
+    //   // $request->year = date('Y');
+    // }
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -77,18 +77,20 @@ class EquipmentController extends BaseController
     } else {
       $order = 'desc';
     }
+    DB::enableQueryLog();
     $data = $this->equipment->equipmentModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
       })
-      ->where('year', $request->year)
+      // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
         $q->whereYear('maintain_date', $request->year);
       }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
+    // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
     if ($data['result']) {
       foreach ($data['result'] as $k => &$v) {
