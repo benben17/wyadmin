@@ -323,7 +323,7 @@ class BillStatController extends BaseController
       DB::raw('sum(amount - discount_amount) as amount'),
       DB::raw('sum(receive_amount) as receiveAmt'),
       DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceiveAmt'),
-      DB::raw('date_format(charge_date, "%c") as ym')
+      DB::raw('date_format(charge_date, "m_%c") as ym')
     )->where(function ($q) use ($request) {
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       $request->year && $q->whereYear('charge_date', $request->year);
@@ -343,7 +343,7 @@ class BillStatController extends BaseController
     // Create a template for all months
     $monthsTemplate = array_fill_keys(
       array_map(function ($month) use ($year) {
-        return $month;
+        return 'm_' . $month;
       }, range(1, 12)),
       [
         'amount' => 0.00,
