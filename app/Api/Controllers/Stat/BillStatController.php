@@ -315,7 +315,7 @@ class BillStatController extends BaseController
 
     ]);
     DB::enableQueryLog();
-    $year = $request->year;
+    $request->year = $request->year ?? date('Y');
     $billService  = new TenantBillService;
     $monthlySummaries = $billService->billDetailModel()->select(
       'tenant_id',
@@ -342,7 +342,7 @@ class BillStatController extends BaseController
 
     // Create a template for all months
     $monthsTemplate = array_fill_keys(
-      array_map(function ($month) use ($year) {
+      array_map(function ($month) {
         return 'm_' . $month;
       }, range(1, 12)),
       [
@@ -379,6 +379,7 @@ class BillStatController extends BaseController
           'total_amt' => 0.00,
           'total_receive_amt' => 0.00,
           'total_unreceive_amt' => 0.00,
+          'year' => $request->year,
         ] + $monthsTemplate;
       }
 
