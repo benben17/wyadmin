@@ -323,7 +323,7 @@ class BillStatController extends BaseController
       DB::raw('sum(amount - discount_amount) as amount'),
       DB::raw('sum(receive_amount) as receiveAmt'),
       DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceiveAmt'),
-      DB::raw('date_format(charge_date, "%m") as ym')
+      DB::raw('date_format(charge_date, "%c") as ym')
     )->where(function ($q) use ($request) {
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       $request->year && $q->whereYear('charge_date', $request->year);
@@ -343,7 +343,7 @@ class BillStatController extends BaseController
     // Create a template for all months
     $monthsTemplate = array_fill_keys(
       array_map(function ($month) use ($year) {
-        return str_pad($month, 2, '0', STR_PAD_LEFT);
+        return $month;
       }, range(1, 12)),
       [
         'amount' => 0.00,
@@ -353,7 +353,7 @@ class BillStatController extends BaseController
     );
 
 
-    // return $monthsTemplate;
+    // return array_values($monthsTemplate);
     $total_amt = 0.00;
     $total_receiveAmount = 0.00;
     $total_unreceiveAmount = 0.00;
@@ -373,14 +373,15 @@ class BillStatController extends BaseController
 
       // Create an entry for the tenant if not exists
       if (!isset($formattedData[$tenantId])) {
-        $formattedData[$tenantId] = array_merge([
+        $formattedData[$tenantId] = [
           'tenant_id' => $tenantId,
           'tenant_name' => $tenantName,
           'total_amt' => 0.00,
           'total_receive_amt' => 0.00,
           'total_unreceive_amt' => 0.00,
-        ], $monthsTemplate);
+        ] + $monthsTemplate;
       }
+
       // Add data to the corresponding month
 
       $formattedData[$tenantId][$ym] = [
