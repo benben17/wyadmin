@@ -302,6 +302,7 @@ class ChannelController extends BaseController
             });
             return $this->success('渠道新增成功！');
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return $this->error("渠道新增失败！");
         }
     }
@@ -735,7 +736,7 @@ class ChannelController extends BaseController
         if ($type == 1) {
             $BA['company_id'] = $this->company_id;
             $BA['c_uid'] = $this->uid;
-            $BA['is_vaild'] = $DA['is_vaild'];
+            $BA['is_valid'] = $DA['is_vaild'];
         } else {
             $BA['u_uid'] = $this->uid;
             $BA['id'] = $DA['id'];

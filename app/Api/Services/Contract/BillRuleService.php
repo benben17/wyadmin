@@ -68,7 +68,7 @@ class BillRuleService
     $data = array();
     try {
       foreach ($DA as $k => $v) {
-        Log::error(json_encode($v));
+        // Log::error(json_encode($v));
         $data[$k]['c_uid'] = $user['id'];
         $data[$k]['u_uid'] = $user['id'];
         $data[$k]['tenant_id'] = $tenantId;

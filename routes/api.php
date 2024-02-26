@@ -427,6 +427,9 @@ Route::group(['prefix' => 'operation/equipment'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\EquipmentController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\EquipmentController@show');
 
+    Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentController@planList');
+    Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentController@planDelete');
+
     Route::post('/maintain/list', '\App\Api\Controllers\Operation\EquipmentController@maintainList');
     Route::post('/maintain/add', '\App\Api\Controllers\Operation\EquipmentController@maintainStore');
     Route::post('/maintain/edit', '\App\Api\Controllers\Operation\EquipmentController@maintainUpdate');

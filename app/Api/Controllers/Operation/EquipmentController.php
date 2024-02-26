@@ -61,9 +61,9 @@ class EquipmentController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-    // if (!$request->year) {
-    //   // $request->year = date('Y');
-    // }
+    if (!$request->year) {
+      $request->year = date('Y');
+    }
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -88,15 +88,22 @@ class EquipmentController extends BaseController
       ->withCount(['maintain' => function ($q) use ($request) {
         $q->whereYear('maintain_date', $request->year);
       }])
+
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
-    if ($data['result']) {
-      foreach ($data['result'] as $k => &$v) {
-        $v['remainte_times'] = $v['maintain_times'] - $v['maintain_count'];
-      }
+
+    foreach ($data['result'] as $k => &$v) {
+      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, SUM(status = 1) as maintain_count')
+        ->where('equipment_id', $v['id'])
+        ->whereYear('plan_date', $request->year)
+        ->first();
+      $v['plan_times'] = $planData['total_count'];
+      $v['maintain_times'] = $planData['maintain_count'];
+      $v['remaining_times'] = $planData['total_count'] - $planData['maintain_count'];
     }
+
     return $this->success($data);
   }
   /**
@@ -138,17 +145,21 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'proj_id'         => 'required|numeric|gt:0',
       'system_name'     => 'required',
+      'maintain_period'     => 'required|String|in:month,quarter,halfYear,year',
       'device_name'     => 'required|String',
       'quantity'        => 'required|numeric',
       'position'        => 'required|String',
-      'maintain_times'  => 'required|numeric'
+      'maintain_times'  => 'required|numeric',
+      'year' => 'required',
     ]);
     $DA = $request->toArray();
 
-    $res = $this->equipment->saveEquipment($DA, $this->user);
-    if (!$res) {
+    $equipmentId = $this->equipment->saveEquipment($DA, $this->user);
+    if (!$equipmentId) {
+
       return $this->error('设备保存失败！');
     }
+    $this->equipment->saveBatchMaintainPlan($equipmentId, $DA['maintain_period'], $this->user, $DA['year']);
     return $this->success('设备保存成功。');
   }
 
@@ -386,19 +397,21 @@ class EquipmentController extends BaseController
    */
   public function maintainStore(Request $request)
   {
-    $validatedData = $request->validate([
+    $request->validate([
       'equipment_id'    => 'required',
       'equipment_type'        => 'required|String', //类型工程秩序
       'maintain_date'   => 'required|date',
       'maintain_content'   => 'required|String',
       'maintain_person'   => 'required|String', // 可多选
+      'plan_id' => 'required',
+      'quantity' => 'required',
     ]);
     $DA = $request->toArray();
-
-    $res = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-    if (!$res) {
+    $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
+    if (!$maintainId) {
       return $this->error('设备维护保存失败！');
     }
+    $this->equipment->updateMaintainPlan($maintainId);
     return $this->success('设备维护保存成功。');
   }
 
@@ -512,11 +525,167 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $DA = $request->toArray();
     $res = $this->equipment->maintainModel()->whereIn('id', $request->Ids)->delete();
     if ($res) {
       return $this->success("维护记录删除成功。");
     }
     return $this->error('删除失败！');
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/list",
+   *     tags={"设备"},
+   *     summary="维护计划列表",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"equipment_id"},
+   *       @OA\Property(property="major",type="int",
+   *         description="专业"),
+   *       @OA\Property(property="pagesize",type="int",description="行数"),
+   *       @OA\Property(property="device_name",type="int",description="设备名称"),
+   *       @OA\Property(property="proj_ids",type="int",description="项目IDs")
+   *       @OA\Property(property="start_time",type="date",description="计划开始时间")
+   *        @OA\Property(property="end_time",type="date",description="计划结束时间")
+   *     ),
+   *       example={"major":1,"proj_ids":"[]","equipment_id":"","start_time":"","end_time":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function planList(Request $request)
+  {
+    // $validatedData = $request->validate([
+    //     'order_type' => 'required|numeric',
+    // ]);
+    $pagesize = $request->input('pagesize');
+    if (!$pagesize || $pagesize < 1) {
+      $pagesize = config('per_size');
+    }
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
+    }
+    // if (!$request->year) {
+    //   // $request->year = date('Y');
+    // }
+    // 排序字段
+    if ($request->input('orderBy')) {
+      $orderBy = $request->input('orderBy');
+    } else {
+      $orderBy = 'created_at';
+    }
+
+    // 排序方式desc 倒叙 asc 正序
+    if ($request->input('order')) {
+      $order = $request->input('order');
+    } else {
+      $order = 'desc';
+    }
+    DB::enableQueryLog();
+    $data = $this->equipment->MaintainPlanModel()
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
+        $request->major && $q->where('major', 'like', '%' . $request->major . '%');
+        $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
+        if ($request->start_time && $request->end_time) {
+          $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
+        }
+        $request->year && $q->whereYear('maintain_date', $request->year);
+      })
+      // ->where('year', $request->year)
+      ->withCount(['maintain' => function ($q) use ($request) {
+        // $q->select(DB::raw('count(id)'), DB::raw('SUM(quantity) as total_amount'));
+        $request->year && $q->whereYear('maintain_date', $request->year);
+      }])
+      ->orderBy($orderBy, $order)
+      ->paginate($pagesize)->toArray();
+    // return response()->json(DB::getQueryLog());
+    $data = $this->handleBackData($data);
+    foreach ($data['result'] as $k => &$v) {
+
+      $v['completed'] = $v['status'] === 1;
+    }
+    return $this->success($data);
+  }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/del",
+   *     tags={"设备"},
+   *     summary="设备维护计划删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids"},
+   *       @OA\Property(property="Ids",type="int",description="设备维护IDs")
+   *
+   *     ),
+   *       example={"Ids":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function planDelete(Request $request)
+  {
+    $validatedData = $request->validate([
+      'Ids' => 'required|array',
+    ]);
+
+    $res = $this->equipment->MaintainPlanModel()->whereIn('id', $request->Ids)->delete();
+    if ($res) {
+      return $this->success("维护计划删除成功。");
+    }
+    return $this->error('维护计划删除失败！');
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/show",
+   *     tags={"设备"},
+   *     summary="设备维护计划查看",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids"},
+   *       @OA\Property(property="id",type="int",description="设备维护计划id")
+   *
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function planShow(Request $request)
+  {
+    $request->validate([
+      'id' => 'required',
+    ]);
+    $data = $this->equipment->MaintainPlanModel()
+      ->whereId($request->id)
+      // ->where('year', $request->year)
+      ->with('maintain')->first();
+    return $this->success($data);
   }
 }
