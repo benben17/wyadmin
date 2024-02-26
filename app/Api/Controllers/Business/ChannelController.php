@@ -737,6 +737,7 @@ class ChannelController extends BaseController
             $BA['company_id'] = $this->company_id;
             $BA['c_uid'] = $this->uid;
             $BA['is_valid'] = $DA['is_vaild'];
+            $BA['created_at'] = nowTime();
         } else {
             $BA['u_uid'] = $this->uid;
             $BA['id'] = $DA['id'];

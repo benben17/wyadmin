@@ -133,20 +133,20 @@ class BuildingController extends BaseController
                 $q->where($subMap);
                 $q->where('room_state', 1);
             }])
-            ->whereHas('floor', function ($q) use ($request) {
-                $request->floor_count && $q->havingRaw('count(*) = ?', [$request->floor_count]);
-            })
-            ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
-                $q->where($subMap);
-                $request->room_count && $q->havingRaw('count(*) = ?', [$request->room_count]);
-            })
-            ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
-                if ($request->free_room_count) {
-                    $q->havingRaw('count(*) = ?', [$request->free_room_count]);
-                    $q->where($subMap);
-                    $q->where('room_state', 1);
-                }
-            })
+            // ->whereHas('floor', function ($q) use ($request) {
+            //     $request->floor_count && $q->havingRaw('count(*) = ?', [$request->floor_count]);
+            // })
+            // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+            //     $q->where($subMap);
+            //     $request->room_count && $q->havingRaw('count(*) = ?', [$request->room_count]);
+            // })
+            // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+            //     if ($request->free_room_count) {
+            //         $q->havingRaw('count(*) = ?', [$request->free_room_count]);
+            //         $q->where($subMap);
+            //         $q->where('room_state', 1);
+            //     }
+            // })
             ->paginate($pagesize)->toArray();
         // return response()->json(DB::getQueryLog());
 
