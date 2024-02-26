@@ -323,7 +323,7 @@ class BillStatController extends BaseController
       DB::raw('sum(amount - discount_amount) as amount'),
       DB::raw('sum(receive_amount) as receiveAmt'),
       DB::raw('(sum(amount - discount_amount) - sum(receive_amount)) as unreceiveAmt'),
-      DB::raw('date_format(charge_date, "%Y-%m") as ym')
+      DB::raw('date_format(charge_date, "%m") as ym')
     )->where(function ($q) use ($request) {
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       $request->year && $q->whereYear('charge_date', $request->year);
@@ -343,10 +343,9 @@ class BillStatController extends BaseController
     // Create a template for all months
     $monthsTemplate = array_fill_keys(
       array_map(function ($month) use ($year) {
-        return $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
+        return str_pad($month, 2, '0', STR_PAD_LEFT);
       }, range(1, 12)),
       [
-        'ym' => '',
         'amount' => 0.00,
         'receive_amount' => 0.00,
         'unreceive_amount' => 0.00,
@@ -362,7 +361,7 @@ class BillStatController extends BaseController
       $tenantId = $summary->tenant_id;
       $tenantName = $summary->tenant_name;
       $ym = $summary->ym;
-      // Log::info($summary);
+
       // Check if the values are numeric before formatting
       $amount = numFormat($summary->amount);
       $receiveAmount = numFormat($summary->receiveAmt);
@@ -374,24 +373,21 @@ class BillStatController extends BaseController
 
       // Create an entry for the tenant if not exists
       if (!isset($formattedData[$tenantId])) {
-        $formattedData[$tenantId] = [
+        $formattedData[$tenantId] = array_merge([
           'tenant_id' => $tenantId,
           'tenant_name' => $tenantName,
-          'bill_list' => $monthsTemplate,
           'total_amt' => 0.00,
           'total_receive_amt' => 0.00,
           'total_unreceive_amt' => 0.00,
-        ];
+        ], $monthsTemplate);
       }
-
       // Add data to the corresponding month
-      $formattedData[$tenantId]['bill_list'][$ym] = [
-        'ym' => $ym,
+
+      $formattedData[$tenantId][$ym] = [
         'amount' => $amount,
         'receive_amount' => $receiveAmount,
         'unreceive_amount' => $unreceiveAmount,
       ];
-      // Log::info($amount);
       // Update total amounts
       $formattedData[$tenantId]['total_amt'] += $amount;
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
@@ -400,9 +396,9 @@ class BillStatController extends BaseController
 
     $DA['data'] = array_values($formattedData);
     $DA['total'] = array(
-      ["title" => "总金额", "amount" => $total_amt],
-      ["title" => "总收款金额", "amount" => $total_receiveAmount],
-      ["title" => "总未收款金额", "amount" => $total_unreceiveAmount]
+      ["title" => "总金额", "amount" => numFormat($total_amt)],
+      ["title" => "总收款金额", "amount" => numFormat($total_receiveAmount)],
+      ["title" => "总未收款金额", "amount" => numFormat($total_unreceiveAmount)]
     );
 
     return $this->success($DA);
