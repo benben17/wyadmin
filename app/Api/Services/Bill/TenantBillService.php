@@ -250,18 +250,18 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill($tenant, String $month = "", $feeType, $billDay, $user): array
+  public function createBill($contract, String $month = "", $feeType, $billDay, $user): array
   {
     try {
 
-      DB::transaction(function () use ($tenant, $month, $feeType, $billDay, $user) {
+      DB::transaction(function () use ($contract, $month, $feeType, $billDay, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
 
         $map = [
           'status' => 0,
           'bill_id' => 0,
-          'tenant_id' => $tenant->id,
+          'tenant_id' => $contract->tenant_id,
         ];
 
         $billSum = $this->billDetailModel()
@@ -269,7 +269,7 @@ class TenantBillService
           ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->whereIn('fee_type', $feeType)
-          ->where('contract_id', $tenant['id'])
+          ->where('contract_id', $contract['id'])
           // ->groupBy('tenant_id')
           ->first();
 
@@ -278,13 +278,13 @@ class TenantBillService
         }
 
         $billData = [
-          'tenant_id' => $tenant->id,
+          'tenant_id' => $contract->id,
           'amount'    => $billSum['totalAmt'] - $billSum['discountAmt'],
           'charge_date' => $billDay,
-          'proj_id' => $tenant['proj_id'],
-          'tenant_name' => $tenant['name'],
+          'proj_id' => $contract['proj_id'],
+          'tenant_name' => $contract['name'],
           'bill_no' => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
-          'bill_title' => $tenant['name'],
+          'bill_title' => $contract['name'],
         ];
 
         $bill = $this->saveBill($billData, $user);
