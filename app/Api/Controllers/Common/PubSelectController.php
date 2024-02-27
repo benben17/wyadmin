@@ -352,8 +352,9 @@ class PubSelectController extends BaseController
 		if ($request->id) {
 			$map['id'] = $request->id;
 		}
+		DB::enableQueryLog();
 		$map['is_valid'] = 1;
-		$result = channelModel::select('id', 'channel_name')
+		$data = channelModel::select('id', 'channel_name', 'policy_id')
 			->with('channelContact')
 			->where($map)
 			->where(function ($q) use ($request) {
@@ -362,9 +363,15 @@ class PubSelectController extends BaseController
 					$q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
 				}
 			})
+			->with('channelPolicy')
 			->orderBy('created_at', 'desc')
 			->get()->toArray();
-		return $this->success($result);
+		foreach ($data as $k => &$v) {
+			$v['month_rate'] = $v['channel_policy']['month'];
+			unset($v['channel_policy']);
+		}
+		// return response()->json(DB::getQueryLog());
+		return $this->success($data);
 	}
 
 
