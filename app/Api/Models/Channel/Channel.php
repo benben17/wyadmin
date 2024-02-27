@@ -26,15 +26,22 @@ class Channel extends Model
   protected $table = 'bse_channel';
   // protected $primaryKey = 'id';
 
-  protected $fillable = ['company_id', 'channel_name', 'channel_addr', 'policy_id', 'channel_type', 'channel_policy', 'brokerage', 'remark', 'c_uid', 'u_uid', 'is_vaild', 'proj_ids'];
+  protected $fillable = ['company_id', 'channel_name', 'channel_addr', 'policy_id', 'channel_type', 'channel_policy', 'brokerage', 'remark', 'c_uid', 'u_uid', 'is_valid', 'proj_ids'];
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'updated_at'];
-  protected $appends = ['create_user'];
+  protected $appends = ['create_user', 'valid_label'];
 
   public function getCreateUserAttribute()
   {
     if (isset($this->attributes['c_uid'])) {
       $user =  getUserByUid($this->attributes['c_uid']);
       return $user['realname'];
+    }
+  }
+
+  public function getValidLabelAttribute()
+  {
+    if (isset($this->attributes['is_valid'])) {
+      return $this->attributes['is_valid'] === 1 ? "启用" : "禁用";
     }
   }
 
