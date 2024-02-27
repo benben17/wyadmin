@@ -175,10 +175,22 @@ class ContractController extends BaseController
         $contractStat = ContractModel::select(DB::Raw("count(*) as expire_count,sum(sign_area) as expire_area,DATE_FORMAT(end_date,'%Y-%m') as ym"))
             ->whereBetween('end_date', [$thisMonth, $endMonth . '-01'])
             ->where('contract_state', 2)
+            ->whereIn('proj_id', $request->proj_ids)
             ->where(function ($q) use ($request) {
                 if ($request->room_type) {
                     $q->where('room_type', $request->room_type);
                 }
+            })
+            ->where(function ($q) use ($request) {
+                $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
+                $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
+                $request->sign_end_date && $q->where('sign_date', '<=', $request->sign_end_date);
+                if ($request->contract_state != '') {
+                    $state = str2Array($request->contract_state);
+                    $q->whereIn('contract_state', $state);
+                }
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
             })
             ->groupBy("ym")
             ->orderBy("ym")->get()->toArray();

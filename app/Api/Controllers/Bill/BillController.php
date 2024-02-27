@@ -153,7 +153,7 @@ class BillController extends BaseController
       // DB::transaction(function () use ($request) {
       $contractService = new ContractService;
       DB::enableQueryLog();
-      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name')
+      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name as name', 'proj_id')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
             $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
@@ -161,6 +161,8 @@ class BillController extends BaseController
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->where('proj_id', $request->proj_id)->get();
+
+      // return response()->json(DB::getQueryLog());
       if (!$contracts) {
         return $this->error("未找到对应合同");
       }
@@ -191,11 +193,10 @@ class BillController extends BaseController
           ->where('tenant_id', $v['tenant_id'])
           ->first();
         if (!$billDetail['billDetailIds']) {
-          Log::warning("租户-" . $v['tenant_name'] . "无费用信息");
-          $msg .= "租户-" . $v['tenant_name'] . "无费用信息";
+          Log::warning("租户-" . $v['name'] . "无费用信息");
+          $msg .= "租户-" . $v['name'] . "无费用信息";
           continue;
         }
-
         $res = $this->billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
         if (!$res['flag']) {
           Log::error("生成账单错误" . $v->contract_no . $res['message']);
@@ -204,7 +205,7 @@ class BillController extends BaseController
         }
       }
       // }, 3);
-      $msg = "共计生成" . $billCount . "份账单" . $msg;
+      $msg = "共计生成" . $billCount . "份账单;" . $msg;
       return $this->success($msg);
     } catch (Exception $th) {
       Log::error($th);
