@@ -253,6 +253,7 @@ class TenantBillService
   public function createBill($tenant, String $month = "", $feeType, $billDay, $user): array
   {
     try {
+
       DB::transaction(function () use ($tenant, $month, $feeType, $billDay, $user) {
         $startDate = date('Y-m-01', strtotime($month));
         $endDate = date('Y-m-t', strtotime($month));
@@ -264,10 +265,11 @@ class TenantBillService
         ];
 
         $billSum = $this->billDetailModel()
-          ->selectRaw('sum(amount) totalAmt, sum(discount_amount) discountAmt')
+          ->selectRaw('GROUP_CONCAT(id) as billDetailIds,sum(amount) totalAmt, sum(discount_amount) discountAmt')
           ->where($map)
           ->whereBetween('charge_date', [$startDate, $endDate])
           ->whereIn('fee_type', $feeType)
+          ->where('contract_id', $tenant['id'])
           // ->groupBy('tenant_id')
           ->first();
 
@@ -286,15 +288,14 @@ class TenantBillService
         ];
 
         $bill = $this->saveBill($billData, $user);
+        Log::error("bill_id" . $bill['id']);
+        $billId = $bill['id'];
 
-        $update = ['bill_id' => $bill['id']];
-
-        $this->billDetailModel()
-          ->where($map)
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->whereIn('fee_type', $feeType)
-          ->update($update);
+        $idArray = str2Array($billSum['billDetailIds']);
+        $this->billDetailModel()->whereIn('id', $idArray)
+          ->update(['bill_id' => $billId]);
       }, 3);
+
 
       return ['flag' => true, 'message' => ''];
     } catch (QueryException $e) {

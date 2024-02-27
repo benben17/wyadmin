@@ -190,7 +190,7 @@ class StatController extends BaseController
         foreach ($cusBySource as $k2 => &$v2) {
             $v2['source_type_label'] = getDictName($v2['source_type']);
         }
-        // return $cusBySource;
+        return $cusBySource;
         /** 统计每种状态下的客户  */
         DB::enableQueryLog();
         $customerByState = $this->customerService->tenantModel()

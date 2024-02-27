@@ -42,7 +42,7 @@ class RelationService
         $relation->department   = isset($DA['department']) ? $DA['department'] : "";
         $relation->job_position = isset($DA['job_position']) ? $DA['job_position'] : "";
         $relation->address      = isset($DA['address']) ? $DA['address'] : "";
-        $relation->is_vaild     = isset($DA['is_vaild']) ? $DA['is_vaild'] : 1;
+        $relation->is_valid     = isset($DA['is_valid']) ? $DA['is_valid'] : 1;
         $relation->remark       = isset($DA['remark']) ? $DA['remark'] : "";
         $relation->save();
         if ($DA['contacts']) {
