@@ -248,6 +248,7 @@ class CustomerService
       $tenant->channel_name = isset($DA['channel_name']) ? $DA['channel_name'] : "";
       $tenant->channel_contact = isset($DA['channel_contact']) ? $DA['channel_contact'] : "";
       $tenant->channel_contact_phone = isset($DA['channel_contact_phone']) ? $DA['channel_contact_phone'] : "";
+      $tenant->brokerage = $DA['brokerage'] ?? 0.00;
       $tenant->rate = isset($DA['rate']) ? $DA['rate'] : "";
       $tenant->deal_rate = isset($DA['deal_rate']) ? $DA['deal_rate'] : 0;
       $tenant->tags = isset($DA['tags']) ? $DA['tags'] : "";
