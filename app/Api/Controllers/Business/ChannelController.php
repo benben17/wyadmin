@@ -552,11 +552,11 @@ class ChannelController extends BaseController
     {
         $validatedData = $request->validate([
             'Ids' => 'required',
-            'is_vaild' => 'required|numeric|in:0,1',
+            'is_valid' => 'required|numeric|in:0,1',
         ]);
         $map['company_id'] = $this->company_id;
         // 0 禁用 1 启用
-        $data['is_vaild'] = $request->is_vaild;
+        $data['is_valid'] = $request->is_valid;
         $res = channelModel::where($map)
             ->whereIn('id', $request['Ids'])
             ->update($data);
