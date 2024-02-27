@@ -560,12 +560,13 @@ class ChannelController extends BaseController
             'Ids' => 'required',
             'is_valid' => 'required|numeric|in:0,1',
         ]);
-        $map['company_id'] = $this->company_id;
         // 0 禁用 1 启用
         $data['is_valid'] = $request->is_valid;
-        $res = channelModel::where($map)
-            ->whereIn('id', $request['Ids'])
-            ->update($data);
+        DB::enableQueryLog();
+
+
+        $res = channelModel::whereIn('id', $request['Ids'])->update($data);
+        // return response()->json(DB::getQueryLog());
         if ($res) {
             return $this->success("渠道更新成功.");
         } else {
