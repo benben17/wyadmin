@@ -453,11 +453,11 @@ class ProjectController extends BaseController
         ]);
 
 
-        $res = ProjectModel::whereId($request->id)->update(["is_valid" => $request->is_valid]);
+        $res = ProjectModel::whereIn('id', $request->Ids)->update(["is_valid" => $request->is_valid]);
         if ($res) {
-            return $this->success('项目删除成功。');
+            return $this->success('项目更新成功。');
         } else {
-            return $this->error('项目删除失败！');
+            return $this->error('项目更新失败！');
         }
     }
 
