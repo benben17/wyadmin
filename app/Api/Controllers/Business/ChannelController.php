@@ -115,8 +115,8 @@ class ChannelController extends BaseController
                     $q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
                 }
                 $request->c_uid && $q->where('c_uid', $request->c_uid);
-                $request->start_date && $q->where('created_at', '>=', $request->start_date);
-                $request->end_date && $q->where('created_at', '<=', $request->end_date);
+                $request->start_time && $q->where('created_at', '>=', $request->start_time);
+                $request->end_time && $q->where('created_at', '<=', $request->end_time);
             })
             ->with([
                 'channelPolicy:id,name',
