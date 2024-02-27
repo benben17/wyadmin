@@ -342,6 +342,8 @@ class ProjectController extends BaseController
         }
     }
 
+
+
     /**
      * @OA\Post(
      *     path="/api/business/project/show",
@@ -413,6 +415,52 @@ class ProjectController extends BaseController
 
         return $this->success($data);
     }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/project/enable",
+     *     tags={"项目"},
+     *     summary="项目启用禁用",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *       @OA\Property(
+     *          property="id",
+     *          type="int",
+     *          description="项目ID"
+     *       )
+     *     ),
+     *       example={
+     *              "id": ""
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function enable(Request $request)
+    {
+        $validatedData = $request->validate([
+            'Ids'    => 'required|array',
+            'is_valid' => 'required|in:0,1',
+        ]);
+
+
+        $res = ProjectModel::whereId($request->id)->update(["is_valid" => $request->is_valid]);
+        if ($res) {
+            return $this->success('项目删除成功。');
+        } else {
+            return $this->error('项目删除失败！');
+        }
+    }
+
 
 
     /**
