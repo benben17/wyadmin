@@ -452,7 +452,6 @@ class ProjectController extends BaseController
             'is_valid' => 'required|in:0,1',
         ]);
 
-
         $res = ProjectModel::whereIn('id', $request->Ids)->update(["is_valid" => $request->is_valid]);
         if ($res) {
             return $this->success('项目更新成功。');
