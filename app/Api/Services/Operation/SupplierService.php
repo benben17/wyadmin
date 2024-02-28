@@ -39,7 +39,7 @@ class SupplierService
           $supplier->c_username = $user['realname'];
         }
         $supplier->company_id        = $user['company_id'];
-        // $supplier->proj_id           = $DA['proj_id'];
+        $supplier->proj_id           = $DA['proj_id'];
         $supplier->name              = isset($DA['name']) ? $DA['name'] : "";
         $supplier->supplier_type     = isset($DA['supplier_type']) ? $DA['supplier_type'] : "";
         $supplier->maintain_depart   = isset($DA['maintain_depart']) ? $DA['maintain_depart'] : "";
