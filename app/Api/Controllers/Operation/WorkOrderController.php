@@ -87,9 +87,10 @@ class WorkOrderController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $q->whereIn('status', $request->status);
-        if ($request->start_date && $request->end_date) {
-          $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
+        if ($request->start_time && $request->end_time) {
+          $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
         }
+        $request->charge_amount && $q->where('charge_amount', '>', 0);
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -107,6 +108,7 @@ class WorkOrderController extends BaseController
           if ($request->start_date && $request->end_date) {
             $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
           }
+          $request->charge_amount && $q->where('charge_amount', '>', 0);
         })->first();
       $data['stat'] = array(
         ['label' => '总工单', 'value' => $stat['count']],
