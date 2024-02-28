@@ -181,16 +181,13 @@ class StatController extends BaseController
             ->selectRaw('count(*) as cus_count,source_type')
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                // if (!empty($BA['proj_ids'])) {
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
-                // }
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->where('parent_id', 0)
             ->groupBy('source_type')->get();
         foreach ($cusBySource as $k2 => &$v2) {
             $v2['source_type_label'] = getDictName($v2['source_type']);
         }
-        return $cusBySource;
         /** 统计每种状态下的客户  */
         DB::enableQueryLog();
         $customerByState = $this->customerService->tenantModel()
@@ -211,7 +208,7 @@ class StatController extends BaseController
             ->where('parent_id', 0)
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->groupBy('industry')->get();
 
@@ -219,7 +216,7 @@ class StatController extends BaseController
             ->where('parent_id', 0)
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
             })
             ->count();
         // return response()->json(DB::getQueryLog());
@@ -227,7 +224,7 @@ class StatController extends BaseController
         $customerByChannel = $this->customerService->tenantModel()->select('channel_id', DB::Raw('count(*) as cus_count'))
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 $q->where('parent_id', 0);
             })
             ->with('channel:id,channel_name')
@@ -238,7 +235,7 @@ class StatController extends BaseController
             ->where(function ($q) use ($BA) {
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
                 $q->where('state', '成交客户');
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 $q->where('parent_id', '>', 0);
             })
             ->with('channel:id,channel_name')
@@ -250,7 +247,7 @@ class StatController extends BaseController
                 $q->WhereBetween('created_at', [$BA['start_date'], $BA['end_date']]);
             })
             ->whereHas('tenant', function ($q) use ($BA) {
-                $BA['proj_ids'] &&  $q->whereIn('proj_id', $BA['proj_ids']);
+                !empty($BA['proj_ids']) &&  $q->whereIn('proj_id', $BA['proj_ids']);
                 $q->where('parent_id', 0);
             })
 

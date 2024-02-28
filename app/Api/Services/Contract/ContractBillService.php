@@ -162,25 +162,31 @@ class ContractBillService
   /**
    * 根据不同单价计算金额
    *
-   * @param [type] $rules
-   * @param integer $days
-   * @param [type] $uid
-   * @return void
+   * @param array   $rules 规则信息
+   * @param integer $days  计算天数
+   * @param integer $uid   用户ID
+   *
+   * @return float 计算得到的金额
    */
-  private function countDaysAmt($rules, int $days, int $uid): float
+  private function countDaysAmt(array $rules, int $days, int $uid): float
   {
-    $amount = 0.00;
-    if (!$rules) {
-      return $amount;
+    if (empty($rules)) {
+      return 0.00;
     }
-    $yearDays = getVariable(getCompanyId($uid), 'year_days');
+
+    $amount = 0.00;
+    $companyId = getCompanyId($uid);
+    $yearDays = getVariable($companyId, 'year_days');
+
     if ($rules['price_type'] == 1) {
       $amount = numFormat($rules['unit_price'] * $days * $rules['area_num']);
+      // 可能的日志记录
       // Log::info($amount);
       // Log::error("info:" . $rules['unit_price'] . "-" . $rules['area_num'] . "-" . $days);
-    } else if ($rules['price_type'] == 2) {
+    } elseif ($rules['price_type'] == 2) {
       $amount = numFormat($rules['month_amt'] * 12 / $yearDays * $days);
     }
+
     return $amount;
   }
 
@@ -249,7 +255,7 @@ class ContractBillService
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
       $bill[$i]['price'] = numFormat($rule['unit_price']) . $rule['unit_price_label'];
-
+      $endDate = '';
       if ($i == 0) {
         // $chargeDate  = $DA['startDate'];
         $startDate = $DA['startDate'];
@@ -476,5 +482,35 @@ class ContractBillService
       return ['end_date' => $endDate, 'free_num' => $months, 'remark' => $freeRemark];
     }
     return $this->endDateByMonth($endDate, 0, $freeList, $free_num, $signEndDate, $freeRemark);
+  }
+
+  /**
+   * 租户分摊
+   *
+   * @param array $bills        账单信息数组
+   * @param int   $shareTenantId 分摊租户的ID
+   * @param mixed $shareType     分摊类型 1 比例 2 固定金额 3 固定面积
+   *
+   * @return array 优化后的账单信息数组
+   */
+  public function applyFeeShare(array $bills, $shareTenantId, $shareType, $rate, $shareAmt): array
+  {
+    $newBills = [];
+
+    foreach ($bills['bill'] as &$bill) {
+      $newBill = $bill;
+
+      if ($shareType == 1) {
+        $newBill['amount'] = numFormat($bill['amount'] * $rate / 100);
+      } elseif ($shareType == 3) {
+        $newBill['amount'] = $shareAmt;
+      }
+
+      $newBills[] = $newBill;
+      $bill['amount'] -= $newBill['amount'];
+    }
+
+    $bills[$shareTenantId]['bill'] = $newBills;
+    return $bills;
   }
 }

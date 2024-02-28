@@ -130,7 +130,7 @@ class SupplierController extends BaseController
     $validatedData = $request->validate([
       'name'     => 'required',
       'supplier_type'     => 'required|String',
-      'service_content'        => 'required',
+      // 'service_content'        => 'required',
       'maintain_depart'        => 'required',
       'contacts'      => 'array',
     ]);
