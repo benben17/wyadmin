@@ -97,48 +97,50 @@ class WorkOrderController extends BaseController
 
     $data = $this->handleBackData($data);
     // 统计
+    $statQuery = $this->workService->workModel()
+      ->selectRaw(
+        'count(*) count,
+        sum(charge_amount) amount,
+        sum(time_used) time_used,
+        avg(feedback_rate) rate'
+      )
+      ->where($map)
+      ->where(function ($q) use ($request) {
+        $q->whereIn('status', $request->status);
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+        $request->charge_amount && $q->where('charge_amount', '>', 0);
+        if ($request->start_date && $request->end_date) {
+          $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
+        }
+      });
+
     if (count($request->status) != 4) {
-      $stat = $this->workService->workModel()
-        ->selectRaw('count(*) count,sum(charge_amount) amount ,sum(time_used) time_used,avg(feedback_rate) rate')
-        ->where($map)
-        ->where(function ($q) use ($request) {
-          $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-          $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-          $q->whereIn('status', $request->status);
-          if ($request->start_date && $request->end_date) {
-            $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
-          }
-          $request->charge_amount && $q->where('charge_amount', '>', 0);
-        })->first();
-      $data['stat'] = array(
+      $stat = $statQuery->first();
+      $data['stat'] = [
         ['label' => '总工单', 'value' => $stat['count']],
         ['label' => '平均评分', 'value' => numFormat($stat['rate'])],
         ['label' => '总用时', 'value' => numFormat($stat['time_used']) . '小时'],
         ['label' => '总金额', 'value' => $stat['amount'] . '元'],
-      );
+      ];
     } else {
-      $stat = $this->workService->workModel()
-        ->selectRaw('sum(case status when 1 then 1 else 0 end) pending,
-                  sum(case status when 2 then 1 else 0 end) received,
-                  sum(case status when 3 then 1 else 0 end) finished,
-                  sum(case status when 99 then 1 else 0 end) cancel,
-                  count(*) total_count')
-        ->where($map)
-        ->where(function ($q) use ($request) {
-          $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-          $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-          $q->whereIn('status', $request->status);
-          if ($request->start_date && $request->end_date) {
-            $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
-          }
-        })->first();
-      $data['stat'] = array(
+      $stat = $statQuery
+        ->selectRaw(
+          'sum(case status when 1 then 1 else 0 end) pending,
+            sum(case status when 2 then 1 else 0 end) received,
+            sum(case status when 3 then 1 else 0 end) finished,
+            sum(case status when 99 then 1 else 0 end) cancel,
+            count(*) total_count'
+        )
+        ->first();
+
+      $data['stat'] = [
         ['label' => '待处理', 'value' => empty($stat['pending']) ? 0 : $stat['pending']],
         ['label' => '已接单', 'value' => empty($stat['received']) ? 0 : $stat['received']],
         ['label' => '已处理', 'value' => empty($stat['finished']) ? 0 : $stat['finished']],
         ['label' => '已取消', 'value' => empty($stat['cancel']) ? 0 : $stat['cancel']],
-        ['label' => '总计', 'value' => $stat['total_count']]
-      );
+        ['label' => '总计', 'value' => $stat['total_count']],
+      ];
     }
     return $this->success($data);
   }

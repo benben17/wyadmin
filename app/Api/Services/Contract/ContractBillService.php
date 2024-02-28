@@ -249,6 +249,7 @@ class ContractBillService
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
       $bill[$i]['price'] = numFormat($rule['unit_price']) . $rule['unit_price_label'];
+
       if ($i == 0) {
         // $chargeDate  = $DA['startDate'];
         $startDate = $DA['startDate'];

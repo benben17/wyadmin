@@ -169,6 +169,11 @@ class ContractController extends BaseController
      */
     public function getContractStat(Request $request)
     {
+
+        $validatedData = $request->validate([
+            'proj_ids' => 'required|array',
+        ]);
+
         $thisMonth = date('Y-m-01', time());
         $endMonth = getNextMonth($thisMonth, 25);
         DB::enableQueryLog();

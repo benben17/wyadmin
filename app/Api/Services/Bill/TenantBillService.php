@@ -3,17 +3,17 @@
 namespace App\Api\Services\Bill;
 
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
+use Illuminate\Database\QueryException;
 use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Bill\TenantBillDetailLog;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
-use App\Enums\AppEnum;
 
 /**
  *   租户账单服务
@@ -392,23 +392,33 @@ class TenantBillService
     if (!$data) {
       return "";
     }
+    $data['proj_name'] = getProjNameById($data['proj_id']);
 
     $billGroups = $this->billDetailModel()
       ->selectRaw('sum(amount) amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount,bank_id')
       ->where('bill_id', $billId)->groupBy('bank_id')->get();
-    foreach ($billGroups as $k => $v) {
+
+    $totalAmt = 0;
+    $discountAmt = 0;
+    $receiveAmt = 0;
+    foreach ($billGroups as $k => &$v) {
       $v['bank_info']   = BankAccount::find($v['bank_id']);
       // $v['receivable_amount'] = numFormat($v['total_amount'] - $v['discount_amount']);
       $v['bill_detail'] = $this->billDetailModel()
         ->where('bill_id', $billId)
         ->where('bank_id', $v['bank_id'])->get();
+      $totalAmt += $v['amount'];
+      $discountAmt += $v['discount_amount'];
+      $receiveAmt += $v['receive_amount'];
     }
     $data['bills'] = $billGroups;
-    $billCount = $this->billDetailModel()
-      ->selectRaw('sum(amount) total_amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount')
-      ->where('bill_id', $billId)->first();
-    $billCount['amount'] = numFormat($billCount['total_amount'] - $billCount['discount_amount'] - $billCount['receive_amount']);
-    $data['bill_count'] = $billCount;
+
+    $billTotal['amount'] = numFormat($totalAmt - $discountAmt - $receiveAmt);
+    $billTotal['discount_amount'] = $discountAmt;
+    $billTotal['receive_amount']  = $receiveAmt;
+
+    $billTotal['total_amount'] = $totalAmt;
+    $data['bill_count'] = $billTotal;
     return $data;
   }
 }
