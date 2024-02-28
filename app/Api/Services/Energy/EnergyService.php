@@ -270,6 +270,7 @@ class EnergyService
   public function saveMeterRecord($DA, $user)
   {
 
+    $res = ['flag' => true, 'msg' => ''];
     // 获取上一次的抄表信息
     $preData = $this->getNewMeterRecord($DA['meter_id']);
     // 获取表信息
@@ -284,13 +285,13 @@ class EnergyService
     $meterRecord->pre_date    = $preData['record_date'];
     $meterRecord->meter_value = $DA['meter_value'];
     $meterRecord->used_value  = ($DA['meter_value'] - $preData['meter_value']) * $meter['multiple'];
-    // if (isset($DA['used_value'])) {
-    //   $meterRecord->used_value = $DA['used_value'];   // 前端计算好传数据
-    // }
+    if (isset($DA['used_value']) < 0) {
+      $res['flag'] = false;
+      $res['msg'] = "使用数量不允许小于0！";   // 前端计算好传数据
+      return $res;
+    }
     $meterRecord->record_date = $DA['record_date'];
     $meterRecord->meter_id    = $DA['meter_id'];
-
-
     $tenant = $this->getTenantByRoomId($meter['room_id']);
     $meterRecord->tenant_name = $tenant['tenant_name'];
     $meterRecord->tenant_id = $tenant['id'];
@@ -298,8 +299,14 @@ class EnergyService
 
     $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
     $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
-    $res = $meterRecord->save();
-    return $res;
+    $result = $meterRecord->save();
+    if ($result) {
+      return $res;
+    } else {
+      $res['flag'] = false;
+      $res['msg'] = "抄表失败";   // 前端计算好传数据
+      return $res;
+    }
   }
 
 

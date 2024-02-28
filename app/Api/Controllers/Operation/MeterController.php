@@ -338,10 +338,10 @@ class MeterController extends BaseController
     ]);
     $DA = $request->toArray();
     $res = $this->meterService->saveMeterRecord($DA, $this->user);
-    if ($res) {
+    if ($res['flag']) {
       return $this->success('抄表成功.');
     } else {
-      return $this->error('抄表失败！');
+      return $this->error($res['msg']);
     }
   }
 
