@@ -307,17 +307,20 @@ class StatController extends BaseController
      */
     public function getContractStat(Request $request)
     {
-        // $validatedData = $request->validate([
-        //     'start_date'=> 'required|date',
-        //     'end_date'=> 'required|date',
-        //     // 'proj_id'=> 'array',
-        // ]);
+        $validatedData = $request->validate([
+            // 'start_date' => 'required|date',
+            // 'end_date' => 'required|date',
+            'proj_ids' => 'required|array',
+        ]);
+
         if (!$request->year) {
             $request->year = date('Y');
         }
-        $startDate = date('Y-01-01', strtotime($request->year));
+        $startDate = $request->year . '-01-01';
+
         // return $startDate.'+++++++'.$endDate;
         // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
+        // DB::enableQueryLog();
         $contract = ContractModel::select(DB::Raw('count(*) contract_total,
             count(distinct(tenant_id)) cus_total,
             sum(case rental_price_type when 1 then rental_price*sign_area else rental_price*sign_area*12/365 end) amount,
@@ -329,7 +332,7 @@ class StatController extends BaseController
             })
             ->whereYear('sign_date', $request->year)
             ->groupBy('ym')->get();
-
+        // return response()->json(DB::getQueryLog());
         $i = 0;
         $stat = array();
         while ($i < 12) {
