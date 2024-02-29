@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Api\Services\Common;
 
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use App\Api\Models\Common\Attachment as AttachmentModel;
 
 /**
@@ -11,17 +13,18 @@ use App\Api\Models\Common\Attachment as AttachmentModel;
 class AttachmentService
 {
 
-  public function save($DA,$user)
+  public function save($DA, $user)
   {
-    $attarch = new AttachmentModel;
-    $attarch->company_id  = $user['company_id'];
-    $attarch->parent_id   = $DA['parent_id'];
-    $attarch->parent_type = $DA['parent_type'];
-    $attarch->name        = isset($DA['name']) ? $DA['name'] :"";
-    $attarch->file_path   = $DA['file_path'];
-    $attarch->c_username  = $user['realname'];
-    $attarch->c_uid       = $user['id'];
-    $res = $attarch->save();
+    $attachment = new AttachmentModel;
+    $attachment->company_id  = $user['company_id'];
+    $attachment->parent_id   = $DA['parent_id'];
+    $attachment->parent_type = $DA['parent_type'];
+    $attachment->atta_type   = $DA['atta_type'] ?? "";
+    $attachment->name        = isset($DA['name']) ? $DA['name'] : "";
+    $attachment->file_path   = $DA['file_path'];
+    $attachment->c_username  = $user['realname'];
+    $attachment->c_uid       = $user['id'];
+    $res = $attachment->save();
     return $res;
   }
 
@@ -33,7 +36,8 @@ class AttachmentService
    * @param    [int]     $parent_type [父类型]
    * @return   [list]                  [结果集合]
    */
-  public function getAttarch($parent_id,$parent_type){
+  public function getAttarch($parent_id, $parent_type)
+  {
 
     $map['parent_id'] = $parent_id;
     $map['parent_type'] = $parent_type;
@@ -54,8 +58,9 @@ class AttachmentService
    * @param    [type]     $id [description]
    * @return   [type]         [description]
    */
-  public function delete($Ids){
-    $res = AttachmentModel::whereIn('id',$Ids)->delete();
+  public function delete($Ids)
+  {
+    $res = AttachmentModel::whereIn('id', $Ids)->delete();
     return $res;
   }
 
@@ -64,20 +69,15 @@ class AttachmentService
   {
     $ids = str2Array($ids);
     $res  = AttachmentModel::whereIn($ids)
-    ->select(DB::Raw('group_concat(file_path) file_path'))->first();
+      ->select(DB::Raw('group_concat(file_path) file_path'))->first();
     if ($res) {
       $filePath = str2Array($res['file_path']);
       foreach ($filePath as $k => &$v) {
         $v = getOssUrl($v);
       }
       return $res;
-    }else{
-    return false;
+    } else {
+      return false;
     }
   }
-
-
-
-
-
 }

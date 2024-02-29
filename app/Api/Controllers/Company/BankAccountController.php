@@ -66,7 +66,7 @@ class BankAccountController extends BaseController
         $data = bankAccountModel::where(function ($q) use ($request) {
             $request->account_name && $q->where('account_name', 'like', '%' . $request->account_name . '%');
             $request->is_valid && $q->where('is_valid', $request->type);
-            $request->proj_id && $q->where('proj_id', $request->proj_id);
+            $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         })
             ->orderBy($orderBy, $order)->get()->toArray();
 
@@ -224,11 +224,11 @@ class BankAccountController extends BaseController
     {
         $validatedData = $request->validate([
             'Ids' => 'required|array',
-            'is_vaild' => 'required|int|in:1,0'
+            'is_valid' => 'required|int|in:1,0'
         ]);
         // return gettype($data['Ids']);
         DB::enableQueryLog();
-        $data['is_vaild'] = $request->is_vaild;
+        $data['is_valid'] = $request->is_valid;
         $res = bankAccountModel::whereIn('id', $request->Ids)->update($data);
 
         if ($res) {
