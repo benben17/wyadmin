@@ -265,9 +265,12 @@ function dateFormat($style, $date)
 
 function getMonthNum($date1, $date2, $tags = '-')
 {
-    $date1 = explode($tags, $date1);
-    $date2 = explode($tags, $date2);
-    return abs($date1[0] - $date2[0]) * 12 + abs($date1[1] - $date2[1]);
+    $datetime1 = new DateTime($date1);
+    $datetime2 = new DateTime($date2);
+
+    $interval = $datetime1->diff($datetime2);
+
+    return $interval->y * 12 + $interval->m;
 }
 
 // 获取图片full 地址

@@ -19,13 +19,16 @@ use App\Api\Services\Contract\ContractService;
 
 /**
  * 合同管理
- *contract_type  1 新租 2 续约
- * 合同编号
+ *
  */
 
 class ContractController extends BaseController
 {
 
+    /**
+    
+     * 合同编号
+     */
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -284,7 +287,7 @@ class ContractController extends BaseController
         $DA = $request->toArray();
 
         $DA['contract_state'] = $DA['save_type'];
-        $DA['contract_state'] = $DA['save_type'];
+        // $DA['contract_state'] = $DA['save_type'];
 
         $contractId = 0;
         try {
@@ -538,9 +541,10 @@ class ContractController extends BaseController
             }
             if ($rule['bill_type'] == 1) {  // 正常账期
                 $feeList = $billService->createBill($contract, $rule, $this->uid);
-            } else if ($rule['bill_type'] == 2) { // 自然月账期
-                $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
-            } else if ($rule['bill_type'] == 3) { // 只有租金走账期顺延
+                // } else if ($rule['bill_type'] == 2) { // 自然月账期
+                //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
+                // } 
+            } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
                 if ($rule['fee_type'] == 101) {
                     $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
                 } else {
@@ -856,25 +860,24 @@ class ContractController extends BaseController
 
     private function formatRoom($DA, $contractId, $proj_id, $type = 1)
     {
+        $currentDateTime = date('Y-m-d H:i:s');
         foreach ($DA as $k => $v) {
-            if ($type != 1) {
-                $BA[$k]['created_at'] = date('Y-m-d H:i:s');
-            } else {
-                $BA[$k]['updated_at'] = date('Y-m-d H:i:s');
-            }
-            $BA[$k]['contract_id']  =  $contractId;
-            $BA[$k]['proj_id']      = $proj_id;
-            $BA[$k]['proj_name']    = $v['proj_name'];
-            $BA[$k]['build_id']     = $v['build_id'];
-            $BA[$k]['build_no']     = $v['build_no'];
-            $BA[$k]['floor_id']     = $v['floor_id'];
-            $BA[$k]['floor_no']     = $v['floor_no'];
-            $BA[$k]['room_id']      = $v['room_id'];
-            $BA[$k]['room_no']      = $v['room_no'];
-            $BA[$k]['room_area']    = $v['room_area'];
-            $BA[$k]['room_type']    = $v['room_type'];
-            $BA[$k]['station_no']   = isset($v['station_no']) ? $v['station_no'] : "";
+            $BA[$k] = [
+                'contract_id' => $contractId,
+                'proj_id' => $proj_id,
+                'proj_name' => $v['proj_name'],
+                'build_id' => $v['build_id'],
+                'build_no' => $v['build_no'],
+                'floor_id' => $v['floor_id'],
+                'floor_no' => $v['floor_no'],
+                'room_id' => $v['room_id'],
+                'room_no' => $v['room_no'],
+                'room_area' => $v['room_area'],
+                'room_type' => $v['room_type'],
+                'station_no' => isset($v['station_no']) ? $v['station_no'] : "",
+            ];
+
+            $BA[$k][$type != 1 ? 'created_at' : 'updated_at'] = $currentDateTime;
         }
-        return $BA;
     }
 }
