@@ -579,7 +579,7 @@ class BuildingController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required|array',
         ]);
-        DB::enableQueryLog();
+
         $building = BuildingModel::select(DB::Raw('group_concat(id) build_ids'))
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
@@ -603,26 +603,34 @@ class BuildingController extends BaseController
 
         // return $data;
         $BA = [];
+        DB::enableQueryLog();
         foreach ($data as $k => $v) {
-            $BA[$k]['building_name'] = $v['building']['build_no'];
-            $BA[$k]['floor_no'] = $v['floor_no'];
-            $BA[$k]['room_count'] = $v['floor_room_count'];
-            $BA[$k]['room_list'] = [];
-            $room_list = array();
+            $BA[$k] = [
+                'building_name' => $v['building']['build_no'] ?? '',
+                'floor_no' => $v['floor_no'] ?? '',
+                'room_count' => $v['floor_room_count'] ?? 0,
+                'room_list' => [],
+            ];
+
             foreach ($v->floorRoom as $k1 => &$v1) {
-                if ($v1->room_state == 0) {
-                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->whereHas('contract')->first();
-                    if ($contractRoom) {
-                        $room_list['tenant_name'] = $contractRoom['contract']['tenant_name'];
-                    }
+                $room_list = [
+                    'id' => $v1->id,
+                    'room_state' => $v1->room_state,
+                    'room_area' => $v1->room_area,
+                    'room_type' => $v1->room_type,
+                    'room_no' => $v1->room_no,
+                    'tenant_name' => "",
+                ];
+
+                if ($v1->room_state === 0) {
+                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->first();
+                    $room_list['tenant_name'] = $contractRoom ? $contractRoom->contract->tenant_name : "";
                 }
-                $room_list['room_state'] = $v1->room_state;
-                $room_list['room_area'] = $v1->room_area;
-                $room_list['room_type'] = $v1->room_type;
-                $room_list['room_no'] = $v1->room_no;
+
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
+        // return response()->json(DB::getQueryLog());
         $map = array();
 
 
