@@ -160,9 +160,11 @@ class TenantController extends BaseController
                 } else {
                     throw new Exception("租户保存失败!");
                 }
+
                 if ($DA['contacts']) {
                     $contacts = $DA['contacts'];
                     $this->user['parent_type'] = $this->parent_type;  // 联系人类型
+
                     $contacts = formatContact($contacts, $tenantId, $this->user, 1);
                     $contact = new ContactModel;
                     $contact->addAll($contacts);
@@ -257,8 +259,8 @@ class TenantController extends BaseController
                 if ($DA['contacts']) {
                     $contacts = $DA['contacts'];
                     $res = ContactModel::where('parent_id', $DA['id'])->delete();
-                    $user['parent_type'] = $this->parent_type;
-                    $contacts = formatContact($contacts, $DA['id'], $user, 2);
+                    $this->user['parent_type'] = $this->parent_type;
+                    $contacts = formatContact($contacts, $DA['id'], $this->user, 2);
                     $contact = new ContactModel;
                     $contact->addAll($contacts);
                 }
@@ -277,15 +279,14 @@ class TenantController extends BaseController
                     $businessInfo['name'] = $DA['name'];
                     $info = new BaseInfoService;
                     $res = $info->model()->where('name', $DA['name'])->first();
-                    if ($res) {
-                    } else {
-                        $business = $info->save($businessInfo, 2);
+                    if (!$res) {
+                        $info->save($businessInfo, 2);
                     }
                 }
             });
             return $this->success('客户更新成功。');
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error($e);
             return $this->error('客户更新失败');
         }
     }

@@ -48,18 +48,19 @@ function companyConfig($id)
  * @return   [type]                []
  */
 
-function formatContact($contacts, $parentId, $userinfo, $type = 1): array
+function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 {
-    if (empty($contacts) || empty($parentId) || empty($userinfo)) {
+    if (empty($contacts) || empty($parentId) || empty($userInfo)) {
         return false;
     }
     foreach ($contacts as $k => $v) {
         $data[$k]['created_at']     = nowTime();
-        $data[$k]['u_uid']          = $userinfo['id'];
-        $data[$k]['company_id']     = $userinfo['company_id'];
+        $data[$k]['u_uid']          = $userInfo['id'];
+        $data[$k]['company_id']     = $userInfo['company_id'];
         $data[$k]['parent_id']      = $parentId;
         $data[$k]['contact_name']   = $v['contact_name'];
-        $data[$k]['parent_type']    = $userinfo['parent_type'];
+        $data[$k]['parent_type']    = $userInfo['parent_type'];
+        // Log::info($userInfo['parent_type'] . $userInfo['id']);
         $data[$k]['contact_role']   = isset($v['contact_role']) ? $v['contact_role'] : "";
         $data[$k]['contact_phone']  = isset($v['contact_phone']) ? $v['contact_phone'] : "";
         $data[$k]['is_default']     = isset($v['is_default']) ? $v['is_default'] : 0;
