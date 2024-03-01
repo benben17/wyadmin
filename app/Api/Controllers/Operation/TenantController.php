@@ -238,7 +238,6 @@ class TenantController extends BaseController
             // 'tenant_share'      => 'array',
         ]);
         $DA = $request->toArray();
-        $DA = $request->toArray();
         $map['company_id']  = $this->company_id;
         $map['name']        = $request->name;
         $map['id']          = $request->id;
@@ -248,7 +247,8 @@ class TenantController extends BaseController
         }
         try {
             DB::transaction(function () use ($DA) {
-                $user = auth('api')->user();
+                // $user = auth('api')->user();
+                $DA['type'] = AppEnum::TenantType;
                 $res = $this->tenantService->saveTenant($DA, $this->user);
                 if (!$res) {
                     throw new Exception("租户更新失败!");
