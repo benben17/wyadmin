@@ -248,7 +248,7 @@ class WorkOrderService
   /** 生成工单编号 */
   private function workorderNo($workType)
   {
-    $prefix = ($workType == 1) ? 'WS-' : 'YH-';
+    $prefix = ($workType == 1) ? 'YH-' : 'WS-';
     return $prefix . date('ymdHis');
   }
 
