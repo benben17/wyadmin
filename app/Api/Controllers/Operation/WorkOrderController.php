@@ -90,6 +90,7 @@ class WorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
+        $request->engineering_type && $q->where('engineering_type', 'like', '%' . $request->engineering_type . '%');
         if ($request->has('charge_amount')) {
           if ($request->charge_amount === 0) {
             $q->where('charge_amount', 0);
