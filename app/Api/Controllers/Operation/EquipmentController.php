@@ -151,7 +151,7 @@ class EquipmentController extends BaseController
       'quantity'        => 'required|numeric',
       'position'        => 'required|String',
       'maintain_times'  => 'required|numeric',
-      'year' => 'required',
+      'generate_plan' => 'required',
     ]);
     $DA = $request->toArray();
 
@@ -160,7 +160,9 @@ class EquipmentController extends BaseController
 
       return $this->error('设备保存失败！');
     }
-    $this->equipment->saveBatchMaintainPlan($equipmentId, $DA['maintain_period'], $this->user, $DA['year']);
+    if ($DA['generate_plan']) {
+      $this->equipment->saveBatchMaintainPlan($equipmentId, $DA['maintain_period'], $this->user, date('Y'));
+    }
     return $this->success('设备保存成功。');
   }
 
