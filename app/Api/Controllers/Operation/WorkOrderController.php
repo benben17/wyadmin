@@ -52,7 +52,7 @@ class WorkOrderController extends BaseController
   public function list(Request $request)
   {
     $validatedData = $request->validate([
-      'status' => 'required|array',
+      // 'status' => 'required|array',
       'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');
@@ -86,7 +86,7 @@ class WorkOrderController extends BaseController
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-        $q->whereIn('status', $request->status);
+        $request->status && $q->whereIn('status', $request->status);
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
         }
