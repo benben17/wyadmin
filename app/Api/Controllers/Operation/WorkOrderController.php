@@ -91,7 +91,7 @@ class WorkOrderController extends BaseController
           $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
         }
         if ($request->has('charge_amount')) {
-          if ($request->charge_amount == 0) {
+          if ($request->charge_amount === 0) {
             $q->where('charge_amount', 0);
           } elseif ($request->charge_amount == 1) {
             $q->where('charge_amount', '>', 0);
