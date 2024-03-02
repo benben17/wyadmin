@@ -253,6 +253,19 @@ class EquipmentController extends BaseController
     $data = $this->equipment->equipmentModel()
       ->with('maintain')
       ->find($DA['id'])->toArray();
+    if ($data) {
+      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, SUM(status = 1) as maintain_count')
+        ->where('equipment_id', $DA['id'])
+        ->whereYear('plan_date', $request->year)
+        ->first();
+      $data['plan_times'] = $planData['total_count'];
+      $data['maintain_times'] = $planData['maintain_count'];
+      $data['remaining_times'] = $planData['total_count'] - $planData['maintain_count'];
+    } else {
+      $data['plan_times'] = 0;
+      $data['maintain_times'] = 0;
+      $data['remaining_times'] = 0;
+    }
     return $this->success($data);
   }
 
