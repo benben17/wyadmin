@@ -68,6 +68,9 @@ class BuildingRoomController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
+        if ($request->has('room_state')) {
+            $map['room_state'] = $request->room_state;
+        }
 
         if ($request->room_type) { // 1 房间 2 工位
             $map['room_type'] = $request->room_type;
@@ -94,12 +97,6 @@ class BuildingRoomController extends BaseController
         $data = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $q->when(
-                    $request->filled('room_state'),
-                    function ($query) use ($request) {
-                        $query->where('room_state', $request->room_state ? 1 : 0); // 0不可招商
-                    }
-                );
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
