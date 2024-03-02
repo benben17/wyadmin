@@ -119,6 +119,7 @@ class WorkOrderController extends BaseController
         'sum(case status when 1 then 1 else 0 end) pending,
             sum(case status when 2 then 1 else 0 end) received,
             sum(case status when 3 then 1 else 0 end) finished,
+            sum(case status when 4 then 1 else 0 end) closed,
             sum(case status when 99 then 1 else 0 end) cancel,
             count(*) total_count'
       )
@@ -128,6 +129,7 @@ class WorkOrderController extends BaseController
         ['label' => '待处理', 'value' => empty($stat['pending']) ? 0 : $stat['pending']],
         ['label' => '已接单', 'value' => empty($stat['received']) ? 0 : $stat['received']],
         ['label' => '已处理', 'value' => empty($stat['finished']) ? 0 : $stat['finished']],
+        ['label' => '已关闭', 'value' => empty($stat['closed']) ? 0 : $stat['closed']],
         ['label' => '已取消', 'value' => empty($stat['cancel']) ? 0 : $stat['cancel']],
         ['label' => '总计', 'value' => $stat['total_count']],
       ];

@@ -28,6 +28,7 @@ abstract class AppEnum extends Enum
   const workorderProcess  = 3;   // 处理
   const workorderClose    = 4;   // 关闭
   const workorderRate     = 5;   //评价
+  const workorderCancel   = 99;   // 取消
 
   const rentFeeType       =   101;    // 租金类型
   const managerFeeType    =   102;    // 管理费
