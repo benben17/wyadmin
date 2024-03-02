@@ -68,8 +68,8 @@ class BuildingRoomController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
-        if ($request->room_state) { //1 空闲  0 在租
-            $map['room_state'] = $request->room_state;
+        if (!empty($request->room_state)) { //1 空闲  0 在租
+            $map['room_state'] =  $request->room_state;
         }
         if ($request->room_type) { // 1 房间 2 工位
             $map['room_type'] = $request->room_type;
@@ -106,7 +106,7 @@ class BuildingRoomController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
+        return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         $buildService  = new BuildingService;
 

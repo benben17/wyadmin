@@ -114,6 +114,7 @@ class ProjectController extends BaseController
                 $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
                 $request->proj_ids && $q->whereIn('id', $request->proj_ids);
                 $request->is_valid &&  $q->where('is_valid', $request->is_valid);
+                $request->proj_type &&  $q->where('proj_type', $request->proj_type);
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
