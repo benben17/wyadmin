@@ -84,6 +84,7 @@ class EquipmentController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
+        $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
