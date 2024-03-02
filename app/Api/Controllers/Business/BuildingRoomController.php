@@ -97,7 +97,7 @@ class BuildingRoomController extends BaseController
                 $q->when(
                     $request->filled('room_state'),
                     function ($query) use ($request) {
-                        $query->where('room_state', $request->room_state ? 0 : 1);
+                        $query->where('room_state', $request->room_state ? 1 : 0); // 0不可招商
                     }
                 );
             })
