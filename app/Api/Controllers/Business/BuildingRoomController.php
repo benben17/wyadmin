@@ -68,9 +68,7 @@ class BuildingRoomController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
-        if (!empty($request->room_state)) { //1 空闲  0 在租
-            $map['room_state'] =  $request->room_state;
-        }
+
         if ($request->room_type) { // 1 房间 2 工位
             $map['room_type'] = $request->room_type;
         } else {
@@ -96,6 +94,13 @@ class BuildingRoomController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
                 $q->where('is_valid', 1);
+                $q->when(
+                    $request->filled('room_state'),
+                    function ($query) use ($request) {
+                        // Add the condition when room_state is not empty
+                        $query->where('room_state', $request->room_state ? 0 : 1);
+                    }
+                );
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -106,7 +111,7 @@ class BuildingRoomController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
+        return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         $buildService  = new BuildingService;
 
