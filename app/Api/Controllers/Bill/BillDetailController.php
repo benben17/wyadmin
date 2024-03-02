@@ -95,9 +95,12 @@ class BillDetailController extends BaseController
         $request->end_date && $q->where('charge_date', '<=', $request->end_date);
         $q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
         $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+        if (!empty($request->is_bill)) {
+          $request->is_bill ?   $q->where('bill_id', '>', 0) : $q->where('bill_id', 0);
+        }
       });
     $result = $subQuery->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
+    return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')
       ->where('type', AppEnum::feeType)
       ->whereIn('company_id', getCompanyIds($this->uid))->get();
