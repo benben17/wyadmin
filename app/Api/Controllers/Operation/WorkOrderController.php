@@ -81,7 +81,7 @@ class WorkOrderController extends BaseController
     }
     $map['work_type'] = $request->work_type;
 
-    $data = $this->workService->workModel()
+    $subQuery = $this->workService->workModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -90,33 +90,24 @@ class WorkOrderController extends BaseController
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
         }
-        $request->charge_amount && $q->where('charge_amount', '>', 0);
-      })
-      ->orderBy($orderBy, $order)
+        if ($request->has('charge_amount')) {
+          $request->charge_amount == 1 ? $q->where('charge_amount', '>', 0) : $q->where('charge_amount', 0);
+        }
+        $request->maintain_person  && $q->where('maintain_person', 'like', '%' . $request->maintain_person . '%');
+      });
+    $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
 
     $data = $this->handleBackData($data);
     // 统计
-    $statQuery = $this->workService->workModel()
-      ->selectRaw(
+
+    if (count($request->status) == 1 && in_array(4, $request->status)) {
+      $stat = $subQuery->selectRaw(
         'count(*) count,
         sum(charge_amount) amount,
         sum(time_used) time_used,
         avg(feedback_rate) rate'
-      )
-      ->where($map)
-      ->where(function ($q) use ($request) {
-        $q->whereIn('status', $request->status);
-        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-        $request->charge_amount && $q->where('charge_amount', '>', 0);
-        if ($request->start_date && $request->end_date) {
-          $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
-        }
-      });
-
-    if (count($request->status) != 4) {
-      $stat = $statQuery->first();
+      )->first();
       $data['stat'] = [
         ['label' => '总工单', 'value' => $stat['count']],
         ['label' => '平均评分', 'value' => numFormat($stat['rate'])],
@@ -124,14 +115,13 @@ class WorkOrderController extends BaseController
         ['label' => '总金额', 'value' => $stat['amount'] . '元'],
       ];
     } else {
-      $stat = $statQuery
-        ->selectRaw(
-          'sum(case status when 1 then 1 else 0 end) pending,
+      $stat = $subQuery->selectRaw(
+        'sum(case status when 1 then 1 else 0 end) pending,
             sum(case status when 2 then 1 else 0 end) received,
             sum(case status when 3 then 1 else 0 end) finished,
             sum(case status when 99 then 1 else 0 end) cancel,
             count(*) total_count'
-        )
+      )
         ->first();
 
       $data['stat'] = [
