@@ -20,7 +20,7 @@ class Equipment extends Model
   protected $table = 'bse_equipment';
   protected $fillable = [];
   protected $hidden = [];
-  protected $appends = ['period_label', 'proj_name'];
+  protected $appends = ['maintain_period_label', 'proj_name'];
 
   public function maintain()
   {
@@ -41,7 +41,7 @@ class Equipment extends Model
     return $proj['proj_name'];
   }
 
-  public function getPeriodLabelAttribute()
+  public function getMaintainPeriodLabelAttribute()
   {
 
     if (isset($this->attributes['maintain_period'])) {
