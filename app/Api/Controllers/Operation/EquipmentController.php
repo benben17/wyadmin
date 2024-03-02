@@ -548,9 +548,9 @@ class EquipmentController extends BaseController
    *         description="专业"),
    *       @OA\Property(property="pagesize",type="int",description="行数"),
    *       @OA\Property(property="device_name",type="int",description="设备名称"),
-   *       @OA\Property(property="proj_ids",type="int",description="项目IDs")
-   *       @OA\Property(property="start_time",type="date",description="计划开始时间")
-   *        @OA\Property(property="end_time",type="date",description="计划结束时间")
+   *       @OA\Property(property="proj_ids",type="int",description="项目IDs"),
+   *       @OA\Property(property="start_time",type="date",description="计划开始时间"),
+   *        @OA\Property(property="end_time",type="date",description="计划结束时间"),
    *     ),
    *       example={"major":1,"proj_ids":"[]","equipment_id":"","start_time":"","end_time":""}
    *       )
@@ -704,8 +704,8 @@ class EquipmentController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"equipment_ids","year"},
-   *       @OA\Property(property="equipment_ids",type="list",description="设备IDs")
-   *       @OA\Property(property="year",type="int",description="计划年份")
+   *       @OA\Property(property="equipment_ids",type="list",description="设备IDs"),
+   *       @OA\Property(property="year",type="int",description="计划年份"),
    *     ),
    *       example={"equipment_ids":"","year":""}
    *       )

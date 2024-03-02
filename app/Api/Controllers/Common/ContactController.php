@@ -18,19 +18,20 @@ class ContactController extends BaseController
    *     path="/api/common/contact/list",
    *     tags={"联系人"},
    *     summary="联系人列表",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"parent_id","parent_type"},
-   *       @OA\Property(property="parent_type",type="int",description="类型"),
-   *       @OA\Property(property="parent_id",type="int",description="父亲ID")
-   *     ),
-   *       example={
-   *              "parent_type":"1","parent_id":"0"
-   *           }
-   *       )
+   *     @OA\RequestBody(
+   *         @OA\MediaType(
+   *             mediaType="application/json",
+   *             @OA\Schema(
+   *                 schema="UserModel",
+   *                 required={"parent_id", "parent_type"},
+   *                 @OA\Property(property="parent_type", type="integer", description="类型"),
+   *                 @OA\Property(property="parent_id", type="integer", description="父亲ID")
+   *             ),
+   *             example={
+   *                 "parent_type": "1",
+   *                 "parent_id": "0"
+   *             }
+   *         )
    *     ),
    *     @OA\Response(
    *         response=200,
@@ -38,7 +39,6 @@ class ContactController extends BaseController
    *     )
    * )
    */
-
   public function list(Request $request)
   {
     $validatedData = $request->validate([

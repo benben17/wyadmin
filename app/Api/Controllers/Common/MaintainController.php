@@ -25,67 +25,41 @@ class MaintainController extends BaseController
     {
         parent::__construct();
     }
+
+
+
     /**
      * @OA\Post(
      *     path="/api/common/maintain/list",
      *     tags={"维护"},
-     *     summary="维护列表 ",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"pagesize","parent_type","parent_type","proj_ids","maintain_types},
-     *       @OA\Property(
-     *          property="pagesize",
-     *          type="int",
-     *          description="每页行数"
-     *       ),
-     *       @OA\Property(
-     *          property="parent_id",
-     *          type="int",
-     *          description="父亲ID"
-     *       ),
-     *       @OA\Property(
-     *          property="parent_type",
-     *          type="int",
-     *          description="父类型 "
-     *       ),
-     *      @OA\Property(
-     *          property="proj_ids",
-     *          type="String",
-     *          description="项目id 多个ID（,）逗号隔开 "
-     *       ),
-     *      @OA\Property(
-     *          property="maintain_types",
-     *          type="array",
-     *          description="维护类型中文数组"
-     *       ),
-     *       @OA\Property(
-     *          property="start_time",
-     *          type="date",
-     *          description="开始时间"
-     *       ),
-     *       @OA\Property(
-     *          property="end_time",
-     *          type="date",
-     *          description="结束时间"
-     *       ),
-     *       @OA\Property(
-     *          property="order",
-     *          type="String",
-     *          description="排序方式"
-     *       ),
-     *       @OA\Property(
-     *          property="orderBy",
-     *          type="String",
-     *          description="排序字段  倒叙desc 正序asc"
-     *       )
-     *     ),
-     *       example={
-     *
-     *           }
-     *       )
+     *     summary="维护列表",
+     *     @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 required={"parent_id", "parent_type", "proj_ids", "maintain_types"},
+     *                 @OA\Property(property="parent_id", type="int", description="父亲ID"),
+     *                 @OA\Property(property="parent_type", type="int", description="父类型"),
+     *                 @OA\Property(property="proj_ids", type="string", description="项目id 多个ID（,）逗号隔开"),
+     *                 @OA\Property(property="maintain_types", type="string", description="维护类型中文数组"),
+     *                 @OA\Property(property="start_time", type="string", format="date", description="开始时间"),
+     *                 @OA\Property(property="end_time", type="string", format="date", description="结束时间"),
+     *                 @OA\Property(property="order", type="string", description="排序方式"),
+     *                 @OA\Property(property="orderBy", type="string", description="排序字段  倒叙desc 正序asc"),
+     *             ),
+     *             example={
+     *                 "value": {
+     *                     "parent_id": 123,
+     *                     "parent_type": 1,
+     *                     "proj_ids": "",
+     *                     "maintain_types": "",
+     *                     "start_time": "2022-01-01",
+     *                     "end_time": "2022-12-31",
+     *                     "order": "asc",
+     *                     "orderBy": "id"
+     *                 }
+     *             }
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -93,6 +67,7 @@ class MaintainController extends BaseController
      *     )
      * )
      */
+
     public function list(Request $request)
     {
         $validatedData = $request->validate([

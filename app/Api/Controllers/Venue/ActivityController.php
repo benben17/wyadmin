@@ -213,7 +213,6 @@ class ActivityController extends BaseController
 	 *     ),
 	 *     @OA\Response(
 	 *         response=200,
-	 * 				 data = "{"prepay_id": "wx130014427185823e9abe73f608c5990000"}"
 	 *         description=""
 	 *     )
 	 * )

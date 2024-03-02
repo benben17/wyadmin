@@ -45,7 +45,7 @@ class BillController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"pagesize","orderBy","order"},
-   *       @OA\Property(property="name",type="String",description="客户名称")
+   *       @OA\Property(property="name",type="String",description="客户名称"),
    *        @OA\Property(property="start_date",type="String",description="开始日期")
    *     ),
    *       example={}

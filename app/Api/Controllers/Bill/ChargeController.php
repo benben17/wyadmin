@@ -292,7 +292,7 @@ class ChargeController extends BaseController
    *       @OA\Property(property="id",type="int",description="id"),
    *       @OA\Property(property="bill_detail_ids",type="list",description="应收费用ids 数组"),
    *     ),
-   *       example={"id":"1","bill_detail_ids":[]}
+   *       example={"id":"1","bill_detail_ids":"[]"}
    *       )
    *     ),
    *     @OA\Response(
