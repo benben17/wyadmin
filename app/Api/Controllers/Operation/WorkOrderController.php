@@ -91,7 +91,11 @@ class WorkOrderController extends BaseController
           $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
         }
         if ($request->has('charge_amount')) {
-          $request->charge_amount == 1 ? $q->where('charge_amount', '>', 0) : $q->where('charge_amount', 0);
+          if ($request->charge_amount == 0) {
+            $q->where('charge_amount', 0);
+          } elseif ($request->charge_amount == 1) {
+            $q->where('charge_amount', '>', 0);
+          }
         }
         $request->maintain_person  && $q->where('maintain_person', 'like', '%' . $request->maintain_person . '%');
       });
@@ -101,7 +105,7 @@ class WorkOrderController extends BaseController
     $data = $this->handleBackData($data);
     // 统计
 
-    if (count($request->status) == 1 && in_array(4, $request->status)) {
+    if (in_array(4, $request->status) && count($request->status) == 1) {
       $stat = $subQuery->selectRaw(
         'count(*) count,
         sum(charge_amount) amount,

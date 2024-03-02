@@ -163,10 +163,10 @@ class WorkOrderService
     if ($order->status >= 3) {
       return false;
     }
-    $order->status = 99;
+    $order->status = AppEnum::workorderCancel;
     $res = $order->save();
     // 写入日志
-    $this->saveOrderLog($orderId, 99, $user);
+    $this->saveOrderLog($orderId, AppEnum::workorderCancel, $user);
     return $res;
   }
 
