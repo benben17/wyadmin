@@ -77,6 +77,7 @@ class BuildingRoomController extends BaseController
         if ($request->room_trim_state) {
             $map['room_trim_state'] = $request->room_trim_state;
         }
+        $map['is_valid'] = 1;
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -93,11 +94,9 @@ class BuildingRoomController extends BaseController
         $data = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $q->where('is_valid', 1);
                 $q->when(
                     $request->filled('room_state'),
                     function ($query) use ($request) {
-                        // Add the condition when room_state is not empty
                         $query->where('room_state', $request->room_state ? 0 : 1);
                     }
                 );
@@ -111,7 +110,7 @@ class BuildingRoomController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        return response()->json(DB::getQueryLog());
+        // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         $buildService  = new BuildingService;
 
