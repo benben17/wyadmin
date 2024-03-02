@@ -76,7 +76,7 @@ class ContractController extends BaseController
      *       ),
      *       @OA\Property(
      *          property="contract_state",
-     *          type="array",
+     *          type="list",
      *          description="合同状态 0 待提交 1 待审核 2 已审核执行合同 98 退租 99  作废"
      *       ),
      *        @OA\Property(
@@ -135,9 +135,7 @@ class ContractController extends BaseController
                 $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
                 $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
                 $request->sign_end_date && $q->where('sign_date', '<=', $request->sign_end_date);
-                if (sizeof($request->contract_state)) {
-                    $q->whereIn('contract_state', $request->contract_state);
-                }
+                $request->contract_state && $q->whereIn('contract_state', $request->contract_state);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
             })->withCount('contractRoom')
