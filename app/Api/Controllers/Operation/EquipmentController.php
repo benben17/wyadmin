@@ -87,8 +87,8 @@ class EquipmentController extends BaseController
         $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
       })
       // ->where('year', $request->year)
-      ->withCount(['maintain' => function ($q) use ($request) {
-        $q->whereYear('maintain_date', $request->year);
+      ->withCount(['maintainPlan' => function ($q) use ($request) {
+        $q->whereYear('plan_date', $request->year);
       }])
 
       ->orderBy($orderBy, $order)
@@ -251,7 +251,6 @@ class EquipmentController extends BaseController
     ]);
     $DA = $request->toArray();
     $data = $this->equipment->equipmentModel()
-      ->with('maintain')
       ->find($DA['id'])->toArray();
     if ($data) {
       $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, SUM(status = 1) as maintain_count')

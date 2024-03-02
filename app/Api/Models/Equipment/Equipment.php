@@ -20,6 +20,7 @@ class Equipment extends Model
   protected $table = 'bse_equipment';
   protected $fillable = [];
   protected $hidden = [];
+  protected $appends = ['period_label', 'proj_name'];
 
   public function maintain()
   {
@@ -31,7 +32,7 @@ class Equipment extends Model
     return $this->hasMany(EquipmentPlan::class, 'equipment_id', 'id');
   }
 
-  protected $appends = ['proj_name'];
+
 
   public function getProjNameAttribute()
   {
@@ -40,6 +41,30 @@ class Equipment extends Model
     return $proj['proj_name'];
   }
 
+  public function getPeriodLabelAttribute()
+  {
+
+    if (isset($this->attributes['maintain_period'])) {
+      $value =  $this->attributes['maintain_period'];
+      switch ($value) {
+        case '1':
+          return "每周";
+          break;
+        case '2':
+          return "每月";
+          break;
+        case '3':
+          return '每季度';
+          break;
+        case '4':
+          return '每半年';
+          break;
+        case '5':
+          return '每年';
+          break;
+      }
+    }
+  }
   protected static function boot()
   {
     parent::boot();
