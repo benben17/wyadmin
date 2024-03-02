@@ -9,8 +9,8 @@ use App\Api\Models\Equipment\EquipmentPlan;
 use App\Api\Models\Equipment\Equipment as EquipmentModel;
 use App\Api\Models\Equipment\EquipmentMaintain as MaintainModel;
 use App\Api\Services\Common\MessageService;
-use Illuminate\Support\Arr;
-
+use DateTime;
+use Exception;
 use function Complex\add;
 
 /**
@@ -63,9 +63,9 @@ class EquipmentService
       $equipment->model             = isset($DA['model']) ? $DA['model'] : "";
       $equipment->quantity          = isset($DA['quantity']) ? $DA['quantity'] : 0;
       $equipment->unit              = isset($DA['unit']) ? $DA['unit'] : "";
-      $equipment->maintain_period   = isset($DA['maintain_period']) ? $DA['maintain_period'] : "";
+      $equipment->maintain_period   = $DA['maintain_period'];
       $equipment->maintain_content  = isset($DA['maintain_content']) ? $DA['maintain_content'] : "";
-      $equipment->maintain_times    = isset($DA['maintain_times']) ? $DA['maintain_times'] : "";
+      $equipment->maintain_times    = $DA['maintain_times'] ?? $this->getMaintainTimes($equipment->maintain_period, date('Y'));
       $equipment->save();
     } catch (Exception $e) {
       Log::error($e->getMessage());
@@ -87,7 +87,7 @@ class EquipmentService
   public function saveBatchMaintainPlan($equipmentId, $maintainPeriod, $user, $year)
   {
     $data = array();
-    Log::info($maintainPeriod);
+    // Log::info($maintainPeriod);
     $equipment = $this->equipmentModel()->find($equipmentId);
     $maintenanceDates = $this->generateMaintenancePlan($maintainPeriod, $year);
     foreach ($maintenanceDates  as $date) {
@@ -131,6 +131,28 @@ class EquipmentService
     }
     $maintainPlan->save();
     return true;
+  }
+
+  public function editMaintainPlan($maintainPlan)
+  {
+
+    $plan = [
+      'company_id'      => $maintainPlan['company_id'],
+      'c_uid'           => $maintainPlan['id'],
+      'c_username'      => $maintainPlan['realname'],
+      'plan_date'       => $maintainPlan['plan_date'],
+      'id'              => $maintainPlan['id'],
+      'device_name'     => $maintainPlan['device_name'],
+      'model'           => $maintainPlan['model'],
+      'major'           => $maintainPlan['major'],
+      'position'        => $maintainPlan['position'],
+      // 'maintain_period' => $equipment['maintain_period'],
+      'equipment_id'    => $maintainPlan['id'],
+      // 'equipment_type'  => $equipment['equipment_type'],
+      'quantity'        => $maintainPlan['quantity'],
+    ];
+    $res = $this->maintainModel()->save($plan);
+    return $res;
   }
 
   /**
@@ -181,18 +203,26 @@ class EquipmentService
   }
 
 
-  // 函数用于计算指定周期内的最后一天日期
-  public function getLastDay($year, $month, $quarter = 0, $halfYear = false)
+  private function getMaintainTimes($maintainPeriod, $year): int
   {
-    if ($halfYear) {
-      return date('Y-m-t', strtotime($year . '-06-30'));
+    try {
+      $plan = $this->generateMaintenancePlan($maintainPeriod, $year);
+      return count($plan);
+    } catch (\Exception $e) {
+      // Log or handle the exception as needed
+      return 0; // Return 0 if there's an issue with generating the maintenance plan
     }
+  }
+
+  // 函数用于计算指定周期内的最后一天日期
+  public function getFirstDay($year, $month, $quarter = 0, $halfYear = false)
+  {
 
     if ($quarter > 0) {
-      $month = $quarter * 3;
+      $month = ($quarter - 1) * 3 + 1;
     }
 
-    return date('Y-m-t', strtotime($year . '-' . $month . '-01'));
+    return date('Y-m-01', strtotime($year . '-' . $month . '-01'));
   }
 
   // 函数用于生成维护计划日期数组
@@ -201,35 +231,46 @@ class EquipmentService
     $maintenanceDates = [];
 
     switch ($maintenancePeriod) {
-      case 'month':
+      case 1: // 周
+        for ($i = 1; $i <= 52; $i++) {
+          $firstDay = $this->getFirstDayOfWeek($year, $i);
+          $maintenanceDates[] = $firstDay;
+        }
+        break;
+      case 2: //月
         for ($i = 1; $i <= 12; $i++) {
-          $lastDay = $this->getLastDay($year, $i);
+          $lastDay = $this->getFirstDay($year, $i);
           $maintenanceDates[] = $lastDay;
         }
         break;
-      case 'quarter':
+      case 3:  // 季度
         for ($i = 1; $i <= 4; $i++) {
-          $lastDay = $this->getLastDay($year, 0, $i);
+          $lastDay = $this->getFirstDay($year, 0, $i);
           $maintenanceDates[] = $lastDay;
         }
         break;
-      case 'halfYear':
+      case 4: // 半年
         // 上半年
-        $lastDayFirstHalf = $this->getLastDay($year, 0, 0, true);
-        $maintenanceDates[] = $lastDayFirstHalf;
-
+        $maintenanceDates[] = date('Y-01-01');
         // 下半年
-        $lastDaySecondHalf = $this->getLastDay($year, 0, 0, false);
-        $maintenanceDates[] = $lastDaySecondHalf;
+        $maintenanceDates[] = date('Y-07-01');
         break;
-      case 'year':
-        $lastDay = $this->getLastDay($year, 12);
-        $maintenanceDates[] = $lastDay;
+      case 5: // 年
+        $maintenanceDates[] =  date('Y-01-01');
         break;
       default:
         return "Invalid maintenance period.";
     }
 
     return $maintenanceDates;
+  }
+
+  public function getFirstDayOfWeek($year, $week)
+  {
+    $dto = new DateTime();
+    $dto->setISODate($year, $week);
+    // Set the day to Monday (1) to get the first day of the week
+    $dto->modify('-' . ($dto->format('N') - 1) . ' days');
+    return $dto->format('Y-m-d');
   }
 }

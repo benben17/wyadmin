@@ -21,7 +21,7 @@ class EquipmentPlan extends Model
   use SoftDeletes;
   protected $table = 'bse_equipment_plan';
   protected $fillable = [];
-  protected $hidden = [];
+  protected $hidden = ['company_id'];
 
   public function maintain()
   {

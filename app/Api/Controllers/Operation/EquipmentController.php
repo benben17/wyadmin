@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Operation\EquipmentService;
+use Svg\Tag\Rect;
 
 /**
  *   设备
@@ -145,7 +146,7 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'proj_id'         => 'required|numeric|gt:0',
       'system_name'     => 'required',
-      'maintain_period'     => 'required|String|in:month,quarter,halfYear,year',
+      'maintain_period'     => 'required|numeric|gt:0|lt:6',
       'device_name'     => 'required|String',
       'quantity'        => 'required|numeric',
       'position'        => 'required|String',
@@ -598,7 +599,7 @@ class EquipmentController extends BaseController
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
-        $request->year && $q->whereYear('maintain_date', $request->year);
+        $request->year && $q->whereYear('plan_date', $request->year);
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
@@ -616,6 +617,45 @@ class EquipmentController extends BaseController
     return $this->success($data);
   }
 
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/edit",
+   *     tags={"设备"},
+   *     summary="设备维护计划编辑",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids"},
+   *       @OA\Property(property="id",type="int",description="id")
+   *
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function planEdit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required',
+    ]);
+
+    $plan = $this->equipment->MaintainPlanModel()->find($request->id);
+    if ($plan->status == 1) {
+    }
+    $res = $this->equipment->MaintainPlanModel()->editMaintainPlan($request->toArray());
+    if ($res) {
+      return $this->success("维护计划删除成功。");
+    }
+    return $this->error('维护计划删除失败！');
+  }
 
   /**
    * @OA\Post(
@@ -640,7 +680,6 @@ class EquipmentController extends BaseController
    *     )
    * )
    */
-
   public function planDelete(Request $request)
   {
     $validatedData = $request->validate([
@@ -652,6 +691,62 @@ class EquipmentController extends BaseController
       return $this->success("维护计划删除成功。");
     }
     return $this->error('维护计划删除失败！');
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/generate",
+   *     tags={"设备"},
+   *     summary="设备维护计划生成",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"equipment_ids","year"},
+   *       @OA\Property(property="equipment_ids",type="list",description="设备IDs")
+   *       @OA\Property(property="year",type="int",description="计划年份")
+   *     ),
+   *       example={"equipment_ids":"","year":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function planGenerate(Request $request)
+  {
+    $messages = [
+      'equipment_ids.required' => '设备ID字段是必填的且必须是数组。',
+      'year.required' => '年份字段是必填的。',
+      'year.numeric' => '年份必须是数字。',
+      'year.digits' => '年份必须是4位数。',
+      'year.gte' => '年份必须大于或等于当前年份。',
+    ];
+    $request->validate([
+      'equipment_ids' => 'required|array',
+      'year' => 'required|numeric|digits:4|gte:' . date('Y'),
+    ], $messages);
+
+    $planNum = 0;
+
+    foreach ($request->equipment_ids as $equipmentId) {
+      $planCount = $this->equipment->MaintainPlanModel()->where('equipment_id', $equipmentId)->count();
+
+      if ($planCount > 0) {
+        continue; // Fixing the typo here
+      }
+      $equipment = $this->equipment->equipmentModel()->find($equipmentId);
+      if ($equipment) {
+        $period = $equipment['maintain_period'];
+        $this->equipment->saveBatchMaintainPlan($equipmentId, $period, $this->user, $request->year);
+        $planNum++;
+      }
+    }
+
+    return $this->success("共计生成【" . $planNum . "】个设备计划");
   }
 
   /**

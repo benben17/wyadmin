@@ -264,8 +264,8 @@ class ContractBillService
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
       $bill[$i]['price'] = numFormat($rule['unit_price']) . $rule['unit_price_label'];
-      
-     if ($i == 0) {
+
+      if ($i == 0) {
         $startDate = $DA['start_date'];
         $bill[$i]['charge_date'] = $startDate;
       } else {  // 其他累加
@@ -516,17 +516,17 @@ class ContractBillService
    *
    * @return array 优化后的账单信息数组
    */
-  public function applyFeeShare(array $bills, $shareRule, float $monthAmt): array
+  public function applyShareTenant(array $bills, $shareRule, float $monthAmt): array
   {
     $newBills = [];
     $shareType = $shareRule->share_type;
     $shareNum = $shareRule->share_num;
     $shareFeeType = $shareRule->fee_typ;
 
-    foreach ($bills['bill'] as $bill) {
+    foreach ($bills['bill'] as &$bill) {
       $newBill = ($bill['fee_type'] == $shareFeeType) ?
         $this->calculateNewBillAmount($bill, $shareType, $shareNum, $monthAmt) : $bill;
-
+      $bill['amount'] =  $bill['amount'] - $newBill['amount'];
       $newBills[] = $newBill;
     }
 

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use App\Api\Services\Bill\TenantBillService;
-use Maatwebsite\Excel\Concerns\ToArray;
+use Illuminate\Support\Facades\Log;
 
 class ChargeController extends BaseController
 {
@@ -393,5 +393,92 @@ class ChargeController extends BaseController
     } catch (\Exception $e) {
       return $this->error("发生错误：" . $e->getMessage());
     }
+  }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/record/list",
+   *     tags={"预充值"},
+   *     summary="预充值-核销记录",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"tenant_id"},
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="pagesize",type="int",description="行数"),
+   *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
+   *       @OA\Property(property="start_date",type="date",description="开始时间"),
+   *       @OA\Property(property="end_date",type="date",description="结束时间"),
+   *        @OA\Property(property="proj_ids",type="list",description="")
+   *     ),
+   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function recordList(Request $request)
+  {
+    $msg = ['proj_ids.required' => '项目id是必传'];
+    $request->validate([
+      'proj_ids' => 'required|array',
+    ], $msg);
+
+    $pagesize = $request->input('pagesize');
+    if (!$pagesize || $pagesize < 1) {
+      $pagesize = config('per_size');
+    }
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
+    }
+    $map = array();
+    // 排序字段
+    if ($request->input('orderBy')) {
+      $orderBy = $request->input('orderBy');
+    } else {
+      $orderBy = 'created_at';
+    }
+    // 排序方式desc 倒叙 asc 正序
+    if ($request->input('order')) {
+      $order = $request->input('order');
+    } else {
+      $order = 'desc';
+    }
+    if ($request->type) {
+      $map['type'] = $request->type;
+    }
+
+    DB::enableQueryLog();
+    $data = $this->chargeService->chargeBillRecord()
+      ->where($map)
+      ->where(function ($q) use ($request) {
+        $request->start_date && $q->where('verify_date', '>=',  $request->start_date);
+        $request->end_date && $q->where('verify_date', '<=',  $request->end_date);
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->c_username && $q->where('c_username',  $request->c_username);
+        $request->fee_types && $q->where('fee_type', $request->fee_types);
+      })->with(['billDetail' => function ($query) use ($request) {
+        $query->select('tenant_name', 'tenant_id', 'id', 'status');
+        $request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
+        $request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
+      }])
+      ->orderBy($orderBy, $order)
+      ->paginate($pagesize)->toArray();
+    // return response()->json(DB::getQueryLog());
+    $totalAmt = 0.00;
+    $data = $this->handleBackData($data);
+    foreach ($data['result'] as &$v) {
+      $v['tenant_name'] = isset($v['bill_detail']['tenant_name']) ? $v['bill_detail']['tenant_name'] : "";
+      unset($v['bill_detail']);
+      $totalAmt += $v['amount'];
+    }
+    $data['total_amount'] = $totalAmt;
+    return $this->success($data);
   }
 }

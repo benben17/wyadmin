@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 
 /**
- *  设备
+ *  设备维护模型
  */
 class EquipmentMaintain extends Model
 {

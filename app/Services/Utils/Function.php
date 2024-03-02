@@ -60,7 +60,6 @@ function formatContact($contacts, $parentId, $userInfo, $type = 1): array
         $data[$k]['parent_id']      = $parentId;
         $data[$k]['contact_name']   = $v['contact_name'];
         $data[$k]['parent_type']    = $userInfo['parent_type'];
-        // Log::info($userInfo['parent_type'] . $userInfo['id']);
         $data[$k]['contact_role']   = isset($v['contact_role']) ? $v['contact_role'] : "";
         $data[$k]['contact_phone']  = isset($v['contact_phone']) ? $v['contact_phone'] : "";
         $data[$k]['is_default']     = isset($v['is_default']) ? $v['is_default'] : 0;

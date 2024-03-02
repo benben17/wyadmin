@@ -167,7 +167,6 @@ class VariableService
       $res->save();
       $no = $res['tenant_no'];
     }
-    $TenantNo = $res['tenant_prefix'] . $companyId . str_pad($no, 5, 0, STR_PAD_LEFT);
-    return $TenantNo;
+    return $res['tenant_prefix'] . str_pad($no, 6, 0, STR_PAD_LEFT);
   }
 }

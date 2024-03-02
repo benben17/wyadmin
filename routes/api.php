@@ -430,6 +430,8 @@ Route::group(['prefix' => 'operation/equipment'], function () {
 
     Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentController@planList');
     Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentController@planDelete');
+    Route::post('/plan/edit', '\App\Api\Controllers\Operation\EquipmentController@planEdit');
+    Route::post('/plan/generate', '\App\Api\Controllers\Operation\EquipmentController@planGenerate');
 
     Route::post('/maintain/list', '\App\Api\Controllers\Operation\EquipmentController@maintainList');
     Route::post('/maintain/add', '\App\Api\Controllers\Operation\EquipmentController@maintainStore');
@@ -481,7 +483,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
     Route::post('/cancel', '\App\Api\Controllers\Bill\ChargeController@cancel');
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
-
+    Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
     // 核销 多条应收
     Route::post('/writeOff', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOff');
     // 核销单条
