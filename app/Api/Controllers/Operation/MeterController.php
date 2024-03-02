@@ -102,7 +102,8 @@ class MeterController extends BaseController
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        // $request->tenant_id && $q->where('tenant_id',  $request->tenant_id);
+        $request->build_id && $q->where('build_id',  $request->build_id);
+        $request->floor_id && $q->where('floor_id',  $request->floor_id);
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
