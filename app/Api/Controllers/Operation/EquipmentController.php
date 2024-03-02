@@ -150,7 +150,7 @@ class EquipmentController extends BaseController
       'device_name'     => 'required|String',
       'quantity'        => 'required|numeric',
       'position'        => 'required|String',
-      'maintain_times'  => 'required|numeric',
+      // 'maintain_times'  => 'required|numeric',
       'generate_plan' => 'required',
     ]);
     $DA = $request->toArray();
@@ -209,7 +209,7 @@ class EquipmentController extends BaseController
       'device_name'     => 'required|String',
       'quantity'        => 'required|numeric',
       'position'        => 'required|String',
-      'maintain_times'  => 'required|numeric'
+      // 'maintain_times'  => 'required|numeric'
     ]);
     $DA = $request->toArray();
 
