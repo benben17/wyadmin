@@ -87,8 +87,8 @@ class WorkOrderController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->status && $q->whereIn('status', $request->status);
-        if ($request->start_time && $request->end_time) {
-          $q->whereBetween('open_time', [$request->start_time, $request->end_time]);
+        if ($request->start_date && $request->end_date) {
+          $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
         if ($request->has('charge_amount')) {
           if ($request->charge_amount === 0) {
