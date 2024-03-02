@@ -74,7 +74,7 @@ class StationController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
-        if ($request->room_state) { //1 空闲  0 在租
+        if ($request->has('room_state')) { //1 空闲  0 在租
             $map['room_state'] = $request->room_state;
         }
         if ($request->room_type) { // 1 房间 2 工位
@@ -99,7 +99,7 @@ class StationController extends BaseController
         $result = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->is_valid && $q->where('is_valid', $request->is_valid);
                 $request->station_no && $q->where('station_no', 'like', '%' . $request->station_no . '%');
             })
             ->whereHas('building', function ($q) use ($request) {
@@ -113,7 +113,7 @@ class StationController extends BaseController
         $data = RoomModel::select(DB::Raw('sum(case room_state when 1 then 1 else 0 end) free_count,count(*) total_count'))
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->is_valid && $q->where('is_valid', $request->is_valid);
                 $request->station_no && $q->where('station_no', 'like', '%' . $request->station_no . '%');
             })
             ->whereHas('building', function ($q) use ($request) {
