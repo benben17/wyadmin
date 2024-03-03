@@ -413,7 +413,7 @@ class EquipmentController extends BaseController
   {
     $request->validate([
       'equipment_id'    => 'required',
-      'equipment_type'        => 'required|String', //类型工程秩序
+      // 'equipment_type'        => 'required|String', //类型工程秩序
       'maintain_date'   => 'required|date',
       'maintain_content'   => 'required|String',
       'maintain_person'   => 'required|String', // 可多选
