@@ -667,9 +667,9 @@ class EquipmentController extends BaseController
     }
     $res = $this->equipment->editMaintainPlan($request->toArray());
     if ($res) {
-      return $this->success("维护计划删除成功。");
+      return $this->success("维护计划更新成功。");
     }
-    return $this->error('维护计划删除失败！');
+    return $this->error('维护计划更新失败！');
   }
 
   /**
