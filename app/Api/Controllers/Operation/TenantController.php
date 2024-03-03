@@ -22,11 +22,13 @@ class TenantController extends BaseController
 {
     private $parent_type;
     private $tenantService;
+    private $contractService;
     public function __construct()
     {
         parent::__construct();
         $this->parent_type = AppEnum::Tenant;
         $this->tenantService = new TenantService;
+        $this->contractService = new ContractService;
     }
 
     /**
@@ -90,9 +92,8 @@ class TenantController extends BaseController
             ->withCount('maintain')
             ->withCount('contract')
             ->with(['contractStat'  => function ($q) {
-                $q->select(DB::Raw('id,sum(sign_area) total_area,tenant_id '));
-                $q->where('room_type', 1);
-                $q->wherehas('billRule', function ($subQuery) {
+                $q->select(DB::Raw('id,sum(sign_area) total_area,tenant_id'));
+                $q->whereHas('billRule', function ($subQuery) {
                     $subQuery->where('fee_type', AppEnum::rentFeeType);
                 });
                 $q->groupBy('tenant_id');
@@ -102,10 +103,16 @@ class TenantController extends BaseController
         // return response()->json(DB::getQueryLog());
 
         $data = $this->handleBackData($result);
-        foreach ($data['result'] as $k => &$v) {
-            if (!isset($v['contract_stat']) || empty($v['contract_stat'])) {
-                $v['contract_stat']['total_area'] = 0.00;
-            }
+        foreach ($data['result'] as $k => &$tenant) {
+            $tenant['total_area'] =  $tenant['contract_stat']['total_area'] ?? 0.00;
+
+            $contract = $this->contractService->model()
+                ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id')
+                ->where('contract_state', 2)->orderBy('sign_date', 'desc')
+                ->first();
+            $tenant['start_date'] =  $contract['start_date'] ?? "";
+            $tenant['end_date'] =  $contract['end_date'] ?? "";
+            $tenant['lease_term'] =  $contract['lease_term'] ?? 0;
         }
         return $this->success($data);
     }

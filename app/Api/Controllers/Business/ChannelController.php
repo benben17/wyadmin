@@ -119,7 +119,7 @@ class ChannelController extends BaseController
                 $request->end_time && $q->where('created_at', '<=', $request->end_time);
             })
             ->with([
-                'channelPolicy:id,name',
+                'channelPolicy:id,name,channel_type',
                 'channelContact',
             ])
             ->withCount('customer')

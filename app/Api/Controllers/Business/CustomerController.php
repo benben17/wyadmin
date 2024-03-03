@@ -127,10 +127,11 @@ class CustomerController extends BaseController
                 if ($request->visit_times) {
                     $q->whereHas('follow', function ($q) {
                         $q->where('follow_type', AppEnum::followVisit);
-                        $q->havingRaw('count(*) >1');
+                        $q->havingRaw('count(*) >0');
                     });
                 }
             })
+            ->with('channel:channel_name,channel_type,id')
             // ->with('contacts')
             ->with('contactInfo')
             ->with('extraInfo')
@@ -199,10 +200,12 @@ class CustomerController extends BaseController
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['extra_info']['demand_area'];
+            $v['demand_area'] = $v['extra_info']['demand_area'] ?? 0;
             $v['source_type_label'] = getDictName($v['source_type']);
-            $v['contact_user'] = $v['contact_info']['name'];
-            $v['contact_phone'] = $v['contact_info']['phone'];
+            $v['contact_user'] = $v['contact_info']['name'] ?? "";
+            $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
+            $v['channel_name'] = $v['channel']['channel_name'] ?? "";
+            $v['channel_type'] = $v['channel']['channel_type'] ?? "";
         }
         $data['stat'] = $cusState;
         return $this->success($data);
@@ -521,6 +524,7 @@ class CustomerController extends BaseController
             ->with('contacts')
             ->with('extraInfo')
             ->with('tenantRooms')
+            ->with('channel:id,channel_name,channel_type')
             ->find($request->id)->toArray();
 
         $info = new BaseInfoService;
@@ -535,6 +539,8 @@ class CustomerController extends BaseController
             $data['clue'] = $clue;
         }
         $data['business_info'] = $business_info;
+        $data['channel_name'] = $data['channel']['channel_name'] ?? "";
+        $data['channel_type'] = $data['channel']['channel_type'] ?? "";
         return $this->success($data);
     }
 
@@ -550,12 +556,12 @@ class CustomerController extends BaseController
      *          schema="UserModel",
      *       @OA\Property(
      *          property="name",
-     *          type="Strig",
+     *          type="String",
      *          description="公司名字，全名"
      *       ),
      *       @OA\Property(
      *          property="tenant_id",
-     *          type="Strig",
+     *          type="int",
      *          description="客户ID"
      *       )
      *     ),
