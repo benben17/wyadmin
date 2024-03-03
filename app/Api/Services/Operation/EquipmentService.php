@@ -105,7 +105,7 @@ class EquipmentService
         // 'maintain_period' => $equipment['maintain_period'],
         'equipment_id'    => $equipment['id'],
         // 'equipment_type'  => $equipment['equipment_type'],
-        'quantity'        => $equipment['quantity'],
+        'plain_quantity'        => $equipment['quantity'],
         'created_at'      => nowTime(),
       ];
 
@@ -126,8 +126,8 @@ class EquipmentService
     if (!$maintainPlan) {
       return false;
     }
-    $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['quantity'];
-    if ($maintainPlan->maintain_quantity >= $maintainPlan->quantity) {
+    $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
+    if ($maintainPlan->maintain_quantity >= $maintainPlan->plain_quantity) {
       $maintainPlan->status = 1;
     }
     $maintainPlan->save();
@@ -146,8 +146,8 @@ class EquipmentService
     // 'maintain_period' => $equipment['maintain_period'],
     $plan->equipment_id    = $maintainPlan['equipment_id'];
     $plan->equipment_type  = $maintainPlan['equipment_type'];
-    $plan->quantity        = $maintainPlan['quantity'];
-    $plan->updated_at      = nowTime();
+    $plan->quantity        = $maintainPlan['plan_quantity'];
+    $plan->plan_quantity      = nowTime();
     return $plan->save();
   }
 
@@ -187,7 +187,7 @@ class EquipmentService
       $maintain->maintain_content = $DA['maintain_content'];
       $maintain->maintain_date  = $DA['maintain_date'];
       $maintain->maintain_person = $DA['maintain_person'];
-      $maintain->quantity       =  $DA['quantity']  ?? $equipment['quantity'];
+      $maintain->maintain_quantity =  $DA['maintain_quantity']  ?? $equipment['quantity'];
       $maintain->maintain_type  = $DA['maintain_type'];
       $maintain->pic            = isset($DA['pic']) ? $DA['pic'] : $equipment['pic'];
       $maintain->save();

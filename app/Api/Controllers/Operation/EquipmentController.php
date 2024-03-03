@@ -360,7 +360,6 @@ class EquipmentController extends BaseController
 
 
     $data = $this->equipment->maintainModel()
-      ->whereYear('maintain_date', $request->year)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
@@ -368,7 +367,7 @@ class EquipmentController extends BaseController
         $request->start_date && $q->where('maintain_date', '>=', $request->start_date);
         $request->end_date && $q->where('maintain_date', '<=', $request->end_date);
         $request->c_uid && $q->where('c_uid', $request->uid);
-        $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
+        // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();
@@ -396,12 +395,12 @@ class EquipmentController extends BaseController
    *       @OA\Property(property="maintain_type",type="String",description="维护类型1 全部2 部分"),
    *       @OA\Property(property="major",type="String",description="专业"), 
    *       @OA\Property(property="position",type="String",description="位置"), 
-   *       @OA\Property(property="quantity",type="int",description="数量"), 
+   *       @OA\Property(property="maintain_quantity",type="int",description="数量"), 
    *       @OA\Property(property="pic",type="String",description="图片"), 
    *       @OA\Property(property="remark",type="String",description="备注"), 
    *     ),
    *       example={"equipment_id":"","equipment_type":"","maintain_date":"",
-   *       "maintain_content":"","maintain_type":"","maintain_person":""}
+   *       "maintain_content":"","maintain_type":"","maintain_person":"","maintain_quantity":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -418,8 +417,8 @@ class EquipmentController extends BaseController
       'maintain_date'   => 'required|date',
       'maintain_content'   => 'required|String',
       'maintain_person'   => 'required|String', // 可多选
-      'plan_id' => 'required',
-      'quantity' => 'required',
+      'plan_id' => 'required|gt:0',
+      'maintain_quantity' => 'required',
     ]);
     $DA = $request->toArray();
     $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
@@ -613,12 +612,13 @@ class EquipmentController extends BaseController
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
-        $request->year && $q->whereYear('plan_date', $request->year);
+        // $request->year && $q->whereYear('plan_date', $request->year);
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
-        // $q->select(DB::raw('count(id)'), DB::raw('SUM(quantity) as total_amount'));
-        $request->year && $q->whereYear('maintain_date', $request->year);
+        if ($request->start_time && $request->end_time) {
+          $q->whereBetween('maintain_date', [$request->start_time, $request->end_time]);
+        }
       }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -794,6 +794,7 @@ class EquipmentController extends BaseController
     ]);
     $data = $this->equipment->MaintainPlanModel()
       ->whereId($request->id)
+      ->withCount('maintain')
       // ->where('year', $request->year)
       ->with('maintain')->first();
     return $this->success($data);
