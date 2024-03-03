@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,5 +20,10 @@ use Illuminate\Http\Request;
 //     ]);
 // });
 
-Route::resource('projects', 'ProjectsController');
-Route::get('/sys/order/test', '\App\Admin\Controllers\OrderController@test');
+
+
+Route::fallback(function () {
+  return response()->json([
+    'message' => '访问资源不存在!', 'code' => 404
+  ], 404);
+});

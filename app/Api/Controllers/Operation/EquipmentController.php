@@ -187,12 +187,11 @@ class EquipmentController extends BaseController
    *       @OA\Property(property="quantity",type="String",description="数量"),
    *       @OA\Property(property="unit",type="String",description="单位"),
    *       @OA\Property(property="maintain_cycle",type="String",description="维护周期"),
-   *       @OA\Property(property="maintain_content",type="String",description="维护内容"),
-   *       @OA\Property(property="maintain_times",type="String",description="维护次数")
+   *       @OA\Property(property="maintain_content",type="String",description="维护内容")
    *     ),
    *       example={"system_name":"","position":"","major":"","device_name":"","model":"",
    *       "quantity":"","unit":"","maintain_cycle":"",
-   *       "maintain_content":"","maintain_times":""}
+   *       "maintain_content":""}
    *       )
    *     ),
    *     @OA\Response(

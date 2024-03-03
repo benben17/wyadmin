@@ -168,12 +168,7 @@ Route::group(['prefix' => 'business/building'], function () {
     Route::post('room/edit', '\App\Api\Controllers\Business\BuildingRoomController@update');
     Route::post('room/show', '\App\Api\Controllers\Business\BuildingRoomController@show');
 });
-Route::group(['prefix' => 'business/wx'], function () {
-    Route::post('room/list', '\App\Api\Controllers\Weixin\WxRoomController@index');
-    Route::post('room/show', '\App\Api\Controllers\Weixin\WxRoomController@show');
-    Route::post('rooms', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
-    Route::post('project/list', '\App\Api\Controllers\Weixin\WxRoomController@wxGetProj');
-});
+
 
 
 // 工位管理
@@ -428,6 +423,7 @@ Route::group(['prefix' => 'operation/equipment'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\EquipmentController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\EquipmentController@show');
 
+    Route::post('/plan/show', '\App\Api\Controllers\Operation\EquipmentController@planShow');
     Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentController@planList');
     Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentController@planDelete');
     Route::post('/plan/edit', '\App\Api\Controllers\Operation\EquipmentController@planEdit');
@@ -499,6 +495,25 @@ Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('/charge/month/report', '\App\Api\Controllers\Stat\BillStatController@chargeStat');
 });
 
+
+
+
+Route::group(['prefix' => 'sys/excel'], function () {
+    Route::post('import', '\App\Api\Controllers\Excel\ExcelController@test');
+});
+
+
+
+// 微信
+Route::group(['prefix' => 'business/wx', 'middleware' => 'web'], function () {
+    Route::post('room/list', '\App\Api\Controllers\Weixin\WxRoomController@index');
+    Route::post('room/show', '\App\Api\Controllers\Weixin\WxRoomController@show');
+    Route::post('rooms', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
+    Route::post('project/list', '\App\Api\Controllers\Weixin\WxRoomController@wxGetProj');
+});
+
+
+
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WeiXinController@redirectToProvider');
     Route::get('/callback', '\App\Api\Controllers\Weixin\WeiXinController@handleProviderCallback');
@@ -511,18 +526,12 @@ Route::group(['prefix' => 'wx'], function () {
     Route::post('/pay/notify_url', '\App\Api\Controllers\Venue\ActivityController@WxPayNotify');
 });
 
+
+
 Route::group(['prefix' => 'wxapp/customer'], function () {
     Route::post('/stat', '\App\Api\Controllers\Weixin\WxStatController@customerStat');
     Route::post('/list', '\App\Api\Controllers\Weixin\WxStatController@list');
 });
-
-
-
-
-Route::group(['prefix' => 'sys/excel'], function () {
-    Route::post('import', '\App\Api\Controllers\Excel\ExcelController@test');
-});
-
 
 // Route::get('/test', function() {
 
