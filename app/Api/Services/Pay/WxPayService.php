@@ -114,7 +114,15 @@ class WxPayService
     }
   }
 
-
+  /**
+   * 微信支付退款
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-03
+   * @param array $pay
+   *
+   * @return boolean
+   */
   function wxRefund(array $pay): bool
   {
     try {
