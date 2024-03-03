@@ -138,16 +138,18 @@ class EquipmentService
   {
     $plan = $this->MaintainPlanModel()->find($maintainPlan['id']);
 
-    $plan['plan_date']       = $maintainPlan['plan_date'];
-    $plan['device_name']     = $maintainPlan['device_name'];
-    $plan['model']           = $maintainPlan['model'];
-    $plan['major']           = $maintainPlan['major'];
-    $plan['position']        = $maintainPlan['position'];
-    // 'maintain_period' => $equipment['maintain_period'],
-    $plan['equipment_id']    = $maintainPlan['equipment_id'];
-    $plan['equipment_type']  = $maintainPlan['equipment_type'];
-    $plan['quantity']        = $maintainPlan['quantity'];
-    $plan['updated_at']      = nowTime();
+    $plan->fill([
+      'plan_date'       => $maintainPlan['plan_date'],
+      'device_name'     => $maintainPlan['device_name'],
+      'model'           => $maintainPlan['model'],
+      'major'           => $maintainPlan['major'],
+      'position'        => $maintainPlan['position'],
+      'equipment_id'    => $maintainPlan['equipment_id'],
+      'equipment_type'  => $maintainPlan['equipment_type'],
+      'quantity'        => $maintainPlan['quantity'],
+      'updated_at'      => nowTime(),
+    ]);
+
     return $plan->save();
   }
 
