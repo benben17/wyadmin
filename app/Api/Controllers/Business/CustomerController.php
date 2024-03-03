@@ -404,7 +404,7 @@ class CustomerController extends BaseController
                     $contacts = formatContact($contacts, $DA['id'], $user, 2);
                     $contact = new ContactModel;
                     $res = $contact->addAll($contacts);
-                    Log::error("联系人" . $res);
+                    Log::info("联系人" . $res);
                 }
                 // 房间
                 if ($DA['tenant_rooms'] && !empty($DA['tenant_rooms'])) {

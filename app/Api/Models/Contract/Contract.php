@@ -6,6 +6,7 @@ use App\Api\Models\Bill\TenantShareRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\Log;
 
 class Contract extends Model

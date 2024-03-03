@@ -38,7 +38,8 @@ class Tenant extends Model
   public function getProjNameAttribute()
   {
     if (isset($this->attributes['proj_id'])) {
-      return getProjById($this->attributes['proj_id'])['proj_name'];
+      $proj =  getProjById($this->attributes['proj_id']);
+      return $proj['proj_name'] ?? "";
     }
   }
   public function tenantShare()
