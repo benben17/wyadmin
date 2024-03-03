@@ -181,11 +181,8 @@ class AuthController extends BaseController
     public function userinfo(Request $request)
     {
         try {
-            $uid  = auth()->payload()->get('sub');
-            if (!$uid) {
-                return $this->error('用户信息获取失败!');
-            }
-            $result = \App\Models\User::with('company')->with('role:id,name')->find($uid);
+            $this->authUser();
+            $result = \App\Models\User::with('company')->with('role:id,name')->find($this->uid);
             if (!$result) {
                 return $this->error('用户信息查询失败!');
             }
@@ -225,13 +222,10 @@ class AuthController extends BaseController
     public function editUserInfo(Request $request)
     {
         try {
-            $uid  = auth()->payload()->get('sub');
-            if (!$uid) {
-                return $this->error('用户信息获取失败!');
-            }
+            $this->authUser();
             $DA = $request->toArray();
-            $userInfo = \App\Models\User::find($uid);
-            $userInfo->u_uid = $uid;
+            $userInfo = \App\Models\User::find($this->uid);
+            $userInfo->u_uid = $this->uid;
             $userInfo->email = isset($DA['email']) ? $DA['email'] : "";
             $userInfo->phone = isset($DA['phone']) ? $DA['phone'] : "";
             $userInfo->remark = isset($DA['remark']) ? $DA['remark'] : "";
@@ -275,12 +269,10 @@ class AuthController extends BaseController
      */
     public function bindWeChat(Request $request)
     {
-        $uid  = auth()->payload()->get('sub');
-        if (!$uid) {
-            return $this->error('用户信息获取失败!');
-        }
+        $this->authUser();
+
         $DA = $request->toArray();
-        $userInfo = \App\Models\User::find($uid);
+        $userInfo = \App\Models\User::find($this->uid);
         $userInfo->wx_openid = $DA['openid'];
         $result = $userInfo->save();
         if (!$result) {

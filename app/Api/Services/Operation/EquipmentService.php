@@ -106,6 +106,7 @@ class EquipmentService
         'equipment_id'    => $equipment['id'],
         // 'equipment_type'  => $equipment['equipment_type'],
         'quantity'        => $equipment['quantity'],
+        'created_at'      => nowTime(),
       ];
 
       $data[] = $plan;
@@ -148,10 +149,13 @@ class EquipmentService
       'position'        => $maintainPlan['position'],
       // 'maintain_period' => $equipment['maintain_period'],
       'equipment_id'    => $maintainPlan['id'],
-      // 'equipment_type'  => $equipment['equipment_type'],
+      'equipment_type'  => $maintainPlan['equipment_type'],
       'quantity'        => $maintainPlan['quantity'],
+      'updated_at'      => nowTime(),
     ];
-    $res = $this->maintainModel()->save($plan);
+    if ($maintainPlan['id']) {
+      $res = $this->maintainModel()->whereId($maintainPlan['id'])->update($plan);
+    }
     return $res;
   }
 

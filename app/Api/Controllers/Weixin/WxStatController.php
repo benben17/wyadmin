@@ -101,18 +101,18 @@ class WxStatController extends BaseController
         $data['follow']['month'] = $f_month;
 
 
-        $unfollow1 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+        $unFollow1 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
             $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 3), getPreYmdByDay(nowYmd(), 7)]);
         })->count();
-        $unfollow2 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+        $unFollow2 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
             $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 8), getPreYmdByDay(nowYmd(), 16)]);
         })->count();
-        $unfollow3 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
+        $unFollow3 = $tenant->where($map)->whereDoesntHave('follow', function ($q) {
             $q->whereBetween('created_at', [getPreYmdByDay(nowYmd(), 16), getPreYmd(nowYmd(), 3)]);
         })->count();
-        $data['unfollow']['three'] = $unfollow1;
-        $data['unfollow']['week']  = $unfollow2;
-        $data['unfollow']['month'] = $unfollow3;
+        $data['unfollow']['three'] = $unFollow1;
+        $data['unfollow']['week']  = $unFollow2;
+        $data['unfollow']['month'] = $unFollow3;
         // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }

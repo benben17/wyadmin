@@ -663,8 +663,9 @@ class EquipmentController extends BaseController
 
     $plan = $this->equipment->MaintainPlanModel()->find($request->id);
     if ($plan->status == 1) {
+      return $this->error("已维护完成不允许修改");
     }
-    $res = $this->equipment->MaintainPlanModel()->editMaintainPlan($request->toArray());
+    $res = $this->equipment->editMaintainPlan($request->toArray());
     if ($res) {
       return $this->success("维护计划删除成功。");
     }

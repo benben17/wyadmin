@@ -25,9 +25,16 @@ class BaseController extends Controller
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
-
         $this->company_id = getCompanyId($this->uid);
         $this->user = auth('api')->user();
+    }
+
+
+    public function authUser()
+    {
+        if (!$this->uid) {
+            return $this->error('用户信息错误');
+        }
     }
 
     //成功返回
