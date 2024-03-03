@@ -105,7 +105,7 @@ class EquipmentService
         // 'maintain_period' => $equipment['maintain_period'],
         'equipment_id'    => $equipment['id'],
         // 'equipment_type'  => $equipment['equipment_type'],
-        'plain_quantity'        => $equipment['quantity'],
+        'plan_quantity'        => $equipment['quantity'],
         'created_at'      => nowTime(),
       ];
 
@@ -127,7 +127,7 @@ class EquipmentService
       return false;
     }
     $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
-    if ($maintainPlan->maintain_quantity >= $maintainPlan->plain_quantity) {
+    if ($maintainPlan->maintain_quantity >= $maintainPlan->plan_quantity) {
       $maintainPlan->status = 1;
     }
     $maintainPlan->save();
