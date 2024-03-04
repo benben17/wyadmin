@@ -82,7 +82,7 @@ class EquipmentController extends BaseController
     $data = $this->equipment->equipmentModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
         $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
       })
@@ -422,10 +422,11 @@ class EquipmentController extends BaseController
     ]);
     $DA = $request->toArray();
     $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-    if (!$maintainId) {
+    $updatePlanRes = $this->equipment->updateMaintainPlan($maintainId);
+    if (!$maintainId || !$updatePlanRes) {
       return $this->error('设备维护保存失败！');
     }
-    $this->equipment->updateMaintainPlan($maintainId);
+
     return $this->success('设备维护保存成功。');
   }
 
@@ -612,13 +613,14 @@ class EquipmentController extends BaseController
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
-        // $request->year && $q->whereYear('plan_date', $request->year);
+        $request->year && $q->whereYear('plan_date', $request->year);
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
         if ($request->start_time && $request->end_time) {
           $q->whereBetween('maintain_date', [$request->start_time, $request->end_time]);
         }
+        $request->year && $q->whereYear('maintain_date', $request->year);
       }])
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();

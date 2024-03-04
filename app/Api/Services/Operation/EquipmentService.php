@@ -183,7 +183,7 @@ class EquipmentService
       $maintain->maintain_period = $equipment['maintain_period'];
       $maintain->plan_id        = $DA['plan_id'];
       $maintain->equipment_id   = $DA['equipment_id'];
-      $maintain->equipment_type = $DA['equipment_type'];
+      $maintain->equipment_type = $DA['equipment_type'] ?? "";
       $maintain->maintain_content = $DA['maintain_content'];
       $maintain->maintain_date  = $DA['maintain_date'];
       $maintain->maintain_person = $DA['maintain_person'];
