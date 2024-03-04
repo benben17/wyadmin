@@ -342,9 +342,7 @@ class EquipmentController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-    if (!$request->year) {
-      $request->year = date('Y');
-    }
+
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -358,7 +356,7 @@ class EquipmentController extends BaseController
       $order = 'desc';
     }
 
-
+    DB::enableQueryLog();
     $data = $this->equipment->maintainModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
@@ -371,11 +369,10 @@ class EquipmentController extends BaseController
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
       ->with('maintainPlan:id,plan_date,plan_quantity')
-
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();
-
+    // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
