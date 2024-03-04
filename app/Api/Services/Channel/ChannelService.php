@@ -122,17 +122,15 @@ class ChannelService
       // Log::info('渠道不存在：'.$DA['channel_id']);
       return true;
     }
-    $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
+    $policy = PolicyModel::where('id', $channel['policy_id'])->first();
 
     // 目前只有一种政策，按照固定的几个月租金进行处理
+    $brokerageAmount = 0;
     if ($contractRule) {
       $brokerageAmount = numFormat($contractRule['month_amt'] * $tenant['brokerage']);
-    } else {
-      $brokerageAmount = 0;
     }
     /**  更新渠道的总佣金 */
     try {
-
       $channel->brokerage_amount = $channel['brokerage_amount'] +  $brokerageAmount;
       $res = $channel->save();
       if ($res) {
