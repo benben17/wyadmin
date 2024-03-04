@@ -219,8 +219,8 @@ class ContractService
           $tenantBillService->batchSaveBillDetail($contract['id'], $user, $contract['proj_id']);
 
           // 更新渠道佣金
-          //$channelService = new ChannelService;
-          //$channelService->updateBrokerage($tenant['channel_id'], $DA['id'], $tenant, $this->user['company_id']);
+          $channelService = new ChannelService;
+          $channelService->updateBrokerage($tenant['channel_id'], $DA['id'], $tenant, $user['company_id']);
         } else {
           $DA['contract_state'] = 0; //审核不通过 进入草稿箱编辑
           $msgContent =  $contract['tenant_name'] . "-已被-" . $user['realname'] . " 在 " . nowTime() . "退回修改！";

@@ -860,7 +860,7 @@ class ContractController extends BaseController
         }
     }
 
-    private function formatRoom($DA, $contractId, $proj_id, $type = 1)
+    private function formatRoom($DA, $contractId, $proj_id, $type = 1): array
     {
         $currentDateTime = date('Y-m-d H:i:s');
         foreach ($DA as $k => $v) {
@@ -881,5 +881,6 @@ class ContractController extends BaseController
 
             $BA[$k][$type != 1 ? 'created_at' : 'updated_at'] = $currentDateTime;
         }
+        return $BA;
     }
 }

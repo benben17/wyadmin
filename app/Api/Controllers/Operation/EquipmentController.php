@@ -371,9 +371,11 @@ class EquipmentController extends BaseController
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
       ->with('maintainPlan:id,plan_date,plan_quantity')
+
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();
+    return $data;
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
@@ -733,7 +735,7 @@ class EquipmentController extends BaseController
    *       @OA\Property(property="equipment_ids",type="list",description="设备IDs"),
    *       @OA\Property(property="year",type="int",description="计划年份"),
    *     ),
-   *       example={"equipment_ids":"","year":""}
+   *       example={"equipment_ids":"[1,2,3]","year":"2024"}
    *       )
    *     ),
    *     @OA\Response(

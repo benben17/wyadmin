@@ -3652,11 +3652,11 @@
                                 "properties": {
                                     "name": {
                                         "description": "公司名字，全名",
-                                        "type": "Strig"
+                                        "type": "String"
                                     },
                                     "tenant_id": {
                                         "description": "客户ID",
-                                        "type": "Strig"
+                                        "type": "int"
                                     }
                                 },
                                 "type": "object"
@@ -7218,10 +7218,6 @@
                                     "maintain_content": {
                                         "description": "维护内容",
                                         "type": "String"
-                                    },
-                                    "maintain_times": {
-                                        "description": "维护次数",
-                                        "type": "String"
                                     }
                                 },
                                 "type": "object"
@@ -7235,8 +7231,7 @@
                                 "quantity": "",
                                 "unit": "",
                                 "maintain_cycle": "",
-                                "maintain_content": "",
-                                "maintain_times": ""
+                                "maintain_content": ""
                             }
                         }
                     }
@@ -7443,7 +7438,7 @@
                                         "description": "位置",
                                         "type": "String"
                                     },
-                                    "quantity": {
+                                    "maintain_quantity": {
                                         "description": "数量",
                                         "type": "int"
                                     },
@@ -7464,7 +7459,8 @@
                                 "maintain_date": "",
                                 "maintain_content": "",
                                 "maintain_type": "",
-                                "maintain_person": ""
+                                "maintain_person": "",
+                                "maintain_quantity": ""
                             }
                         }
                     }
@@ -7773,8 +7769,8 @@
                                 "type": "object"
                             },
                             "example": {
-                                "equipment_ids": "",
-                                "year": ""
+                                "equipment_ids": "[1,2,3]",
+                                "year": "2024"
                             }
                         }
                     }

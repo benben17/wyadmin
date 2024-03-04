@@ -110,11 +110,12 @@ class ChannelService
 
 
   /** 渠道租金更新 */
-  public function updateBrokerage($ChannelId, $contractId, $tenant, $companyId)
+  public function updateBrokerage($ChannelId, $contractId, $tenant, $companyId): bool
   {
 
     $billRuleService = new BillRuleService;
     $contractRule = $billRuleService->model()->where('contract_id', $contractId)->where('fee_type', AppEnum::rentFeeType)->first();
+
     $channel = ChannelModel::find($ChannelId);
 
     if (!$channel) {
@@ -124,7 +125,11 @@ class ChannelService
     $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
 
     // 目前只有一种政策，按照固定的几个月租金进行处理
-    $brokerageAmount = numFormat($contractRule['month_amt'] * $tenant['brokerage']);
+    if ($contractRule) {
+      $brokerageAmount = numFormat($contractRule['month_amt'] * $tenant['brokerage']);
+    } else {
+      $brokerageAmount = 0;
+    }
     /**  更新渠道的总佣金 */
     try {
 
@@ -147,6 +152,7 @@ class ChannelService
       throw new Exception("更新佣金失败" . $e->getMessage());
       log::error("佣金保存:" . $e->getMessage());
       log::error($brokerage);
+      return false;
     }
   }
 }
