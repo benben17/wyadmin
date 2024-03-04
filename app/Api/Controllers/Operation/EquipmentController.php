@@ -375,7 +375,7 @@ class EquipmentController extends BaseController
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();
-    return $data;
+
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
