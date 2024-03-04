@@ -37,11 +37,17 @@ class EquipmentMaintain extends Model
     $proj = \App\Api\Models\Project::select('proj_name')->find($projId);
     return $proj['proj_name'];
   }
+  // 获取维护周期label
   public function getMaintainPeriodLabelAttribute()
   {
-    $maintain_period = $this->attributes['maintain_period'];
-    return getDictName($maintain_period);
+    if (!isset($this->attributes['equipment_id'])) {
+      return "";
+    }
+    $equipment = Equipment::find($this->attributes['equipment_id']);
+
+    return optional($equipment)->maintain_period_label ?? "";
   }
+
 
   protected static function boot()
   {
