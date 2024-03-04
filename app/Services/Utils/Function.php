@@ -281,6 +281,9 @@ function getOssUrl($filePath)
 }
 function str2Array($str, $tag = ',')
 {
+    if (is_array($str)) {
+        return $str;
+    }
     $arr = array();
     if (!is_array($str) && !empty($str)) {
         $arr = explode($tag, $str);

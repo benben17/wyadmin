@@ -19,7 +19,7 @@ class EquipmentMaintain extends Model
 
   protected $table = 'bse_equipment_maintain';
   protected $fillable = [];
-  protected $hidden = [];
+  protected $hidden = ['company_id'];
 
 
   protected static function boot()

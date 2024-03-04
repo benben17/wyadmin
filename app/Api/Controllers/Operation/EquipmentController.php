@@ -614,6 +614,7 @@ class EquipmentController extends BaseController
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
         $request->year && $q->whereYear('plan_date', $request->year);
+        $request->completed &&  $q->whereRaw('plan_quantity=maintain_quantity');
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
@@ -627,8 +628,8 @@ class EquipmentController extends BaseController
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
-
-      $v['completed'] = $v['status'] === 1;
+      $v['completed'] = $v['status'] === 1 ? 1 : 0;
+      $v['completed_label'] =   $v['status'] === 1 ? "是" : "否";
     }
     return $this->success($data);
   }
