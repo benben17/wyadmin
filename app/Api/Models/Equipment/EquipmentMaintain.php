@@ -28,6 +28,11 @@ class EquipmentMaintain extends Model
     static::addGlobalScope(new CompanyScope);
   }
 
+  public function maintainPlan()
+  {
+    return $this->belongsTo(EquipmentPlan::class,   'plain_id', 'id') ?? (object) array();;
+  }
+
   protected $appends = ['proj_name', 'maintain_period_label'];
   public function getProjNameAttribute()
   {

@@ -369,10 +369,17 @@ class EquipmentController extends BaseController
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->year && $q->whereYear('maintain_date', $request->year);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
-      })->orderBy($orderBy, $order)
+      })
+      ->with('maintainPlan:id,plan_date,plan_quantity')
+      ->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();
     $data = $this->handleBackData($data);
+    foreach ($data['result'] as $k => &$v) {
+      $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
+      $v['plan_quantity'] = $v['maintain_plan']['plan_quantity'] ?? 0;
+      unset($v['maintain_plan']);
+    }
     return $this->success($data);
   }
 
