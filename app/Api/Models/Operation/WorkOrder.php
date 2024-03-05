@@ -19,10 +19,10 @@ class WorkOrder extends Model
 
   protected $table = 'bse_workorder';
   protected $fillable = [];
-  protected $hidden = [];
+  protected $hidden = ['company_id'];
 
 
-  protected $appends = ['status_label'];
+  protected $appends = ['status_label', 'yh_status_label'];
 
   public function getStatusLabelAttribute()
   {
@@ -33,6 +33,28 @@ class WorkOrder extends Model
         break;
       case '2':
         return '处理中';
+        break;
+      case '3':
+        return '处理完成';
+        break;
+      case '4':
+        return '关闭';
+        break;
+      case '99':
+        return '已取消';
+        break;
+    }
+  }
+
+  public function getYhStatusLabelAttribute()
+  {
+    $status = $this->attributes['status'];
+    switch ($status) {
+      case '1':
+        return '待派单';
+        break;
+      case '2':
+        return '待处理';
         break;
       case '3':
         return '处理完成';

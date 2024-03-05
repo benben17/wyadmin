@@ -10044,7 +10044,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单列表",
+                "summary": "报修/隐患工单列表",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10095,7 +10095,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "提交工单",
+                "summary": "报修/隐患 工单保存",
                 "operationId": "b2df2ea482e47f6d9925f53d099c3585",
                 "requestBody": {
                     "content": {
@@ -10148,7 +10148,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单编辑",
+                "summary": "报修/隐患工单编辑",
                 "operationId": "a88053488fea3577ea9e850ce73b9189",
                 "requestBody": {
                     "content": {
@@ -10200,9 +10200,9 @@
         "/api/operation/workorder/cancel": {
             "post": {
                 "tags": [
-                    "工单"
+                    "保修工单"
                 ],
-                "summary": "工单取消",
+                "summary": "保修工单取消",
                 "operationId": "ade0c7e5e7f4de062df8b5f167b02102",
                 "requestBody": {
                     "content": {
@@ -10238,7 +10238,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单派单接单",
+                "summary": "报修/隐患 工单 派单/接单",
                 "operationId": "790fe5061a5f0cf258c191b6141bf60a",
                 "requestBody": {
                     "content": {
@@ -10290,7 +10290,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单处理",
+                "summary": "报修/隐患 工单处理",
                 "operationId": "0d192f8aa9a91badfd964cc2af914c1b",
                 "requestBody": {
                     "content": {
@@ -10341,7 +10341,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "隐患工单审核",
+                "summary": "隐患工单 审核",
                 "operationId": "a3526654ad6da4d2692311ee1a08c7d6",
                 "requestBody": {
                     "content": {
@@ -10384,7 +10384,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单关闭，并提交评价",
+                "summary": "报修/隐患 工单关闭，并提交评价",
                 "operationId": "44454055d38ad43fcc139ad2ec927d57",
                 "requestBody": {
                     "content": {
@@ -10426,7 +10426,7 @@
                 "tags": [
                     "工单"
                 ],
-                "summary": "工单关闭，并提交评价",
+                "summary": "工单评价",
                 "operationId": "d60adf91936f2d9b34caa128d4394827",
                 "requestBody": {
                     "content": {

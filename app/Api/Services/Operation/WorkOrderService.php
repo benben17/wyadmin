@@ -116,7 +116,9 @@ class WorkOrderService
         $order->maintain_person = isset($DA['maintain_person']) ? $DA['maintain_person'] : "";
         $order->status          = AppEnum::workorderProcess; // 处理完成
         $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
+        $order->remark          = $order['tenant_name'] . "-维修-" . $order['repair_content'];
         $res = $order->save();
+
         // 保存费用
         if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
           $BA['company_id']   = $order['company_id'];
@@ -127,7 +129,7 @@ class WorkOrderService
           $BA['type']         = AppEnum::chargeIncome; // 收款
           $BA['fee_type']     = AppEnum::maintenanceFeeType;
           $BA['amount']       = $DA['charge_amount'] ?? 0;
-          $BA['remark']       = $order['tenant_name'] . "-工程维修-" . $order['repair_content'];
+          $BA['remark']       = $order['tenant_name'] . "-维修-" . $order['repair_content'];
           $billService = new TenantBillService;
           $billService->saveBillDetail($BA, $user);
         }
@@ -139,7 +141,7 @@ class WorkOrderService
           $smsService->sendSms($order['open_phone'], $parm);
         }
         // 写入日志
-        $this->saveOrderLog($DA['id'], $order->status, $user);
+        $this->saveOrderLog($DA['id'], $order->status, $user, $order->remark);
       }, 3);
 
       return true;
@@ -157,16 +159,17 @@ class WorkOrderService
    * @param    [type]     $DA [description]
    * @return   [type]         [description]
    */
-  public function cancelWorkorder(int $orderId, $user)
+  public function cancelWorkorder(int $orderId, $user, $remark = "")
   {
     $order = WorkOrderModel::find($orderId);
     if ($order->status >= 3) {
       return false;
     }
     $order->status = AppEnum::workorderCancel;
+    $order->remark = $remark;
     $res = $order->save();
     // 写入日志
-    $this->saveOrderLog($orderId, AppEnum::workorderCancel, $user);
+    $this->saveOrderLog($orderId, AppEnum::workorderCancel, $user, $order->remark);
     return $res;
   }
 
@@ -199,7 +202,7 @@ class WorkOrderService
         $res = $order->save();
         if ($res) {
           // 写入日志
-          $this->saveOrderLog($DA['id'], $order->status, $user);
+          $this->saveOrderLog($DA['id'], $order->status, $user, $order->remark);
         }
       });
       return true;
@@ -230,13 +233,13 @@ class WorkOrderService
         // $order->is_notice       = $DA['is_notice']; // 工单关闭
 
         if ($order->status != AppEnum::workorderClose) {
-          $order->status          = AppEnum::workorderClose; // 工单关闭
+          $order->status    = AppEnum::workorderClose; // 工单关闭
         }
         $res = $order->save();
         // Log::error($order->status);
         if ($res) {
           // 写入日志
-          $this->saveOrderLog($DA['id'], $order->status, $user);
+          $this->saveOrderLog($DA['id'], $order->status, $user, $order['remark']);
         }
       });
       return true;
@@ -248,7 +251,7 @@ class WorkOrderService
   /** 生成工单编号 */
   private function workorderNo($workType)
   {
-    $prefix = ($workType == 1) ? 'YH-' : 'WS-';
+    $prefix = ($workType === 1) ?  'WS-' : 'YH-';
     return $prefix . date('ymdHis');
   }
 
@@ -261,7 +264,7 @@ class WorkOrderService
    * @param    [type]     $user        [description]
    * @return   [type]                  [description]
    */
-  private function saveOrderLog($orderId, $orderStatus, $user)
+  private function saveOrderLog($orderId, $orderStatus, $user, $remark = "")
   {
     try {
       $orderLog = new WorkOrderLogModel;
@@ -269,6 +272,7 @@ class WorkOrderService
       $orderLog->status = $orderStatus;
       $orderLog->c_username = $user['realname'];
       $orderLog->c_uid = $user['id'];
+      $orderLog->remark = $remark;
       // DB::enableQueryLog();
 
       $res = $orderLog->save();

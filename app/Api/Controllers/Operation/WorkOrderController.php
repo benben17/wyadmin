@@ -27,7 +27,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/list",
    *     tags={"工单"},
-   *     summary="工单列表",
+   *     summary="报修/隐患工单列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -52,7 +52,8 @@ class WorkOrderController extends BaseController
   public function list(Request $request)
   {
     $validatedData = $request->validate([
-      // 'status' => 'required|array',
+      'proj_ids' => 'required|array',
+      'status' => 'required|array',
       'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');
@@ -145,7 +146,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/add",
    *     tags={"工单"},
-   *     summary="提交工单",
+   *     summary="报修/隐患 工单保存",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -191,7 +192,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/edit",
    *     tags={"工单"},
-   *     summary="工单编辑",
+   *     summary="报修/隐患工单编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -239,8 +240,8 @@ class WorkOrderController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/workorder/cancel",
-   *     tags={"工单"},
-   *     summary="工单取消",
+   *     tags={"保修工单"},
+   *     summary="保修工单取消",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -279,7 +280,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/order",
    *     tags={"工单"},
-   *     summary="工单派单接单",
+   *     summary="报修/隐患 工单 派单/接单",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -324,7 +325,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/process",
    *     tags={"工单"},
-   *     summary="工单处理",
+   *     summary="报修/隐患 工单处理",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -369,7 +370,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/audit",
    *     tags={"工单"},
-   *     summary="隐患工单审核",
+   *     summary="隐患工单 审核",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -409,7 +410,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/close",
    *     tags={"工单"},
-   *     summary="工单关闭，并提交评价",
+   *     summary="报修/隐患 工单关闭，并提交评价",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -449,7 +450,7 @@ class WorkOrderController extends BaseController
    * @OA\Post(
    *     path="/api/operation/workorder/rate",
    *     tags={"工单"},
-   *     summary="工单关闭，并提交评价",
+   *     summary="工单评价",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",

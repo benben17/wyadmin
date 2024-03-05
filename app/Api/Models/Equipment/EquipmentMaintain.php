@@ -37,6 +37,7 @@ class EquipmentMaintain extends Model
     $proj = \App\Api\Models\Project::select('proj_name')->find($projId);
     return $proj['proj_name'];
   }
+
   // 获取维护周期label
   public function getMaintainPeriodLabelAttribute()
   {
@@ -44,7 +45,6 @@ class EquipmentMaintain extends Model
       return "";
     }
     $equipment = Equipment::find($this->attributes['equipment_id']);
-
     return optional($equipment)->maintain_period_label ?? "";
   }
 
