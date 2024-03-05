@@ -44,6 +44,7 @@ class ContractBillService
     $bill = array();
 
     while ($i < $billNum) {
+      $remark = "";
       $period  = $rule['pay_method'];
       $bill[$i]['fee_type'] = $rule['fee_type'];
       $bill[$i]['price'] = $rule['unit_price'];
@@ -68,14 +69,16 @@ class ContractBillService
         $lastPeriod = $leaseTerm - ($period * $i);
         $bill[$i]['amount'] = numFormat($lastPeriod * $rule['month_amt']);
       }
+
       // 如有免租，账单期内减免
       if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $contract['free_list']) {
         $free = $this->freeRental($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
           $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
-          $bill[$i]['remark'] = $free['remark'];
+          $remark = $free['remark'];
         }
       }
+      $bill[$i]['remark'] = $remark;
       $bill[$i]['bill_date'] = formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
       $bill[$i]['bill_num'] = $i + 1;
       $data['total'] += $bill[$i]['amount'];
@@ -260,10 +263,10 @@ class ContractBillService
     $free_month = 0;
     $free_day = 0;
     for ($i = 0; $i <= $ceil; $i++) {
-      Log::error("i-" . $i);
+      $remark = "";
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
-      $bill[$i]['price'] = numFormat($rule['unit_price']) . $rule['unit_price_label'];
+      $bill[$i]['price'] = numFormat($rule['unit_price']) . " " . $rule['unit_price_label'];
 
       if ($i == 0) {
         $startDate = $DA['start_date'];
@@ -280,11 +283,11 @@ class ContractBillService
       if (!empty($DA['free_list'])) {
         if ($freeType == AppEnum::freeMonth) { // 免租类型为1 的时候 按月免租
           $free = $this->endDateByMonth($startDate, $period, $DA['free_list'], 0, $rule['end_date']);
+          Log::info('free[free_num]' . $free['free_num']);
           $endDate = $free['end_date'];
-          Log::info('$free[free_num]' . $free['free_num']);
 
           if ($free['free_num'] > 0) {
-            $bill[$i]['remark'] = $free['remark'];
+            $remark = $free['remark'];
             $free_month += $free['free_num'];
           }
         } else if ($freeType == AppEnum::freeDay) {
@@ -296,7 +299,7 @@ class ContractBillService
           Log::info('free[end_date]' . $free['end_date']);
           $endDate = $free['end_date'];
           if ($free['free_num'] > 0) {
-            $bill[$i]['remark'] = $free['remark'];
+            $remark = $free['remark'];
             $free_day += $free['free_num'];
           }
         }
@@ -330,6 +333,7 @@ class ContractBillService
         $bill[$i]['end_date'] = getPreYmdByDay($endDate, 1);
         $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
       }
+      $bill[$i]['remark'] = $remark;
       // Log::info(json_encode($bill));
     }
     $data['bill'] = $bill;
@@ -435,7 +439,7 @@ class ContractBillService
         // Log::error("free num ".$free_num);
       }
     }
-    Log::error("if else" . $free_num);
+    // Log::error("if else" . $free_num);
     if ($free_num == 0) {
       return ['end_date' => $endDate, 'free_num' => $days, 'remark' => $freeRemark];
     }
@@ -496,10 +500,9 @@ class ContractBillService
     }
 
 
-
     // Log::info(response()->json(DB::getQueryLog()));
     if ($free_num == 0) {
-      Log::error($months);
+      // Log::error($freeRemark . "-freeRemark");
       return ['end_date' => $endDate, 'free_num' => $months, 'remark' => $freeRemark];
     }
     $totalFreeMonths = $months + $free_num; // Separate variable to track total free months

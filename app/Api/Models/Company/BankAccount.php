@@ -22,8 +22,13 @@ class BankAccount extends Model
 
   public function project()
   {
-    return $this->hasMany(Project::class, 'id', 'bank_id');
+    return $this->hasOne(Project::class, 'id', 'proj_id');
   }
+
+  // public function feeTypes()
+  // {
+  //   return $this->hasMany(FeeType::class, 'id', 'proj_id');
+  // }
 
   protected static function boot()
   {

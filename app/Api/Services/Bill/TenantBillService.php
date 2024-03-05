@@ -2,6 +2,7 @@
 
 namespace App\Api\Services\Bill;
 
+use App\Api\Models\Bill\ChargeBill;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,11 @@ class TenantBillService
   public function billDetailModel()
   {
     return new BillDetailModel;
+  }
+
+  public function chargeBillModel()
+  {
+    return new ChargeBill;
   }
 
   /**

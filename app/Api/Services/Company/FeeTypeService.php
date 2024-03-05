@@ -92,4 +92,23 @@ class FeeTypeService
     }
     return array();
   }
+
+
+  /**
+   * 根据feeId 获取feeNames 返回数组
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-05
+   * @param array $feeIds
+   *
+   * @return array
+   */
+  public function getFeeNames($feeIds): array
+  {
+
+    $feeType = FeeType::selectRaw('GROUP_CONCAT(fee_name) as fee_names')
+      ->whereIn('id', str2Array($feeIds))->first();
+
+    return str2Array($feeType['fee_names']) ?? array();
+  }
 }

@@ -7,7 +7,8 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\BankAccount as bankAccountModel;
-
+use App\Api\Models\Company\FeeType;
+use App\Api\Services\Company\FeeTypeService;
 
 /**
  *
@@ -15,9 +16,11 @@ use App\Api\Models\Company\BankAccount as bankAccountModel;
  */
 class BankAccountController extends BaseController
 {
+    private $feeTypeService;
     public function __construct()
     {
         parent::__construct();
+        $this->feeTypeService = new FeeTypeService;
     }
     /**
      * @OA\Post(
@@ -70,10 +73,12 @@ class BankAccountController extends BaseController
         })
             ->orderBy($orderBy, $order)->get()->toArray();
 
-        // return response()->json(DB::getQueryLog());
         foreach ($data as $k => &$v) {
             $v['proj_name'] = getProjNameById($v['proj_id']);
+
+            $v['fee_types'] = $this->feeTypeService->getFeeNames($v['fee_type_id']);
         }
+        // return response()->json(DB::getQueryLog());
         return $this->success($data);
     }
 
@@ -83,6 +88,7 @@ class BankAccountController extends BaseController
             'id' => 'required|int|gt:0',
         ]);
         $data = bankAccountModel::find($request->id)->toArray();
+        $data['fee_types'] = $this->feeTypeService->getFeeNames($v['fee_type_id']);
         return $this->success($data);
     }
 
@@ -114,8 +120,8 @@ class BankAccountController extends BaseController
         $validatedData = $request->validate([
             'account_name' => 'required|String|unique:bse_bank_account',
             'account_number' => 'required|String',
-
-            'bank_name' => 'required|String|min:1',
+            'bank_name' => 'required|String|min:2',
+            'fee_type_id' => 'required|String',
         ]);
 
         $DA =  $request->toArray();
@@ -125,16 +131,14 @@ class BankAccountController extends BaseController
         $bankAccount['account_number'] = $DA['account_number'];
         $bankAccount['bank_name']   = $DA['bank_name'];
         $bankAccount['bank_addr']   = isset($DA['bank_addr']) ? $DA['bank_addr'] : "";
-        $bankAccount['proj_id']       = $DA['proj_id'] ?? 0;
+        $bankAccount['proj_id']     = $DA['proj_id'] ?? 0;
+        $bankAccount['fee_type_id'] = $DA['fee_type_id'];
         $bankAccount['c_uid']       = $user->id;
         $bankAccount['is_valid']    = 1;
         $bankAccount['company_id']  = $user->company_id;
         $bankAccount['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
         $res = $bankAccount->save();
-        if ($res) {
-            return $this->success('银行账户添加成功！');
-        }
-        return $this->error('银行账户添加失败！');
+        return $res ? $this->success('银行账户添加成功！') : $this->error('银行账户添加失败！');
     }
 
     /**
@@ -163,7 +167,6 @@ class BankAccountController extends BaseController
      */
     public function update(Request $request)
     {
-
         $validatedData = $request->validate([
             'id' => 'required|int|gt:0',
             'account_name' => 'required|String|',
@@ -184,6 +187,7 @@ class BankAccountController extends BaseController
         $bankAccount['account_number'] = $DA['account_number'];
         $bankAccount['bank_name'] = $DA['bank_name'];
         $bankAccount['bank_addr'] = isset($DA['bank_addr']) ? $DA['bank_addr'] : "";
+        $bankAccount['fee_type_id']       = $DA['fee_type_id'];
         $bankAccount['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
         $bankAccount['u_uid'] = $user->id;
         // $bankAccount['company_id'] = $user->company_id;

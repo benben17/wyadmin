@@ -95,9 +95,11 @@ class DepositController extends BaseController
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->status && $q->whereIn('status', $request->status);
       })
-      ->withCount(['refundRecord as refund_amount' => function ($q) {
-        $q->selectRaw('FORMAT(sum(amount),2)');
-      }]);
+      ->with('refundRecord');
+    // {
+    //   $q->selectRaw('FORMAT(sum(amount),2) as refund_amount');
+    //   $q->groupBy('bill_detail_id');
+    // }]);
 
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -109,7 +111,6 @@ class DepositController extends BaseController
       $totalAmt = $v['amount']  ?? 0.00;
       $receiveAmt = $v['receive_amt'] ?? 0.00;
       $unreceiveAmt = $totalAmt - $receiveAmt;
-
       $stat['total_amt'] +=  $totalAmt;
       $stat['receive_amt'] += $receiveAmt;
       $stat['unreceive_amt'] += $unreceiveAmt;
@@ -341,7 +342,7 @@ class DepositController extends BaseController
       'category.required' => '类别字段是必填的。',
     ]);
 
-    $deposit = $this->depositService->billDetailModel()
+    $deposit = $this->depositService->chargeBillModel()
       ->with(['chargeBillRecord' => function ($q) {
         // $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
       }])

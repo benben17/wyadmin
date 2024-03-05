@@ -50,6 +50,7 @@ class TenantService
       $tenant->worker_num    = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
       $tenant->nature        = isset($DA['nature']) ? $DA['nature'] : "";
       $tenant->remark        = isset($DA['remark']) ? $DA['remark'] : "";
+      $tenant->shop_name    = $DA['shop_name'] ?? "";
       $tenant->cpc_number    = $DA['cpc_number'] ?? 0;
       $tenant->tags          = isset($DA['tags']) ? $DA['tags'] : "";
       $res = $tenant->save();
