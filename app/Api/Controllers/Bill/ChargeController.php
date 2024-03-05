@@ -333,7 +333,7 @@ class ChargeController extends BaseController
         ->get();
       // Check if all selected bill details are found
       if ($billDetailList->count() < count($billDetailIds)) {
-        return $this->error("所选应收里包含未生成账单的应收");
+        return $this->error("所选应收 包含未生成账单的应收");
       }
 
       $totalVerifyAmt = $billDetailList->sum(function ($billDetail) {

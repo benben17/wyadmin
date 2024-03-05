@@ -93,6 +93,7 @@ class DepositController extends BaseController
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
+        $request->status && $q->whereIn('status', $request->status);
       })
       ->withCount(['refundRecord as refund_amount' => function ($q) {
         $q->selectRaw('FORMAT(sum(amount),2)');

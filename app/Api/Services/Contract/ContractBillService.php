@@ -24,9 +24,9 @@ class ContractBillService
   /**
    * 按照正常周期进行出账单
    *
-   * @param [type] $contract
+   * @param array $contract
    * @param integer $leaseTerm
-   * @param integer $uid
+   * @param array $rule
    * @param integer $type
    * @return void
    */
