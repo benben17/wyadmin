@@ -43,8 +43,8 @@ class UploadController extends BaseController
             if (!$this->checkImg($file)) {
                 return $this->error($this->getError());
             }
-            $user = auth('api')->user();
-            $company_id = $user->company_id;
+
+            $company_id = $this->user->company_id;
             $saveFolder = $company_id . '/business/' . date('Ymd');
             // 上传文件操作
             $path = Storage::putFile($saveFolder, $file);

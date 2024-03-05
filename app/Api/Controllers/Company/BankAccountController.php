@@ -75,7 +75,6 @@ class BankAccountController extends BaseController
 
         foreach ($data as $k => &$v) {
             $v['proj_name'] = getProjNameById($v['proj_id']);
-
             $v['fee_types'] = $this->feeTypeService->getFeeNames($v['fee_type_id']);
         }
         // return response()->json(DB::getQueryLog());

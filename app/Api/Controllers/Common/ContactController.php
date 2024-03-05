@@ -92,7 +92,7 @@ class ContactController extends BaseController
       'contact_phone' => 'required|min:1',
     ]);
     $contact = new ContactService;
-    $res = $contact->saveContact($request->toArray(), $user);
+    $res = $contact->saveContact($request->toArray(), $this->user);
     if ($res) {
       return $this->success("保存成功");
     } else {
