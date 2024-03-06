@@ -418,14 +418,14 @@ class DepositController extends BaseController
     $DA['type'] = AppEnum::depositRecordPayee;
 
     $depositBill = $this->depositService->depositBillModel()->find($request->id);
+    if ($depositBill['status'] != 0) {
+      return $this->error("此押金已经收款结清!");
+    }
 
     try {
       $user = $this->user;
       DB::transaction(function () use ($depositBill, $DA, $user) {
 
-        if ($depositBill['status'] != 0) {
-          return $this->error("此押金已经收款结清!");
-        }
 
         // 已收款金额+ 本次收款金额 
         $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
