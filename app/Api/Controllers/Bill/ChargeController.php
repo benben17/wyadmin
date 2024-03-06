@@ -29,7 +29,7 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/list",
-   *     tags={"预充值"},
+   *     tags={"收支"},
    *     summary="预充值列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -111,8 +111,8 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/add",
-   *     tags={"预充值"},
-   *     summary="预充值新增",
+   *     tags={"收支"},
+   *     summary="充值新增",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -154,8 +154,8 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/edit",
-   *     tags={"收款"},
-   *     summary="收款编辑",
+   *     tags={"收支"},
+   *     summary="充值收款编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -207,8 +207,8 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/cancel",
-   *     tags={"预充值"},
-   *     summary="预充值删除",
+   *     tags={"收支"},
+   *     summary="预充值取消",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -245,8 +245,8 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/show",
-   *     tags={"预充值"},
-   *     summary="预充值详细",
+   *     tags={"收支"},
+   *     summary="收支详细",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -281,7 +281,7 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/writeOff",
-   *     tags={"核销"},
+   *     tags={"收支"},
    *     summary="充值核销",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -356,7 +356,15 @@ class ChargeController extends BaseController
     }
   }
 
-
+  /**
+   * 单个核销
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-05
+   * @param Request $request
+   *
+   * @return void
+   */
   public function chargeWriteOffOne(Request $request)
   {
     try {
@@ -399,8 +407,8 @@ class ChargeController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/operation/charge/record/list",
-   *     tags={"预充值"},
-   *     summary="预充值-核销记录",
+   *     tags={"收支"},
+   *     summary="收支-核销记录",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",

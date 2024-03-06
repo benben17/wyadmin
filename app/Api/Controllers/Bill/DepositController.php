@@ -15,6 +15,7 @@ class DepositController extends BaseController
 {
   private $depositService;
   private $depositType = AppEnum::depositFeeType;
+  private $chargeService;
   public function __construct()
   {
     $this->uid  = auth()->payload()->get('sub');
@@ -22,6 +23,7 @@ class DepositController extends BaseController
       return $this->error('用户信息错误');
     }
     $this->depositService = new TenantBillService;
+    $this->chargeService = new ChargeService;
     $this->user = auth('api')->user();
   }
 
@@ -342,24 +344,36 @@ class DepositController extends BaseController
       'category.required' => '类别字段是必填的。',
     ]);
 
-    $deposit = $this->depositService->chargeBillModel()
-      ->with(['chargeBillRecord' => function ($q) {
-        // $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
-      }])
+    $deposit = $this->depositService->billDetailModel()
+      ->where('type', AppEnum::depositFeeType)
+      ->where(function ($q) {
+        $q->whereIn('status', [1, 3]);
+      })
       ->with('refundRecord')
-      ->withCount(['refundRecord as refund_amount' => function ($q) {
-        $q->selectRaw('FORMAT(sum(amount),2)');
-      }])
       ->find($request->id);
     if (!$deposit) {
       return $this->error("未找到押金信息");
     }
-    $usedAmt = $deposit['receive_amount']  - $deposit['refund_amount'];
-    if ($usedAmt <= 0 || $request->amount > $usedAmt) {
+    $refundAmt = 0.00;
+    if ($deposit['refund_record']) {
+      foreach ($deposit['refund_record'] as $v) {
+        $refundAmt += $v['amount'];
+      }
+    }
+    $availableAmt = $deposit['receive_amount'] - $refundAmt;
+    if ($availableAmt <= 0 || $request->amount > $availableAmt) {
       return $this->error("可使用金额不足");
     }
-    $data['category']  = $request->category;
-    $this->depositService->billDetailModel()->where('id', $request->id)->update($data);
-    return $this->success($deposit);
+    $remark = $request->remark;
+    if ($remark) {
+      if ($request->category == 2) {
+        $remark = "押金转收入";
+      } else {
+        $remark = "押金转违约金";
+      }
+    }
+    // 押金转收入 写入到charge  收支表
+    $res = $this->chargeService->depositToCharge($deposit, $request->amount, $request->category, $remark, $this->user);
+    return $res ? $this->success() : $this->error("押金转收入失败!");
   }
 }

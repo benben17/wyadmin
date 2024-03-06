@@ -10,6 +10,7 @@ use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 use App\Api\Services\Bill\RefundService;
+use Illuminate\Support\Arr;
 
 class ChargeService
 {
@@ -272,5 +273,43 @@ class ChargeService
       throw $th;
       Log::error("保存冲抵记录失败:" . $th);
     }
+  }
+
+
+  /**
+   * 押金转充值
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-06
+   * @param object $billDetail
+   * @param [float]] $amount
+   * @param [int] $category
+   * @param [string] $remark
+   * @param array $user
+   *
+   * @return boolean
+   */
+  public function depositToCharge($billDetail, float $amount, int $category, $remark, $user): bool
+  {
+    $charge         = $this->model();
+    $charge->c_uid  = $user['id'];
+    $charge->unverify_amount = 0;
+    $charge->flow_no = getChargeNo();
+    $charge->company_id  = $user['company_id'];
+    $charge->tenant_id   = $billDetail['tenant_id'];
+    $charge->amount      = $amount;;
+    $charge->proj_id     = $billDetail['proj_id'];
+    $charge->type        = 1; // 收入 // 2 支出
+    $charge->category     = $category;
+    $charge->source      = 1; // 费用
+    $charge->verify_amount = 0.00;
+    $charge->tenant_name = $billDetail['tenant_name'];
+    $charge->fee_type    =  0;
+    $charge->bank_id    =  $billDetail['bank_id'] ?? 0;
+    $charge->charge_date = nowYmd();
+    $charge->status      =  0; // 未核销
+    $charge->remark      =  $remark;
+    $chargeRes = $charge->save();
+    return $chargeRes;
   }
 }
