@@ -471,6 +471,7 @@ class ChargeController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->c_username && $q->where('c_username',  $request->c_username);
         $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+        $request->year && $q->whereYear('verify_date', $request->year);
       })->with(['billDetail' => function ($query) use ($request) {
         $query->select('tenant_name', 'tenant_id', 'id', 'status');
         $request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
