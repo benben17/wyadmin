@@ -383,7 +383,7 @@ class DepositController extends BaseController
       return  $this->success("押金转收入成功");
     } catch (Exception $e) {
       Log::error("押金转收入失败" . $e->getMessage());
-      return $this->error("押金转收入失败!");
+      return $this->error("押金转收入失败!" . $e->getMessage());
     }
   }
 
@@ -422,29 +422,34 @@ class DepositController extends BaseController
 
     ]);
     $DA = $request->toArray();
-
-    $depositBill = $this->depositService->depositBillModel()
-      ->find($request->id);
-
-    // 应收和实际收款 相等时
-    if ($depositBill->receive_amount  === $depositBill['amount']) {
-      return $this->error("此押金已经收款结清!");
-    }
     $DA['type'] = AppEnum::depositRecordPayee;
-    $res = $this->depositService->saveDepositRecord($depositBill, $DA, $this->user);
 
-    // 已收款金额+ 本次收款金额
-    $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
-    $updateData['receive_amount'] =  $receiveAmt;
-    if ($receiveAmt === $DA['amount']) {
-      $updateData['status'] =  1;
-    }
+    $depositBill = $this->depositService->depositBillModel()->find($request->id);
 
-    $depositBill = $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
-    if (!$res) {
-      return $this->error("押金收款" . $DA['amount'] . "元失败!");
+    try {
+      $user = $this->user;
+      DB::transaction(function () use ($depositBill, $DA, $user) {
+        if ($depositBill->receive_amount  === $depositBill['amount']) {
+          return $this->error("此押金已经收款结清!");
+        }
+
+        // 已收款金额+ 本次收款金额 
+        $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
+
+        $updateData['receive_amount'] =  $receiveAmt;
+        // 应收和实际收款 相等时
+        if ($receiveAmt === $DA['amount']) {
+          $updateData['status'] =  1;
+        }
+        $this->depositService->saveDepositRecord($depositBill, $DA, $user);
+
+        $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
+      }, 2);
+
+      return $this->success("押金收款【" . $DA['amount'] . "元】 成功.");
+    } catch (Exception $e) {
+      return $this->error("押金收款【" . $DA['amount'] . "元 】失败!" . $e->getMessage());
     }
-    return $this->success("押金收款" . $DA['amount'] . "元成功.");
   }
 
   /**
@@ -459,11 +464,11 @@ class DepositController extends BaseController
    *          schema="UserModel",
    *          required={"amount","remark","id"},
    *       @OA\Property(property="id",type="int",description="id"),
-   *       @OA\Property(property="amount",type="float",description="金额"),
+   *       @OA\Property(property="amount",type="float",description="金额,保留小数点后2位"),
    *       @OA\Property(property="remark",type="int",description="备注"),
 
    *     ),
-   *       example={"id","amount":"1","remark":"1"}
+   *       example={"id":"1","amount":"1","remark":"备注"}
    *       )
    *     ),
    *     @OA\Response(
@@ -488,7 +493,7 @@ class DepositController extends BaseController
     $depositBill = $this->depositService->depositBillModel()
       ->with(['depositRecord' => function ($q) {
         $q->where('type', [2, 3]);
-      }])->find($request->id);
+      }])->find($request->id)->toArray();
 
     if ($depositBill['status'] == 2) {
       return $this->error("已全部退款");
@@ -498,30 +503,27 @@ class DepositController extends BaseController
     try {
       $user = $this->user;
       DB::transaction(function () use ($depositBill, $DA, $user) {
-        $usedAmt = 0.00;
-        if ($depositBill['deposit_record']) {
-          foreach ($depositBill['deposit_record'] as $v) {
-            $usedAmt += $v['amount'];
-          }
-        }
+        $record = $this->depositService->formatDepositRecord($depositBill['deposit_record']);
 
-        $this->depositService->saveDepositRecord($depositBill, $DA, $user);
-        $availableAmt = $depositBill->receive_amount - $usedAmt;
+        $availableAmt = $record['available_amt'];
 
         if ($availableAmt < $DA['amount']) {
-          throw ("此押金可用余额小于退款金额，不可操作!");
+          throw new Exception("此押金可用余额小于退款金额，不可操作!");
         }
         if ($availableAmt > $DA['amount']) {
-          $updateData['status'] = 3; // 全部
+          $updateData['status'] = 3; // 部分退款
         } else {
-          $updateData['status'] = 2; // 部分
+          $updateData['status'] = 2; // 全部退款
         }
+        // 插入记录
+        $this->depositService->saveDepositRecord($depositBill, $DA, $user);
+        // 更新押金信息
         $this->depositService->depositBillModel()->where('id', $DA['id'])->update($updateData);
       }, 2);
       return $this->success("押金退款成功.");
     } catch (Exception $e) {
 
-      return $this->error("押金退款失败！");
+      return $this->error("押金退款失败！" . $e->getMessage());
     }
   }
 }
