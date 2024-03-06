@@ -266,7 +266,6 @@ class DepositController extends BaseController
     DB::enableQueryLog();
     $data = $this->depositService->depositBillModel()
       ->with('depositRecord')
-      ->withCount('depositRecord')
       ->find($request->id)->toArray();
     // return response()->json(DB::getQueryLog());
     $recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);

@@ -82,14 +82,15 @@ class DepositService
     $BA = ['receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'available_amt' => 0.00];
     if (!empty($recordList)) {
       foreach ($recordList as $v1) {
-        if ($v1['type'] == 1) {
-          $BA['receive_amt'] = $v1['amount'];
+        if ($v1['type'] === 1) {
+          $BA['receive_amt'] += $v1['amount'];
         } elseif ($v1['type'] == 2) {
           $BA['refund_amt'] +=  $v1['amount'];
         } elseif ($v1['type'] == 3) {
           $BA['charge_amt'] +=  $v1['amount'];
         }
       }
+
       $BA['available_amt'] = $BA['receive_amt'] - $BA['refund_amt'] - $BA['charge_amt'];
     }
     return $BA;
