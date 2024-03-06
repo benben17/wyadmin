@@ -93,7 +93,7 @@ class ChargeController extends BaseController
     $data = $this->chargeService->model()
       ->where($map)
       ->where(function ($q) use ($request) {
-        $request->tenant_id && $q->whereIn('tenant_id', $request->tenant_id);
+        $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
         $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
         $request->end_date && $q->where('charge_date', '<=',  $request->end_date);
@@ -472,7 +472,8 @@ class ChargeController extends BaseController
         $request->c_username && $q->where('c_username',  $request->c_username);
         $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
         $request->year && $q->whereYear('verify_date', $request->year);
-      })->with(['billDetail' => function ($query) use ($request) {
+      })
+      ->with(['billDetail' => function ($query) use ($request) {
         $query->select('tenant_name', 'tenant_id', 'id', 'status');
         $request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
         $request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
