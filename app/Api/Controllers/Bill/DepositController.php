@@ -101,12 +101,13 @@ class DepositController extends BaseController
 
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-
+    $list = $subQuery->get()->toArray();
     // return response()->json(DB::getQueryLog());
     // 统计每种类型费用的应收/实收/ 退款/ 转收入
-    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00];
-    foreach ($data['data'] as $k => &$v) {
+    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'discount_amt' => 0.00];
+    foreach ($list as $k => &$v) {
       $stat['total_amt'] += $v['amount'];
+      $stat['discount_amt'] = $v['discount_amount'];
       $record = $this->depositService->formatDepositRecord($v['deposit_record']);
       $v = array_merge($v, $record);
       $stat['refund_amt'] += $record['refund_amt'];
@@ -351,16 +352,8 @@ class DepositController extends BaseController
       return $this->error("未找到押金信息");
     }
 
-    $usedAmt = 0.00;
-    if (empty($deposit['deposit_record'])) {
-      foreach ($deposit['deposit_record'] as $v) {
-        if ($deposit['deposit_record']['type'] != 1) {
-          $usedAmt += $v['amount'];
-        }
-      }
-    }
-
-    $availableAmt = $deposit['receive_amount'] - $usedAmt;
+    $record = $this->depositService->formatDepositRecord($deposit['deposit_record']);
+    $availableAmt = $record['available_amt'];
     if ($request->amount > $availableAmt) {
       return $this->error("可使用金额不足");
     }
@@ -429,16 +422,17 @@ class DepositController extends BaseController
     try {
       $user = $this->user;
       DB::transaction(function () use ($depositBill, $DA, $user) {
-        if ($depositBill->receive_amount  === $depositBill['amount']) {
+
+        if ($depositBill['status'] != 0) {
           return $this->error("此押金已经收款结清!");
         }
 
         // 已收款金额+ 本次收款金额 
         $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
-
+        $actualAmt = $depositBill->receive_amount - $depositBill->discount_amount;
         $updateData['receive_amount'] =  $receiveAmt;
         // 应收和实际收款 相等时
-        if ($receiveAmt === $DA['amount']) {
+        if ($receiveAmt === $actualAmt) {
           $updateData['status'] =  1;
         }
         $this->depositService->saveDepositRecord($depositBill, $DA, $user);
