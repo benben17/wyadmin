@@ -470,7 +470,7 @@ class ChargeController extends BaseController
         $request->end_date && $q->where('verify_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->c_username && $q->where('c_username',  $request->c_username);
-        $request->fee_types && $q->where('fee_type', $request->fee_types);
+        $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
       })->with(['billDetail' => function ($query) use ($request) {
         $query->select('tenant_name', 'tenant_id', 'id', 'status');
         $request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
@@ -484,7 +484,11 @@ class ChargeController extends BaseController
     foreach ($data['result'] as &$v) {
       $v['tenant_name'] = isset($v['bill_detail']['tenant_name']) ? $v['bill_detail']['tenant_name'] : "";
       unset($v['bill_detail']);
-      $totalAmt += $v['amount'];
+      if ($v['type'] == 1) {
+        $totalAmt += $v['amount'];
+      } else {
+        $totalAmt -= $v['amount'];
+      }
     }
     $data['total_amount'] = $totalAmt;
     return $this->success($data);

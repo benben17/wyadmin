@@ -6,6 +6,12 @@ use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 
+/**
+ * 核销记录
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-06
+ */
 class ChargeBillRecord extends Model
 {
   protected $table = 'bse_charge_bill_record';
