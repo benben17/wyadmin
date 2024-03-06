@@ -101,7 +101,7 @@ class TenantBillDetail extends Model
     return $this->hasOne(InvoiceRecord::class, 'invoice_id', 'id');
   }
 
-  public function billDetailRecord()
+  public function chargeBillRecord()
   {
     return $this->hasMany(ChargeBillRecord::class, 'bill_detail_id', 'id');
   }
