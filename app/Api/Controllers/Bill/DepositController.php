@@ -496,6 +496,7 @@ class DepositController extends BaseController
     DB::enableQueryLog();
     $depositBill = $this->depositService->depositBillModel()
       ->with('depositRecord')->find($request->id)->toArray();
+
     if ($depositBill['status'] == 3) {
       return $this->error("已结清");
     }
