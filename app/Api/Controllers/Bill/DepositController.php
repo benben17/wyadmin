@@ -336,13 +336,11 @@ class DepositController extends BaseController
     $request->validate([
       'id' => 'required',
       'amount' => 'required|gt:0',
-      'category' => 'required',
       'remark' => 'required'
     ], [
       'id.required' => 'ID字段是必填的。',
       'amount.required' => '金额字段是必填的。',
       'amount.gt' => '金额必须大于0。',
-      'category.required' => '类别字段是必填的。',
     ]);
 
 
@@ -357,7 +355,7 @@ class DepositController extends BaseController
         $deposit = $this->depositService->depositBillModel()
           ->where('type', AppEnum::depositFeeType)
           ->where(function ($q) {
-            $q->whereIn('status', [1, 2]);
+            $q->whereIn('status', [0, 1, 2]);
           })
           ->with('depositRecord')
           ->find($DA['id'])->toArray();
@@ -372,7 +370,7 @@ class DepositController extends BaseController
         }
         $remark = $DA['remark'];
         if ($remark) {
-          $remark = ($DA['category'] == 2) ? "押金转收入" : "押金转违约金";
+          $remark =  "押金转收入";
         }
         $DA['remark'] = $remark;
         $this->depositService->saveDepositRecord($deposit, $DA, $user);
@@ -495,16 +493,12 @@ class DepositController extends BaseController
       'remark.string'  => '必须是字符串，不允许空字符串。'
     ]);
     $DA = $request->toArray();
-
+    DB::enableQueryLog();
     $depositBill = $this->depositService->depositBillModel()
-      ->with(['depositRecord' => function ($q) {
-        $q->where('type', [2, 3]);
-      }])->find($request->id)->toArray();
-
-    if ($depositBill['status'] == 2) {
-      return $this->error("已全部退款");
+      ->with('depositRecord')->find($request->id)->toArray();
+    if ($depositBill['status'] == 3) {
+      return $this->error("已结清");
     }
-
     $DA['type'] = AppEnum::depositRecordRefund;
 
     try {
@@ -513,6 +507,7 @@ class DepositController extends BaseController
         $record = $this->depositService->formatDepositRecord($depositBill['deposit_record']);
 
         $availableAmt = $record['available_amt'];
+        Log::error($availableAmt);
 
         if ($availableAmt < $DA['amount']) {
           throw new Exception("此押金可用余额小于退款金额，不可操作!");

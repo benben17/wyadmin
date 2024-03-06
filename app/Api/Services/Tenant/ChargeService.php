@@ -300,7 +300,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $billDetail['proj_id'];
       $charge->type        = 1; // 收入 // 2 支出
-      $charge->category     = $BA['category'];
+      $charge->category     = 2; // 押金转收入;
       $charge->source      = 1; // 费用
       $charge->verify_amount = 0.00;
       $charge->tenant_name = $billDetail['tenant_name'];
