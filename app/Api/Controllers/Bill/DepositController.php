@@ -438,11 +438,14 @@ class DepositController extends BaseController
 
 
         // 已收款金额+ 本次收款金额 
-        $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
-        $actualAmt = $depositBill->receive_amount - $depositBill->discount_amount;
-        $updateData['receive_amount'] =  $receiveAmt;
+        $totalReceiveAmt = $depositBill['receive_amount'] + $DA['amount'];
+        $unreceiveAmt  = $depositBill['unreceive_amount'];
+        $updateData['receive_amount'] =  $totalReceiveAmt;
+        if ($DA['amount'] > $unreceiveAmt) {
+          throw new Exception("收款金额不允许大于未收金额!");
+        }
         // 应收和实际收款 相等时
-        if ($receiveAmt === $actualAmt) {
+        if ($DA['amount'] === $unreceiveAmt) {
           $updateData['status'] =  1;
         }
         $this->depositService->saveDepositRecord($depositBill, $DA, $user);
@@ -490,7 +493,7 @@ class DepositController extends BaseController
     ],  [
       'id' => '押金应收id是必填的',
       'amount.required' => '金额字段是必填的。',
-
+      'remark.string'  => '必须是字符串，不允许空字符串。'
     ]);
     $DA = $request->toArray();
 
