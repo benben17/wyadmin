@@ -338,6 +338,7 @@ class DepositController extends BaseController
       'id' => 'required',
       'amount' => 'required|gt:0',
       'category' => 'required',
+      'remark' => 'required'
     ], [
       'id.required' => 'ID字段是必填的。',
       'amount.required' => '金额字段是必填的。',
@@ -418,7 +419,6 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'id'      => 'required|gt:0',
       'amount' => 'required|gt:0',
-      'remark' => 'string',
     ],  [
       'id' => '押金应收id是必填的',
       'amount.required' => '金额字段是必填的。',
@@ -486,7 +486,7 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'id'      => 'required|gt:0',
       'amount' => 'required|gt:0',
-      'remark' => 'string',
+      'remark' => 'required|string',
     ],  [
       'id' => '押金应收id是必填的',
       'amount.required' => '金额字段是必填的。',
