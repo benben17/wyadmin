@@ -69,6 +69,10 @@ class TenantBillDetail extends Model
   public function getStatusLabelAttribute()
   {
     $status = $this->attributes['status'] ?? null;
+    $feeType = $this->attributes['type'] ?? 1;
+    if ($feeType == 2) {
+      return $this->depositStatusMap()[$status] ?? '';
+    }
     return $this->statusMap()[$status] ?? '';
   }
 
@@ -79,6 +83,16 @@ class TenantBillDetail extends Model
       1 => "已结清",
       2 => "已退款",
       3 => "部分退款"
+    ];
+  }
+
+  protected function depositStatusMap()
+  {
+    return [
+      0 => "未收款",
+      1 => "已收款",
+      2 => "部分退款",
+      3 => '已结清',
     ];
   }
   public function getBillStatusAttribute()

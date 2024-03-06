@@ -78,8 +78,6 @@ class TenantController extends BaseController
             $order = 'desc';
         }
 
-
-
         $result = $this->tenantService->tenantModel()
             ->where($map)
             ->where('type', AppEnum::TenantType)

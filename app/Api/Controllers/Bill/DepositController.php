@@ -345,37 +345,43 @@ class DepositController extends BaseController
       'category.required' => '类别字段是必填的。',
     ]);
 
-    $deposit = $this->depositService->depositBillModel()
-      ->where('type', AppEnum::depositFeeType)
-      ->where(function ($q) {
-        $q->whereIn('status', [1, 3]);
-      })
-      ->with('depositRecord')
-      ->find($request->id)->toArray();
-    if (!$deposit) {
-      return $this->error("未找到押金信息");
-    }
 
-    $record = $this->depositService->formatDepositRecord($deposit['deposit_record']);
-    $availableAmt = $record['available_amt'];
-    if ($request->amount > $availableAmt) {
-      return $this->error("可使用金额不足");
-    }
-    $remark = $request->remark;
-    if ($remark) {
-      $remark = ($request->category == 2) ? "押金转收入" : "押金转违约金";
-    }
 
     $DA = $request->toArray();
     $DA['type'] = AppEnum::depositRecordToCharge;
-    $DA['remark'] = $remark;
+
 
     try {
       $user = $this->user;
-      DB::transaction(function () use ($deposit, $DA, $user) {
+      DB::transaction(function () use ($DA, $user) {
+        $deposit = $this->depositService->depositBillModel()
+          ->where('type', AppEnum::depositFeeType)
+          ->where(function ($q) {
+            $q->whereIn('status', [1, 2]);
+          })
+          ->with('depositRecord')
+          ->find($DA['id'])->toArray();
+        if (!$deposit) {
+          return $this->error("未找到押金信息");
+        }
+
+        $record = $this->depositService->formatDepositRecord($deposit['deposit_record']);
+        $availableAmt = $record['available_amt'];
+        if ($DA['amount'] > $availableAmt) {
+          throw new Exception("可使用金额不足");
+        }
+        $remark = $DA['remark'];
+        if ($remark) {
+          $remark = ($DA['category'] == 2) ? "押金转收入" : "押金转违约金";
+        }
+        $DA['remark'] = $remark;
         $this->depositService->saveDepositRecord($deposit, $DA, $user);
         // 押金转收入 写入到charge  收支表
         $this->chargeService->depositToCharge($deposit, $DA, $user);
+        if ($availableAmt == $DA['amount']) {
+          $updateData['status'] = 3;
+          $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
+        }
       }, 2);
       return  $this->success("押金转收入成功");
     } catch (Exception $e) {
@@ -386,7 +392,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/deposit/payee",
+   *     path="/api/operation/tenant/deposit/receive",
    *     tags={"押金管理"},
    *     summary="押金管理 收款",
    *    @OA\RequestBody(
@@ -407,7 +413,7 @@ class DepositController extends BaseController
    *     )
    * )
    */
-  public function payee(Request $request)
+  public function receive(Request $request)
   {
     $validatedData = $request->validate([
       'id'      => 'required|gt:0',
@@ -496,6 +502,7 @@ class DepositController extends BaseController
     if ($depositBill['status'] == 2) {
       return $this->error("已全部退款");
     }
+
     $DA['type'] = AppEnum::depositRecordRefund;
 
     try {
@@ -509,9 +516,9 @@ class DepositController extends BaseController
           throw new Exception("此押金可用余额小于退款金额，不可操作!");
         }
         if ($availableAmt > $DA['amount']) {
-          $updateData['status'] = 3; // 部分退款
+          $updateData['status'] = 2; // 部分退款
         } else {
-          $updateData['status'] = 2; // 全部退款
+          $updateData['status'] = 3; // 已结清
         }
         // 插入记录
         $this->depositService->saveDepositRecord($depositBill, $DA, $user);

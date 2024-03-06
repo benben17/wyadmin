@@ -407,7 +407,7 @@ Route::group(['prefix' => 'operation/tenant'], function () {
     Route::post('deposit/edit', '\App\Api\Controllers\Bill\DepositController@edit');
     Route::post('deposit/del', '\App\Api\Controllers\Bill\DepositController@del');
     Route::post('deposit/tocharge', '\App\Api\Controllers\Bill\DepositController@toCharge');
-    Route::post('deposit/payee', '\App\Api\Controllers\Bill\DepositController@payee');
+    Route::post('deposit/receive', '\App\Api\Controllers\Bill\DepositController@receive');
     Route::post('deposit/refund', '\App\Api\Controllers\Bill\DepositController@refund');
 });
 //发票

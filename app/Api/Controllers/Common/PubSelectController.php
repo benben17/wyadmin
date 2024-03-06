@@ -533,8 +533,6 @@ class PubSelectController extends BaseController
 				if ($request->type == 2) {
 					$q->where('type', AppEnum::TenantType);
 				}
-
-
 				if (!$this->user['is_admin']) {
 					if ($request->depart_id) {
 						$departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
