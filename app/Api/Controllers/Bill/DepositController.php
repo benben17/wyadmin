@@ -3,13 +3,15 @@
 namespace App\Api\Controllers\Bill;
 
 use App\Api\Controllers\BaseController;
-use App\Api\Services\Bill\RefundService;
+use App\Api\Services\Bill\DepositService;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
+use Exception;
 
 class DepositController extends BaseController
 {
@@ -22,14 +24,14 @@ class DepositController extends BaseController
     if (!$this->uid) {
       return $this->error('用户信息错误');
     }
-    $this->depositService = new TenantBillService;
+    $this->depositService = new DepositService;
     $this->chargeService = new ChargeService;
     $this->user = auth('api')->user();
   }
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/list",
+   *     path="/api/operation/tenant/deposit/list",
    *     tags={"押金管理"},
    *     summary="押金管理列表",
    *    @OA\RequestBody(
@@ -79,16 +81,14 @@ class DepositController extends BaseController
     } else {
       $order = 'desc';
     }
-    if ($request->type) {
-      $map['type'] = $request->type;
-    }
+
     if ($request->bill_detail_id) {
       $map['bill_detail_id'] = $request->bill_detail_id;
     }
     $map['type'] = $this->depositType;
 
     DB::enableQueryLog();
-    $subQuery = $this->depositService->billDetailModel()
+    $subQuery = $this->depositService->depositBillModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('charge_date', '>=',  $request->start_date);
@@ -97,25 +97,21 @@ class DepositController extends BaseController
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->status && $q->whereIn('status', $request->status);
       })
-      ->with('refundRecord');
-    // {
-    //   $q->selectRaw('FORMAT(sum(amount),2) as refund_amount');
-    //   $q->groupBy('bill_detail_id');
-    // }]);
+      ->with('depositRecord');
 
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-    $list = $subQuery->get();
+
     // return response()->json(DB::getQueryLog());
-    // 统计每种类型费用的应收/实收/未收
-    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'unreceive_amt' => 0.00];
-    foreach ($list as $k => $v) {
-      $totalAmt = $v['amount']  ?? 0.00;
-      $receiveAmt = $v['receive_amt'] ?? 0.00;
-      $unreceiveAmt = $totalAmt - $receiveAmt;
-      $stat['total_amt'] +=  $totalAmt;
-      $stat['receive_amt'] += $receiveAmt;
-      $stat['unreceive_amt'] += $unreceiveAmt;
+    // 统计每种类型费用的应收/实收/ 退款/ 转收入
+    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00];
+    foreach ($data['data'] as $k => &$v) {
+      $stat['total_amt'] += $v['amount'];
+      $record = $this->depositService->formatDepositRecord($v['deposit_record']);
+      $v = array_merge($v, $record);
+      $stat['refund_amt'] += $record['refund_amt'];
+      $stat['charge_amt'] += $record['charge_amt'];
+      $stat['receive_amt'] += $v['receive_amount'];
     }
 
     $data = $this->handleBackData($data);
@@ -168,8 +164,8 @@ class DepositController extends BaseController
     ]);
     $DA = $request->toArray();
     $DA['type'] = $this->depositType;
-    // $billDetail = new TenantBillService;
-    $res = $this->depositService->saveBillDetail($DA, $this->user);
+    $tenantBillService = new TenantBillService;
+    $res = $tenantBillService->saveBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金保存失败!");
     }
@@ -178,7 +174,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/edit",
+   *     path="/api/operation/tenant/deposit/edit",
    *     tags={"押金管理"},
    *     summary="押金管理编辑",
    *    @OA\RequestBody(
@@ -223,11 +219,12 @@ class DepositController extends BaseController
     ]);
     $DA = $request->toArray();
     $DA['type'] = $this->depositType;
-    $deposit = $this->depositService->billDetailModel()->find($request->id);
+    $tenantBillService = new TenantBillService;
+    $deposit = $this->depositService->depositBillModel()->find($request->id);
     if ($deposit->receive_amount > 0.00) {
       return $this->error("已有收款不允许编辑!");
     }
-    $res = $this->depositService->editBillDetail($DA, $this->user);
+    $res = $tenantBillService->editBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("押金编辑失败!");
     }
@@ -235,7 +232,7 @@ class DepositController extends BaseController
   }
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/show",
+   *     path="/api/operation/tenant/deposit/show",
    *     tags={"押金管理"},
    *     summary="押金管理详细",
    *    @OA\RequestBody(
@@ -261,16 +258,15 @@ class DepositController extends BaseController
       'id' => 'required',
     ]);
 
-    $data = $this->depositService->billDetailModel()
-      ->with(['chargeBillRecord' => function ($q) {
-        $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
-      }])
-      ->with('refundRecord')
-      ->withCount(['refundRecord as refund_amount' => function ($q) {
-        $q->selectRaw('FORMAT(sum(amount),2)');
-      }])
-      ->find($request->id);
-
+    DB::enableQueryLog();
+    $data = $this->depositService->depositBillModel()
+      ->with('depositRecord')
+      ->withCount('depositRecord')
+      ->find($request->id)->toArray();
+    // return response()->json(DB::getQueryLog());
+    $recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);
+    $data = $data + $recordSum;
+    // $data = array_merge($data + $info);
     return $this->success($data);
   }
 
@@ -301,7 +297,7 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $this->depositService->billDetailModel()->whereIn('id', $request->Ids)
+    $this->depositService->depositBillModel()->whereIn('id', $request->Ids)
       ->where('type', AppEnum::depositFeeType)
       ->where('receive_amount', '0.00')
       ->delete();
@@ -311,9 +307,9 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/tocharge",
-   *     tags={"押金转收入/违约金"},
-   *     summary="押金转收入/违约金",
+   *     path="/api/operation/tenant/deposit/tocharge",
+   *     tags={"押金管理"},
+   *     summary="押金管理 转收入/违约金",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -344,36 +340,188 @@ class DepositController extends BaseController
       'category.required' => '类别字段是必填的。',
     ]);
 
-    $deposit = $this->depositService->billDetailModel()
+    $deposit = $this->depositService->depositBillModel()
       ->where('type', AppEnum::depositFeeType)
       ->where(function ($q) {
         $q->whereIn('status', [1, 3]);
       })
-      ->with('refundRecord')
-      ->find($request->id);
+      ->with('depositRecord')
+      ->find($request->id)->toArray();
     if (!$deposit) {
       return $this->error("未找到押金信息");
     }
-    $refundAmt = 0.00;
-    if ($deposit['refund_record']) {
-      foreach ($deposit['refund_record'] as $v) {
-        $refundAmt += $v['amount'];
+
+    $usedAmt = 0.00;
+    if (empty($deposit['deposit_record'])) {
+      foreach ($deposit['deposit_record'] as $v) {
+        if ($deposit['deposit_record']['type'] != 1) {
+          $usedAmt += $v['amount'];
+        }
       }
     }
-    $availableAmt = $deposit['receive_amount'] - $refundAmt;
-    if ($availableAmt <= 0 || $request->amount > $availableAmt) {
+
+    $availableAmt = $deposit['receive_amount'] - $usedAmt;
+    if ($request->amount > $availableAmt) {
       return $this->error("可使用金额不足");
     }
     $remark = $request->remark;
     if ($remark) {
-      if ($request->category == 2) {
-        $remark = "押金转收入";
-      } else {
-        $remark = "押金转违约金";
-      }
+      $remark = ($request->category == 2) ? "押金转收入" : "押金转违约金";
     }
-    // 押金转收入 写入到charge  收支表
-    $res = $this->chargeService->depositToCharge($deposit, $request->amount, $request->category, $remark, $this->user);
-    return $res ? $this->success() : $this->error("押金转收入失败!");
+
+    $DA = $request->toArray();
+    $DA['type'] = AppEnum::depositRecordToCharge;
+    $DA['remark'] = $remark;
+
+    try {
+      $user = $this->user;
+      DB::transaction(function () use ($deposit, $DA, $user) {
+        $this->depositService->saveDepositRecord($deposit, $DA, $user);
+        // 押金转收入 写入到charge  收支表
+        $this->chargeService->depositToCharge($deposit, $DA, $user);
+      }, 2);
+      return  $this->success("押金转收入成功");
+    } catch (Exception $e) {
+      Log::error("押金转收入失败" . $e->getMessage());
+      return $this->error("押金转收入失败!");
+    }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/deposit/payee",
+   *     tags={"押金管理"},
+   *     summary="押金管理 收款",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"amount","remark","id"},
+   *       @OA\Property(property="id",type="int",description="id"),
+   *       @OA\Property(property="amount",type="float",description="金额")
+   *     ),
+   *       example={"id","amount":"1","remark":"押金收款"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function payee(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'      => 'required|gt:0',
+      'amount' => 'required|gt:0',
+      'remark' => 'string',
+    ],  [
+      'id' => '押金应收id是必填的',
+      'amount.required' => '金额字段是必填的。',
+
+    ]);
+    $DA = $request->toArray();
+
+    $depositBill = $this->depositService->depositBillModel()
+      ->find($request->id);
+
+    // 应收和实际收款 相等时
+    if ($depositBill->receive_amount  === $depositBill['amount']) {
+      return $this->error("此押金已经收款结清!");
+    }
+    $DA['type'] = AppEnum::depositRecordPayee;
+    $res = $this->depositService->saveDepositRecord($depositBill, $DA, $this->user);
+
+    // 已收款金额+ 本次收款金额
+    $receiveAmt  = $depositBill['receive_amount'] + $DA['amount'];
+    $updateData['receive_amount'] =  $receiveAmt;
+    if ($receiveAmt === $DA['amount']) {
+      $updateData['status'] =  1;
+    }
+
+    $depositBill = $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
+    if (!$res) {
+      return $this->error("押金收款" . $DA['amount'] . "元失败!");
+    }
+    return $this->success("押金收款" . $DA['amount'] . "元成功.");
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/deposit/refund",
+   *     tags={"押金管理"},
+   *     summary="押金管理 退款",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"amount","remark","id"},
+   *       @OA\Property(property="id",type="int",description="id"),
+   *       @OA\Property(property="amount",type="float",description="金额"),
+   *       @OA\Property(property="remark",type="int",description="备注"),
+
+   *     ),
+   *       example={"id","amount":"1","remark":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function refund(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id'      => 'required|gt:0',
+      'amount' => 'required|gt:0',
+      'remark' => 'string',
+    ],  [
+      'id' => '押金应收id是必填的',
+      'amount.required' => '金额字段是必填的。',
+
+    ]);
+    $DA = $request->toArray();
+
+    $depositBill = $this->depositService->depositBillModel()
+      ->with(['depositRecord' => function ($q) {
+        $q->where('type', [2, 3]);
+      }])->find($request->id);
+
+    if ($depositBill['status'] == 2) {
+      return $this->error("已全部退款");
+    }
+    $DA['type'] = AppEnum::depositRecordRefund;
+
+    try {
+      $user = $this->user;
+      DB::transaction(function () use ($depositBill, $DA, $user) {
+        $usedAmt = 0.00;
+        if ($depositBill['deposit_record']) {
+          foreach ($depositBill['deposit_record'] as $v) {
+            $usedAmt += $v['amount'];
+          }
+        }
+
+        $this->depositService->saveDepositRecord($depositBill, $DA, $user);
+        $availableAmt = $depositBill->receive_amount - $usedAmt;
+
+        if ($availableAmt < $DA['amount']) {
+          throw ("此押金可用余额小于退款金额，不可操作!");
+        }
+        if ($availableAmt > $DA['amount']) {
+          $updateData['status'] = 3; // 全部
+        } else {
+          $updateData['status'] = 2; // 部分
+        }
+        $this->depositService->depositBillModel()->where('id', $DA['id'])->update($updateData);
+      }, 2);
+      return $this->success("押金退款成功.");
+    } catch (Exception $e) {
+
+      return $this->error("押金退款失败！");
+    }
   }
 }

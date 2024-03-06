@@ -7,6 +7,7 @@ use App\Api\Models\Contract\Contract;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -61,8 +62,9 @@ class TenantBillDetail extends Model
   {
     if (isset($this->attributes['proj_id'])) {
       $proj = getProjById($this->attributes['proj_id']);
-      return $proj['proj_name'];
+      return $proj ? $proj['proj_name'] : "";
     }
+    return "";
   }
   public function getStatusLabelAttribute()
   {
@@ -117,6 +119,19 @@ class TenantBillDetail extends Model
     return $this->hasMany(RefundRecord::class, 'bill_detail_id', 'id');
   }
 
+
+  /**
+   * 押金流程记录明细
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-06
+   *
+   * @return array
+   */
+  public function depositRecord()
+  {
+    return $this->hasMany(DepositRecord::class, 'bill_detail_id', 'id');
+  }
 
 
   public function addAll($data)

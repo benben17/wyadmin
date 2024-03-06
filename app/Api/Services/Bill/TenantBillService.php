@@ -144,6 +144,7 @@ class TenantBillService
           throw new Exception("收款金额不允许小于等于优惠金额");
         }
         $billDetail->u_uid       = $user['id'];
+
         $this->saveBillDetailLog($billDetail, $DA, $user);
         $billDetail->amount = $DA['amount'];
         $billDetail->discount_amount = $DA['discount_amount'] ?? 0;

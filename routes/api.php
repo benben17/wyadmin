@@ -397,7 +397,9 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     // 退款
     Route::post('refund/list', '\App\Api\Controllers\Bill\RefundController@list');
     Route::post('refund/add', '\App\Api\Controllers\Bill\RefundController@store');
-
+});
+// 租户押金
+Route::group(['prefix' => 'operation/tenant'], function () {
     // 押金
     Route::post('deposit/list', '\App\Api\Controllers\Bill\DepositController@list');
     Route::post('deposit/show', '\App\Api\Controllers\Bill\DepositController@show');
@@ -405,8 +407,9 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('deposit/edit', '\App\Api\Controllers\Bill\DepositController@edit');
     Route::post('deposit/del', '\App\Api\Controllers\Bill\DepositController@del');
     Route::post('deposit/tocharge', '\App\Api\Controllers\Bill\DepositController@toCharge');
+    Route::post('deposit/payee', '\App\Api\Controllers\Bill\DepositController@payee');
+    Route::post('deposit/refund', '\App\Api\Controllers\Bill\DepositController@refund');
 });
-
 //发票
 Route::group(['prefix' => 'operation/tenant/invoice'], function () {
     Route::post('list', '\App\Api\Controllers\Bill\InvoiceController@list');

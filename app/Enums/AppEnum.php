@@ -47,6 +47,10 @@ abstract class AppEnum extends Enum
 
   // const chargeCategoryFee  = 1;   //费用 类型
   // const chargeCategoryDeposit  = 2;    //押金类型
+  const depositRecordPayee = 1;   // 押金收入
+  const depositRecordRefund = 2;  // 押金退款
+  const depositRecordToCharge = 3; // 押金转收入
+
 
 
   const chargeCategoryFee  = 1;   //费用

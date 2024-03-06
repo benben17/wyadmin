@@ -270,8 +270,8 @@ class ChargeService
       $billRecord->c_username = $user['realname'];
       $billRecord->save();
     } catch (Exception $th) {
-      throw $th;
       Log::error("保存冲抵记录失败:" . $th);
+      throw $th;
     }
   }
 
@@ -282,34 +282,38 @@ class ChargeService
    * @Author leezhua
    * @DateTime 2024-03-06
    * @param object $billDetail
-   * @param [float]] $amount
-   * @param [int] $category
+   * @param [object] $BA
    * @param [string] $remark
    * @param array $user
    *
    * @return boolean
    */
-  public function depositToCharge($billDetail, float $amount, int $category, $remark, $user): bool
+  public function depositToCharge($billDetail, $BA, $user): bool
   {
-    $charge         = $this->model();
-    $charge->c_uid  = $user['id'];
-    $charge->unverify_amount = 0;
-    $charge->flow_no = getChargeNo();
-    $charge->company_id  = $user['company_id'];
-    $charge->tenant_id   = $billDetail['tenant_id'];
-    $charge->amount      = $amount;;
-    $charge->proj_id     = $billDetail['proj_id'];
-    $charge->type        = 1; // 收入 // 2 支出
-    $charge->category     = $category;
-    $charge->source      = 1; // 费用
-    $charge->verify_amount = 0.00;
-    $charge->tenant_name = $billDetail['tenant_name'];
-    $charge->fee_type    =  0;
-    $charge->bank_id    =  $billDetail['bank_id'] ?? 0;
-    $charge->charge_date = nowYmd();
-    $charge->status      =  0; // 未核销
-    $charge->remark      =  $remark;
-    $chargeRes = $charge->save();
-    return $chargeRes;
+    try {
+      $charge         = $this->model();
+      $charge->c_uid  = $user['id'];
+      $charge->unverify_amount = 0;
+      $charge->flow_no = getChargeNo();
+      $charge->company_id  = $user['company_id'];
+      $charge->tenant_id   = $billDetail['tenant_id'];
+      $charge->amount      = $BA['amount'];
+      $charge->proj_id     = $billDetail['proj_id'];
+      $charge->type        = 1; // 收入 // 2 支出
+      $charge->category     = $BA['category'];
+      $charge->source      = 1; // 费用
+      $charge->verify_amount = 0.00;
+      $charge->tenant_name = $billDetail['tenant_name'];
+      $charge->fee_type    =  0;
+      $charge->bank_id    =  $billDetail['bank_id'] ?? 0;
+      $charge->charge_date = nowYmd();
+      $charge->status      =  0; // 未核销
+      $charge->remark      =  $BA['remark'];
+      $chargeRes = $charge->save();
+      return $chargeRes;
+    } catch (Exception $e) {
+      Log::error("押金转收入失败，信息如下:" . $e);
+      throw $e;
+    }
   }
 }

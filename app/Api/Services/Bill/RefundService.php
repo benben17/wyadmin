@@ -63,7 +63,7 @@ class RefundService
         $charge->tenant_id = $billDetail->tenant_id;
         $charge->tenant_name = $billDetail->tenant_name;
         $charge->remark   = $request->filled('remark') ? $request->remark : "";
-        $charge->flow_no  = "RF-" . date('ymdHis') . mt_rand(10, 99);;
+        $charge->flow_no  = "RF-" . date('ymdHis') . mt_rand(10, 99);
         $charge->source   = 2;
         $charge->c_uid    = $user->id; // Assuming $user is an Eloquent model instance
         $charge->company_id    = $user->company_id; //

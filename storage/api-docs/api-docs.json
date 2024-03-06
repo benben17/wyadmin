@@ -644,7 +644,7 @@
         "/api/operation/charge/list": {
             "post": {
                 "tags": [
-                    "预充值"
+                    "收支"
                 ],
                 "summary": "预充值列表",
                 "requestBody": {
@@ -702,9 +702,9 @@
         "/api/operation/charge/add": {
             "post": {
                 "tags": [
-                    "预充值"
+                    "收支"
                 ],
-                "summary": "预充值新增",
+                "summary": "充值新增",
                 "operationId": "ee68e224cebacdde8ce42eccbbf55ceb",
                 "requestBody": {
                     "content": {
@@ -754,9 +754,9 @@
         "/api/operation/charge/edit": {
             "post": {
                 "tags": [
-                    "收款"
+                    "收支"
                 ],
-                "summary": "收款编辑",
+                "summary": "充值收款编辑",
                 "operationId": "b70f588a51e1752690f878eb240a29f4",
                 "requestBody": {
                     "content": {
@@ -820,9 +820,9 @@
         "/api/operation/charge/cancel": {
             "post": {
                 "tags": [
-                    "预充值"
+                    "收支"
                 ],
-                "summary": "预充值删除",
+                "summary": "预充值取消",
                 "operationId": "b47f921c2755cf3c74a260a13e384302",
                 "requestBody": {
                     "content": {
@@ -856,9 +856,9 @@
         "/api/operation/charge/show": {
             "post": {
                 "tags": [
-                    "预充值"
+                    "收支"
                 ],
-                "summary": "预充值详细",
+                "summary": "收支详细",
                 "operationId": "fcef6fbebb4d03684f16b54b7fc0348e",
                 "requestBody": {
                     "content": {
@@ -892,7 +892,7 @@
         "/api/operation/charge/writeOff": {
             "post": {
                 "tags": [
-                    "核销"
+                    "收支"
                 ],
                 "summary": "充值核销",
                 "operationId": "4f84f575f8149b59232168b24f8eba6c",
@@ -934,9 +934,9 @@
         "/api/operation/charge/record/list": {
             "post": {
                 "tags": [
-                    "预充值"
+                    "收支"
                 ],
-                "summary": "预充值-核销记录",
+                "summary": "收支-核销记录",
                 "operationId": "b40dcded6c846fc8c53484deeb61c4c2",
                 "requestBody": {
                     "content": {
@@ -990,7 +990,7 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/list": {
+        "/api/operation/tenant/deposit/list": {
             "post": {
                 "tags": [
                     "押金管理"
@@ -1107,13 +1107,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/edit": {
+        "/api/operation/tenant/deposit/edit": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理编辑",
-                "operationId": "78c2af2c7a8f8af5241ac7a5f3b05a06",
+                "operationId": "fa5c6042c072a09ee5c2cf326d801b93",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1171,13 +1171,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/show": {
+        "/api/operation/tenant/deposit/show": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理详细",
-                "operationId": "db200919f53509b99dfc9378eca0c575",
+                "operationId": "0da65e4aa8be318f71862bf311fd2243",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1243,13 +1243,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/tocharge": {
+        "/api/operation/tenant/deposit/tocharge": {
             "post": {
                 "tags": [
-                    "押金转收入/违约金"
+                    "押金管理"
                 ],
-                "summary": "押金转收入/违约金",
-                "operationId": "e117035ea999df7390aa701893396240",
+                "summary": "押金管理 转收入/违约金",
+                "operationId": "56ee665c0e199710544cb14c7431055b",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1270,6 +1270,98 @@
                                 "id": "1",
                                 "amount": "0.00",
                                 "category": "2 3"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/deposit/payee": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理 收款",
+                "operationId": "c903c9d967efaf2bdea85d106d130cca",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "amount",
+                                    "remark",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "金额",
+                                        "type": "float"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "0": "id",
+                                "amount": "1",
+                                "remark": "押金收款"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/deposit/refund": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理 退款",
+                "operationId": "5ade585b56665e4f5ab09979b8e1af94",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "amount",
+                                    "remark",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "amount": {
+                                        "description": "金额",
+                                        "type": "float"
+                                    },
+                                    "remark": {
+                                        "description": "备注",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "0": "id",
+                                "amount": "1",
+                                "remark": "1"
                             }
                         }
                     }

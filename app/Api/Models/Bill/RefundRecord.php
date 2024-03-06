@@ -15,13 +15,7 @@ class RefundRecord extends Model
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
   protected $appends = [];
 
-  // public function getBankNameAttribute()
-  // {
-  //   if (isset($this->attributes['bank_id'])) {
-  //     $bank =  BankAccount::select('account_name')->find($this->attributes['bank_id']);
-  //     return $bank['account_name'];
-  //   }
-  // }
+
 
   public function billDetail()
   {
