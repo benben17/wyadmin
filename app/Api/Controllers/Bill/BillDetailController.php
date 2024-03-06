@@ -148,18 +148,19 @@ class BillDetailController extends BaseController
     DB::enableQueryLog();
 
     $data = $this->billService->billDetailModel()
-      ->with(['chargeBillRecord' => function ($q) {
-        $q->with('charge:id,charge_date,flow_no,amount,c_uid,status');
-      }])->with('billDetailLog')
+      // ->with(['billDetailRecord' => function ($q) {
+      //   $q->with('charge:id,charge_date,flow_no,amount,c_uid,status');
+      // }])
+      ->with('billDetailRecord')
       ->with('contract:id,contract_no')
       ->with('refundRecord')
       ->find($request->id);
-    $invoiceService = new InvoiceService;
-    $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
-    if (!$invoiceRecord) {
-      $invoiceRecord =   (object)array();
-    }
-    $data['invoice_record'] = $invoiceRecord;
+    // $invoiceService = new InvoiceService;
+    // $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
+    // if (!$invoiceRecord) {
+    //   $invoiceRecord =   (object)array();
+    // }
+    // $data['invoice_record'] = $invoiceRecord;
     // return response()->json(DB::getQueryLog());
     return $this->success($data);
   }
