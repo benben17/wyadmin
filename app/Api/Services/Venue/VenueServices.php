@@ -180,7 +180,7 @@ class VenueServices
      */
     public function saveSettleBill($DA, $cusId, $venueId, $bookId)
     {
-        Log::error(json_encode($DA));
+        // Log::error(json_encode($DA));
         try {
             $settleModel = $this->venueSettleModel();
             foreach ($DA as $k => $v) {

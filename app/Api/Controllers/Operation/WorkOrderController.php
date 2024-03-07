@@ -53,7 +53,7 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'proj_ids' => 'required|array',
-      'status' => 'required|array',
+      // 'status' => 'required|array',
       'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');
@@ -81,7 +81,7 @@ class WorkOrderController extends BaseController
       $order = 'desc';
     }
     $map['work_type'] = $request->work_type;
-
+    DB::enableQueryLog();
     $subQuery = $this->workService->workModel()
       ->where($map)
       ->where(function ($q) use ($request) {
@@ -103,6 +103,8 @@ class WorkOrderController extends BaseController
       });
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
+
+    // return DB::getQueryLog();
 
     $data = $this->handleBackData($data);
     // 统计
