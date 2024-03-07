@@ -13,6 +13,12 @@ use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use Exception;
 
+/**
+ * 租户押金管理
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-07
+ */
 class DepositController extends BaseController
 {
   private $depositService;
@@ -562,7 +568,6 @@ class DepositController extends BaseController
     if ($pagesize == '-1') {
       $pagesize = config('export_rows');
     }
-    $map = array();
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -586,7 +591,7 @@ class DepositController extends BaseController
       })
       ->whereHas('billDetail', function ($q) use ($request) {
         $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
-      })
+      })->with('billDetail:id,tenant_id,tenant_name')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize);
 
