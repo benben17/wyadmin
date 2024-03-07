@@ -68,7 +68,7 @@ class BuildingRoomController extends BaseController
         if ($request->channel_state) {
             $map['channel_state'] = $request->channel_state;
         }
-        if ($request->has('room_state')) {
+        if ($request->room_state) {
             $map['room_state'] = $request->room_state;
         }
 
@@ -100,7 +100,7 @@ class BuildingRoomController extends BaseController
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->floor_no && $q->where('floor_no', 'like', '%' . $request->floor_no . '%');
+                $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
             })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
