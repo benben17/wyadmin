@@ -591,17 +591,19 @@ class DepositController extends BaseController
       })
       ->whereHas('billDetail', function ($q) use ($request) {
         $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
-      })->with('billDetail:id,tenant_id,tenant_name')
+      })
+      ->with('billDetail:id,tenant_id,tenant_name')
       ->orderBy($orderBy, $order)
-      ->paginate($pagesize);
+      ->paginate($pagesize)->toArray();
 
     // $list = $subQuery->get()->toArray();
     // return response()->json(DB::getQueryLog());
     // // 统计每种类型费用的应收/实收/ 退款/ 转收入
 
     $data = $this->handleBackData($data);
-    // foreach ( as $k => &$v1) {
-    // }
+    foreach ($data['result'] as $k => &$v1) {
+      $v1['tenant_name'] = $v1['bill_detail']['tenant_name'] ?? "";
+    }
     return $this->success($data);
   }
 }
