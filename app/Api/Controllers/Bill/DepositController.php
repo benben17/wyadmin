@@ -96,6 +96,7 @@ class DepositController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->status && $q->whereIn('status', $request->status);
+        $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
         $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
       })
       ->with('depositRecord');
