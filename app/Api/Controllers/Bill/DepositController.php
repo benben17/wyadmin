@@ -587,22 +587,19 @@ class DepositController extends BaseController
         $request->end_date && $q->where('operate_date', '<=',  $request->end_date);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('operate_date', $request->year);
-        $request->types && $q->whereIn('type', $request->fee_types);
+        $request->types && $q->whereIn('type', $request->types);
       })
       ->whereHas('billDetail', function ($q) use ($request) {
         $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
-      })
-      ->with('billDetail:id,tenant_id,tenant_name')
+      })->with('billDetail:id,tenant_id,tenant_name')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
 
-    // $list = $subQuery->get()->toArray();
     // return response()->json(DB::getQueryLog());
-    // // 统计每种类型费用的应收/实收/ 退款/ 转收入
-
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v1) {
       $v1['tenant_name'] = $v1['bill_detail']['tenant_name'] ?? "";
+      unset($v1['bill_detail']);
     }
     return $this->success($data);
   }
