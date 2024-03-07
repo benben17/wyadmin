@@ -96,11 +96,13 @@ class DepositController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->status && $q->whereIn('status', $request->status);
+        $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
       })
       ->with('depositRecord');
 
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
+
     $list = $subQuery->get()->toArray();
     // return response()->json(DB::getQueryLog());
     // 统计每种类型费用的应收/实收/ 退款/ 转收入
