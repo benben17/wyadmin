@@ -415,7 +415,7 @@ class StatController extends BaseController
 
         foreach ($belongPerson as $k => &$v) {
             foreach ($State as $ks => $vs) {
-                Log::error($vs . '----' . $v['user']);
+                // Log::error($vs . '----' . $v['user']);
                 $cusCount = $this->customerService->tenantModel()
                     ->where('state', $vs)
                     ->where('belong_person', $v['user'])

@@ -1281,13 +1281,13 @@
                 }
             }
         },
-        "/api/operation/tenant/deposit/payee": {
+        "/api/operation/tenant/deposit/receive": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理 收款",
-                "operationId": "c903c9d967efaf2bdea85d106d130cca",
+                "operationId": "ed294c6a25f0020be9022506c7ea216f",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1348,7 +1348,7 @@
                                         "type": "int"
                                     },
                                     "amount": {
-                                        "description": "金额",
+                                        "description": "金额,保留小数点后2位",
                                         "type": "float"
                                     },
                                     "remark": {
@@ -1359,9 +1359,71 @@
                                 "type": "object"
                             },
                             "example": {
-                                "0": "id",
+                                "id": "1",
                                 "amount": "1",
-                                "remark": "1"
+                                "remark": "备注"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/deposit/record/list": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金流水列表",
+                "operationId": "1f3678c88863bde794c377b4b57f7424",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "tenant_id",
+                                    "proj_ids"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "pagesize": {
+                                        "description": "行数",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "start_date": {
+                                        "description": "开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "结束时间",
+                                        "type": "date"
+                                    },
+                                    "proj_ids": {
+                                        "description": "",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_id": "1",
+                                "tenant_name": "",
+                                "start_date": "",
+                                "end_date": "",
+                                "types": "[]",
+                                "proj_ids": "[]"
                             }
                         }
                     }

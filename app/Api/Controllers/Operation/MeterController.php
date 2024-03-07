@@ -542,7 +542,6 @@ class MeterController extends BaseController
       $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
         $used = abs($v['used_value'] - $v['pre_used_value']) / $v['pre_used_value'] * 100;
-        // Log::error($used);
         if ($used >= 50) {
           $v['unusual'] = 0;
         } else {

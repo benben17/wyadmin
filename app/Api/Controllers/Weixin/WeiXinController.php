@@ -46,7 +46,6 @@ class WeiXinController extends BaseController
   {
     try {
       $user_data = Socialite::with('weixinweb')->stateless()->user();
-      Log::error("user_data");
       if ($user_data) {
         // Log::error("11111");
         $uid = base64_decode($request->state);

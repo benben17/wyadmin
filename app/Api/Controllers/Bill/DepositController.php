@@ -425,8 +425,6 @@ class DepositController extends BaseController
     try {
       $user = $this->user;
       DB::transaction(function () use ($depositBill, $DA, $user) {
-
-
         // 已收款金额+ 本次收款金额 
         $totalReceiveAmt = $depositBill['receive_amount'] + $DA['amount'];
         $unreceiveAmt  = $depositBill['unreceive_amount'];
@@ -438,8 +436,9 @@ class DepositController extends BaseController
         if ($DA['amount'] === $unreceiveAmt) {
           $updateData['status'] =  1;
         }
+        // 保存押金流水记录
         $this->depositService->saveDepositRecord($depositBill, $DA, $user);
-
+        // 更新 押金信息 【状态，收款金额】
         $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
       }, 2);
 
@@ -521,5 +520,83 @@ class DepositController extends BaseController
 
       return $this->error("押金退款失败！" . $e->getMessage());
     }
+  }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/deposit/record/list",
+   *     tags={"押金管理"},
+   *     summary="押金流水列表",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"tenant_id","proj_ids"},
+   *       @OA\Property(property="tenant_id",type="int",description="租户id"),
+   *       @OA\Property(property="pagesize",type="int",description="行数"),
+   *       @OA\Property(property="tenant_name",type="String",description="租户名称"),
+   *       @OA\Property(property="start_date",type="date",description="开始时间"),
+   *       @OA\Property(property="end_date",type="date",description="结束时间"),
+   *        @OA\Property(property="proj_ids",type="list",description="")
+   *     ),
+   *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":"","types":"[]","proj_ids":"[]"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function recordList(Request $request)
+  {
+    $validatedData = $request->validate([
+      'proj_ids' => 'required|array',
+    ]);
+    $pagesize = $request->input('pagesize');
+    if (!$pagesize || $pagesize < 1) {
+      $pagesize = config('per_size');
+    }
+    if ($pagesize == '-1') {
+      $pagesize = config('export_rows');
+    }
+    $map = array();
+    // 排序字段
+    if ($request->input('orderBy')) {
+      $orderBy = $request->input('orderBy');
+    } else {
+      $orderBy = 'created_at';
+    }
+    // 排序方式desc 倒叙 asc 正序
+    if ($request->input('order')) {
+      $order = $request->input('order');
+    } else {
+      $order = 'desc';
+    }
+    DB::enableQueryLog();
+    $data = $this->depositService->recordModel()
+      ->where(function ($q) use ($request) {
+        $request->start_date && $q->where('operate_date', '>=',  $request->start_date);
+        $request->end_date && $q->where('operate_date', '<=',  $request->end_date);
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->year && $q->whereYear('operate_date', $request->year);
+        $request->types && $q->whereIn('type', $request->fee_types);
+      })
+      ->whereHas('billDetail', function ($q) use ($request) {
+        $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
+      })
+      ->orderBy($orderBy, $order)
+      ->paginate($pagesize);
+
+    // $list = $subQuery->get()->toArray();
+    // return response()->json(DB::getQueryLog());
+    // // 统计每种类型费用的应收/实收/ 退款/ 转收入
+
+    $data = $this->handleBackData($data);
+    // foreach ( as $k => &$v1) {
+    // }
+    return $this->success($data);
   }
 }

@@ -70,11 +70,18 @@ class TenantShareRule extends Model
 
   public function getShareTypeLabelAttribute()
   {
-    $shareType = $this->attributes['share_type'];
-    if ($shareType == 1) {
-      return '比例分摊';
-    } else if ($shareType == 2) {
-      return '固定金额';
+    $shareType = $this->attributes['share_type'] ?? 0;
+
+    switch ($shareType) {
+      case '1':
+        return "比例分摊";
+        break;
+      case '2':
+        return "固定金额";
+        break;
+      case '3':
+        return "固定面积";
+        break;
     }
   }
 
