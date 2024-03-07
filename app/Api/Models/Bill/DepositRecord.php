@@ -39,9 +39,9 @@ class DepositRecord extends Model
   private function getTypeLabel(int $type)
   {
     $labels = [
-      1 => "押金收入",
-      2 => "押金退款",
+      1 => "押金收款",
       2 => "转费用收入",
+      3 => "押金退款",
     ];
     return $labels[$type]  ?? '';
   }

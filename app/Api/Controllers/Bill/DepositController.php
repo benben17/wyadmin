@@ -415,7 +415,7 @@ class DepositController extends BaseController
 
     ]);
     $DA = $request->toArray();
-    $DA['type'] = AppEnum::depositRecordPayee;
+    $DA['type'] = AppEnum::depositRecordReceive;
 
     $depositBill = $this->depositService->depositBillModel()->find($request->id);
     if ($depositBill['status'] != 0) {
