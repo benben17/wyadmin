@@ -95,4 +95,36 @@ class DepositService
     }
     return $BA;
   }
+
+
+  /**
+   * list  列表统计
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-07
+   * @param array $list
+   *
+   * @return array
+   */
+  public function depositStat(array $list): array
+  {
+    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'discount_amt' => 0.00];
+    foreach ($list as $k => $v) {
+      $stat['total_amt'] += $v['amount'];
+      $stat['discount_amt'] += $v['discount_amount'];
+      $record = $this->formatDepositRecord($v['deposit_record']);
+      $stat['refund_amt'] += $record['refund_amt'];
+      $stat['charge_amt'] += $record['charge_amt'];
+      $stat['receive_amt'] += $v['receive_amount'];
+    }
+    $availableAmt = $stat['receive_amt'] - $stat['charge_amt'] - $stat['refund_amt'];
+    return array(
+      ["label" => '总金额', "amount" => $stat['total_amt'], 'remark' => '押金账单总金额'],
+      ["label" => '优惠金额', "amount" => $stat['discount_amt'], 'remark' => '押金账单总优惠金额'],
+      ["label" => '已收款金额', "amount" => $stat['receive_amt'], 'remark' => '押金账单总收款金额'],
+      ["label" => '退款金额', "amount" => $stat['refund_amt'], 'remark' => '押金账单总退款金额'],
+      ["label" => '转收入金额', "amount" => $stat['charge_amt'], 'remark' => '押金账单总转收入金额'],
+      ["label" => '可用金额', "amount" => $availableAmt, 'remark' => '押金总可用金额，总收入-退款-转收入'],
+    );
+  }
 }

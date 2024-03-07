@@ -107,23 +107,13 @@ class DepositController extends BaseController
     $list = $subQuery->get()->toArray();
     // return response()->json(DB::getQueryLog());
     // 统计每种类型费用的应收/实收/ 退款/ 转收入
-    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'discount_amt' => 0.00];
-    foreach ($list as $k => $v) {
-      $stat['total_amt'] += $v['amount'];
-      $stat['discount_amt'] = $v['discount_amount'];
-      $record = $this->depositService->formatDepositRecord($v['deposit_record']);
-      $stat['refund_amt'] += $record['refund_amt'];
-      $stat['charge_amt'] += $record['charge_amt'];
-      $stat['receive_amt'] += $v['receive_amount'];
-    }
-
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v1) {
       $record = $this->depositService->formatDepositRecord($v1['deposit_record']);
       $v1 = $v1 + $record;
     }
-    $data['stat'] = $stat;
+    $data['stat'] = $this->depositService->depositStat($list);
     return $this->success($data);
   }
 
