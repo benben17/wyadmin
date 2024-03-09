@@ -258,11 +258,12 @@ class ContractBillService
 
     $freeType = $DA['free_type'];
     $ceil = ceil($DA['lease_term'] / $period);
-    // Log::error($freeType);
+    Log::error($ceil . "aaa" . $DA['lease_term']);
     $bill = array();
     $freeNum = 0;
     $remark = "";
     for ($i = 0; $i <= $ceil; $i++) {
+
       $remark = "";
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
@@ -300,12 +301,16 @@ class ContractBillService
         $bill[$i]['end_date'] = $rule['end_date'];   // 结束日期为合同结束日期
         // 按月 最后一个帐期 总金额 - 之前账单金额
         if ($freeType == AppEnum::freeMonth) {
-
-          $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
+          if ($period === $freeNum) {
+            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
+          } else {
+            $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period);
+          }
         } else { // 按天免租
           $freeAmt = $rule['month_amt'] / 30 * $freeNum;
           $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period - $freeAmt);
         }
+
         $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
         $data['total'] += $bill[$i]['amount'];
         $bill[$i]['remark'] = $remark;

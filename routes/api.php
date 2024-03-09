@@ -368,6 +368,14 @@ Route::group(['prefix' => 'operation/tenant'], function () {
     Route::post('share/show', '\App\Api\Controllers\Operation\TenantShareController@show');
 });
 
+Route::group(['prefix' => 'operation/tenant/share'], function () {
+    Route::post('add', '\App\Api\Controllers\Operation\TenantShareController@store');
+    Route::post('edit', '\App\Api\Controllers\Operation\TenantShareController@update');
+    Route::post('fee/list', '\App\Api\Controllers\Operation\TenantShareController@feeList');
+});
+
+
+
 Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
     Route::post('/list', '\App\Api\Controllers\Operation\LeasebackController@list');
     Route::post('/add', '\App\Api\Controllers\Operation\LeasebackController@store');

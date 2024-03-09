@@ -10,6 +10,7 @@ use App\Api\Models\Bill\TenantShareRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\ShareRuleService;
@@ -21,12 +22,12 @@ use App\Enums\AppEnum;
  */
 class TenantShareController extends BaseController
 {
-    private $parent_type;
+    private $parentType;
     private $tenantService;
     public function __construct()
     {
         parent::__construct();
-        $this->parent_type = AppEnum::Tenant;
+        $this->parentType = AppEnum::Tenant;
         $this->tenantService = new TenantService;
     }
 
@@ -78,7 +79,9 @@ class TenantShareController extends BaseController
 
         DB::enableQueryLog();
 
-        $result = $this->tenantService->tenantModel();
+        $result = $this->tenantService->tenantModel()->get();
+        // ->where(function ($q) use($request){});
+
 
         // return response()->json(DB::getQueryLog());
 
@@ -123,7 +126,7 @@ class TenantShareController extends BaseController
         $validatedData = $request->validate([
             'parent_tenant_id' => 'required',
             'contract_id' => 'required|gt:0',
-            // 'share_type' => 'required|in:1,2,3',
+            'share_type' => 'required|in:1,2,3',
             'share_list' => 'required|array',
             // 'share_rules.tenant_id' => 'required|gt:0',
             // 'share_rules.contract_id' => 'required|gt:0',
@@ -267,6 +270,55 @@ class TenantShareController extends BaseController
             $v['share_rule'] =  $shareService->model()->where($map)->get();
         }
         $data['share_list'] = $shareList;
+        return $this->success($data);
+    }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/share/fee/list",
+     *     tags={"租户分摊"},
+     *     summary="租户应收 应收未收列表",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id","fee_start_date"},
+     *       @OA\Property(
+     *          property="contract_id",
+     *          type="int",
+     *          description="合同id"
+     *       ),
+     *      @OA\Property(property="fee_start_date",type="date",description="分摊账单开始时间"
+     *       )
+     *     ),
+     *       example={"contract_id":1,"fee_start_date":"2024-03-01"}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function feeList(Request $request)
+    {
+        $msg = ['contract_id' => '合同id不允许为空'];
+        $validatedData = $request->validate([
+            'contract_id' => 'required|numeric|min:1'
+        ]);
+
+        $billDetailService = new TenantBillService;
+        DB::enableQueryLog();
+        $data = $billDetailService->BillDetailModel()
+            ->where(function ($q) use ($request) {
+                $q->where('contract_id', $request->contract_id);
+                $q->where('bill_id', 0);
+                $q->whereIn('fee_type', [101, 102]); // 只分摊 
+            })->orderBy('charge_date', 'asc')->get()->toArray();
+        // return response()->json(DB::getQueryLog());
+
         return $this->success($data);
     }
 }
