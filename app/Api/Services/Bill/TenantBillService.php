@@ -132,6 +132,27 @@ class TenantBillService
     }
   }
 
+
+  /**
+   * 分享账单主表更新
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-09
+   * @param integer $detailId
+   * @param [type] $updateData
+   *
+   * @return void
+   */
+  public function updateShareBillDetail(int $detailId, $updateData)
+  {
+    try {
+      $billDetail = $this->billDetailModel()->where('id', $detailId)->update($updateData);
+    } catch (Exception $e) {
+      Log::error("分享后账单更新失败!" . $e->getMessage());
+      throw new Exception("分享后账单更新失败");
+    }
+  }
+
   public function editBillDetail($DA, $user)
   {
     try {
@@ -326,14 +347,14 @@ class TenantBillService
    *
    * @return void
    */
-  private function formatBillDetail(array $DA, $user, int $projId)
+  public function formatBillDetail(array $DA, $user, int $projId = 0)
   {
     $data = array();
     try {
       if ($DA && $user) {
-        foreach ($DA as $k => &$v) {
+        foreach ($DA as $k => $v) {
           $data[$k]['company_id']  = $user['company_id'];
-          $data[$k]['proj_id']     = $projId;
+          $data[$k]['proj_id']     = $projId === 0 ? $v['proj_id'] : $projId;
           $data[$k]['contract_id'] = $v['contract_id'];
           $data[$k]['tenant_id']   = $v['tenant_id'];
           if (!isset($v['tenant_name']) || !$v['tenant_name']) {
@@ -356,7 +377,7 @@ class TenantBillService
       }
       return $data;
     } catch (Exception $th) {
-      Log::error("格式化，租户账单失败" . $th->getMessage());
+      Log::error("格式化，分享租户账单失败" . $th->getMessage());
       throw $th;
     }
   }
@@ -383,6 +404,9 @@ class TenantBillService
       return $contract['manager_bank_id'];
     }
   }
+
+
+
 
   /**
    * 查看账单服务
