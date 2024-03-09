@@ -193,7 +193,7 @@ class TenantShareController extends BaseController
                 $q->where('status', 0);
             })
             ->whereHas('tenant', function ($q) use ($request) {
-                $q->where('parent_id', 0);
+                $q->where('parent_id', '>', 0);
             })->orderBy('charge_date', 'asc')->get()->toArray();
         // return response()->json(DB::getQueryLog());
 
