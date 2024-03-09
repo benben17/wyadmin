@@ -316,6 +316,7 @@ class TenantShareController extends BaseController
                 $q->where('contract_id', $request->contract_id);
                 $q->where('bill_id', 0);
                 $q->whereIn('fee_type', [101, 102]); // 只分摊 
+                $q->where('status', 0);
             })->orderBy('charge_date', 'asc')->get()->toArray();
         // return response()->json(DB::getQueryLog());
 
