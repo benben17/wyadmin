@@ -15,6 +15,7 @@ use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantShareService;
 use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
+use Encore\Admin\Grid\Filter\Where;
 
 /**
  *  租户分摊
@@ -190,6 +191,9 @@ class TenantShareController extends BaseController
                 $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
                 $q->whereIn('fee_type', [101, 102]);
                 $q->where('status', 0);
+            })
+            ->whereHas('tenant', function ($q) use ($request) {
+                $q->where('parent_id', 0);
             })->orderBy('charge_date', 'asc')->get()->toArray();
         // return response()->json(DB::getQueryLog());
 
@@ -256,6 +260,7 @@ class TenantShareController extends BaseController
                     } else {
                         // 处理分摊租户
                         foreach ($share['fee_list'] as $k => &$v) {
+                            $v['tenant_id'] = $share['tenant_id'];
                             $v['tenant_name'] = $share['tenant_name'];
                             $v['amount'] = $v['share_amount'];
                             $v['contract_id'] = $DA['contract_id'];

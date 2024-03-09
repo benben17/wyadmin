@@ -4,6 +4,7 @@ namespace App\Api\Models\Bill;
 
 use App\Api\Models\Company\FeeType;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -112,6 +113,10 @@ class TenantBillDetail extends Model
     return $this->belongsTo(FeeType::class, 'fee_type', 'id');
   }
 
+  public function tenant()
+  {
+    return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
+  }
   public function invoiceRecord()
   {
     return $this->hasOne(InvoiceRecord::class, 'invoice_id', 'id');
