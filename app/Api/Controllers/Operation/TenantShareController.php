@@ -192,8 +192,8 @@ class TenantShareController extends BaseController
                 $q->whereIn('fee_type', [101, 102]);
                 $q->where('status', 0);
             })
-            ->whereHas('tenant', function ($q) use ($request) {
-                $q->where('parent_id', '>', 0);
+            ->whereHas('tenant', function ($q) {
+                $q->where('parent_id', 0);
             })->orderBy('charge_date', 'asc')->get()->toArray();
         // return response()->json(DB::getQueryLog());
 
@@ -269,7 +269,7 @@ class TenantShareController extends BaseController
                         $newFeeList = $this->tenantBillService->formatBillDetail($share['fee_list'], $user);
                         $this->tenantBillService->billDetailModel()->addAll($newFeeList);
                         $updateTenant = ['parent_id' => $primaryTenant];
-                        $this->tenantService->tenantModel()->update($updateTenant);
+                        $this->tenantService->tenantModel()->where('id', $share['tenant_id'])->update($updateTenant);
                     }
                 }
             }, 2);
