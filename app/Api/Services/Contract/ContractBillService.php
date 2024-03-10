@@ -35,7 +35,7 @@ class ContractBillService
     $type = 1; //  费用
     $data = array();
     // Log::error(json_encode($feetype) . "费用id");
-    $leaseTerm = $contract['lease_term'];
+    $leaseTerm = $rule['lease_term'];
     // Log::error("创建账单" . $rule['id']);
     $i = 0;
     $data['total'] = 0.00;

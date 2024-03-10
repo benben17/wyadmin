@@ -88,6 +88,7 @@ class BillRuleService
           $data[$k]['charge_date']    = $v['charge_date'];
         }
         $data[$k]['area_num']    = isset($v['area_num']) ? $v['area_num'] : 0.00;
+        $data[$k]['lease_term']  = $v['lease_term'] ?? 0;
         $data[$k]['pay_method']  = isset($v['pay_method']) ? $v['pay_method'] : 0;
         $data[$k]['bill_day']    = isset($v['bill_day']) ? $v['bill_day'] : 0;
         $data[$k]['amount']      = isset($v['amount']) ? $v['amount'] : 0.00;
