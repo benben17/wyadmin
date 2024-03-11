@@ -301,10 +301,10 @@ class ContractBillService
         $bill[$i]['end_date'] = $rule['end_date'];   // 结束日期为合同结束日期
         // 按月 最后一个帐期 总金额 - 之前账单金额
         if ($freeType == AppEnum::freeMonth) {
-          if ($period === $freeNum) {
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
+          if ($period === $freeNum && $period == 1) {
+            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
           } else {
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period);
+            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
           }
         } else { // 按天免租
           $freeAmt = $rule['month_amt'] / 30 * $freeNum;
