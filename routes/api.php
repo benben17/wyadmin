@@ -363,13 +363,13 @@ Route::group(['prefix' => 'operation/tenant'], function () {
 
     // Route::post('/sync', '\App\Api\Controllers\Operation\TenantController@tenantSync');
     // 退租租户
-    Route::post('share/add', '\App\Api\Controllers\Operation\TenantShareController@store');
-    Route::post('share/edit', '\App\Api\Controllers\Operation\TenantShareController@update');
-    Route::post('share/show', '\App\Api\Controllers\Operation\TenantShareController@show');
+    // Route::post('share/add', '\App\Api\Controllers\Operation\TenantShareController@store');
+    // Route::post('share/edit', '\App\Api\Controllers\Operation\TenantShareController@update');
+    // Route::post('share/show', '\App\Api\Controllers\Operation\TenantShareController@show');
 });
 
 Route::group(['prefix' => 'operation/tenant/share'], function () {
-    Route::post('add', '\App\Api\Controllers\Operation\TenantShareController@store');
+    Route::post('list', '\App\Api\Controllers\Operation\TenantShareController@list');
     Route::post('edit', '\App\Api\Controllers\Operation\TenantShareController@update');
     Route::post('fee/list', '\App\Api\Controllers\Operation\TenantShareController@feeList');
     Route::post('store', '\App\Api\Controllers\Operation\TenantShareController@tenantShareStore');

@@ -66,8 +66,7 @@ class TenantShareController extends BaseController
         if ($pagesize == '-1') {
             $pagesize = config('export_rows');
         }
-        $map = array();
-        $map['parent_id'] = 0;
+
         // 排序字段
         if ($request->input('orderBy')) {
             $orderBy = $request->input('orderBy');
@@ -83,12 +82,18 @@ class TenantShareController extends BaseController
 
         DB::enableQueryLog();
 
-        $result = $this->tenantService->tenantModel()->get();
+        $result = $this->tenantService->tenantModel()
+            ->where(function ($q) use ($request) {
+                $q->where('parent_id', '!=', 0);
+                $request->tenant_id && $q->where('parent_id', $request->tenant_id);
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->orderBy($orderBy, $order)
+            ->paginate($pagesize)->toArray();
         // ->where(function ($q) use($request){});
 
 
         // return response()->json(DB::getQueryLog());
-
         $data = $this->handleBackData($result);
         return $this->success($data);
     }
@@ -265,7 +270,7 @@ class TenantShareController extends BaseController
                             $v['amount'] = $v['share_amount'];
                             $v['contract_id'] = $DA['contract_id'];
                         }
-                        Log::error(json_encode($share['fee_list']));
+                        // Log::error(json_encode($share['fee_list']));
                         $newFeeList = $this->tenantBillService->formatBillDetail($share['fee_list'], $user);
                         $this->tenantBillService->billDetailModel()->addAll($newFeeList);
                         $updateTenant = ['parent_id' => $primaryTenant];
