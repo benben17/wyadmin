@@ -140,6 +140,7 @@ class TenantShareController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->contract_id && $q->where('contract_id', $request->contract_id);
                 $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
+                $request->parent_id && $q->where('parent_id', $request->parent_id);
             })->get()->toArray();
 
 
