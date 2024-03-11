@@ -270,7 +270,7 @@ class ContractBillService
       $bill[$i]['price'] = numFormat($rule['unit_price']);
       $bill[$i]['unit_price_label'] = $rule['unit_price_label'];
       if ($i == 0) {
-        $startDate = $DA['start_date'];
+        $startDate = $rule['start_date'];
         $bill[$i]['charge_date'] = $startDate;
       } else {  // 其他累加
         $startDate = $endDate;
