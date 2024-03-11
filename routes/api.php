@@ -370,7 +370,7 @@ Route::group(['prefix' => 'operation/tenant'], function () {
 
 Route::group(['prefix' => 'operation/tenant/share'], function () {
     Route::post('list', '\App\Api\Controllers\Operation\TenantShareController@list');
-    Route::post('edit', '\App\Api\Controllers\Operation\TenantShareController@update');
+    Route::post('show', '\App\Api\Controllers\Operation\TenantShareController@show');
     Route::post('fee/list', '\App\Api\Controllers\Operation\TenantShareController@feeList');
     Route::post('store', '\App\Api\Controllers\Operation\TenantShareController@tenantShareStore');
 });

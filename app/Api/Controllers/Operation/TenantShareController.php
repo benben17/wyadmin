@@ -131,21 +131,21 @@ class TenantShareController extends BaseController
     public function show(Request $request)
     {
         $validatedData = $request->validate([
-            'tenant_id' => 'required|numeric|min:1',
+            'contract_id' => 'required|numeric|min:1',
         ]);
 
         $contractService = new ContractService;
         DB::enableQueryLog();
         $data = $this->tenantShareService->model()
             ->where(function ($q) use ($request) {
+                $request->contract_id && $q->where('contract_id', $request->contract_id);
                 $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
-                // $request->contract_id && $q->where('contract_id', $request->contract_id);
-            })->first()->toArray();
+            })->get()->toArray();
 
 
         // return response()->json(DB::getQueryLog());
-        if ($data) {
-            $data['fee_list_json'] = json_decode($data['fee_list']);
+        foreach ($data as $k => &$v) {
+            $v['fee_list_json'] = json_decode($v['fee_list']);
         }
 
         return $this->success($data);
@@ -254,6 +254,7 @@ class TenantShareController extends BaseController
                 foreach ($DA['share_list'] as $share) {
                     $primaryTenant = $DA['parent_tenant_id'];
                     $share['contract_id'] = $DA['contract_id'];
+                    $share['parent_id'] = $primaryTenant;
                     $this->tenantShareService->saveShareFee($share, $this->user);
 
                     if ($primaryTenant === $share['tenant_id']) {
