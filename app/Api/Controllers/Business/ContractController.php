@@ -15,7 +15,8 @@ use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
-
+use App\Api\Services\Tenant\TenantShareService;
+use Maatwebsite\Excel\Concerns\ToArray;
 
 /**
  * 合同管理
@@ -383,6 +384,8 @@ class ContractController extends BaseController
         $data = $contractService->showContract($contractId, $this->uid);
         if ($data) {
             $data['contract_log'] = $contractService->getContractLogById($contractId);
+            $shareTenant = new TenantShareService;
+            $data['share_tenant'] = $shareTenant->getShareTenantsByContractId($data['id']);
         }
         return $this->success($data);
     }

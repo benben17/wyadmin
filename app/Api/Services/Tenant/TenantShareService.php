@@ -29,6 +29,7 @@ class TenantShareService
         $share->c_uid     = $user['id'];
         $share->company_id = $user['company_id'];
       }
+      $share->parent_id   = $DA['parent_id'];
       $share->tenant_id   = $DA['tenant_id'];
       $share->contract_id   = $DA['contract_id'];
       // $share->fee_type    = $DA['fee_type'];
@@ -44,6 +45,55 @@ class TenantShareService
       return false;
     }
   }
+
+  /**
+   * 根据主租户的id 查询分摊租户
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-12
+   * @param [type] $tenantId
+   *
+   * @return void
+   */
+  public function getShareTenants($tenantId)
+  {
+    $data = $this->model()->select('tenant_id', 'contract_id')
+      ->where('parent_id', $tenantId)->get()->toArray();
+
+    if ($data) {
+      foreach ($data as $k => $v) {
+        $v['tenant_name'] = getTenantNameById($v['tenant_id']);
+      }
+      return $data;
+    }
+    return $data;
+  }
+
+  /**
+   * 根据合同id获取分摊租户
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-12
+   * @param [type] $contractId
+   *
+   * @return void
+   */
+  public function getShareTenantsByContractId($contractId)
+  {
+    $data = $this->model()->select('tenant_id', 'contract_id')->where('parent_id', '>', 0)
+      ->where('contract_id', $contractId)
+      ->get()->toArray();
+
+    if ($data) {
+      foreach ($data as $k => &$v) {
+        $v['tenant_name'] = getTenantNameById($v['tenant_id']);
+      }
+      return $data;
+    }
+    return $data;
+  }
+
+
 
   /** 批量保存分摊 */
   // public function batchSaveShare($DA, $user)

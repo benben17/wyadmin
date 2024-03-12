@@ -86,7 +86,7 @@ class ContractBillService
     }
     $data['total'] = numFormat($data['total']);
     $data['bill'] = $bill;
-    $data['fee_type'] = getFeeNameById($rule['fee_type'])['fee_name'];
+    $data['fee_type_label'] = getFeeNameById($rule['fee_type'])['fee_name'];
 
     return $data;
   }
@@ -163,7 +163,7 @@ class ContractBillService
     }
     $data['total'] = numFormat($data['total']);
     $data['bill'] = $bill;
-    $data['fee_type'] =  getFeeNameById($rule['fee_type'])['fee_name'];
+    $data['fee_type_label'] =  getFeeNameById($rule['fee_type'])['fee_name'];
 
     return $data;
   }
@@ -233,7 +233,7 @@ class ContractBillService
         if ($bill) {
           $data['total'] = numFormat($total);
           $data['bill'] = $bill;
-          $data['fee_type'] = '押金';
+          $data['fee_type_label'] = '押金';
         }
       }
     }
@@ -324,7 +324,7 @@ class ContractBillService
       }
     }
     $data['bill'] = $bill;
-    $data['fee_type'] = getFeeNameById($rule['fee_type'])['fee_name'];
+    $data['fee_type_label'] = getFeeNameById($rule['fee_type'])['fee_name'];
     return $data;
   }
 
