@@ -164,6 +164,7 @@ class BillController extends BaseController
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
         ->where('proj_id', $request->proj_id)->get()->toArray();
 
+
       if (sizeof($contracts) == 0) {
         return $this->error("未找到合同信息");
       }
@@ -189,15 +190,15 @@ class BillController extends BaseController
           ->where($map)
           ->whereBetween('charge_date', $billDate)
           ->whereIn('fee_type', $feeTypes)
-          ->groupBy('tenant_id')
+          ->groupBy('contract_id', 'tenant_id')
           ->get()->toArray();
 
-        // return $billDetail;
+        // return $billDetails;
         // return response()->json(DB::getQueryLog());
         if (sizeof($billDetails) == 0) {
-          $msg = "合同-" . $contract['contract_no'] . "无费用信息";
-          Log::warning($msg);
-          $msg .= $msg;
+          $message = "合同-" . $contract['contract_no'] . "无费用信息";
+          Log::warning($message);
+          $msg .= $message;
           continue;
         }
 

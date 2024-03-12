@@ -110,7 +110,7 @@ class CustomerController extends BaseController
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->source_type && $q->where('source_type', $request->source_type);
                 $request->industry && $q->where('industry', $request->industry);
-
+                $request->parent_id && $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
                 if (!$this->user['is_admin']) {
                     if ($request->depart_id) {
