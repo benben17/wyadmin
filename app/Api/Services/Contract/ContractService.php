@@ -96,7 +96,7 @@ class ContractService
             // Log::error($v1 . "--------");
             $feeBill[$i]['bill'] = $bill;
             $feeBill[$i]['total'] = $total;
-            $feeBill[$i]['fee_label'] = getFeeNameById($v1)['fee_name'];
+            $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
             $i++;
           }
         }
@@ -112,8 +112,8 @@ class ContractService
         if ($total && $bill) {
           $feeBill[$i]['bill'] = $bill;
           $feeBill[$i]['total']  = $total;
-          $v == 2 &&  $feeBill[$i]['fee_label'] = '押金';
-          $v == 3 &&  $feeBill[$i]['fee_label'] = '其他费用';
+          $v == 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
+          $v == 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
           $i++;
         }
       }
