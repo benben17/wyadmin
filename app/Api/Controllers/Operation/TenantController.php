@@ -364,6 +364,8 @@ class TenantController extends BaseController
             if (!$data['business_info'] || empty($data['business_info'])) {
                 $data['business_info'] = (object) null;
             }
+            $data['share_tenant'] = $this->tenantService->tenantModel()->select("tenant_no", "name", "created_at")
+                ->where('parent_id', $data['id'])->get();
         }
         return $this->success($data);
     }

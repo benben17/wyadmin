@@ -98,8 +98,57 @@ class TenantShareController extends BaseController
         return $this->success($data);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/share/add",
+     *     tags={"分摊租户"},
+     *     summary="分摊租户新增",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"type","name","parent_id"},
+     *       @OA\Property(property="parent_id",type="int",description="主租户id"),
+     *       @OA\Property(property="name",type="String",description="客户名称"),
+     *     ),
+     *       example={"name":"租户名称","parent_id":"主租户id"}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function store(Request $request)
+    {
+        $msg = [
+            'name' => '租户名称必填',
+            'parent_id' => '主租户ID必填',
+            'proj_id' => '项目ID必填',
+        ];
+        $validatedData = $request->validate([
+            'name' => 'required',
+            'parent_id' => 'required',
+            'proj_id' => 'required'
+        ], $msg);
+        $DA = $request->toArray();
+        $map['company_id']  = $this->company_id;
+        $map['name']        = $request->name;
+        $checkRepeat        = $this->tenantService->tenantRepeat($map);
+        if ($checkRepeat) {
+            return $this->error('客户名称重复!');
+        }
 
-
+        $DA['state'] = "成交客户";
+        $DA['type'] = AppEnum::TenantType;
+        $res = $this->tenantService->saveTenant($DA, $this->user);
+        if ($res) {
+            return $this->success("分摊租户添加成功");
+        }
+        return $this->error("分摊租户添加失败");
+    }
 
 
     /**

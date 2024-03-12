@@ -369,6 +369,8 @@ Route::group(['prefix' => 'operation/tenant'], function () {
 });
 
 Route::group(['prefix' => 'operation/tenant/share'], function () {
+    // 分摊租户添加
+    Route::post('add', '\App\Api\Controllers\Operation\TenantShareController@store');
     Route::post('list', '\App\Api\Controllers\Operation\TenantShareController@list');
     Route::post('show', '\App\Api\Controllers\Operation\TenantShareController@show');
     Route::post('fee/list', '\App\Api\Controllers\Operation\TenantShareController@feeList');
