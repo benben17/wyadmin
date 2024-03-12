@@ -372,7 +372,7 @@ class ContractBillService
     foreach ($freeList as $k => $v) {
       if (strtotime($v['start_date']) >= strtotime($billStart) && strtotime($v['start_date']) < strtotime($billEnd)) {
         // Log::error($billStart . "开始时间" . $billEnd . "结束时间");
-        $free_num   += $v['free_num'];
+        $free_num += $v['free_num'];
         if ($freeType == AppEnum::freeMonth) {
           $free_amt += numFormat($rentRule['month_amt'] * $free_num);
           $freeRemark .= "免租" . $v['free_num'] . "个月|免租时间" . $v['start_date'] . "-" . $v['end_date'];
@@ -505,7 +505,6 @@ class ContractBillService
   private function calculateNewBillAmount(array $bill, int $shareType, float $shareNum, float $monthAmt): array
   {
     $newBill = $bill;
-
     switch ($shareType) {
       case 1: // 比例
         $newBill['amount'] = numFormat($bill['amount'] * $shareNum / 100);

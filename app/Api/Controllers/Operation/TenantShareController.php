@@ -81,7 +81,6 @@ class TenantShareController extends BaseController
         }
 
         DB::enableQueryLog();
-
         $result = $this->tenantService->tenantModel()
             ->where(function ($q) use ($request) {
                 $q->where('parent_id', '!=', 0);
@@ -90,9 +89,6 @@ class TenantShareController extends BaseController
             })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
-        // ->where(function ($q) use($request){});
-
-
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         return $this->success($data);
@@ -140,7 +136,6 @@ class TenantShareController extends BaseController
         if ($checkRepeat) {
             return $this->error('客户名称重复!');
         }
-
         $DA['state'] = "成交客户";
         $DA['type'] = AppEnum::TenantType;
         $res = $this->tenantService->saveTenant($DA, $this->user);
@@ -183,7 +178,6 @@ class TenantShareController extends BaseController
             'contract_id' => 'required|numeric|min:1',
         ]);
 
-        $contractService = new ContractService;
         DB::enableQueryLog();
         $data = $this->tenantShareService->model()
             ->where(function ($q) use ($request) {
@@ -192,12 +186,10 @@ class TenantShareController extends BaseController
                 $request->parent_id && $q->where('parent_id', $request->parent_id);
             })->get()->toArray();
 
-
         // return response()->json(DB::getQueryLog());
         foreach ($data as $k => &$v) {
             $v['fee_list_json'] = json_decode($v['fee_list']);
         }
-
         return $this->success($data);
     }
 
@@ -334,10 +326,6 @@ class TenantShareController extends BaseController
             Log::error($e);
             return $this->error("分摊处理失败" . $e);
         }
-
-
         // return response()->json(DB::getQueryLog());
-
-
     }
 }

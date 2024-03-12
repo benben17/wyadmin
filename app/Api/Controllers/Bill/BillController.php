@@ -147,13 +147,14 @@ class BillController extends BaseController
       'fee_types' => 'required|array',
       'proj_id' => 'required|gt:0',
     ]);
-    if ($request->create_type == 1 && sizeof($request->tenant_ids) == 0) {
-      return $this->error("未选择公司");
+    $DA = $request->toArray();
+    if ($DA['create_type'] == 1 && sizeof($DA['tenant_ids']) == 0) {
+      return $this->error("未选择生成账单方式,或者未选择租户！");
     }
     try {
       // DB::transaction(function () use ($request) {
       $contractService = new ContractService;
-      DB::enableQueryLog();
+
       $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name as name', 'proj_id')
         ->where(function ($q) use ($request) {
           if ($request->create_type == 1) {
@@ -161,50 +162,54 @@ class BillController extends BaseController
           }
         })
         ->where('contract_state', AppEnum::contractExecute) // 执行状态
-        ->where('proj_id', $request->proj_id)->get();
+        ->where('proj_id', $request->proj_id)->get()->toArray();
 
-      // return response()->json(DB::getQueryLog());
+      if (sizeof($contracts) == 0) {
+        return $this->error("未找到合同信息");
+      }
+      // 
 
-      // $tenants = Tenant::where('on_rent', 1) // 是否在租
-      //   ->where('proj_id', $request->proj_id)
-      //   ->when($request->create_type == 1 && sizeof($request->tenant_ids) > 0, function ($q) use ($request) {
-      //     return $q->whereIn('id', $request->tenant_ids);
-      //   })->get();
-
-      // if (sizeof($tenants) == 0) {
-      //   return $this->error("请选择租户！");
-      // }
-      // return response()->json(DB::getQueryLog());
-      $startDate = date('Y-m-01', strtotime($request->bill_month));
-      $endDate = date('Y-m-t', strtotime($request->bill_month));
       $billDay = $request->bill_month . '-' . $request->bill_day;
 
       $billCount = 0;
       $msg = "";
-      foreach ($contracts as $k => $v) {
-        // Log::info("账单生成合同：" . $v['id'] . $billDay);
-        $billDetail = $this->billService->billDetailModel()->selectRaw('group_concat(id) as billDetailIds')
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->where('contract_id', $v['id'])
-          ->where('status', 0)
-          ->whereIn('fee_type', $request->fee_types)
-          ->where('bill_id', 0)
-          ->where('tenant_id', $v['tenant_id'])
-          ->first();
-        if (!$billDetail['billDetailIds']) {
-          Log::warning("租户-" . $v['name'] . "无费用信息");
-          $msg .= "租户-" . $v['name'] . "无费用信息";
+      $billDate = getMonthRange($DA['bill_month']);
+      $feeTypes = str2Array($DA['fee_types']);
+      foreach ($contracts as $k => $contract) {
+        Log::info("账单生成合同：" . $contract['tenant_id']);
+        DB::enableQueryLog();
+        $map = [
+          'status' => 0,
+          'bill_id' => 0,
+          'contract_id' => $contract['id'],
+        ];
+
+        $billDetails = $this->billService->billDetailModel()
+          ->selectRaw('GROUP_CONCAT(id) as billDetailIds,sum(amount) totalAmt, sum(discount_amount) discountAmt,tenant_id,tenant_name')
+          ->where($map)
+          ->whereBetween('charge_date', $billDate)
+          ->whereIn('fee_type', $feeTypes)
+          ->groupBy('tenant_id')
+          ->get()->toArray();
+
+        // return $billDetail;
+        // return response()->json(DB::getQueryLog());
+        if (sizeof($billDetails) == 0) {
+          $msg = "合同-" . $contract['contract_no'] . "无费用信息";
+          Log::warning($msg);
+          $msg .= $msg;
           continue;
         }
-        $res = $this->billService->createBill($v, $request->bill_month, $request->fee_types, $billDay, $this->user);
+
+        $res = $this->billService->createBill($contract, $billDetails, $DA['bill_month'], $billDay, $this->user);
         if (!$res['flag']) {
-          Log::error("生成账单错误" . $v->contract_no . $res['message']);
+          Log::error("生成账单错误" . $contract['contract_no'] . $res['message']);
         } else {
           $billCount++;
         }
       }
       // }, 3);
-      $msg = "共计生成" . $billCount . "份账单;" . $msg;
+      $msg = "共计生成" . $billCount . "份合同账单;" . $msg;
       return $this->success($msg);
     } catch (Exception $th) {
       Log::error($th);

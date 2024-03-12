@@ -429,3 +429,15 @@ function compareTime(string $dateString1, string $dateString2): bool
 
     return $date1 > $date2;
 }
+
+// 根据月份获取当前月份的开始日期和结束日期返回数组
+function getMonthRange($yearMon): array
+{
+    // Ensure two-digit month
+
+    $startDate = "$yearMon-01";
+    $endDate = date('Y-m-t', strtotime($startDate));
+
+    // Return an array with both start and end dates
+    return [$startDate,  $endDate];
+}

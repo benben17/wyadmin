@@ -278,52 +278,35 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill($contract, String $month = "", $feeType, $billDay, $user): array
+  public function createBill(array $contract,  array $billDetails, $month, $billDay, $user): array
   {
     try {
 
-      DB::transaction(function () use ($contract, $month, $feeType, $billDay, $user) {
-        $startDate = date('Y-m-01', strtotime($month));
-        $endDate = date('Y-m-t', strtotime($month));
+      DB::transaction(function () use ($contract, $billDetails, $month, $billDay, $user) {
 
-        $map = [
-          'status' => 0,
-          'bill_id' => 0,
-          'tenant_id' => $contract->tenant_id,
-        ];
+        foreach ($billDetails as $k => $v) {
+          $tenantName = $v['tenant_name'] ?? getTenantNameById($v['tenant_id']);
 
-        $billSum = $this->billDetailModel()
-          ->selectRaw('GROUP_CONCAT(id) as billDetailIds,sum(amount) totalAmt, sum(discount_amount) discountAmt')
-          ->where($map)
-          ->whereBetween('charge_date', [$startDate, $endDate])
-          ->whereIn('fee_type', $feeType)
-          ->where('contract_id', $contract['id'])
-          // ->groupBy('tenant_id')
-          ->first();
+          $billData = [
+            'contract_id' => $contract['id'],
+            'tenant_id' => $v['tenant_id'],
+            'amount'    => $v['totalAmt'] - $v['discountAmt'],
+            'charge_date' => $billDay,
+            'proj_id' => $contract['proj_id'],
+            'tenant_name' => $tenantName,
+            'bill_no' => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
+            'bill_title' => $tenantName . $month . "月账单",
+          ];
 
-        if (!$billSum) {
-          throw new Exception("未找到应收");
+          $bill = $this->saveBill($billData, $user);
+          Log::error("bill_id" . $bill['id']);
+          $billId = $bill['id'];
+
+          $idArray = str2Array($v['billDetailIds']);
+          $this->billDetailModel()->whereIn('id', $idArray)
+            ->update(['bill_id' => $billId]);
         }
-
-        $billData = [
-          'tenant_id' => $contract->id,
-          'amount'    => $billSum['totalAmt'] - $billSum['discountAmt'],
-          'charge_date' => $billDay,
-          'proj_id' => $contract['proj_id'],
-          'tenant_name' => $contract['name'],
-          'bill_no' => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
-          'bill_title' => $contract['name'],
-        ];
-
-        $bill = $this->saveBill($billData, $user);
-        Log::error("bill_id" . $bill['id']);
-        $billId = $bill['id'];
-
-        $idArray = str2Array($billSum['billDetailIds']);
-        $this->billDetailModel()->whereIn('id', $idArray)
-          ->update(['bill_id' => $billId]);
       }, 3);
-
 
       return ['flag' => true, 'message' => ''];
     } catch (QueryException $e) {
