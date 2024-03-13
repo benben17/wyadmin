@@ -76,41 +76,43 @@ class ContractService
   public function getContractBillDetail($contractId, array $types, $uid)
   {
     $feeTypeService = new FeeTypeService;
-    $feeBill = [];
+
+    $feeBill = array();
     $i = 0;
+    foreach ($types as $k => $v) {
+      $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
+      foreach ($feeTypeIds as $k1 => $v1) {
+        $subQuery = $this->contractBillModel()->where('type', $v)
+          ->where('contract_id', $contractId)
+          ->whereIn('fee_type', str2Array($v1))
+          ->with('tenantBillDetail:contract_bill_id,status,bill_id');
 
-    foreach ($types as $type) {
-      $feeTypeIds = $feeTypeService->getFeeIds($type, $uid);
-      $query = $this->contractBillModel()
-        ->with('tenantBillDetail:contract_bill_id,id,status,bill_id')
-        ->where('type', $type)
-        ->where('contract_id', $contractId)
-        ->whereIn('fee_type', str2Array($feeTypeIds));
+        $bill = $subQuery->get();
+        $total = $subQuery->sum('amount');
 
-      $bill = $query->get();
-      $total = $query->sum('amount');
-
-      if ($total && $bill) {
-        foreach ($bill->toArray() as $k => &$v) {
-          $v =  $v['tenant_bill_detail'] ?? array_push($v, $v['tenant_bill_detail']);
-        }
-        $feeBill[$i]['bill'] = $bill;
-        $feeBill[$i]['total'] = $total;
-
-        if ($type == 1) {
-          foreach (str2Array($feeTypeIds) as $feeTypeId) {
-            $feeBill[$i]['fee_type_label'] = getFeeNameById($feeTypeId)['fee_name'];
-            $i++;
+        if ($bill && $total) {
+          $billList = $bill->toArray();
+          foreach ($billList as $k => &$v) {
+            if ($v['tenant_bill_detail']) {
+              $v =  array_merge($v, $v['tenant_bill_detail']);
+              unset($v['tenant_bill_detail']);
+            }
           }
-        } else {
-          $feeBill[$i]['fee_type_label'] = ($type == 2) ? '押金' : '其他费用';
+          $feeBill[$i]['bill'] = $billList;
+          $feeBill[$i]['total'] = $total;
+          if ($v == 1) {
+            $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
+          } else {
+            $v == 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
+            $v == 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
+          }
           $i++;
         }
       }
     }
-
     return $feeBill;
   }
+
   /**
    * 保存合同审核日志
    *
