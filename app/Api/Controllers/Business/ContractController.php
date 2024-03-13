@@ -31,6 +31,7 @@ class ContractController extends BaseController
     
      * 合同编号
      */
+    private $tenantShareService;
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -43,6 +44,7 @@ class ContractController extends BaseController
         } catch (Exception $e) {
             Log::error($e);
         }
+        $this->tenantShareService = new TenantShareService;
     }
 
     /**
@@ -149,6 +151,7 @@ class ContractController extends BaseController
             $room = ContractRoomModel::selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no)   end  rooms ')
                 ->where('contract_id', $v['id'])->groupBy('contract_id')->first();
             $v['contract_room'] = $room['build_no'] . "-" . $room['floor_no'] . "-" . $room['rooms'];
+            $v['is_share'] = $this->tenantShareService->model()->where('contract_id', $v['id'])->count() > 0 ? true : false;
         }
         return $this->success($data);
     }
