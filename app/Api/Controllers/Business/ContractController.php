@@ -863,7 +863,7 @@ class ContractController extends BaseController
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id']);
+                    $ruleService->batchUpdate($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id']);
                 }
 
                 // 免租
