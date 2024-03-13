@@ -79,9 +79,9 @@ class ContractService
 
     $feeBill = array();
     $i = 0;
-    foreach ($types as $k => $v) {
+    foreach ($types as $v) {
       $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
-      foreach ($feeTypeIds as $k1 => $v1) {
+      foreach ($feeTypeIds as $v1) {
         $subQuery = $this->contractBillModel()->where('type', $v)
           ->where('contract_id', $contractId)
           ->whereIn('fee_type', str2Array($v1))
@@ -92,12 +92,12 @@ class ContractService
 
         if ($bill && $total > 0) {
           $feeList = $bill->toArray();
-          foreach ($feeList as &$fee) {
-            if ($fee['tenant_bill_detail']) {
-              unset($fee['tenant_bill_detail']['fee_type_label']);
-              $bill =  array_merge($fee, $fee['tenant_bill_detail']);
-              unset($v['tenant_bill_detail']);
-            }
+          foreach ($feeList as $k => &$fee) {
+            // if ($fee['tenant_bill_detail']) {
+            unset($fee['tenant_bill_detail']['fee_type_label']);
+            $fee =  array_merge($fee, $fee['tenant_bill_detail']);
+            unset($fee['tenant_bill_detail']);
+            // }
           }
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
