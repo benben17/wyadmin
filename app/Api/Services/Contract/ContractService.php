@@ -93,11 +93,11 @@ class ContractService
         if ($bill && $total > 0) {
           $feeList = $bill->toArray();
           foreach ($feeList as $k => &$fee) {
-            // if ($fee['tenant_bill_detail']) {
-            unset($fee['tenant_bill_detail']['fee_type_label']);
-            $fee =  array_merge($fee, $fee['tenant_bill_detail']);
-            unset($fee['tenant_bill_detail']);
-            // }
+            if ($fee['tenant_bill_detail']) {
+              unset($fee['tenant_bill_detail']['fee_type_label']);
+              $fee =  array_merge($fee, $fee['tenant_bill_detail']);
+              unset($fee['tenant_bill_detail']);
+            }
           }
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
