@@ -90,7 +90,7 @@ class ContractService
           ->whereIn('fee_type', str2Array($v1))
           ->with('tenantBillDetail:contract_bill_id,status,bill_id');
 
-        $bill = $subQuery->get();
+        $bill = $subQuery->orderBy("charge_date")->get();
         $total = $subQuery->sum('amount');
 
         if ($bill && $total > 0) {
@@ -164,7 +164,7 @@ class ContractService
     try {
       DB::transaction(function () use ($contract, $DA) {
         // 更新合同状态
-        $contract->contract_state = 99;
+        $contract->contract_state = AppEnum::contractCancel;
         $contract->save();
 
         // 写入合同日志
