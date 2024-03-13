@@ -946,8 +946,8 @@ class ContractController extends BaseController
         $contract->sign_date = $DA['sign_date'];
         $contract->start_date = $DA['start_date'];
         $contract->end_date = $DA['end_date'];
-        $contract->belong_uid = $user->id;
-        $contract->belong_person = $user->realname;
+        $contract->belong_uid = $DA['belong_uid'] ?? $user->id;
+        $contract->belong_person = $DA['belong_person'] ?? $user->realname;
         $contract->tenant_id = $DA['tenant_id'];
         $contract->tenant_name = $DA['tenant_name'];
         $contract->lease_term = $DA['lease_term'];
