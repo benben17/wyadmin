@@ -93,7 +93,19 @@ class TenantShareService
     return $data;
   }
 
-
+  /**
+   * 判断合同是否处理过分摊
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-13
+   * @param [type] $contractId
+   *
+   * @return integer
+   */
+  public function isShare($contractId): int
+  {
+    return $this->model()->where('contract_id', $contractId)->count() > 0 ? 1 : 0;
+  }
 
   /** 批量保存分摊 */
   // public function batchSaveShare($DA, $user)

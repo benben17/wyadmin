@@ -60,8 +60,6 @@ class ContractService
     if ($data && $bill) {
       $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1), $uid);
       $data['deposit_bill'] = $this->getContractBillDetail($contractId, array(2, 3), $uid);
-      $tenantShare = new TenantShareService;
-      $data['is_share'] = $tenantShare->model()->where('contract_id', $contractId)->count() > 0 ? true : false;
     }
 
     return $data;
