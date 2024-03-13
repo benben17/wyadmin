@@ -136,7 +136,7 @@ class ContractService
       $contractLog->contract_id = $DA['id'];
       $contractLog->title       = $DA['title'];
       // $contractLog->type = isset($DA['type'];
-      $contractLog->contract_state = $DA['contract_state'] ?? "";
+      $contractLog->contract_state = isset($DA['contract_state']) ? $DA['contract_state'] : "";
       if (isset($DA['audit_state']) && !empty($DA['audit_state'])) {
         $contractLog->audit_state = $DA['audit_state'];
       };
