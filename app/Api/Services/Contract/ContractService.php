@@ -58,7 +58,7 @@ class ContractService
       ->find($contractId);
     if ($data && $bill) {
       $data['fee_bill'] = $this->getContractBillDetail($contractId, array(1), $uid);
-      $data['deposit_bill'] = $this->getContractBillDetail($contractId, array(2), $uid);
+      $data['deposit_bill'] = $this->getContractBillDetail($contractId, array(2, 3), $uid);
     }
 
     return $data;
@@ -90,21 +90,26 @@ class ContractService
         $bill = $subQuery->get();
         $total = $subQuery->sum('amount');
 
-        if ($bill && $total) {
-          $billList = $bill->toArray();
-          foreach ($billList as $k => &$v) {
-            if ($v['tenant_bill_detail']) {
-              $v =  array_merge($v, $v['tenant_bill_detail']);
+        if ($bill && $total > 0) {
+          $feeList = $bill->toArray();
+          foreach ($feeList as &$fee) {
+            if ($fee['tenant_bill_detail']) {
+              unset($fee['tenant_bill_detail']['fee_type_label']);
+              $bill =  array_merge($fee, $fee['tenant_bill_detail']);
               unset($v['tenant_bill_detail']);
             }
           }
-          $feeBill[$i]['bill'] = $billList;
+          $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
-          if ($v == 1) {
+          // Log::info("vvvvv" . $v);
+          if ($v === 1) {
+
             $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
+            // Log::info("fee_type_label" . $feeBill[$i]['fee_type_label']);
           } else {
-            $v == 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
-            $v == 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
+            $v === 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
+            $v === 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
+            // Log::info("fee_type_label" . $feeBill[$i]['fee_type_label']);
           }
           $i++;
         }
