@@ -15,6 +15,7 @@ use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Tenant\TenantShareService;
 use Maatwebsite\Excel\Concerns\ToArray;
 
@@ -778,6 +779,130 @@ class ContractController extends BaseController
             return $this->success('合同审核完成');
         } else {
             return $this->error('合同审核失败');
+        }
+    }
+
+
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/contract/change",
+     *     tags={"合同"},
+     *     summary="合同变更",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_state","sign_date","start_date","end_date",},
+     *      @OA\Property(
+     *       property="contract_state",
+     *       type="int",
+     *       description="0:草稿 1:待审核 2:正式合同")
+     *       ),
+     *       @OA\Property(
+     *          property="sign_date",
+     *          type="date",
+     *          description="签署日期"
+     *       ),
+     *       @OA\Property(
+     *          property="start_date",
+     *          type="date",
+     *          description="合同开始时间"
+     *       ),
+     *       @OA\Property(
+     *          property="end_date",
+     *          type="date",
+     *          description="合同截止时间"
+     *       ),
+     *       example={
+     *              "contract_state": "1","sign_date":"","start_date":"1","end_date":""
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+
+    public function change(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required|numeric',
+            'sign_date' => 'required|date',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'tenant_id' => 'required|numeric',
+            'proj_id' => 'required|numeric',
+            'tenant_legal_person' => 'required|String|between:1,64',
+            'sign_area' => 'required|numeric|gt:0',
+            'bill_rule' => 'array',
+            'free_list' => 'array',
+            'fee_bill' => 'array',
+        ]);
+        $DA = $request->toArray();
+        $tenantService = new TenantShareService;
+        $shareTenants = $tenantService->model()->where('contract_id', $DA['id'])->count();
+        if ($shareTenants > 0) {
+            return $this->error("已有分摊租户不允许做变更");
+        }
+
+        try {
+            DB::transaction(function () use ($DA) {
+                $contractService = new ContractService;
+                /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
+                $contract = $this->saveContract($DA, 'update'); //变更
+                if (!$contract) {
+                    throw new Exception("保存失败");
+                }
+
+
+                // 租赁规则
+                if ($DA['bill_rule']) {
+                    $ruleService = new BillRuleService;
+                    $ruleService->batchSave($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id']);
+                }
+
+                // 免租
+                $freeList = $DA['free_list'];
+                if (!empty($freeList)) {
+                    // 保存新的免租信息
+                    $contractService->delFreeList($DA['id']);
+                    foreach ($freeList as $free) {
+                        $contractService->saveFreeList($free, $contract->id, $contract->tenant_id);
+                    }
+                }
+                // 合同老账单处理， 需要删除的时候删除 tenant bill detail 数据
+                if (!$DA['fee_bill']) {
+                    throw new Exception("无账单数据");
+                }
+                $contractService->changeOldContractBill($DA['fee_bill']);
+
+                if (!$DA['new_fee_bill']) {
+                    throw new Exception("无新账单数据");
+                }
+                // throw new Exception("aaa", 200, $DA['new_fee_bill']);
+
+                $contractService->changeContractBill($DA['new_fee_bill'], $contract, $this->user);
+
+
+                // 保存日志
+                $log['id'] = $contract['id'];
+                $log['remark'] = $this->user['name'] . "在" . nowTime() . "变更合同";
+                $log['contract_id'] = $contract['id'];
+                $log['title'] = "合同变更";
+                $log['c_uid'] = $this->uid;
+                $log['c_username'] = $this->user['name'];
+                $contractService->saveLog($log);
+            }, 2);
+
+            return $this->success('合同变更成功！');
+        } catch (Exception $e) {
+            Log::error("合同变更失败！" . $e->getMessage());
+            return $this->error("合同变更失败！");
         }
     }
 

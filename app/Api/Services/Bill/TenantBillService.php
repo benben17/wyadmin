@@ -116,6 +116,7 @@ class TenantBillService
         if (isset($DA['receive_date'])) {
           $billDetail->receive_date = $DA['receive_date'];
         }
+        $billDetail->contract_bill_id = $DA['contract_bill_id'] ?? 0;
         $billDetail->bill_date  =  $DA['bill_date'] ?? $DA['charge_date'];
         $billDetail->status     = isset($DA['status']) ? $DA['status'] : 0;
         $billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
@@ -126,8 +127,8 @@ class TenantBillService
       }, 3);
       return true;
     } catch (Exception $e) {
-      Log::error("账单详细保存失败" . $e);
-      throw new Exception("账单详细保存失败" . $e);
+      Log::error("租户账单费用详细保存失败" . $e);
+      throw new Exception("租户账单费用详细保存失败" . $e);
       return false;
     }
   }

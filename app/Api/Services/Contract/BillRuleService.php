@@ -96,6 +96,7 @@ class BillRuleService
         $data[$k]['ahead_pay_month'] = isset($v['ahead_pay_month']) ? $v['ahead_pay_month'] : 0;
         $data[$k]['unit_price_label']  = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
         $data[$k]['remark']      = isset($v['remark']) ? $v['remark'] : "";
+        $data[$k]['is_valid']   = $v['is_valid'] ?? 1; // 不传默认为有效
         $data[$k]['created_at']  = nowTime();
       }
     } catch (Exception $e) {

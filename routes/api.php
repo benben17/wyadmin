@@ -210,7 +210,7 @@ Route::group(['prefix' => 'business/contract'], function () {
     Route::post('list', '\App\Api\Controllers\Business\ContractController@index');
     Route::post('add', '\App\Api\Controllers\Business\ContractController@store');
     Route::post('edit', '\App\Api\Controllers\Business\ContractController@update');
-
+    Route::post('change', '\App\Api\Controllers\Business\ContractController@change');
     //合同作废
     Route::post('disuse', '\App\Api\Controllers\Business\ContractController@disuseContract');
     //合同审核

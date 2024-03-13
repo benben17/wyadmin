@@ -14,7 +14,6 @@ use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Contract\ContractFreePeriod;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Company\FeeTypeService;
-use App\Api\Services\Energy\EnergyService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Channel\ChannelService;
 use App\Enums\AppEnum;
@@ -40,6 +39,7 @@ class ContractService
   {
     return new ContractBill;
   }
+
 
   /**
    * 合同查看
@@ -101,7 +101,6 @@ class ContractService
           }
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
-          // Log::info("vvvvv" . $v);
           if ($v === 1) {
 
             $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
@@ -421,15 +420,15 @@ class ContractService
   public function saveFreeList($DA, $contractId, $tenantId)
   {
     try {
-      $freeperiod  = new ContractFreePeriod();
-      $freeperiod->contract_id = $contractId;
-      $freeperiod->tenant_id       = $tenantId;
-      $freeperiod->start_date   = $DA['start_date'];
-      $freeperiod->free_num     = $DA['free_num'];
+      $freePeriod  = new ContractFreePeriod();
+      $freePeriod->contract_id = $contractId;
+      $freePeriod->tenant_id       = $tenantId;
+      $freePeriod->start_date   = $DA['start_date'];
+      $freePeriod->free_num     = $DA['free_num'];
       if (isset($DA['end_date'])) {
-        $freeperiod->end_date = $DA['end_date'];
+        $freePeriod->end_date = $DA['end_date'];
       }
-      $freeperiod->save();
+      $freePeriod->save();
       return true;
     } catch (Exception $e) {
       Log::error("保存免租时间失败:" . $e->getMessage());
@@ -492,6 +491,88 @@ class ContractService
     }
   }
 
+
+  /**
+   * 合同变更老账单处理 处理合同中的费用账单以及 租户表中的账单信息
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param [type] $feeBill
+   *
+   * @return void
+   */
+  public function changeOldContractBill($feeBill): bool
+  {
+    // 把合同中的
+    try {
+      DB::transaction(function () use ($feeBill) {
+        foreach ($feeBill as  $feeList) {
+          $data = array();
+          foreach ($feeList['bill'] as $k => $v) {
+            if ($v['is_valid'] === 1) {
+              continue;
+            }
+            $this->contractBillModel()->whereId($v['id'])->delete();
+            $tenantBillService = new TenantBillService;
+            $tenantBillService->billDetailModel()->where('contract_bill_id', $v['id'])->delete();
+          }
+        }
+      }, 2);
+
+      return true;
+    } catch (Exception $e) {
+      Log::error("合同变更老账单处理失败，详细信息：" . $e->getMessage());
+      throw $e;
+    }
+    return false;
+  }
+
+
+
+
+  /**
+   * 合同变更账单处理 保存合同中的费用账单以及 租户表中的账单信息
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param [type] $feeBill
+   *
+   * @return void
+   */
+  public function changeContractBill($feeBill, $contract, $user): bool
+  {
+    // 把合同中的
+    try {
+      DB::transaction(function () use ($feeBill, $contract, $user) {
+        foreach ($feeBill as  $list) {
+
+          foreach ($list['bill'] as $v) {
+
+
+            // 保存新的合同费用
+            $contractFee = $this->formatFeeBill($v, $contract, $user);
+            $fee = $this->contractBillModel()->create($contractFee);
+
+            // 保存新的租户应收
+            $tenantBillService = new TenantBillService;
+
+
+            $contractFee['contract_bill_id'] = $fee->id;
+            $contractFee['id'] = 0;
+
+            $tenantBillService->saveBillDetail($contractFee, $user);
+          }
+        }
+      }, 2);
+
+      return true;
+    } catch (Exception $e) {
+      Log::error("合同变更新账单处理失败，详细信息：" . $e);
+      throw $e;
+    }
+    return false;
+  }
+
   /**
    * 通过租户id获取合同房间
    *
@@ -506,5 +587,40 @@ class ContractService
     return ContractRoomModel::whereHas('contract', function ($q) use ($tenantId) {
       $q->where('tenant_id', $tenantId);
     })->get();
+  }
+
+
+  /**
+   * 合同费用格式化
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-13
+   * @param [type] $fee
+   * @param [type] $contract
+   * @param [type] $user
+   *
+   * @return array
+   */
+  private function formatFeeBill($fee, $contract, $user): array
+  {
+    return [
+      'company_id' => $user['company_id'],
+      'proj_id' => $contract['proj_id'],
+      'contract_id' => $contract['id'],
+      'tenant_id' => $contract['tenant_id'],
+      'type' => isset($fee['type']) ? $fee['type'] : 1, // 1 收款 2 付款
+      'fee_type' => $fee['fee_type'], // 费用类型
+      'price' => isset($fee['price']) ? $fee['price'] : "",
+      'unit_price_label' => isset($fee['unit_price_label']) ? $fee['unit_price_label'] : "",
+      'amount' => $fee['amount'],
+      'bill_date' => $fee['bill_date'],
+      'charge_date' => $fee['charge_date'],
+      'start_date' => $fee['start_date'],
+      'end_date' => $fee['end_date'],
+      'is_valid' => 1,
+      'c_uid' => $user['id'],
+      'remark' => isset($fee['remark']) ? $fee['remark'] : "",
+      'created_at' => nowTime()
+    ];
   }
 }
