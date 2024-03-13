@@ -76,48 +76,39 @@ class ContractService
   public function getContractBillDetail($contractId, array $types, $uid)
   {
     $feeTypeService = new FeeTypeService;
-
-    $feeBill = array();
+    $feeBill = [];
     $i = 0;
-    foreach ($types as $k => $v) {
-      $feeTypeIds = $feeTypeService->getFeeIds($v, $uid);
 
-      if ($v == 1) {
-        foreach ($feeTypeIds as $k1 => $v1) {
-          $bill = $this->contractBillModel()->where('type', $v)
-            ->where('contract_id', $contractId)
-            ->whereIn('fee_type', str2Array($v1))
-            ->get();
-          $total = $this->contractBillModel()->where('type', $v)
-            ->where('contract_id', $contractId)
-            ->whereIn('fee_type', str2Array($v1))
-            ->sum('amount');
-          if ($bill && $total) {
-            // Log::error($v1 . "--------");
-            $feeBill[$i]['bill'] = $bill;
-            $feeBill[$i]['total'] = $total;
-            $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
+    foreach ($types as $type) {
+      $feeTypeIds = $feeTypeService->getFeeIds($type, $uid);
+      $query = $this->contractBillModel()
+        ->with('tenantBillDetail:contract_bill_id,id,status,bill_id')
+        ->where('type', $type)
+        ->where('contract_id', $contractId)
+        ->whereIn('fee_type', str2Array($feeTypeIds));
+
+      $bill = $query->get();
+      $total = $query->sum('amount');
+
+      if ($total && $bill) {
+        foreach ($bill->toArray() as $k => &$v) {
+          $v =  $v['tenant_bill_detail'] ?? array_push($v, $v['tenant_bill_detail']);
+        }
+        $feeBill[$i]['bill'] = $bill;
+        $feeBill[$i]['total'] = $total;
+
+        if ($type == 1) {
+          foreach (str2Array($feeTypeIds) as $feeTypeId) {
+            $feeBill[$i]['fee_type_label'] = getFeeNameById($feeTypeId)['fee_name'];
             $i++;
           }
-        }
-      } else {
-        $bill = $this->contractBillModel()->where('type', $v)
-          ->where('contract_id', $contractId)
-          ->whereIn('fee_type', $feeTypeIds)
-          ->get();
-        $total = $this->contractBillModel()->where('type', $v)
-          ->where('contract_id', $contractId)
-          ->whereIn('fee_type', $feeTypeIds)
-          ->sum('amount');
-        if ($total && $bill) {
-          $feeBill[$i]['bill'] = $bill;
-          $feeBill[$i]['total']  = $total;
-          $v == 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
-          $v == 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
+        } else {
+          $feeBill[$i]['fee_type_label'] = ($type == 2) ? '押金' : '其他费用';
           $i++;
         }
       }
     }
+
     return $feeBill;
   }
   /**
@@ -136,7 +127,7 @@ class ContractService
       $contractLog->contract_id = $DA['id'];
       $contractLog->title       = $DA['title'];
       // $contractLog->type = isset($DA['type'];
-      $contractLog->contract_state = $DA['contract_state'];
+      $contractLog->contract_state = $DA['contract_state'] ?? "";
       if (isset($DA['audit_state']) && !empty($DA['audit_state'])) {
         $contractLog->audit_state = $DA['audit_state'];
       };

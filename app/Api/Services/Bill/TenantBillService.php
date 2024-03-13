@@ -212,8 +212,8 @@ class TenantBillService
   {
     try {
       DB::transaction(function () use ($contractId, $user, $projId) {
-        $depositBills = ContractBill::where('contract_id', $contractId)->get()->toArray();
-        $data = $this->formatBillDetail($depositBills, $user, $projId);
+        $feeList = ContractBill::where('contract_id', $contractId)->get()->toArray();
+        $data = $this->formatBillDetail($feeList, $user, $projId);
         $this->billDetailModel()->addAll($data);
         // 保存后同步更新状态
         ContractBill::where('contract_id', $contractId)->update(['is_sync' => 1]);
@@ -346,6 +346,7 @@ class TenantBillService
           } else {
             $tenantName = $v['tenant_name'];
           }
+          $data[$k]['contract_bill_id'] = $v['id'];
           $data[$k]['bank_id']     = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
           $data[$k]['tenant_name'] = $tenantName;
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金

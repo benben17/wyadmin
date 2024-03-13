@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Tenant\Invoice;
+use App\Api\Models\Tenant\TenantLog;
 use App\Api\Services\Company\VariableService;
 use App\Enums\AppEnum;
 
@@ -21,6 +22,12 @@ class TenantService
   {
     $model = new TenantModel;
     return $model;
+  }
+
+
+  public function tenantLogModel()
+  {
+    return new TenantLog;
   }
 
   /** 合同审核后保存租户 或者新增 */
@@ -157,5 +164,33 @@ class TenantService
   {
     $variableService = new VariableService;
     return $variableService->getTenantNo($companyId);
+  }
+
+
+  /**
+   * 保存租户日志
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-13
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function saveTenantLog($DA, $user)
+  {
+    try {
+      $cusLog = $this->tenantLogModel();
+      $cusLog->content    = $DA['content'];
+      $cusLog->tenant_id  = $DA['tenant_id'];
+      $cusLog->c_uid      = $user->id;
+      $cusLog->c_username = $user->realname;
+      $cusLog->company_id = $user->company_id;
+      return $cusLog->save();
+    } catch (Exception $th) {
+      Log::error("保存客户log失败:" . $th->getMessage());
+      throw $th;
+      return false;
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Contract;
 
+use App\Api\Models\Bill\TenantBillDetail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
@@ -43,6 +44,13 @@ class ContractBill extends Model
       }
     }
   }
+
+
+  public function tenantBillDetail()
+  {
+    return $this->hasOne(TenantBillDetail::class, 'contract_bill_id', 'id');
+  }
+
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);

@@ -214,7 +214,11 @@ class TenantController extends BaseController
                         $this->tenantService->tenantModel()->whereId($tenantId)->update($businessData);
                     }
                 }
-            });
+
+                $log['tenant_id'] = $tenantId;
+                $log['content'] =  $this->user['name'] . '新增租户:' . $res->name;
+                $this->tenantService->saveTenantLog($log, $this->user);
+            }, 2);
 
             return $this->success('租户新增成功。');
         } catch (Exception $e) {
@@ -271,8 +275,8 @@ class TenantController extends BaseController
             DB::transaction(function () use ($DA) {
                 // $user = auth('api')->user();
                 $DA['type'] = AppEnum::TenantType;
-                $res = $this->tenantService->saveTenant($DA, $this->user);
-                if (!$res) {
+                $tenantRes = $this->tenantService->saveTenant($DA, $this->user);
+                if (!$tenantRes) {
                     throw new Exception("租户更新失败!");
                 }
                 // 写入联系人 支持多联系人写入
@@ -303,6 +307,9 @@ class TenantController extends BaseController
                         $info->save($businessInfo, 2);
                     }
                 }
+                $log['tenant_id'] = $DA['id'];
+                $log['content'] =  $this->user['name'] . '编辑租户:' . $tenantRes->name;
+                $this->tenantService->saveTenantLog($log, $this->user);
             });
             return $this->success('客户更新成功。');
         } catch (Exception $e) {
