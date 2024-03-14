@@ -208,14 +208,9 @@ class TenantShareController extends BaseController
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"contract_id","fee_start_date"},
-     *       @OA\Property(
-     *          property="contract_id",
-     *          type="int",
-     *          description="合同id"
+     *          @OA\Property( property="contract_id",type="int",description="合同id" ),
+     *          @OA\Property(property="fee_start_date",type="date",description="分摊账单开始时间")
      *       ),
-     *      @OA\Property(property="fee_start_date",type="date",description="分摊账单开始时间"
-     *       )
-     *     ),
      *       example={"contract_id":1,"fee_start_date":"2024-03-01"}
      *       )
      *     ),
@@ -251,66 +246,66 @@ class TenantShareController extends BaseController
     }
 
 
-    public function tenantShareStore(Request $request)
-    {
-        $msg = ['contract_id' => '合同id不允许为空'];
-        $validatedData = $request->validate([
-            'contract_id' => 'required|numeric|min:1',
-            'share_list' => 'required|array',
-            'parent_tenant_id' => 'required'
-        ], $msg);
+    // public function tenantShareStore(Request $request)
+    // {
+    //     $msg = ['contract_id' => '合同id不允许为空'];
+    //     $validatedData = $request->validate([
+    //         'contract_id' => 'required|numeric|min:1',
+    //         'share_list' => 'required|array',
+    //         'parent_tenant_id' => 'required'
+    //     ], $msg);
 
-        $DA = $request->toArray();
-        DB::enableQueryLog();
-        try {
-            $user = $this->user;
-            DB::transaction(function () use ($DA, $user) {
-                $shareTenants = "";
-                foreach ($DA['share_list'] as $share) {
-                    $primaryTenant = $DA['parent_tenant_id'];
-                    $share['contract_id'] = $DA['contract_id'];
-                    $share['parent_id'] = $primaryTenant;
-                    $this->tenantShareService->saveShareFee($share, $user);
+    //     $DA = $request->toArray();
+    //     DB::enableQueryLog();
+    //     try {
+    //         $user = $this->user;
+    //         DB::transaction(function () use ($DA, $user) {
+    //             $shareTenants = "";
+    //             foreach ($DA['share_list'] as $share) {
+    //                 $primaryTenant = $DA['parent_tenant_id'];
+    //                 $share['contract_id'] = $DA['contract_id'];
+    //                 $share['parent_id'] = $primaryTenant;
+    //                 $this->tenantShareService->saveShareFee($share, $user);
 
-                    if ($primaryTenant === $share['tenant_id']) {
-                        // 处理 最新的应收
-                        foreach ($share['fee_list'] as $k1 => $v1) {
-                            $updateData = ['amount' => $v1['share_amount']];
-                            $this->tenantBillService->updateShareBillDetail($v1['id'], $updateData);
-                        }
-                    } else {
-                        // 处理分摊租户
-                        foreach ($share['fee_list'] as $k => &$v) {
-                            $v['tenant_id'] = $share['tenant_id'];
-                            $v['tenant_name'] = $share['tenant_name'];
-                            $v['amount'] = $v['share_amount'];
-                            $v['contract_id'] = $DA['contract_id'];
-                            $shareTenants .= $v['tenant_name'];
-                        }
+    //                 if ($primaryTenant === $share['tenant_id']) {
+    //                     // 处理 最新的应收
+    //                     foreach ($share['fee_list'] as $k1 => $v1) {
+    //                         $updateData = ['amount' => $v1['share_amount']];
+    //                         $this->tenantBillService->updateShareBillDetail($v1['id'], $updateData);
+    //                     }
+    //                 } else {
+    //                     // 处理分摊租户
+    //                     foreach ($share['fee_list'] as $k => &$v) {
+    //                         $v['tenant_id'] = $share['tenant_id'];
+    //                         $v['tenant_name'] = $share['tenant_name'];
+    //                         $v['amount'] = $v['share_amount'];
+    //                         $v['contract_id'] = $DA['contract_id'];
+    //                         $shareTenants .= $v['tenant_name'];
+    //                     }
 
-                        // Log::error(json_encode($share['fee_list']));
-                        $newFeeList = $this->tenantBillService->formatBillDetail($share['fee_list'], $user);
-                        $this->tenantBillService->billDetailModel()->addAll($newFeeList);
-                        $updateTenant = ['parent_id' => $primaryTenant];
-                        $this->tenantService->tenantModel()->where('id', $share['tenant_id'])->update($updateTenant);
-                    }
-                }
-                // 保存合同 日志
-                $contractService = new ContractService;
-                $BA['contract_id'] = $DA['contract_id'];
-                $BA['title'] = '增加分摊租户';
-                $BA['contract_state'] = '租户分摊';
-                $BA['remark'] = '增加分摊租户' . $shareTenants;
-                $BA['c_uid'] = $user['id'];
-                $BA['c_username'] = $user['name'];
-                $contractService->saveLog($BA);
-            }, 2);
+    //                     // Log::error(json_encode($share['fee_list']));
+    //                     $newFeeList = $this->tenantBillService->formatBillDetail($share['fee_list'], $user);
+    //                     $this->tenantBillService->billDetailModel()->addAll($newFeeList);
+    //                     $updateTenant = ['parent_id' => $primaryTenant];
+    //                     $this->tenantService->tenantModel()->where('id', $share['tenant_id'])->update($updateTenant);
+    //                 }
+    //             }
+    //             // 保存合同 日志
+    //             $contractService = new ContractService;
+    //             $BA['contract_id'] = $DA['contract_id'];
+    //             $BA['title'] = '增加分摊租户';
+    //             $BA['contract_state'] = '租户分摊';
+    //             $BA['remark'] = '增加分摊租户' . $shareTenants;
+    //             $BA['c_uid'] = $user['id'];
+    //             $BA['c_username'] = $user['name'];
+    //             $contractService->saveLog($BA);
+    //         }, 2);
 
-            return $this->success("分摊处理成功");
-        } catch (Exception $e) {
-            Log::error($e);
-            return $this->error("分摊处理失败" . $e);
-        }
-        // return response()->json(DB::getQueryLog());
-    }
+    //         return $this->success("分摊处理成功");
+    //     } catch (Exception $e) {
+    //         Log::error($e);
+    //         return $this->error("分摊处理失败" . $e);
+    //     }
+    //     // return response()->json(DB::getQueryLog());
+    // }
 }
