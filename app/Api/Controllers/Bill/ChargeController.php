@@ -106,6 +106,9 @@ class ChargeController extends BaseController
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($data);
+    foreach ($data['result'] as &$v) {
+      $v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
+    }
     return $this->success($data);
   }
 
@@ -276,6 +279,7 @@ class ChargeController extends BaseController
       ->find($request->id);
     $data['bank'] = BankAccount::find($data->bank_id);
     $data['refund_list'] = $this->chargeService->model()->where('charge_id', $request->id)->get();
+    $data['refund_amt'] = $this->chargeService->model()->where('charge_id', $data['id'])->sum('amount');
     return $this->success($data);
   }
 
