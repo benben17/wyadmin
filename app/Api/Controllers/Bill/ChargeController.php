@@ -463,7 +463,7 @@ class ChargeController extends BaseController
     }
 
     DB::enableQueryLog();
-    $data = $this->chargeService->chargeBillRecord()
+    $data = $this->chargeService->chargeRecord()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('verify_date', '>=',  $request->start_date);
@@ -494,5 +494,72 @@ class ChargeController extends BaseController
     }
     $data['total_amount'] = $totalAmt;
     return $this->success($data);
+  }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/delete",
+   *     tags={"收支"},
+   *     summary="收支删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="收款id")
+   *     ),
+   *       example={"id":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function deleteCharge(Request $request)
+  {
+    $msg = ['id.required' => '收款id必须'];
+    $request->validate([
+      'id' => 'required|numeric|gt:0',
+    ], $msg);
+
+    $res = $this->chargeService->deleteCharge(($request->id));
+    return $res ? $this->success("收款删除成功") : $this->error("收款删除失败");
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/record/delete",
+   *     tags={"收支"},
+   *     summary="收支核销记录删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="收款核销id")
+   *     ),
+   *       example={"id":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function deleteRecord(Request $request)
+  {
+    $msg = ['id.required' => '核销id必须'];
+    $request->validate([
+      'id' => 'required|numeric|gt:0',
+    ], $msg);
+
+    $res = $this->chargeService->deleteChargeRecord(($request->id));
+    return $res ? $this->success("核销删除成功") : $this->error("删除失败");
   }
 }

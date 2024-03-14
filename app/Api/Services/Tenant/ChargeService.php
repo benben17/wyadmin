@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
+use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 use App\Api\Services\Bill\RefundService;
+use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Support\Arr;
 
 class ChargeService
@@ -18,9 +20,14 @@ class ChargeService
   {
     return new ChargeBill;
   }
-  public function chargeBillRecord()
+  public function chargeRecord()
   {
     return new ChargeBillRecord;
+  }
+
+  public function billDetailModel()
+  {
+    return new TenantBillDetail;
   }
 
   public function save($BA, $user)
@@ -254,7 +261,7 @@ class ChargeService
   public function chargeBillRecordSave($DA, $user)
   {
     try {
-      $billRecord = $this->chargeBillRecord();
+      $billRecord = $this->chargeRecord();
       $billRecord->flow_no    = getChargeVerifyNo();   // 核销单编号
       $billRecord->charge_id  = $DA['charge_id'];
       // $billRecord->charge_type  = $DA['charge_id'];
@@ -315,5 +322,87 @@ class ChargeService
       Log::error("押金转收入失败，信息如下:" . $e);
       throw $e;
     }
+  }
+
+
+  /**
+   * 删除收款核销记录
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-14
+   * @param integer $recordId
+   *
+   * @return boolean
+   */
+  public function deleteChargeRecord(int $recordId): bool
+  {
+    try {
+      DB::transaction(function () use ($recordId) {
+        $record = $this->chargeRecord()->findOrFail($recordId);
+
+        if ($record->type == 1) {
+          $charge = $this->model()->findOrFail($record->charge_id);
+          $charge->unverify_amount += $record->amount;
+          $charge->verify_amount -= $record->amount;
+          $charge->save();
+
+          $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
+          $billDetail->receive_amount -= $record->amount;
+          $billDetail->charge_date = nowYmd();
+          $billDetail->status = 0; // 未结清
+
+          $billDetail->save();
+          $record->delete();
+        }
+      }, 2);
+      return true;
+    } catch (QueryException $e) {
+      Log::error("数据库操作失败:" . $e->getMessage());
+    } catch (Exception $e) {
+      Log::error("删除核销记录失败:" . $e->getMessage());
+    }
+    return false;
+  }
+
+
+  /**
+   * 删除收款
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-14
+   * @param integer $recordId
+   *
+   * @return boolean
+   */
+  public function deleteCharge(int $chargeId): bool
+  {
+    try {
+      $charge = $this->model()->findOrFail($chargeId);
+
+      if ($charge->verify_amount === 0) {
+        return $charge->delete();
+      }
+
+      DB::transaction(function () use ($charge) {
+        $chargeRecords = $this->chargeRecord()->where('charge_id', $charge->id)->get();
+
+        foreach ($chargeRecords as $record) {
+          $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
+          $billDetail->receive_amount -= $record->amount;
+          $billDetail->charge_date = now()->format('Ymd');
+          $billDetail->save();
+        }
+
+        $this->chargeRecord()->where('charge_id', $charge->id)->delete(); // 删除核销记录
+        $charge->delete();  //删除充值记录
+      }, 2);
+
+      return true;
+    } catch (QueryException $e) {
+      Log::error("数据库操作失败:" . $e->getMessage());
+    } catch (Exception $e) {
+      Log::error("删除收款失败:" . $e->getMessage());
+    }
+    return false;
   }
 }

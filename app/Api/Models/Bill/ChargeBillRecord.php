@@ -5,6 +5,7 @@ namespace App\Api\Models\Bill;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 核销记录
@@ -18,6 +19,8 @@ class ChargeBillRecord extends Model
   protected $fillable = [];
   protected $hidden = ['deleted_at', 'company_id', 'updated_at'];
   protected $appends = ['type_label', 'fee_type_label'];
+
+  use SoftDeletes;
 
   public function billDetail()
   {

@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Api\Scopes\CompanyScope;
@@ -24,6 +25,12 @@ class TenantBill extends Model
   {
     return $this->hasMany(TenantBillDetail::class, 'bill_id', 'id');
   }
+
+  public function tenant()
+  {
+    return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
+  }
+
   public function getIsPrintLabelAttribute()
   {
     if (isset($this->attributes['is_print'])) {
@@ -36,6 +43,8 @@ class TenantBill extends Model
       return $this->attributes['status'] ?  '已结清' : "未结清";
     }
   }
+
+
 
   protected static function boot()
   {

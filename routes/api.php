@@ -494,12 +494,15 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/add', '\App\Api\Controllers\Bill\ChargeController@store');
     Route::post('/edit', '\App\Api\Controllers\Bill\ChargeController@edit');
     Route::post('/cancel', '\App\Api\Controllers\Bill\ChargeController@cancel');
+    Route::post('/delete', '\App\Api\Controllers\Bill\ChargeController@deleteCharge');
+
     Route::post('/show', '\App\Api\Controllers\Bill\ChargeController@show');
-    Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
     // 核销 多条应收
     Route::post('/writeOff', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOff');
     // 核销单条
     Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
+    Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
+    Route::post('/record/delete', '\App\Api\Controllers\Bill\ChargeController@deleteRecord');
 });
 
 

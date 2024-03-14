@@ -41,6 +41,10 @@ class ContractService
     return new ContractBill;
   }
 
+  public function contractRoomModel()
+  {
+    return new ContractRoomModel;
+  }
 
   /**
    * 合同查看
@@ -623,5 +627,26 @@ class ContractService
       'remark' => isset($fee['remark']) ? $fee['remark'] : "",
       'created_at' => nowTime()
     ];
+  }
+
+  /**
+   * 通过合同id 获取room 信息
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-14
+   * @param [type] $contractId
+   *
+   * @return void
+   */
+  public function getContractRoom($contractId)
+  {
+    $room = $this->contractRoomModel()
+      ->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no)   end  rooms ')
+      ->where('contract_id', $contractId)->groupBy('contract_id')->first();
+    if ($room) {
+      return $room['build_no'] . "-" . $room['floor_no'] . "-" . $room['rooms'];
+    } else {
+      return "";
+    }
   }
 }

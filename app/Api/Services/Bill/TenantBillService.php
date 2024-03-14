@@ -3,6 +3,8 @@
 namespace App\Api\Services\Bill;
 
 use App\Api\Models\Bill\ChargeBill;
+use App\Api\Models\Bill\ChargeBillRecord;
+use App\Api\Models\Bill\RefundRecord;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,7 @@ use App\Api\Models\Bill\TenantBillDetailLog;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
+use App\Api\Services\Contract\ContractService;
 
 /**
  *   租户账单服务
@@ -38,6 +41,10 @@ class TenantBillService
     return new ChargeBill;
   }
 
+  public function refundModel()
+  {
+    return new RefundRecord;
+  }
   /**
    * 账单表头保存 
    *
@@ -232,7 +239,7 @@ class TenantBillService
         //   ->where('type', 1)->update(['is_sync' => 1]);
         // Log::error('格式化账单成功');
       }, 3);
-      Log::info('账单保存成功');
+      Log::info('租户应收账单保存成功');
     } catch (Exception $th) {
       throw new Exception("账单保存失败" . $th);
       return false;
@@ -404,15 +411,18 @@ class TenantBillService
    */
   public function showBill($billId)
   {
-    $data = $this->billModel()->find($billId);
+    $data = $this->billModel()->with('tenant:id,shop_name,tenant_no,name')->find($billId);
     if (!$data) {
-      return "";
+      return (object) [];
     }
+    $contractService = new ContractService;
+    $data['room'] = $contractService->getContractRoom($data['contract_id']);
     $data['proj_name'] = getProjNameById($data['proj_id']);
 
     $billGroups = $this->billDetailModel()
       ->selectRaw('sum(amount) amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount,bank_id')
-      ->where('bill_id', $billId)->groupBy('bank_id')->get();
+      ->where('bill_id', $billId)
+      ->groupBy('bank_id')->get();
 
     $totalAmt = 0;
     $discountAmt = 0;
@@ -436,5 +446,44 @@ class TenantBillService
     $billTotal['total_amount'] = $totalAmt;
     $data['bill_count'] = $billTotal;
     return $data;
+  }
+
+
+  /**
+   * 删除应收
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-14
+   * @param array $detailList
+   *
+   * @return boolean
+   */
+  public function deleteDetail(array $detailList, $user): bool
+  {
+    try {
+      DB::transaction(function () use ($detailList, $user) {
+        foreach ($detailList as $detail) {
+          // 如果是未收款 直接删除
+          if ($detail['status'] === 0 && $detail['receive_amount'] === 0) {
+            $this->billDetailModel()->whereId($detail['id'])->delete();
+          }
+          if ($detail['receive_amount'] > 0) {
+            $chargeRecordList =  ChargeBillRecord::where('bill_detail_id', $detail['id'])->get();
+            foreach ($chargeRecordList as $record) {
+              // 收入增加金额
+              $charge = ChargeBill::find($record['charge_id']);
+              $charge->amount = $charge->amount + $record['amount'];
+              $charge->save();
+              // 删除 核销记录
+              ChargeBillRecord::find($record['id'])->delete();
+            }
+          }
+        }
+      }, 2);
+      return true;
+    } catch (Exception $e) {
+      Log::error("删除应收失败" . $e->getMessage());
+      return false;
+    }
   }
 }

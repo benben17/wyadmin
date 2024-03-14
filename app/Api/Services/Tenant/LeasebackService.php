@@ -12,15 +12,14 @@ use App\Api\Services\Contract\ContractService;
 use App\Enums\AppEnum;
 
 /**
- *   租户退租服务
+ *   租户合同退租服务
  */
 class LeasebackService
 {
   /** 退租租户 */
   public function model()
   {
-    $model = new Leaseback;
-    return $model;
+    return new Leaseback;
   }
 
   /**
@@ -46,7 +45,6 @@ class LeasebackService
         }
         // 更新租户状态
         $contractService = new ContractService;
-        $shareService = new ShareRuleService;
         // $data['on_rent'] = 0;
         $tenantService = new TenantService;
         // 更新合同状态
@@ -74,12 +72,10 @@ class LeasebackService
           $data['on_rent'] = 0;
           $data['status'] = 3;
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
-          // 更新分摊租户
-          $tenantService->tenantModel()->where('parent_id', $tenantId)->update($data);
         }
-        $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
+        // $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
-        $this->sendMsg($title = $contract->tenant_name . '租户退租', $msgContent, $user);
+        $this->sendMsg($contract->tenant_name . '租户退租', $msgContent, $user);
         // 保存日志
         $log = array(
           "id" => $contract->id,

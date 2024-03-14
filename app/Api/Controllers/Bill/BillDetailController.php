@@ -357,11 +357,10 @@ class BillDetailController extends BaseController
       'ids' => 'required|array',
     ]);
     $billService = new TenantBillService();
-    $res = $billService->billDetailModel()
-      ->whereIn('id', $request->ids)
-      ->where('status', '!=', 1)
-      ->whereDoesntHave('chargeBillRecord')
-      ->delete();
+    $billDetailList = $billService->billDetailModel()
+      ->whereIn('id', $request->ids)->get()->toArray();
+
+    $res = $billService->deleteDetail($billDetailList, $this->user);
     if (!$res) {
       return $this->error("删除费用失败!");
     }
