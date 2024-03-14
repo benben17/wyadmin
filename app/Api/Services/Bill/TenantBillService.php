@@ -4,7 +4,6 @@ namespace App\Api\Services\Bill;
 
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
-use App\Api\Models\Bill\RefundRecord;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
@@ -41,10 +40,7 @@ class TenantBillService
     return new ChargeBill;
   }
 
-  public function refundModel()
-  {
-    return new RefundRecord;
-  }
+
   /**
    * 账单表头保存 
    *

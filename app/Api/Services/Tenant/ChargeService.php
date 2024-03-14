@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\ChargeBillRecord;
+use App\Api\Models\Bill\TenantBill;
 use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
-use App\Api\Services\Bill\RefundService;
 use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Support\Arr;
 
@@ -30,6 +30,11 @@ class ChargeService
     return new TenantBillDetail;
   }
 
+  // 租户账单
+  public function billModel()
+  {
+    return new TenantBill;
+  }
   public function save($BA, $user)
   {
     try {
@@ -350,7 +355,9 @@ class ChargeService
           $billDetail->receive_amount -= $record->amount;
           $billDetail->charge_date = nowYmd();
           $billDetail->status = 0; // 未结清
-
+          if ($billDetail['bill_id'] != 0) {
+            $this->billModel()->where('id', $billDetail['bill_id'])->update(['status' => 0]);
+          }
           $billDetail->save();
           $record->delete();
         }

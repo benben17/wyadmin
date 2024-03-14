@@ -153,7 +153,6 @@ class BillDetailController extends BaseController
       }])
       // ->with('billDetailRecord')
       ->with('contract:id,contract_no')
-      ->with('refundRecord')
       ->find($request->id);
     // $invoiceService = new InvoiceService;
     // $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
