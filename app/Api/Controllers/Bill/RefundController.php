@@ -152,13 +152,13 @@ class RefundController extends BaseController
     }
     $refund = $this->refundService->model()->selectRaw('sum(amount) amount')->where('bill_detail_id', $request->bill_detail_id)->first();
 
-    $refundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
-    if ($refundAmt < $request->amount) {
+    $availableRefundAmt = numFormat($billDetail->receive_amount - $refund['amount']);
+    if ($availableRefundAmt < $request->amount) {
       return $this->error("已收金额小于退款金额！");
     }
 
     try {
-      $res =  $this->refundService->refund($billDetail, $request, $this->user);
+      $res =  $this->refundService->refund($billDetail, $request, $refund['amount'], $this->user);
       if ($res) {
         return $this->success("退款成功。");
       }

@@ -48,10 +48,10 @@ class RefundService
    *
    * @return void
    */
-  public function refund($billDetail, $request, $user)
+  public function refund($billDetail, $request, $refundAmt, $user)
   {
     try {
-      DB::transaction(function () use ($billDetail, $request, $user) {
+      DB::transaction(function () use ($billDetail, $request, $refundAmt, $user) {
         $chargeService = new ChargeService;
         $charge = $chargeService->model();
         $charge->type     = AppEnum::chargeRefund;
@@ -71,9 +71,10 @@ class RefundService
 
         // Update the bill status based on the refund amount
         // $billData = ['status' => 1]; // Assuming the default status is 1
-        if ($request->amount == $billDetail->receive_amount) {
+        $totalRefundAmt = $refundAmt + $request->amount;
+        if ($totalRefundAmt == $billDetail->receive_amount) {
           $billData['status'] = 2;
-        } elseif ($request->amount < $billDetail->receive_amount) {
+        } elseif ($totalRefundAmt < $billDetail->receive_amount) {
           $billData['status'] = 3; // Partial refund
         }
 
@@ -81,11 +82,11 @@ class RefundService
         $billService->billDetailModel()->where('id', $billDetail->id)->update($billData);
 
         // Create a refund record
-        $refundService = new RefundService;
+
         $refundData = $request->all();
         $refundData['charge_id'] = $charge->id;
         $refundData['proj_id'] = $billDetail->proj_id;
-        $refundService->save($refundData, $user);
+        $this->save($refundData, $user);
       }, 3);
       return true;
     } catch (Exception $th) {

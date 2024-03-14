@@ -4,6 +4,7 @@ namespace App\Api\Controllers\Bill;
 
 use Illuminate\Validation\ValidationException;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Company\BankAccount;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -235,12 +236,10 @@ class ChargeController extends BaseController
     DB::enableQueryLog();
     $res = $this->chargeService->model()
       ->whereDoesntHave('chargeBillRecord')
-      ->whereIn('id', $request->ids)->update(["status" => 3]);
+      ->whereIn('id', $request->ids)->delete();
     // return response()->json(DB::getQueryLog());
-    if (!$res) {
-      return $this->error("有核销记录不允许取消！");
-    }
-    return $this->success("收支取消成功。");
+
+    return $res ? $this->success("收支取消成功。") : $this->error("有核销记录不允许取消！");
   }
   /**
    * @OA\Post(
@@ -275,6 +274,7 @@ class ChargeController extends BaseController
         $q->with('billDetail:id,bill_date,charge_date,amount,receive_amount');
       }])
       ->find($request->id);
+    $data['bank'] = BankAccount::find($data->bank_id);
     return $this->success($data);
   }
 
