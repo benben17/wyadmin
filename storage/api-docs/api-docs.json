@@ -990,6 +990,78 @@
                 }
             }
         },
+        "/api/operation/charge/delete": {
+            "post": {
+                "tags": [
+                    "收支"
+                ],
+                "summary": "收支删除",
+                "operationId": "c4db382e9182f524e3251e157baf359f",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "收款id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/record/delete": {
+            "post": {
+                "tags": [
+                    "收支"
+                ],
+                "summary": "收支核销记录删除",
+                "operationId": "e33bfd62456ef1c0855fa6110a0b39bc",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "收款核销id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/deposit/list": {
             "post": {
                 "tags": [
@@ -3166,6 +3238,48 @@
                                 "id": "1",
                                 "remark": "合同作废",
                                 "audit_state": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/change": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同变更",
+                "operationId": "5bc24b8fcdd159cb8f933bf4031e451d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_state",
+                                    "sign_date",
+                                    "start_date",
+                                    "end_date"
+                                ],
+                                "properties": {
+                                    "contract_state": {
+                                        "description": "0:草稿 1:待审核 2:正式合同",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_state": "1",
+                                "sign_date": "",
+                                "start_date": "1",
+                                "end_date": ""
                             }
                         }
                     }
@@ -10046,9 +10160,9 @@
         "/api/operation/tenant/share/add": {
             "post": {
                 "tags": [
-                    "租户分摊"
+                    "分摊租户"
                 ],
-                "summary": "分摊租户规则新增",
+                "summary": "分摊租户新增",
                 "operationId": "b6edd0303d6029f49eb08df2c6ac7685",
                 "requestBody": {
                     "content": {
@@ -10056,86 +10170,16 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "share_type",
-                                    "tenant_id",
-                                    "contract_id",
-                                    "invoice"
+                                    "type",
+                                    "name",
+                                    "parent_id"
                                 ],
                                 "properties": {
-                                    "share_type": {
-                                        "description": "客户类型 1:比例 2 固定金额",
+                                    "parent_id": {
+                                        "description": "主租户id",
                                         "type": "int"
                                     },
-                                    "tenant_id": {
-                                        "description": "分摊租户id",
-                                        "type": "int"
-                                    },
-                                    "contract_id": {
-                                        "description": "合同id",
-                                        "type": "int"
-                                    },
-                                    "fee_type": {
-                                        "description": "分摊费用类型",
-                                        "type": "int"
-                                    },
-                                    "share_rate": {
-                                        "description": "分摊比例，最大两位小数",
-                                        "type": "float"
-                                    },
-                                    "share_amount": {
-                                        "description": "分摊金额",
-                                        "type": "float"
-                                    },
-                                    "remark": {
-                                        "description": "分摊备注",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "parent_tenant_id": 5,
-                                "contract_id": 6,
-                                "share_type": 2,
-                                "share_rules": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/share/edit": {
-            "post": {
-                "tags": [
-                    "租户"
-                ],
-                "summary": "租户编辑",
-                "operationId": "219b73c68144e99dc4635c18ca0b1401",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id",
-                                    "cus_type",
-                                    "cus_name"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "客户id",
-                                        "type": "int"
-                                    },
-                                    "cus_type": {
-                                        "description": "客户类型 1:公司 2 个人",
-                                        "type": "int"
-                                    },
-                                    "cus_name": {
+                                    "name": {
                                         "description": "客户名称",
                                         "type": "String"
                                     }
@@ -10143,9 +10187,8 @@
                                 "type": "object"
                             },
                             "example": {
-                                "id": 1,
-                                "cus_type": 1,
-                                "cus_name": "公司客户"
+                                "name": "租户名称",
+                                "parent_id": "主租户id"
                             }
                         }
                     }
@@ -10182,6 +10225,48 @@
                             },
                             "example": {
                                 "id": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/share/fee/list": {
+            "post": {
+                "tags": [
+                    "租户分摊"
+                ],
+                "summary": "租户应收 应收未收列表",
+                "operationId": "9ec0c901491eaf28598d14d2ff51c8a6",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id",
+                                    "fee_start_date"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    },
+                                    "fee_start_date": {
+                                        "description": "分摊账单开始时间",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": 1,
+                                "fee_start_date": "2024-03-01"
                             }
                         }
                     }

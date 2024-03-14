@@ -5,6 +5,7 @@ namespace App\Api\Models\Tenant;
 use App\Api\Models\Contract\Contract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Api\Scopes\CompanyScope;
 
 /**
  *
@@ -39,5 +40,10 @@ class Leaseback extends Model
   public function tenant()
   {
     return $this->hasOne(Tenant::class, 'id', 'tenant_id');
+  }
+  protected static function boot()
+  {
+    parent::boot();
+    static::addGlobalScope(new CompanyScope);
   }
 }

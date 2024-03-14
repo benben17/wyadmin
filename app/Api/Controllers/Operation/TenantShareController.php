@@ -250,38 +250,7 @@ class TenantShareController extends BaseController
         return $this->success($data);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/operation/tenant/share/add",
-     *     tags={"租户分摊"},
-     *     summary="分摊租户规则新增",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"share_type","tenant_id","contract_id","invoice"},
-     *       @OA\Property(property="share_type",type="int",description="客户类型 1:比例 2 固定金额"),
-     *       @OA\Property(property="tenant_id",type="int",description="分摊租户id"),
-     *       @OA\Property(property="contract_id",type="int",description="合同id"),
-     *       @OA\Property(property="fee_type",type="int",description="分摊费用类型"),
-     *       @OA\Property(property="share_rate",type="float",description="分摊比例，最大两位小数"),
-     *       @OA\Property(property="share_amount",type="float",description="分摊金额"),
-     *       @OA\Property(property="remark",type="String",description="分摊备注"),
-     *     ),
-     *       example={
-     *       "parent_tenant_id":5,
-     *          "contract_id":6,
-     *          "share_type":2,
-     *          "share_rules":""}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
+
     public function tenantShareStore(Request $request)
     {
         $msg = ['contract_id' => '合同id不允许为空'];
