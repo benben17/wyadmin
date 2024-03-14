@@ -91,7 +91,7 @@ class LeasebackController extends BaseController
         DB::enableQueryLog();
         $result = $this->leasebackService->model()->where($map)
             ->whereHas('tenant', function ($q) use ($request) {
-                $request->name && $q->where('name', 'like', '%' . $request->tenant_name . '%');
+                $request->tenant_name && $q->where('name', 'like', '%' . $request->tenant_name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
             ->where(function ($q) use ($request) {

@@ -209,7 +209,7 @@ class ChargeController extends BaseController
    * @OA\Post(
    *     path="/api/operation/charge/cancel",
    *     tags={"收支"},
-   *     summary="预充值取消",
+   *     summary="预充值 删除-只能删除没有核销的收支",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
