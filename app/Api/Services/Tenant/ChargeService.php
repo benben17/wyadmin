@@ -47,7 +47,7 @@ class ChargeService
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
         $charge->unverify_amount = $BA['amount'];
-        $charge->flow_no = getChargeNo();
+        $charge->flow_no = getChargeNo($BA['type']);
       }
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
@@ -57,13 +57,16 @@ class ChargeService
       $charge->category     = $BA['category'] ?? AppEnum::chargeCategoryFee;
       $charge->source      = $BA['source'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
-
+      if ($BA['type'] == AppEnum::chargeIncome) {
+        $charge->unverify_amount = $BA['amount'];
+      }
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
       $charge->bank_id    = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
       $charge->charge_date = $BA['charge_date'];
       $charge->status      = isset($BA['status']) ? $BA['status'] : 0;
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
+      $charge->charge_id      = $BA['charge_id'] ?? 0;
       $chargeRes = $charge->save();
       // });
       return $chargeRes ? $charge : false;
@@ -306,13 +309,13 @@ class ChargeService
       $charge         = $this->model();
       $charge->c_uid  = $user['id'];
       $charge->unverify_amount = 0;
-      $charge->flow_no = getChargeNo();
+      $charge->flow_no = getChargeNo($BA['type']);
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $billDetail['tenant_id'];
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $billDetail['proj_id'];
       $charge->type        = 1; // 收入 // 2 支出
-      $charge->category     = 2; // 押金转收入;
+      $charge->category     = AppEnum::chargeCategoryDeposit; // 押金转收入;
       $charge->source      = 1; // 费用
       $charge->verify_amount = 0.00;
       $charge->tenant_name = $billDetail['tenant_name'];
@@ -409,6 +412,33 @@ class ChargeService
       Log::error("数据库操作失败:" . $e->getMessage());
     } catch (Exception $e) {
       Log::error("删除收款失败:" . $e->getMessage());
+    }
+    return false;
+  }
+
+
+  public function chargeRefund($chargeId, $refundAmt,  $user): bool
+  {
+    try {
+      DB::transaction(function () use ($chargeId, $refundAmt,  $user) {
+        $charge = $this->model()->findOrFail($chargeId);
+        $charge->unverify_amount -= $refundAmt;
+        if ($charge->unverify_amount == 0) {
+          $charge->status = 1;
+        }
+        $charge->save();
+        $charge->id = 0;
+        $charge->charge_id = $chargeId;
+        $charge->type = AppEnum::chargeRefund;
+        $charge->amount = $refundAmt;
+        $charge->status = 1;
+        $charge->charge_date = nowYmd();
+        $charge->category     = AppEnum::chargeCategoryRefund; // 收入退款;
+        $this->save($charge->toArray(), $user);
+      }, 2);
+      return true;
+    } catch (Exception $e) {
+      Log::error("收款退款失败" . $e);
     }
     return false;
   }

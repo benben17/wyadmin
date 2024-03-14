@@ -90,6 +90,7 @@ class ChargeBill extends Model
     return [
       1 => "费用收入",
       2 => "押金转收入",
+      3 => '退款',
     ];
   }
 }

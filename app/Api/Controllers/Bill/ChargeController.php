@@ -275,6 +275,7 @@ class ChargeController extends BaseController
       }])
       ->find($request->id);
     $data['bank'] = BankAccount::find($data->bank_id);
+    $data['refund_list'] = $this->chargeService->model()->where('charge_id', $request->id)->get();
     return $this->success($data);
   }
 
@@ -561,5 +562,56 @@ class ChargeController extends BaseController
 
     $res = $this->chargeService->deleteChargeRecord(($request->id));
     return $res ? $this->success("核销删除成功") : $this->error("删除失败");
+  }
+
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/charge/refund",
+   *     tags={"收支"},
+   *     summary="收支退款",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","refund_amt"},
+   *       @OA\Property(property="id",type="int",description="id"),
+   *       @OA\Property(property="refund_amt",type="decimal",description="退款金额"),
+   *      @OA\Property(property="remark",type="String",description="退款备注"),
+   *     ),
+   *       example={"id":"1","refund_amt":"0.00","remark":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function chargeRefund(Request $request)
+  {
+    $msg = [
+      'id.required' => '收款id必须',
+      'refund_amt.required' => '退款金额必须'
+    ];
+    $request->validate([
+      'id' => 'required|numeric|gt:0',
+      'refund_amt' => 'required',
+      'remark' => 'String'
+    ], $msg);
+
+    $charge = $this->chargeService->model()->findOrFail($request->id);
+    if ($charge->type == AppEnum::chargeRefund) {
+      return $this->error("支出不允许退款");
+    }
+    $unusedAmt = $charge->amount - $charge->verify_amount;
+    if ($unusedAmt < $request->refund_amt) {
+      return $this->error("退款金额不能大于可用金额");
+    }
+    $charge->remark = $request->remark ?? $charge->remark;
+    $res = $this->chargeService->chargeRefund($charge->id, $request->refund_amt, $this->user);
+    return $res ? $this->success("退款成功") : $this->error("退款失败");
   }
 }

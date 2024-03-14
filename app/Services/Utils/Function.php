@@ -1,6 +1,7 @@
 <?php
 
 use App\Api\Models\Project;
+use App\Enums\AppEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -311,10 +312,14 @@ function uuid($prefix = '')
  *
  * @return void
  */
-function getChargeNo()
+function getChargeNo($type)
 {
     $no = date('ymdHis', strtotime(nowTime()));
-    return  'IE-' . $no . mt_rand(10, 99);
+    if ($type == AppEnum::chargeIncome) {
+        return  'IE-' . $no . mt_rand(10, 99);
+    } else {
+        return  'EX-' . $no . mt_rand(10, 99);
+    }
 }
 
 function getChargeVerifyNo()

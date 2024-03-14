@@ -405,9 +405,6 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
 
     // 生成word 版账单
     Route::post('toWord', '\App\Api\Controllers\Bill\BillController@billToWord');
-    // 退款
-    Route::post('refund/list', '\App\Api\Controllers\Bill\RefundController@list');
-    Route::post('refund/add', '\App\Api\Controllers\Bill\RefundController@store');
 });
 // 租户押金
 Route::group(['prefix' => 'operation/tenant'], function () {
@@ -503,6 +500,8 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
     Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
     Route::post('/record/delete', '\App\Api\Controllers\Bill\ChargeController@deleteRecord');
+
+    Route::post('/refund', '\App\Api\Controllers\Bill\ChargeController@chargeRefund');
 });
 
 
