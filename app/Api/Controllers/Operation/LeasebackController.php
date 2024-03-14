@@ -93,7 +93,13 @@ class LeasebackController extends BaseController
             ->whereHas('tenant', function ($q) use ($request) {
                 $request->name && $q->where('name', 'like', '%' . $request->tenant_name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })->with('tenant:id,tenant_no,name,proj_id,on_rent')
+            })
+            ->where(function ($q) use ($request) {
+                if ($request->start_date && $request->end_date) {
+                    $q->whereBetween('leaseback_date', [$request->start_date, $request->end_date]);
+                }
+            })
+            ->with('tenant:id,tenant_no,name,proj_id,on_rent')
             ->with('contract:id,contract_no,start_date,end_date')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
