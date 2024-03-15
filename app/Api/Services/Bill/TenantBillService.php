@@ -413,7 +413,7 @@ class TenantBillService
     }
     $contractService = new ContractService;
     $data['room'] = $contractService->getContractRoom($data['contract_id']);
-    $data['proj_name'] = getProjNameById($data['proj_id']);
+    $data['project'] = getProjById($data['proj_id']);
 
     $billGroups = $this->billDetailModel()
       ->selectRaw('sum(amount) amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount,bank_id')
