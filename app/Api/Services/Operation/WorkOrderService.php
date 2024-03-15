@@ -40,6 +40,7 @@ class WorkOrderService
       $order->work_type       = $DA['work_type'];
       $order->proj_id         = $DA['proj_id'];
       $order->open_time       = $DA['open_time'] ?? nowTime();
+      $order->urgency_level   = $DA['urgency_level'] ?? "";
       $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $order->tenant_name     = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
       $order->building_floor_room = isset($DA['building_floor_room']) ? $DA['building_floor_room'] : "";
