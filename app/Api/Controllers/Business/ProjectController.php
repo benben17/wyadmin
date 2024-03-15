@@ -497,7 +497,7 @@ class ProjectController extends BaseController
         $DA['support'] = isset($data['support']) ? $data['support'] : "";
         $DA['advantage'] = isset($data['advantage']) ? $data['advantage'] : "";
         $DA['bill_instruction'] = isset($data['bill_instruction']) ? $data['bill_instruction'] : "";
-        $DA['bill_footer'] = isset($data['bill_footer']) ? $data['bill_footer'] : "";
+        $DA['operate_entity'] = isset($data['operate_entity']) ? $data['operate_entity'] : "";
         $DA['is_valid'] = isset($data['is_valid']) ? $data['is_valid'] : 1;
         return $DA;
     }
