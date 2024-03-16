@@ -177,7 +177,7 @@ class BillController extends BaseController
       $billDate = getMonthRange($DA['bill_month']);
       $feeTypes = str2Array($DA['fee_types']);
       foreach ($contracts as $k => $contract) {
-        Log::info("账单生成合同：" . $contract['tenant_id']);
+        // Log::info("账单生成合同：" . $contract['tenant_id']);
         DB::enableQueryLog();
         $map = [
           'status' => 0,

@@ -33,6 +33,7 @@ class WorkOrder extends Model
         break;
       case '2':
         return '处理中';
+
         break;
       case '3':
         return '处理完成';
@@ -54,7 +55,7 @@ class WorkOrder extends Model
         return '待派单';
         break;
       case '2':
-        return '待处理';
+        return '已派单';
         break;
       case '3':
         return '处理完成';

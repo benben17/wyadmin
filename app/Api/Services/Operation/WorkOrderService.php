@@ -20,8 +20,7 @@ class WorkOrderService
 {
   public function workModel()
   {
-    $model = new WorkOrderModel;
-    return $model;
+    return new WorkOrderModel;
   }
 
   /** 保修工单开单 */
@@ -29,10 +28,10 @@ class WorkOrderService
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
-        $order = WorkOrderModel::find($DA['id']);
+        $order = $this->workModel()->find($DA['id']);
         $order->u_uid = $user['id'];
       } else {
-        $order = new WorkOrderModel;
+        $order = $this->workModel();
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
         $order->order_no = $DA['order_no'] ??  $this->workorderNo($DA['work_type']);
@@ -51,6 +50,9 @@ class WorkOrderService
       $order->open_phone      = isset($DA['open_phone']) ? $DA['open_phone'] : "";
       $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";
       $order->pic             = isset($DA['pic']) ? $DA['pic'] : "";
+      if (isset($DA['deadline_time'])) {
+        $order->deadline_time   = $DA['deadline_time'];
+      }
       $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
       $order->status          = AppEnum::workorderOpen;  // 开单
       $res = $order->save();
@@ -85,7 +87,7 @@ class WorkOrderService
     $order->order_time   = $DA['order_time'];
     $order->order_uid    = $DA['order_uid'];
     $order->order_person = isset($DA['order_person']) ? $DA['order_person'] : $user['realname'];
-    $order->status       = 2;   // 接单
+    $order->status       = AppEnum::workorderTake;   // 接单
     $res = $order->save();
     // 写入日志
     $this->saveOrderLog($DA['id'], 2, $user);
@@ -192,8 +194,8 @@ class WorkOrderService
         if ($order->status >= 3) {
           return false;
         }
-        $order->remark      = $DA['remark'] ?? "";
-        $order->audit_time  = $DA['audit_time'] ?? nowYmd();
+        $order->remark      .= $DA['remark'] ?? "";
+        $order->audit_time   = $DA['audit_time'] ?? nowYmd();
         $order->audit_person = $user->username;
         if ($DA['audit_status'] == 1) {
           $order->status     = AppEnum::workorderClose; // 工单关闭
@@ -265,7 +267,7 @@ class WorkOrderService
    * @param    [type]     $user        [description]
    * @return   [type]                  [description]
    */
-  private function saveOrderLog($orderId, $orderStatus, $user, $remark = "")
+  public function saveOrderLog($orderId, $orderStatus, $user, $remark = "")
   {
     try {
       $orderLog = new WorkOrderLogModel;

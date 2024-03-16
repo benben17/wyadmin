@@ -26,8 +26,7 @@ class InspectionService
   /** 巡检 */
   public function inspectionRecordModel()
   {
-    $model = new InspectionRecordModel;
-    return $model;
+    return new InspectionRecordModel;
   }
 
   /**

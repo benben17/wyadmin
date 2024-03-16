@@ -53,7 +53,7 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'proj_ids' => 'required|array',
-      // 'status' => 'required|array',
+      'status' => 'required|array',
       'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');
@@ -278,6 +278,61 @@ class WorkOrderController extends BaseController
 
 
 
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/workorder/dispatch",
+   *     tags={"工单"},
+   *     summary="报修/隐患 工单 派单",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","order_time"},
+   *        @OA\Property(property="id",type="int",description="ID"),
+   *        @OA\Property(property="dispatch_time",type="date",description="接单时间"),
+   *        @OA\Property(property="dispatch_user",type="String",description="派单人"),
+   *        @OA\Property(property="order_person",type="String",description="接单人")
+   *        @OA\Property(property="order_uid",type="int",description="接单人uid")
+   *     ),
+   *       example={"id":0,"dispatch_user":"","dispatch_time":"","order_time":"","order_uid":"","order_person":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+
+  public function orderDispatch(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
+      'dispatch_time' => 'required|date',
+      'dispatch_user' => 'required|string',
+      'order_uid' => 'required|numeric|gt:0',
+      'order_person' => 'required',
+    ]);
+    $DA = $request->toArray();
+    $workOrder = $this->workService->workModel()->find($DA['id']);
+    if (compareTime($workOrder->dispatch_time, $request->order_time)) {
+      return $this->error('派单时间不允许小于下单时间！');
+    }
+    $workOrder->dispatch_time = $request->dispatch_time;
+    $workOrder->dispatch_user = $request->dispatch_user;
+    $workOrder->order_uid     = $request->order_uid;
+    $workOrder->order_person  = $request->order_person;
+    $res = $workOrder->save();
+    if (!$res) {
+      return $this->error('派单失败！');
+    }
+    $this->workService->saveOrderLog($DA['id'], 2, $this->user);
+    return $this->success('派单成功。');
+  }
+
+
   /**
    * @OA\Post(
    *     path="/api/operation/workorder/order",
@@ -318,6 +373,7 @@ class WorkOrderController extends BaseController
     }
     $res = $this->workService->orderWork($DA, $this->user);
     if (!$res) {
+
       return $this->error('接单失败！');
     }
     return $this->success('接单成功。');
@@ -382,7 +438,7 @@ class WorkOrderController extends BaseController
    *       @OA\Property(property="id",type="int",description="工单id"),
    *       @OA\Property(property="work_type",type="int",description="工单类型 2 隐患工单")
    *     ),
-   *       example={"id":1,"audit_stats":"1 审核通过 其他审核不通过","remark":"","audit_time":"审核时间 年-月-日 分:时:秒"}
+   *       example={"id":1,"audit_status":"1 审核通过 其他审核不通过","remark":"","audit_time":"审核时间 年-月-日 分:时:秒"}
    *       )
    *     ),
    *     @OA\Response(

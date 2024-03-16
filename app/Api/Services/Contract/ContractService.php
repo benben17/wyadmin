@@ -27,20 +27,24 @@ use App\Enums\AppEnum;
 class ContractService
 {
 
+  // 合同模型
   public function model()
   {
     return new ContractModel;
   }
 
+  // 合同免租
   public function freeModel()
   {
     return new ContractFreePeriod;
   }
+  // 合同费用
   public function contractBillModel()
   {
     return new ContractBill;
   }
 
+  // 合同房间
   public function contractRoomModel()
   {
     return new ContractRoomModel;

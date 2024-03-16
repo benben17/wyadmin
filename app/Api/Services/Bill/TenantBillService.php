@@ -236,6 +236,7 @@ class TenantBillService
         // Log::error('格式化账单成功');
       }, 3);
       Log::info('租户应收账单保存成功');
+      return true;
     } catch (Exception $th) {
       throw new Exception("账单保存失败" . $th);
       return false;
@@ -303,7 +304,7 @@ class TenantBillService
           ];
 
           $bill = $this->saveBill($billData, $user);
-          Log::error("bill_id" . $bill['id']);
+          // Log::error("bill_id" . $bill['id']);
           $billId = $bill['id'];
 
           $idArray = str2Array($v['billDetailIds']);
