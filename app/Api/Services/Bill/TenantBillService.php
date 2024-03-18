@@ -108,7 +108,8 @@ class TenantBillService
         $billDetail->bill_type   = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
         $billDetail->fee_type    = $DA['fee_type']; // 费用类型
         $billDetail->amount      = $DA['amount'];
-        if (isset($DA['contract_id'])) {
+        $billDetail->bank_id     = $DA['bank_id'] ?? 0;
+        if (isset($DA['contract_id']) && $billDetail->bank_id == 0) {
           $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
         }
         if (isset($DA['charge_date'])) {
