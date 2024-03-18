@@ -59,17 +59,25 @@ class TenantShareService
    */
   public function getShareTenants($tenantId)
   {
-    $data = $this->model()->select('tenant_id', 'contract_id')
-      ->where('parent_id', $tenantId)->get()->toArray();
+    $data = $this->model()
+      ->select('tenant_id', 'contract_id')
+      ->where('parent_id', $tenantId)
+      ->get()
+      ->toArray();
 
-    if ($data) {
-      foreach ($data as $k => $v) {
-        $v['tenant_name'] = getTenantNameById($v['tenant_id']);
-      }
-      return $data;
+    // 如果查询结果为空，直接返回空数组
+    if (empty($data)) {
+      return [];
     }
+
+    // 使用引用方式来修改数组元素
+    foreach ($data as &$item) {
+      $item['tenant_name'] = getTenantNameById($item['tenant_id']);
+    }
+
     return $data;
   }
+
 
   /**
    * 根据合同id获取分摊租户
@@ -82,18 +90,27 @@ class TenantShareService
    */
   public function getShareTenantsByContractId($contractId)
   {
-    $data = $this->model()->select('tenant_id', 'contract_id')->where('parent_id', '>', 0)
+    $data = $this->model()
+      ->select('tenant_id', 'contract_id')
+      ->where('parent_id', '>', 0)
       ->where('contract_id', $contractId)
-      ->get()->toArray();
+      ->get()
+      ->toArray();
 
-    if ($data) {
-      foreach ($data as $k => &$v) {
-        $v['tenant_name'] = getTenantNameById($v['tenant_id']);
-      }
-      return $data;
+    // 如果查询结果为空，直接返回空数组
+    if (empty($data)) {
+      return [];
     }
+
+    // 使用数组映射函数来转换每个结果的 tenant_name
+    $data = array_map(function ($item) {
+      $item['tenant_name'] = getTenantNameById($item['tenant_id']);
+      return $item;
+    }, $data);
+
     return $data;
   }
+
 
   /**
    * 判断合同是否处理过分摊

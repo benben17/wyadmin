@@ -122,9 +122,16 @@ class BankAccountController extends BaseController
             'account_number' => 'required|String',
             'bank_name' => 'required|String|min:2',
             'fee_type_id' => 'required|String',
+            'proj_id' => 'required|gt:0'
         ]);
 
         $DA =  $request->toArray();
+
+        $isExists = $this->checkFeeType($DA['fee_type_id'], $DA['proj_id'], $DA['id'], 'save');
+        if (!empty($isExists)) {
+            return $this->error("此费用 [$isExists] 已配置银行账户");
+        }
+
         $user = auth('api')->user();
         $bankAccount = new bankAccountModel;
         $bankAccount['account_name'] = $DA['account_name'];
@@ -176,10 +183,19 @@ class BankAccountController extends BaseController
 
         $DA =  $request->toArray();
         $map['account_name'] = $DA['account_name'];
-        $checkAccount =  bankAccountModel::where($map)->where('id', '!=', $DA['id'])->exists();
+        $checkAccount =  bankAccountModel::where($map)
+            ->where('proj_id', $DA['proj_id'])
+            ->where('id', '!=', $DA['id'])->exists();
         if ($checkAccount) {
             return $this->error('银行名字重复!');
         }
+
+
+        $isExists = $this->checkFeeType($DA['fee_type_id'], $DA['id'], 'update');
+        if (!empty($isExists)) {
+            return $this->error("此费用 [$isExists] 已配置银行账户");
+        }
+
         $user = auth('api')->user();
         $bankAccount = bankAccountModel::find($DA['id']);
         $bankAccount['proj_id']       = $DA['proj_id'] ?? 0;
@@ -240,5 +256,38 @@ class BankAccountController extends BaseController
         } else {
             return $this->error('收款账户更新失败！');
         }
+    }
+
+
+    /**
+     * 判断费用是否已经配置了银行账户
+     *
+     * @Author leezhua
+     * @DateTime 2024-03-18
+     * @param String $feeTypes
+     * @param integer $bankId
+     * @param string $type
+     *
+     * @return array
+     */
+    public function checkFeeType(String $feeTypes, $projId, $bankId = 0, $type = 'save'): array
+    {
+        $feeStr = "";
+        $feeTypes = str2Array($feeTypes);
+        $isExists = bankAccountModel::where(function ($query) use ($feeTypes, $projId, $bankId, $type) {
+            foreach ($feeTypes as $feeType) {
+                $query->orWhereRaw('FIND_IN_SET(?, fee_type_id)', [$feeType]);
+            }
+            $type != 'save' && $query->where('id', '!=', $bankId);
+        })->where('proj_id', $projId)
+            ->pluck('fee_type_id');
+
+        if ($isExists->isNotEmpty()) {
+            $existingFeeNames = $isExists->map(function ($feeType) {
+                return getFeeNameById($feeType);
+            })->implode(', ');
+            $feeStr = $existingFeeNames;
+        }
+        return $feeStr;
     }
 }

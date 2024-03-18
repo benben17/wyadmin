@@ -138,6 +138,7 @@ class TenantShareController extends BaseController
         }
         $DA['state'] = "成交客户";
         $DA['type'] = AppEnum::TenantType;
+        $DA['on_rent'] = 1;
         $res = $this->tenantService->saveTenant($DA, $this->user);
         if ($res) {
             $log['tenant_id'] = $DA['parent_id'];
@@ -269,7 +270,7 @@ class TenantShareController extends BaseController
         try {
             $user = $this->user;
             DB::transaction(function () use ($DA, $user) {
-                $shareTenants = "";
+                $shareTenants = [];
                 foreach ($DA['share_list'] as $share) {
                     $primaryTenant = $DA['parent_tenant_id'];
                     $share['contract_id'] = $DA['contract_id'];
@@ -289,7 +290,7 @@ class TenantShareController extends BaseController
                             $v['tenant_name'] = $share['tenant_name'];
                             $v['amount'] = $v['share_amount'];
                             $v['contract_id'] = $DA['contract_id'];
-                            $shareTenants .= $v['tenant_name'];
+                            $shareTenants[] = $v['tenant_name'];
                         }
 
                         // Log::error(json_encode($share['fee_list']));
@@ -304,12 +305,11 @@ class TenantShareController extends BaseController
                 $BA['id'] = $DA['contract_id'];
                 $BA['title'] = '增加分摊租户';
                 $BA['contract_state'] = '租户分摊';
-                $BA['remark'] = '增加分摊租户' . $shareTenants;
+                $BA['remark'] = '增加分摊租户' .  implode(', ', array_unique($shareTenants));
                 $BA['c_uid'] = $user['id'];
                 $BA['c_username'] = $user['name'];
                 $contractService->saveLog($BA);
             }, 2);
-
             return $this->success("分摊处理成功");
         } catch (Exception $e) {
             Log::error($e);
