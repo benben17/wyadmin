@@ -153,6 +153,7 @@ class ContractService
       return true;
     } catch (Exception $th) {
       Log::error("保存合同日志失败" . $th->getMessage());
+      throw new Exception("保存合同日志失败" . $th->getMessage());
     }
   }
 

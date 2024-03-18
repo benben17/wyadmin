@@ -301,7 +301,7 @@ class TenantShareController extends BaseController
                 }
                 // 保存合同 日志
                 $contractService = new ContractService;
-                $BA['contract_id'] = $DA['contract_id'];
+                $BA['id'] = $DA['contract_id'];
                 $BA['title'] = '增加分摊租户';
                 $BA['contract_state'] = '租户分摊';
                 $BA['remark'] = '增加分摊租户' . $shareTenants;

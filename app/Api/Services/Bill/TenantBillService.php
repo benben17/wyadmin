@@ -341,6 +341,9 @@ class TenantBillService
     try {
       if ($DA && $user) {
         foreach ($DA as $k => $v) {
+          if ($v['amount'] == 0) {
+            continue;
+          }
           $data[$k]['company_id']  = $user['company_id'];
           $data[$k]['proj_id']     = $projId === 0 ? $v['proj_id'] : $projId;
           $data[$k]['contract_id'] = $v['contract_id'];
