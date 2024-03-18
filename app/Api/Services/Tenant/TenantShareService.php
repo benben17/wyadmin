@@ -21,8 +21,10 @@ class TenantShareService
   public function saveShareFee($DA, $user)
   {
     try {
-      if (isset($DA['id']) && $DA['id'] > 0) {
-        $share            = $this->model()->find($DA['id']);
+      $where['tenant_id'] =  $DA['tenant_id'];
+      $where['contract_id'] =  $DA['contract_id'];
+      $share = $this->model()->where($where)->first();
+      if ($share) {
         $share->u_uid     = $user['id'];
       } else {
         $share            = $this->model();
