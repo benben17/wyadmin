@@ -313,7 +313,7 @@ class TenantShareController extends BaseController
             return $this->success("分摊处理成功");
         } catch (Exception $e) {
             Log::error($e);
-            return $this->error("分摊处理失败" . $e);
+            return $this->error("分摊处理失败" . $e->getMessage());
         }
         // return response()->json(DB::getQueryLog());
     }

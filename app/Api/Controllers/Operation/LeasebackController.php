@@ -144,11 +144,15 @@ class LeasebackController extends BaseController
             'type' => 'required',
             'leaseback_date' => 'required',
         ]);
+        $leaseback = $this->leasebackService->model()->where('contract_id', $request->contract_id)->count();
+        if ($leaseback > 0) {
+            return $this->error("已退租，不允许重复退租！");
+        }
         $res = $this->leasebackService->save($request->toArray(), $this->user);
         if ($res) {
             return $this->success('租户退租保存成功');
         } else {
-            return $this->fail("租户退租失败");
+            return $this->error("租户退租失败");
         }
     }
 

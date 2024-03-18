@@ -40,8 +40,8 @@ class TenantShareService
       $res = $share->save();
       return $res;
     } catch (Exception $e) {
-      Log::error("分摊保存失败" . $e->getMessage());
-      throw new Exception("分摊保存失败");
+      Log::error("分摊明细保存失败" . $e->getMessage());
+      throw new Exception("分摊明细保存失败");
       return false;
     }
   }

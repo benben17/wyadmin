@@ -190,7 +190,7 @@ class BillController extends BaseController
           ->where($map)
           ->whereBetween('charge_date', $billDate)
           ->whereIn('fee_type', $feeTypes)
-          ->groupBy('contract_id', 'tenant_id')
+          ->groupBy('tenant_id', 'contract_id')
           ->get()->toArray();
 
         // return $billDetails;
