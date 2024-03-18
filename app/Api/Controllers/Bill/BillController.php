@@ -153,22 +153,26 @@ class BillController extends BaseController
     }
     try {
       // DB::transaction(function () use ($request) {
-      $contractService = new ContractService;
+      // $contractService = new ContractService;
 
-      $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name as name', 'proj_id')
-        ->where(function ($q) use ($request) {
-          if ($request->create_type == 1) {
-            $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
-          }
-        })
-        ->where('contract_state', AppEnum::contractExecute) // 执行状态
-        ->where('proj_id', $request->proj_id)->get()->toArray();
+      // $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name as name', 'proj_id')
+      //   ->where(function ($q) use ($request) {
+      //     if ($request->create_type == 1) {
+      //       $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
+      //     }
+      //   })
+      //   ->where('contract_state', AppEnum::contractExecute) // 执行状态
+      //   ->where('proj_id', $request->proj_id)->get()->toArray();
 
 
-      if (sizeof($contracts) == 0) {
-        return $this->error("未找到合同信息");
-      }
+      // if (sizeof($contracts) == 0) {
+      //   return $this->error("未找到合同信息");
+      // }
       // 
+
+      $tenants = Tenant::where('on_rent', 1)->where(function ($q) use ($request) {
+        $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
+      })->get();
 
       $billDay = $request->bill_month . '-' . $request->bill_day;
 
@@ -176,13 +180,14 @@ class BillController extends BaseController
       $msg = "";
       $billDate = getMonthRange($DA['bill_month']);
       $feeTypes = str2Array($DA['fee_types']);
-      foreach ($contracts as $k => $contract) {
+      foreach ($tenants as $k => $tenant) {
         // Log::info("账单生成合同：" . $contract['tenant_id']);
         DB::enableQueryLog();
         $map = [
           'status' => 0,
           'bill_id' => 0,
-          'contract_id' => $contract['id'],
+          'tenant_id' => $tenant->id,
+          // 'contract_id' => $contract['id'],
         ];
 
         $billDetails = $this->billService->billDetailModel()
@@ -190,21 +195,21 @@ class BillController extends BaseController
           ->where($map)
           ->whereBetween('charge_date', $billDate)
           ->whereIn('fee_type', $feeTypes)
-          ->groupBy('tenant_id', 'contract_id')
+          ->groupBy('tenant_id')
           ->get()->toArray();
 
         // return $billDetails;
         // return response()->json(DB::getQueryLog());
         if (sizeof($billDetails) == 0) {
-          $message = "合同-" . $contract['contract_no'] . "无费用信息";
+          $message = "租户-" . $tenant->name . "无费用信息";
           Log::warning($message);
           $msg .= $message;
           continue;
         }
 
-        $res = $this->billService->createBill($contract, $billDetails, $DA['bill_month'], $billDay, $this->user);
+        $res = $this->billService->createBill($tenant->toArray(), $billDetails, $DA['bill_month'], $billDay, $this->user);
         if (!$res['flag']) {
-          Log::error("生成账单错误" . $contract['contract_no'] . $res['message']);
+          Log::error("生成账单错误" . $tenant->name . $res['message']);
         } else {
           $billCount++;
         }

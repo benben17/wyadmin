@@ -283,28 +283,28 @@ class TenantBillService
    *
    * @return void
    */
-  public function createBill(array $contract,  array $billDetails, $month, $billDay, $user): array
+  public function createBill(array $tenant,  array $billDetails, $month, $billDay, $user): array
   {
     try {
 
-      DB::transaction(function () use ($contract, $billDetails, $month, $billDay, $user) {
+      DB::transaction(function () use ($tenant, $billDetails, $month, $billDay, $user) {
 
         foreach ($billDetails as $k => $v) {
-          $tenantName = $v['tenant_name'] ?? getTenantNameById($v['tenant_id']);
+          // $tenantName = $v['tenant_name'] ?? getTenantNameById($v['tenant_id']);
 
           $billData = [
-            'contract_id' => $contract['id'],
+            // 'contract_id' => $contract['id'],
             'tenant_id' => $v['tenant_id'],
             'amount'    => $v['totalAmt'] - $v['discountAmt'],
             'charge_date' => $billDay,
-            'proj_id' => $contract['proj_id'],
-            'tenant_name' => $tenantName,
+            'proj_id' => $tenant['proj_id'],
+            'tenant_name' => $tenant['name'],
             'bill_no' => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
-            'bill_title' => $tenantName . $month . "月账单",
+            'bill_title' => $tenant['name'] . $month . "月账单",
           ];
 
           $bill = $this->saveBill($billData, $user);
-          // Log::error("bill_id" . $bill['id']);
+          Log::error("bill_id" . $bill['id']);
           $billId = $bill['id'];
 
           $idArray = str2Array($v['billDetailIds']);

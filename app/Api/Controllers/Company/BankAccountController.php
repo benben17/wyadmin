@@ -88,7 +88,7 @@ class BankAccountController extends BaseController
             'id' => 'required|int|gt:0',
         ]);
         $data = bankAccountModel::find($request->id)->toArray();
-        $data['fee_types'] = $this->feeTypeService->getFeeNames($v['fee_type_id']);
+        $data['fee_types'] = $this->feeTypeService->getFeeNames($data['fee_type_id']);
         return $this->success($data);
     }
 

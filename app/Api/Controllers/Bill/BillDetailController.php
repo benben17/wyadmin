@@ -13,6 +13,7 @@ use App\Api\Services\Tenant\ChargeService;
 use Illuminate\Support\Facades\DB;
 
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
 
@@ -265,6 +266,7 @@ class BillDetailController extends BaseController
       'amount' => 'required',
       'fee_type' => 'required',
     ]);
+
     if (!$request->ignore) {
       $map['tenant_id'] = $request->tenant_id;
       $map['fee_type'] = $request->fee_type;
@@ -275,7 +277,15 @@ class BillDetailController extends BaseController
         return $this->error("此费用类型已存在，是否继续添加？");
       }
     }
-    $res = $this->billService->saveBillDetail($request->toArray(), $this->user);
+    $DA = $request->toArray();
+    if (!isset($DA['contract_id'])) {
+      $contractService = new ContractService;
+      $contract = $contractService->model()->where('tenant_id', $request->tenant_id)->first();
+      if ($contract) {
+        $DA['contract_id'] = $contract->id;
+      }
+    }
+    $res = $this->billService->saveBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("新增费用失败!");
     }
