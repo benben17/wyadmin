@@ -464,10 +464,7 @@ class TenantBillService
     try {
       DB::transaction(function () use ($detailList, $user) {
         foreach ($detailList as $detail) {
-          // 如果是未收款 直接删除
-          if ($detail['status'] === 0 && $detail['receive_amount'] === 0) {
-            $this->billDetailModel()->whereId($detail['id'])->delete();
-          }
+          // 如果是未收款 直接删除 如果已收款先处理收款信息
           if ($detail['receive_amount'] > 0) {
             $chargeRecordList =  ChargeBillRecord::where('bill_detail_id', $detail['id'])->get();
             foreach ($chargeRecordList as $record) {
@@ -479,6 +476,7 @@ class TenantBillService
               ChargeBillRecord::find($record['id'])->delete();
             }
           }
+          $this->billDetailModel()->find($detail['id'])->delete();
         }
       }, 2);
       return true;
