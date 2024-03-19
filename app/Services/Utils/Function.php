@@ -280,15 +280,18 @@ function getOssUrl($filePath)
 {
     return "https://" . config('filesystems.disks.oss.bucket') . '.' . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
 }
-/**
- * 字符串转数组
- */
-function str2Array(String $str, $tag = ','): array
+
+
+function str2Array($str, $tag = ',')
 {
     if (is_array($str)) {
         return $str;
     }
-    return ($str !== '' && $str !== null) ? explode($tag, $str) : [];
+    $arr = array();
+    if (!is_array($str) && !empty($str)) {
+        $arr = explode($tag, $str);
+    }
+    return $arr;
 }
 
 /** 获取UUID */

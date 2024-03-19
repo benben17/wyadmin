@@ -82,13 +82,38 @@ class BankAccountController extends BaseController
         return $this->success($data);
     }
 
+
+    /**
+     * @OA\Post(
+     *     path="/api/company/bankaccount/show",
+     *     tags={"收款帐号"},
+     *     summary="收款帐号详情",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *         @OA\Property(property="id",type="int",description="银行账户id"),
+     *     ),
+     *       example={ "id":""}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
     public function show(Request $request)
     {
         $validatedData = $request->validate([
             'id' => 'required|int|gt:0',
         ]);
         $data = bankAccountModel::find($request->id)->toArray();
-        $data['fee_types'] = $this->feeTypeService->getFeeNames($data['fee_type_id']);
+        $feeTypeIds = str2Array($data['fee_type_id']);
+        $data['fee_types'] = $this->feeTypeService->getFeeNames($feeTypeIds);
+        $data['fee_type_id'] = array_map('intval', $feeTypeIds);
         return $this->success($data);
     }
 
@@ -121,15 +146,15 @@ class BankAccountController extends BaseController
             'account_name' => 'required|String|unique:bse_bank_account',
             'account_number' => 'required|String',
             'bank_name' => 'required|String|min:2',
-            'fee_type_id' => 'required|String',
+            'fee_type_id' => 'required|array',
             'proj_id' => 'required|gt:0'
         ]);
 
         $DA =  $request->toArray();
 
-        $isExists = $this->checkFeeType($DA['fee_type_id'], $DA['proj_id'], $DA['id'], 'save');
-        if (!empty($isExists)) {
-            return $this->error("此费用 [$isExists] 已配置银行账户");
+        $existFeeType = $this->checkFeeType($DA['fee_type_id'], $DA['proj_id'], $type = 'save');
+        if (!empty($existFeeType)) {
+            return $this->error(" [$existFeeType] 已配置在其他银行账户");
         }
 
         $user = auth('api')->user();
@@ -139,7 +164,7 @@ class BankAccountController extends BaseController
         $bankAccount['bank_name']   = $DA['bank_name'];
         $bankAccount['bank_addr']   = isset($DA['bank_addr']) ? $DA['bank_addr'] : "";
         $bankAccount['proj_id']     = $DA['proj_id'] ?? 0;
-        $bankAccount['fee_type_id'] = $DA['fee_type_id'];
+        $bankAccount['fee_type_id'] = implode(",", $DA['fee_type_id']);
         $bankAccount['c_uid']       = $user->id;
         $bankAccount['is_valid']    = 1;
         $bankAccount['company_id']  = $user->company_id;
@@ -179,6 +204,7 @@ class BankAccountController extends BaseController
             'account_name' => 'required|String|',
             'account_number' => 'required|String|min:1',
             'bank_name' => 'required|String|min:1',
+            'fee_type_id' => 'required|array',
         ]);
 
         $DA =  $request->toArray();
@@ -191,9 +217,10 @@ class BankAccountController extends BaseController
         }
 
 
-        $isExists = $this->checkFeeType($DA['fee_type_id'], $DA['id'], 'update');
-        if (!empty($isExists)) {
-            return $this->error("此费用 [$isExists] 已配置银行账户");
+        $existFeeType = $this->checkFeeType($DA['fee_type_id'], $request->proj_id, $DA['id'], 'update');
+
+        if (!empty($existFeeType)) {
+            return $this->error("[$existFeeType] 已配置在其他银行账户");
         }
 
         $user = auth('api')->user();
@@ -203,7 +230,7 @@ class BankAccountController extends BaseController
         $bankAccount['account_number'] = $DA['account_number'];
         $bankAccount['bank_name'] = $DA['bank_name'];
         $bankAccount['bank_addr'] = isset($DA['bank_addr']) ? $DA['bank_addr'] : "";
-        $bankAccount['fee_type_id']       = $DA['fee_type_id'];
+        $bankAccount['fee_type_id']       = implode(",", $DA['fee_type_id']);
         $bankAccount['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
         $bankAccount['u_uid'] = $user->id;
         // $bankAccount['company_id'] = $user->company_id;
@@ -270,24 +297,27 @@ class BankAccountController extends BaseController
      *
      * @return array
      */
-    public function checkFeeType(String $feeTypes, $projId, $bankId = 0, $type = 'save'): array
+    public function checkFeeType($feeTypes, $projId, $bankId = 0, $type = 'save')
     {
         $feeStr = "";
         $feeTypes = str2Array($feeTypes);
-        $isExists = bankAccountModel::where(function ($query) use ($feeTypes, $projId, $bankId, $type) {
-            foreach ($feeTypes as $feeType) {
-                $query->orWhereRaw('FIND_IN_SET(?, fee_type_id)', [$feeType]);
-            }
-            $type != 'save' && $query->where('id', '!=', $bankId);
-        })->where('proj_id', $projId)
-            ->pluck('fee_type_id');
+        DB::enableQueryLog();
 
-        if ($isExists->isNotEmpty()) {
-            $existingFeeNames = $isExists->map(function ($feeType) {
-                return getFeeNameById($feeType);
-            })->implode(', ');
-            $feeStr = $existingFeeNames;
+        foreach ($feeTypes as $feeType) {
+            $count = bankAccountModel::whereRaw('FIND_IN_SET(?, fee_type_id)', [$feeType])
+                ->where(function ($q) use ($bankId, $type) {
+                    $type != 'save' && $q->where('id', '!=', $bankId);
+                })->where('proj_id', $projId)->count();
+            if ($count > 0) {
+                $isExists[] = $feeType;
+            }
         }
-        return $feeStr;
+        // return DB::getQueryLog();
+        if (sizeof($isExists)) {
+            foreach ($isExists as $fee) {
+                $feeArr[] =  getFeeNameById($fee)['fee_name'] ?? "";
+            }
+        }
+        return implode(",", $feeArr);
     }
 }
