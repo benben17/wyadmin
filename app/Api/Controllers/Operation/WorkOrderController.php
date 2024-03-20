@@ -53,7 +53,7 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'proj_ids' => 'required|array',
-      'status' => 'required|array',
+      // 'status' => 'array',
       'work_type' => 'required|gt:0',
     ]);
     $pagesize = $request->input('pagesize');

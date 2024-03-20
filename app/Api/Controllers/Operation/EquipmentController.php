@@ -601,7 +601,7 @@ class EquipmentController extends BaseController
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
     } else {
-      $orderBy = 'created_at';
+      $orderBy = 'mantain_date';
     }
 
     // 排序方式desc 倒叙 asc 正序

@@ -63,6 +63,7 @@ class EquipmentService
       $equipment->model             = isset($DA['model']) ? $DA['model'] : "";
       $equipment->quantity          = isset($DA['quantity']) ? $DA['quantity'] : 0;
       $equipment->unit              = isset($DA['unit']) ? $DA['unit'] : "";
+      $equipment->third_party       = isset($DA['third_party']) ? $DA['third_party'] : 1;
       $equipment->maintain_period   = $DA['maintain_period'];
       $equipment->maintain_content  = isset($DA['maintain_content']) ? $DA['maintain_content'] : "";
       $equipment->maintain_times    = $DA['maintain_times'] ?? $this->getMaintainTimes($equipment->maintain_period, date('Y'));

@@ -20,7 +20,7 @@ class Equipment extends Model
   protected $table = 'bse_equipment';
   protected $fillable = [];
   protected $hidden = [];
-  protected $appends = ['maintain_period_label', 'proj_name'];
+  protected $appends = ['maintain_period_label', 'proj_name', 'third_party_label'];
 
   public function maintain()
   {
@@ -33,6 +33,12 @@ class Equipment extends Model
   }
 
 
+  public function getThirdPartyAttribute()
+  {
+    $thirdParty = $this->attributes['third_party'] ?? 1;
+    $label = $thirdParty == 1 ? "否" : "是";
+    return $label;
+  }
 
   public function getProjNameAttribute()
   {
