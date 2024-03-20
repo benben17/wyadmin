@@ -683,6 +683,7 @@ class PubSelectController extends BaseController
 	 */
 	public function feetypeList(Request $request)
 	{
+
 		$service = new \App\Api\Services\Company\FeeTypeService;
 		$companyIds = getCompanyIds($this->uid);
 		$data = $service->model()->whereIn('company_id', $companyIds)
@@ -692,6 +693,12 @@ class PubSelectController extends BaseController
 			->where('is_vaild', 1)
 			->orderBy('id', 'asc')
 			->get()->toArray();
+
+		$projId = $request->proj_id ?? $this->user->proj_id;
+		Log::error("proj_id:" . $this->user->proj_id);
+		foreach ($data as &$v) {
+			$v['bank_id'] = getBankId($projId, $v['id']);
+		}
 		return $this->success($data);
 	}
 

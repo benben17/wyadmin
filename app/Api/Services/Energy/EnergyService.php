@@ -56,6 +56,10 @@ class EnergyService
           $is_add = true;
         }
         $meter->tenant_id    = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+        if ($meter->tenant_id == 0) {
+          $tenant = $this->getTenantByRoomId($DA['room_id'] ?? 0);
+          $meter->tenant_id = $tenant['id'];
+        }
         $meter->type         = $DA['type'];
         $meter->proj_id      = $DA['proj_id'];
         $meter->meter_no     = $DA['meter_no'];
@@ -436,19 +440,20 @@ class EnergyService
     }
   }
 
+
   /**
    * 获取水电表租户名称
    *
    * @Author leezhua
-   * @DateTime 2021-07-18
+   * @DateTime 2024-03-20
    * @param [type] $roomId
    *
-   * @return String
+   * @return void
    */
-  public function getTenantByRoomId($roomId): array
+  public function getTenantByRoomId($roomId)
   {
     $BA = array(
-      'id' => 0.00,
+      'id' => 0,
       "tenant_name" => '',
     );
     if ($roomId === 0) {

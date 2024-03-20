@@ -528,6 +528,7 @@ class MeterController extends BaseController
         $q->where('type', $request->type);
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $q->where('status', 1); // 过滤掉初始化记录
       })
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id')
       ->orderBy($orderBy, $order)

@@ -112,6 +112,9 @@ class TenantBillService
         if (isset($DA['contract_id']) && $billDetail->bank_id == 0) {
           $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
         }
+        if ($billDetail->bank_id == 0) {
+          $billDetail->bank_id = $this->getBankId($DA['proj_id'], $billDetail->fee_type);
+        }
         if (isset($DA['charge_date'])) {
           $billDetail->charge_date = $DA['charge_date']; //账单日期
         }
@@ -137,6 +140,25 @@ class TenantBillService
     }
   }
 
+
+  /**
+   * 通过费用id获取银行id
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-20
+   * @param [type] $projId
+   * @param [type] $feeId
+   *
+   * @return void
+   */
+  public function getBankId($feeType, int $projId)
+  {
+    $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeType])->where('proj_id', $projId)->first();
+    if ($bank) {
+      return $bank->id;
+    }
+    return 0;
+  }
 
   /**
    * 分享账单主表更新
@@ -175,6 +197,7 @@ class TenantBillService
         $billDetail->amount = $DA['amount'];
         $billDetail->discount_amount = $DA['discount_amount'] ?? 0;
         $billDetail->fee_type = $billDetail['fee_type'];
+        $billDetail->bank_id = $this->getBankId($billDetail->proj_id, $billDetail->fee_type);
         $billDetail->save();
       }, 2);
       return true;

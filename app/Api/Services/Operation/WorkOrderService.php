@@ -131,7 +131,7 @@ class WorkOrderService
           $BA['tenant_name']  = $order['tenant_name'];
           $BA['type']         = AppEnum::chargeIncome; // 收款
           $BA['fee_type']     = AppEnum::maintenanceFeeType;
-          $BA['amount']       = $DA['charge_amount'] ?? 0;
+          $BA['amount']       = $DA['charge_amount'];
           $BA['remark']       = $order['tenant_name'] . "-维修-" . $order['repair_content'];
           $billService = new TenantBillService;
           $billService->saveBillDetail($BA, $user);

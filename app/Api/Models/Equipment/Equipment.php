@@ -32,12 +32,10 @@ class Equipment extends Model
     return $this->hasMany(EquipmentPlan::class, 'equipment_id', 'id');
   }
 
-
-  public function getThirdPartyAttribute()
+  public function getThirdPartyLabelAttribute()
   {
     $thirdParty = $this->attributes['third_party'] ?? 1;
-    $label = $thirdParty == 1 ? "否" : "是";
-    return $label;
+    return $thirdParty == 1 ? "否" : "是";
   }
 
   public function getProjNameAttribute()

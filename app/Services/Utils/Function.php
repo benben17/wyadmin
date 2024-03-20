@@ -1,5 +1,6 @@
 <?php
 
+use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Project;
 use App\Enums\AppEnum;
 use Illuminate\Support\Arr;
@@ -24,6 +25,17 @@ function getCompanyIds($uid)
         return array(0, getCompanyId($uid));
     }
     return array(0);
+}
+
+
+// 通过费用id 获取银行账户
+function getBankId($feeId, int $projId): int
+{
+    $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
+    if ($bank) {
+        return $bank->id;
+    }
+    return 0;
 }
 
 function getVariable($companyId, $key)
