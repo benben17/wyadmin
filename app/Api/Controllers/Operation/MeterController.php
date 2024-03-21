@@ -16,9 +16,11 @@ use Exception;
 
 /**
  *   能耗管理。水表电表管理
+ * 电表 type 2 水表 type 1
  */
 class MeterController extends BaseController
 {
+
 
   private $meterService;
   public function __construct()
