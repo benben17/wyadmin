@@ -103,28 +103,25 @@ class TenantController extends BaseController
         DB::enableQueryLog();
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$tenant) {
-
             $tenant['total_area'] =  $tenant['contract_stat']['total_area'] ?? 0.00;
-
+            unset($tenant['contract_stat']);
             $contract = $this->contractService->model()
                 ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id', 'free_type')
                 ->where('contract_state', 2)->orderByDesc('sign_date')
                 ->where('tenant_id', $tenant['id'])
                 ->first() ?? [];
-            // return $contract;
             $tenant['start_date'] =  $contract['start_date'] ?? "";
             $tenant['end_date'] =  $contract['end_date'] ?? "";
             $tenant['lease_term'] =  $contract['lease_term'] ?? 0;
+
             $free = $this->contractService->freeModel()->where('tenant_id', $tenant['id'])
                 ->selectRaw('sum(free_num) as total_free')->first();
-
-            // return $contract['lease_term'];
-            if ($free && $contract && $contract['free_type'] > 0) {
+            $tenant['free_num'] = "无免租";
+            if ($free && $contract['free_type'] > 0) {
                 $unit =  $contract['free_type'] == 1 ?  "个月" : "天";
-                $tenant['free_num'] = $free['total_free'] . $unit;
-            } else {
-                $tenant['free_num'] =  0;
+                $tenant['free_num'] = ($free['total_free'] ?? 0) . $unit;
             }
+            $tenant['rooms'] = $this->contractService->getRoomsByTenantIdSelect($tenant['id']);
         }
         // return response()->json(DB::getQueryLog());
         return $this->success($data);

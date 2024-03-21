@@ -374,7 +374,7 @@ class EnergyService
           $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
           $BA['charge_date']  = date('Y-m-01', strtotime(getNextYmd($record['record_date'], 1)));
-          Log::error(json_encode($BA));
+          // Log::error(json_encode($BA));
           $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
           if ($contractRoom['contract_id'] > 0) {
             $BA['contract_id'] = $contractRoom['contract_id'];
@@ -385,7 +385,7 @@ class EnergyService
           if (!$record['status']) { // 不是初始化的数据，审核时产生的费用到租户费用列表
             $BA['bank_id'] = getBankIdByFeeType($BA['fee_type'], $BA['proj_id']);
             if ($BA['bank_id'] == 0) {
-              throw new Exception("未找到" . getFeeNameById($BA['fee_type'])['fee_name'] . "收款账户信息，请联系管理员配置");
+              throw new Exception("未找到【" . getFeeNameById($BA['fee_type'])['fee_name'] . "】收款账户信息，请联系管理员配置");
             }
             $billService->saveBillDetail($BA, $user);
           }
