@@ -599,7 +599,20 @@ class ContractService
     })->get();
   }
 
+  public function getRoomsByTenantIdSelect($tenantId)
+  {
+    $data = ContractRoomModel::whereHas('contract', function ($q) use ($tenantId) {
+      $q->where('tenant_id', $tenantId);
+    })->get();
 
+    return $data->map(function ($room) {
+      return [
+        'room_no' => $room->build_no . "-" . $room->floor_no . "-" . $room->room_no,
+        'room_id' => $room->room_id,
+        'contract_id' => $room->contract_id,
+      ];
+    });
+  }
   /**
    * 合同费用格式化
    *

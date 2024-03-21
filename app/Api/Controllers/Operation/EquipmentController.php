@@ -101,6 +101,7 @@ class EquipmentController extends BaseController
         ->where('equipment_id', $v['id'])
         ->whereYear('plan_date', $request->year)
         ->first();
+      $v['year'] = $request->year;
       $v['plan_times'] = $planData['total_count'];
       $v['maintain_times'] = $planData['maintain_count'];
       $v['remaining_times'] = $planData['total_count'] - $planData['maintain_count'];
@@ -601,7 +602,7 @@ class EquipmentController extends BaseController
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
     } else {
-      $orderBy = 'mantain_date';
+      $orderBy = 'maintain_date';
     }
 
     // 排序方式desc 倒叙 asc 正序

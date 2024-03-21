@@ -13,10 +13,12 @@ use App\Api\Models\Channel\Channel as channelModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
+use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Sys\DepartService;
 use App\Enums\AppEnum;
 
@@ -546,10 +548,16 @@ class PubSelectController extends BaseController
 					}
 				}
 			})
-			->with('contacts')
+			->with('contacts:contact_name,contact_phone,contact_role,is_default')
 			->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();
+		if ($request->type == 2) {
+			foreach ($data as &$item) {
+				$contractService = new ContractService;
+				$item['rooms'] = $contractService->getRoomsByTenantIdSelect($item['id']);
+			}
+		}
 		return $this->success($data);
 	}
 

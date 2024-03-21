@@ -35,7 +35,7 @@ class Equipment extends Model
   public function getThirdPartyLabelAttribute()
   {
     $thirdParty = $this->attributes['third_party'] ?? 1;
-    return $thirdParty == 1 ? "否" : "是";
+    return $thirdParty == 1 ?  "本单位维护" : "第三方维护";
   }
 
   public function getProjNameAttribute()
