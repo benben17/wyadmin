@@ -76,6 +76,7 @@ class EnergyService
         $meter->master_slave = $DA['master_slave']; // 总表还是子表 统计用量的时候只统计总表
         $meter->detail       = isset($DA['detail']) ? $DA['detail'] : "";
         $res = $meter->save();
+        $DA['meter_id'] = $meter->id;
         if ($is_add && $res) {
           $DA['meter_id'] = $meter->id;
           $this->initRecord($DA, $user, $is_add);
@@ -372,7 +373,7 @@ class EnergyService
           }
           $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
-          $BA['charge_date']  = date('Y-m-t', strtotime(getPreYmd($record['record_date'], 1)));
+          $BA['charge_date']  = date('Y-m-t', strtotime(getNextYmd($record['record_date'], 1)));
           Log::error(json_encode($BA));
           $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
           if ($contractRoom['contract_id'] > 0) {
