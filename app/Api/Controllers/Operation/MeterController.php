@@ -50,7 +50,7 @@ class MeterController extends BaseController
    *       @OA\Property(property="cus_id",type="int",description="客户ID"),
    *       @OA\Property(property="master_slave",type="String",description="总表字表"),
    *       @OA\Property(property="meter_type",type="int",description="1物理表2虚拟表 账单表"),
-   *       @OA\Property(property="is_vaild",type="int",description="1 启用 0 禁用")
+   *       @OA\Property(property="is_valid",type="int",description="1 启用 0 禁用")
    *     ),
    *       example={}
    *       )
@@ -109,6 +109,7 @@ class MeterController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->build_id && $q->where('build_id',  $request->build_id);
         $request->floor_id && $q->where('floor_id',  $request->floor_id);
+        $request->is_valid && $q->where('is_valid', $request->is_valid);
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
@@ -143,7 +144,7 @@ class MeterController extends BaseController
    *       @OA\Property(property="build_no",type="String",description="楼号"),
    *       @OA\Property(property="tenant_id",type="int",description="组户ID"),
    *       @OA\Property(property="master_slave",type="String",description="总表字表"),
-   *       @OA\Property(property="is_vaild",type="int",description="1 启用 0 禁用")
+   *       @OA\Property(property="is_valid",type="int",description="1 启用 0 禁用")
    *     ),
    *       example={}
    *       )
@@ -194,7 +195,7 @@ class MeterController extends BaseController
    *       @OA\Property(property="build_no",type="String",description="楼号"),
    *       @OA\Property(property="tenant_id",type="int",description="客户ID"),
    *       @OA\Property(property="master_slave",type="String",description="总表字表"),
-   *       @OA\Property(property="is_vaild",type="int",description="1 启用 0 禁用")
+   *       @OA\Property(property="is_valid",type="int",description="1 启用 0 禁用")
    *     ),
    *       example={}
    *       )
@@ -237,11 +238,11 @@ class MeterController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"Ids","is_vaild"},
+   *          required={"Ids","is_valid"},
    *       @OA\Property(property="Ids",type="list",description="ID集合"),
-   *       @OA\Property(property="is_vaild",type="int",description="1 启用 0 禁用")
+   *       @OA\Property(property="is_valid",type="int",description="1 启用 0 禁用")
    *     ),
-   *       example={"Ids":"[1,2]","is_vaild":1}
+   *       example={"Ids":"[1,2]","is_valid":1}
    *       )
    *     ),
    *     @OA\Response(
@@ -254,10 +255,10 @@ class MeterController extends BaseController
   {
     $validator = \Validator::make($request->all(), [
       'Ids' => 'required|array',
-      'is_vaild' => 'required|numeric|in:0,1',
+      'is_valid' => 'required|numeric|in:0,1',
     ]);
     $DA = $request->toArray();
-    $res = $this->meterService->enableMeter($DA);
+    $res = $this->meterService->enableMeter($DA, $this->user);
     if (!$res) {
       return $this->error('更新能源表失败！');
     }
@@ -577,7 +578,7 @@ class MeterController extends BaseController
 
   public function qrcode()
   {
-    $qrcode = new QrcodeService;
-    return $qrcode->create('https://app.stararea.cn', $this->company_id);
+    $qrcode = new QrCodeService;
+    return $qrcode->createQr('https://app.stararea.cn', $this->company_id);
   }
 }

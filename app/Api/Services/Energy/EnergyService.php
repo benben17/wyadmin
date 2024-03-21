@@ -73,7 +73,7 @@ class EnergyService
         $meter->position     = isset($DA['position']) ? $DA['position'] : "";
         $meter->multiple     = $DA['multiple'] ?? 1;
         $meter->price        = isset($DA['price']) ? $DA['price'] : 0.00;
-        $meter->is_vaild     = isset($DA['is_vaild']) ? $DA['is_vaild'] : 1;
+        $meter->is_valid     = isset($DA['is_valid']) ? $DA['is_valid'] : 1;
         $meter->master_slave = $DA['master_slave']; // 总表还是子表 统计用量的时候只统计总表
         $meter->detail       = isset($DA['detail']) ? $DA['detail'] : "";
         $res = $meter->save();
@@ -175,7 +175,8 @@ class EnergyService
   /** 启用禁用能源表 */
   public function enableMeter($DA, $user)
   {
-    $data['is_vaild'] = $DA['is_vaild'];
+    $data['is_valid'] = $DA['is_valid'];
+    $data['u_uid'] = $user['id'];
     $res = $this->meterModel()->whereIn('id', $DA['Ids'])->update($data);
     return $res;
   }
