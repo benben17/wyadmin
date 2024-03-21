@@ -90,9 +90,10 @@ return [
         'array' => ':attribute 必须包含多于 :value 个项目。',
     ],
     'attributes' => [
-        'proj_ids' => '项目ID',
+        'proj_ids' => '项目ID数组',
         'status' => '状态',
         'work_type' => '工单类型',
+        'proj_id' => '项目ID',
     ],
 
     /*

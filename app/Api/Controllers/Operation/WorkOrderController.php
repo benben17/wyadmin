@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Operation\WorkOrderService;
+use App\Enums\AppEnum;
 
 /**
  *   工单
@@ -293,8 +294,8 @@ class WorkOrderController extends BaseController
    *        @OA\Property(property="id",type="int",description="ID"),
    *        @OA\Property(property="dispatch_time",type="date",description="接单时间"),
    *        @OA\Property(property="dispatch_user",type="String",description="派单人"),
-   *        @OA\Property(property="order_person",type="String",description="接单人")
-   *        @OA\Property(property="order_uid",type="int",description="接单人uid")
+   *        @OA\Property(property="order_person",type="String",description="接单人"),
+   *        @OA\Property(property="order_uid",type="int",description="接单人uid"),
    *     ),
    *       example={"id":0,"dispatch_user":"","dispatch_time":"","order_time":"","order_uid":"","order_person":""}
    *       )
@@ -415,6 +416,12 @@ class WorkOrderController extends BaseController
     $workOrder = $this->workService->workModel()->find($DA['id']);
     if (compareTime($workOrder->order_time, $request->return_time)) {
       return $this->error('返单时间不允许小于接单时间！');
+    }
+    if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
+      $bankId = getBankIdByFeeType(AppEnum::maintenanceFeeType, $DA['proj_id']);
+      if ($bankId == 0) {
+        return $this->error('工单处理失败！未找到【工程费】收款银行账户，请联系管理员处理！');
+      }
     }
     $res = $this->workService->processWorkOrder($DA, $this->user);
     if (!$res) {

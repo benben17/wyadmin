@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Operation\EquipmentService;
+use Exception;
 use Svg\Tag\Rect;
 
 /**
@@ -97,11 +98,11 @@ class EquipmentController extends BaseController
     $data = $this->handleBackData($data);
 
     foreach ($data['result'] as $k => &$v) {
-      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, SUM(status = 1) as maintain_count')
+      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
         ->where('equipment_id', $v['id'])
         ->whereYear('plan_date', $request->year)
         ->first();
-      $v['year'] = $request->year;
+      // $v['year'] = $request->year;
       $v['plan_times'] = $planData['total_count'];
       $v['maintain_times'] = $planData['maintain_count'];
       $v['remaining_times'] = $planData['total_count'] - $planData['maintain_count'];
@@ -249,21 +250,22 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
+    $year = $request->year;
+    if (!$year) {
+      $year = date('Y');
+    }
     $DA = $request->toArray();
     $data = $this->equipment->equipmentModel()
       ->find($DA['id'])->toArray();
     if ($data) {
-      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, SUM(status = 1) as maintain_count')
+      DB::enableQueryLog();
+      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
         ->where('equipment_id', $DA['id'])
-        ->whereYear('plan_date', $request->year)
+        ->whereYear('plan_date', $year)
         ->first();
-      $data['plan_times'] = $planData['total_count'];
-      $data['maintain_times'] = $planData['maintain_count'];
-      $data['remaining_times'] = $planData['total_count'] - $planData['maintain_count'];
-    } else {
-      $data['plan_times'] = 0;
-      $data['maintain_times'] = 0;
-      $data['remaining_times'] = 0;
+      $data['plan_times'] =  $planData->total_count ?? 0;
+      $data['maintain_times'] = $planData->maintain_count ?? 0;
+      $data['remaining_times'] = ($planData->total_count - $planData->maintain_count) ?? 0;
     }
     return $this->success($data);
   }
@@ -429,13 +431,15 @@ class EquipmentController extends BaseController
       'maintain_quantity' => 'required',
     ]);
     $DA = $request->toArray();
-    $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-    $updatePlanRes = $this->equipment->updateMaintainPlan($maintainId);
-    if (!$maintainId || !$updatePlanRes) {
-      return $this->error('设备维护保存失败！');
+    try {
+      $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
+      $updatePlanRes = $this->equipment->updateMaintainPlan($maintainId);
+      return $this->success('设备维护保存成功。');
+    } catch (Exception $e) {
+      if (!$updatePlanRes) {
+        return $this->error('设备维护保存失败！' . $e->getMessage());
+      }
     }
-
-    return $this->success('设备维护保存成功。');
   }
 
 

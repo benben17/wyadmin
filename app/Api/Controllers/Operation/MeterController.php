@@ -12,6 +12,7 @@ use App\Api\Services\Energy\EnergyService;
 use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\CustomerService;
 use App\Api\Services\Tenant\TenantService;
+use Exception;
 
 /**
  *   能耗管理。水表电表管理
@@ -375,9 +376,16 @@ class MeterController extends BaseController
    */
   public function editMeterRecord(Request $request)
   {
-    $validator = \Validator::make($request->all(), [
+    $request->validate([
       'id' => 'required|numeric|gt:0',
       'meter_value' => 'required|numeric|gt:0',
+    ], [
+      'id.required' => 'ID 必传',
+      'id.numeric' => 'ID 必须为数字',
+      'id.gt' => 'ID 必须大于0',
+      'meter_value.required' => '抄表记录 必传',
+      'meter_value.numeric' => '抄表记录 必须为数字',
+      'meter_value.gt' => '抄表记录 必须大于0',
     ]);
 
     $DA = $request->toArray();
@@ -414,15 +422,18 @@ class MeterController extends BaseController
    */
   public function auditMeterRecord(Request $request)
   {
-    $validator = \Validator::make($request->all(), [
+    $request->validate([
       'Ids' => 'required|array',
+    ], [
+      'Ids.required' => 'Ids 必传',
+      'Ids.array' => 'Ids 必须为数组'
     ]);
     $DA = $request->toArray();
-    $res = $this->meterService->auditMeterRecord($DA['Ids'], $this->user);
-    if ($res) {
-      return $this->success('审核成功.');
-    } else {
-      return $this->error('审核失败！');
+    try {
+      $res = $this->meterService->auditMeterRecord($DA['Ids'], $this->user);
+      return $res ? $this->success('审核成功.') : $this->error('审核失败！');
+    } catch (Exception $e) {
+      return $this->error('审核失败！' . $e->getMessage());
     }
   }
 

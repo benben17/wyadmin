@@ -6,6 +6,7 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\TenantBill;
+use App\Api\Models\Energy\MeterRecord;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Services\Contract\ContractService;
 use Illuminate\Support\Facades\DB;
@@ -151,34 +152,22 @@ class BillController extends BaseController
     if ($DA['create_type'] == 1 && sizeof($DA['tenant_ids']) == 0) {
       return $this->error("未选择生成账单方式,或者未选择租户！");
     }
+
+    $billDate = getMonthRange($DA['bill_month']);
+    $meterCount = MeterRecord::whereBetween('record_date', $billDate)->where('audit_status', 0)->where('status', 0)->count();
+    if ($meterCount > 0) {
+      return $this->error($DA['bill_month'] . "有未审核的水费电费信息，请先审核后生成账单！");
+    }
+
     try {
-      // DB::transaction(function () use ($request) {
-      // $contractService = new ContractService;
-
-      // $contracts = $contractService->model()->select('id', 'tenant_id', 'contract_no', 'tenant_name as name', 'proj_id')
-      //   ->where(function ($q) use ($request) {
-      //     if ($request->create_type == 1) {
-      //       $request->tenant_ids && $q->whereIn('tenant_id', $request->tenant_ids);
-      //     }
-      //   })
-      //   ->where('contract_state', AppEnum::contractExecute) // 执行状态
-      //   ->where('proj_id', $request->proj_id)->get()->toArray();
-
-
-      // if (sizeof($contracts) == 0) {
-      //   return $this->error("未找到合同信息");
-      // }
-      // 
-
       $tenants = Tenant::where('on_rent', 1)->where(function ($q) use ($request) {
         $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
       })->get();
 
       $billDay = $request->bill_month . '-' . $request->bill_day;
-
       $billCount = 0;
       $msg = "";
-      $billDate = getMonthRange($DA['bill_month']);
+
       $feeTypes = str2Array($DA['fee_types']);
       foreach ($tenants as $k => $tenant) {
         // Log::info("账单生成合同：" . $contract['tenant_id']);
@@ -215,7 +204,7 @@ class BillController extends BaseController
         }
       }
       // }, 3);
-      $msg = "共计生成" . $billCount . "份合同账单;" . $msg;
+      $msg = "共计生成【" . $billCount . "】份账单;" . $msg;
       return $this->success($msg);
     } catch (Exception $th) {
       Log::error($th);

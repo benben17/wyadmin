@@ -299,24 +299,28 @@ class BankAccountController extends BaseController
      */
     public function checkFeeType($feeTypes, $projId, $bankId = 0, $type = 'save')
     {
-        $feeStr = "";
         $feeTypes = str2Array($feeTypes);
+        $existFee = [];
+        $feeArr = [];
         DB::enableQueryLog();
+
+        $sqlCondition = function ($q) use ($bankId, $type) {
+            if ($type != 'save') {
+                $q->where('id', '!=', $bankId);
+            }
+        };
 
         foreach ($feeTypes as $feeType) {
             $count = bankAccountModel::whereRaw('FIND_IN_SET(?, fee_type_id)', [$feeType])
-                ->where(function ($q) use ($bankId, $type) {
-                    $type != 'save' && $q->where('id', '!=', $bankId);
-                })->where('proj_id', $projId)->count();
+                ->where($sqlCondition)
+                ->where('proj_id', $projId)->count();
             if ($count > 0) {
-                $isExists[] = $feeType;
+                $existFee[] = $feeType;
             }
         }
         // return DB::getQueryLog();
-        if (sizeof($isExists)) {
-            foreach ($isExists as $fee) {
-                $feeArr[] =  getFeeNameById($fee)['fee_name'] ?? "";
-            }
+        foreach ($existFee as $fee) {
+            $feeArr[] =  getFeeNameById($fee)['fee_name'] ?? "";
         }
         return implode(",", $feeArr);
     }

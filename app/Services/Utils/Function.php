@@ -28,9 +28,21 @@ function getCompanyIds($uid)
 }
 
 
-// 通过费用id 获取银行账户
-function getBankId($feeId, int $projId): int
+/**
+ * 通过费用id 获取银行账户
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-21
+ * @param [type] $feeId
+ * @param [type] $projId
+ *
+ * @return integer
+ */
+function getBankIdByFeeType($feeId, $projId): int
 {
+    if (!$feeId || !$projId) {
+        return 0;
+    }
     $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
     if ($bank) {
         return $bank->id;

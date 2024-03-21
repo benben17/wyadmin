@@ -822,7 +822,7 @@
                 "tags": [
                     "收支"
                 ],
-                "summary": "预充值取消",
+                "summary": "预充值 删除-只能删除没有核销的收支",
                 "operationId": "b47f921c2755cf3c74a260a13e384302",
                 "requestBody": {
                     "content": {
@@ -1051,6 +1051,53 @@
                             },
                             "example": {
                                 "id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/charge/refund": {
+            "post": {
+                "tags": [
+                    "收支"
+                ],
+                "summary": "收支退款",
+                "operationId": "f805f0c3e65bfc32f49e06cdf9615483",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "refund_amt"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "refund_amt": {
+                                        "description": "退款金额",
+                                        "type": "decimal"
+                                    },
+                                    "remark": {
+                                        "description": "退款备注",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "refund_amt": "0.00",
+                                "remark": ""
                             }
                         }
                     }
@@ -1738,152 +1785,6 @@
                                 "type": "object"
                             },
                             "example": []
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/bill/refund/list": {
-            "post": {
-                "tags": [
-                    "退款"
-                ],
-                "summary": "退款列表",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "tenant_id"
-                                ],
-                                "properties": {
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    },
-                                    "pagesize": {
-                                        "description": "行数",
-                                        "type": "int"
-                                    },
-                                    "tenant_name": {
-                                        "description": "租户名称",
-                                        "type": "String"
-                                    },
-                                    "start_date": {
-                                        "description": "退款开始时间",
-                                        "type": "date"
-                                    },
-                                    "end_date": {
-                                        "description": "退款结束时间",
-                                        "type": "date"
-                                    },
-                                    "proj_ids": {
-                                        "description": "",
-                                        "type": "list"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_id": "1",
-                                "tenant_name": "",
-                                "start_date": "",
-                                "end_date": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/bill/refund/add": {
-            "post": {
-                "tags": [
-                    "退款"
-                ],
-                "summary": "退款新增",
-                "operationId": "3902049c9eab651723869439a7b1c7c9",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "bill_detail_id,amount,refund_date",
-                                    "proj_id"
-                                ],
-                                "properties": {
-                                    "bill_detail_id": {
-                                        "description": "费用ID",
-                                        "type": "int"
-                                    },
-                                    "amount": {
-                                        "description": "退款金额",
-                                        "type": "double"
-                                    },
-                                    "refund_date": {
-                                        "description": "退款日期",
-                                        "type": "date"
-                                    },
-                                    "proj_id": {
-                                        "description": "项目id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "bill_detail_id": 1,
-                                "amount": "2",
-                                "refund_date": "",
-                                "charge_date": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/bill/refund/show": {
-            "post": {
-                "tags": [
-                    "退款"
-                ],
-                "summary": "退款详细",
-                "operationId": "caa2a1fc3e2384c3356676d9534c9c78",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "ids": "1"
-                            }
                         }
                     }
                 },
@@ -6191,9 +6092,20 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": []
+                                "required": [
+                                    "proj_id"
+                                ],
+                                "properties": {
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "proj_id": 1
+                            }
                         }
                     }
                 },
@@ -6618,6 +6530,42 @@
                                 "account_number": "",
                                 "bank_name": "",
                                 "account_name": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/company/bankaccount/show": {
+            "post": {
+                "tags": [
+                    "收款帐号"
+                ],
+                "summary": "收款帐号详情",
+                "operationId": "e7563ebcd07fddc001d34a3c1a214133",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "银行账户id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
                             }
                         }
                     }
@@ -10472,6 +10420,64 @@
                 }
             }
         },
+        "/api/operation/workorder/dispatch": {
+            "post": {
+                "tags": [
+                    "工单"
+                ],
+                "summary": "报修/隐患 工单 派单",
+                "operationId": "9cf90813908301362b130510bd80bd71",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "order_time"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "ID",
+                                        "type": "int"
+                                    },
+                                    "dispatch_time": {
+                                        "description": "接单时间",
+                                        "type": "date"
+                                    },
+                                    "dispatch_user": {
+                                        "description": "派单人",
+                                        "type": "String"
+                                    },
+                                    "order_person": {
+                                        "description": "接单人",
+                                        "type": "String"
+                                    },
+                                    "order_uid": {
+                                        "description": "接单人uid",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 0,
+                                "dispatch_user": "",
+                                "dispatch_time": "",
+                                "order_time": "",
+                                "order_uid": "",
+                                "order_person": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/workorder/order": {
             "post": {
                 "tags": [
@@ -10604,7 +10610,7 @@
                             },
                             "example": {
                                 "id": 1,
-                                "audit_stats": "1 审核通过 其他审核不通过",
+                                "audit_status": "1 审核通过 其他审核不通过",
                                 "remark": "",
                                 "audit_time": "审核时间 年-月-日 分:时:秒"
                             }

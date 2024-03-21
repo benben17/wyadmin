@@ -9,7 +9,7 @@ use Exception;
 /**
  * 二维码
  */
-class QrcodeService
+class QrCodeService
 {
 
   /**

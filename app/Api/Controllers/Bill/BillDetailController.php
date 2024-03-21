@@ -285,6 +285,14 @@ class BillDetailController extends BaseController
         $DA['contract_id'] = $contract->id;
       }
     }
+
+    if (!isset($DA['bank_id']) || !$DA['bank_id']) {
+      $DA['bank_id'] = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
+      if ($DA['bank_id'] == 0) {
+        return $this->error("费用未配置收款账户，请联系管理员配置银行账户！");
+      }
+    }
+
     $res = $this->billService->saveBillDetail($DA, $this->user);
     if (!$res) {
       return $this->error("新增费用失败!");

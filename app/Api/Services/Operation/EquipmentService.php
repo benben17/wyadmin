@@ -128,8 +128,11 @@ class EquipmentService
       return false;
     }
     $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
-    if ($maintainPlan->maintain_quantity >= $maintainPlan->plan_quantity) {
+    if ($maintainPlan->maintain_quantity == $maintainPlan->plan_quantity) {
       $maintainPlan->status = 1;
+    }
+    if ($maintainPlan->maintain_quantity > $maintainPlan->plan_quantity) {
+      throw new Exception("维护数量不能大于计划维护数量");
     }
     $maintainPlan->save();
     return true;

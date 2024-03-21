@@ -11,11 +11,10 @@ use Exception;
 use App\Api\Models\Energy\Meter as MeterModel;
 use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 use App\Api\Models\Energy\MeterLog as MeterLogModel;
-use App\Api\Services\Common\QrcodeService;
+use App\Api\Services\Common\QrCodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
-use Stringy\Stringy;
 
 /**
  *能耗服务
@@ -70,7 +69,7 @@ class EnergyService
         $meter->floor_id     = isset($DA['floor_id']) ? $DA['floor_id'] : 0;
         $meter->room_id      = isset($DA['room_id']) ? $DA['room_id'] : 0;
         $meter->position     = isset($DA['position']) ? $DA['position'] : "";
-        $meter->multiple     = $DA['multiple'];
+        $meter->multiple     = $DA['multiple'] ?? 1;
         $meter->price        = isset($DA['price']) ? $DA['price'] : 0.00;
         $meter->is_vaild     = isset($DA['is_vaild']) ? $DA['is_vaild'] : 1;
         $meter->master_slave = $DA['master_slave']; // 总表还是子表 统计用量的时候只统计总表
@@ -101,9 +100,10 @@ class EnergyService
 
   public function createQcode($meterId, $companyId)
   {
-    $qrcode = new QrcodeService;
-    return $qrcode->createQr($meterId, $companyId);
+    $qrCode = new QrCodeService;
+    return $qrCode->createQr($meterId, $companyId);
   }
+
   /** 保存抄表记录 以及新加表初始化 */
   public function initRecord($DA, $user, $is_add = false)
   {
@@ -373,7 +373,7 @@ class EnergyService
           }
           $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
-          $BA['charge_date']  = date('Y-m-t', strtotime(getNextYmd($record['record_date'], 1)));
+          $BA['charge_date']  = date('Y-m-01', strtotime(getNextYmd($record['record_date'], 1)));
           Log::error(json_encode($BA));
           $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
           if ($contractRoom['contract_id'] > 0) {
@@ -383,6 +383,10 @@ class EnergyService
           }
           // 插入水电费用到 租户费用表
           if (!$record['status']) { // 不是初始化的数据，审核时产生的费用到租户费用列表
+            $BA['bank_id'] = getBankIdByFeeType($BA['fee_type'], $BA['proj_id']);
+            if ($BA['bank_id'] == 0) {
+              throw new Exception("未找到" . getFeeNameById($BA['fee_type'])['fee_name'] . "收款账户信息，请联系管理员配置");
+            }
             $billService->saveBillDetail($BA, $user);
           }
         }
@@ -390,9 +394,9 @@ class EnergyService
         $this->meterRecordModel()->whereIn('id', $Ids)->where('audit_status', 0)->update($data);
       }, 3);
       return true;
-    } catch (\Throwable $th) {
+    } catch (Exception $th) {
       Log::error("水电表审核失败" . $th);
-      throw new Exception("水电表审核失败" . $th);
+      throw new Exception($th->getMessage());
       return false;
     }
   }

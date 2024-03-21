@@ -678,9 +678,10 @@ class PubSelectController extends BaseController
 	 *           mediaType="application/json",
 	 *       @OA\Schema(
 	 *          schema="UserModel",
-	 *          required={},
+	 *          required={"proj_id"},
+	 * 				@OA\Property(property="proj_id",type="String",description="项目ID"),
 	 *     ),
-	 *       example={}
+	 *       example={"proj_id":1}
 	 *       )
 	 *     ),
 	 *     @OA\Response(
@@ -691,7 +692,10 @@ class PubSelectController extends BaseController
 	 */
 	public function feetypeList(Request $request)
 	{
+		$request->validate([
 
+			'proj_id' => 'required|gt:0',
+		]);
 		$service = new \App\Api\Services\Company\FeeTypeService;
 		$companyIds = getCompanyIds($this->uid);
 		$data = $service->model()->whereIn('company_id', $companyIds)
@@ -702,11 +706,11 @@ class PubSelectController extends BaseController
 			->orderBy('id', 'asc')
 			->get()->toArray();
 
-		$projId = $request->proj_id ?? $this->user->proj_id;
-		Log::error("proj_id:" . $this->user->proj_id);
 		foreach ($data as &$v) {
-			$v['bank_id'] = getBankId($projId, $v['id']);
+			$v['bank_id'] = getBankIdByFeeType($v['id'], $request->proj_id);
+			$v['notice'] = $v['bank_id'] == 0 ? "未绑定银行收款账户" : "已绑定银行收款账户";
 		}
+
 		return $this->success($data);
 	}
 
