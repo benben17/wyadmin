@@ -117,7 +117,7 @@ class TenantController extends BaseController
             $free = $this->contractService->freeModel()->where('tenant_id', $tenant['id'])
                 ->selectRaw('sum(free_num) as total_free')->first();
             $tenant['free_num'] = "无免租";
-            if ($free && $contract['free_type'] > 0) {
+            if ($free && $contract && $contract['free_type'] > 0) {
                 $unit =  $contract['free_type'] == 1 ?  "个月" : "天";
                 $tenant['free_num'] = ($free['total_free'] ?? 0) . $unit;
             }
