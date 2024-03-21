@@ -4,6 +4,7 @@ namespace App\Api\Controllers\Operation;
 
 use App\Api\Controllers\BaseController;
 use App\Api\Models\BuildingRoom;
+use App\Api\Models\Contract\ContractRoom;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -170,8 +171,7 @@ class MeterController extends BaseController
     }
 
     if ($request->room_id) {
-
-      $room = BuildingRoom::find($request->room_id);
+      $room = ContractRoom::where('room_id', $request->room_id)->first();
       if ($room) {
         $DA['build_id'] = $room['build_id'];
         $DA['floor_id'] = $room['floor_id'];
@@ -297,9 +297,9 @@ class MeterController extends BaseController
    */
   public function show(Request $request)
   {
-    // $validator = \Validator::make($request->all(), [
-    //   'id' => 'required|numeric|gt:0',
-    // ]);
+    $validator = \Validator::make($request->all(), [
+      'id' => 'required|numeric|gt:0',
+    ]);
 
     if (!$request->id && !$request->meter_no) {
       return $this->error('参数错误，id或者表编号至少有一个！');
@@ -312,8 +312,7 @@ class MeterController extends BaseController
       ->with('remark')
       ->first();
     if ($data) {
-      $tenant = $this->meterService->getTenantByRoomId($data['room_id']);
-      $data['tenant_name'] = $tenant['tenant_name'];
+      $data['tenant_name'] = getTenantNameById($data['tenant_id']);
       $record = $this->meterService->getNewMeterRecord($request->id);
       $data['last_record']  = $record->meter_value;
       $data['last_date'] = $record->record_date;
