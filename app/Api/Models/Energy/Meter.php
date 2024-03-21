@@ -21,7 +21,7 @@ class Meter extends Model
   protected $hidden = ['deleted_at', "company_id", 'updated_at'];
 
 
-  protected $appends = ['proj_name', 'is_virtual', 'meter_type', 'master_slave'];
+  protected $appends = ['proj_name', 'is_virtual', 'meter_type', 'master_slave_label'];
 
   public function getProjNameAttribute()
   {
@@ -48,14 +48,10 @@ class Meter extends Model
       }
     }
   }
-  public function getMasterSlaveAttribute()
+  public function getMasterSlaveLabelAttribute()
   {
     if (isset($this->attributes['master_slave'])) {
-      if ($this->attributes['master_slave'] == 1) {
-        return '总表';
-      } else {
-        return '子表';
-      }
+      return $this->attributes['master_slave'] == 1 ? '总表' : '子表';
     }
   }
 

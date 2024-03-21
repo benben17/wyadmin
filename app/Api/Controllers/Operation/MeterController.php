@@ -163,7 +163,6 @@ class MeterController extends BaseController
       'proj_id' =>  'required|numeric|gt:0',
       'master_slave' => 'required|String|in:1,0',
       'meter_type' => 'required|numeric|in:1,2', // 实际表 虚拟表
-
     ]);
     $DA = $request->toArray();
     if ($this->meterService->isRepeat($DA, $this->user)) {
@@ -175,7 +174,7 @@ class MeterController extends BaseController
       if ($room) {
         $DA['build_id'] = $room['build_id'];
         $DA['floor_id'] = $room['floor_id'];
-        $DA['room_id'] = $room['room_id'];
+        $DA['room_id'] = $request->room_id;
         $DA['build_no'] = $room['build_no'];
         $DA['floor_no'] = $room['floor_no'];
         $DA['room_no'] = $room['room_no'];
