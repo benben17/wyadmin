@@ -608,7 +608,7 @@ class ContractService
     return $data->map(function ($room) {
       return [
         'room_no' => $room->build_no . "-" . $room->floor_no . "-" . $room->room_no,
-        'room_id' => $room->room_id,
+        'room_id' =>  $room->room_id,
         'contract_id' => $room->contract_id,
       ];
     });

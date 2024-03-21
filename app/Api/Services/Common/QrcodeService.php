@@ -5,6 +5,7 @@ namespace App\Api\Services\Common;
 use QrCode;
 use Illuminate\Support\Facades\Storage;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 二维码
@@ -33,6 +34,7 @@ class QrCodeService
         ->merge('/public/icon.png', .15)
         ->generate($content, $fileName);
     } catch (Exception $e) {
+      Log::error($e);
       throw new Exception("生成二维码错误");
       return false;
     }

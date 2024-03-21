@@ -11,9 +11,10 @@ use Exception;
 use App\Api\Models\Energy\Meter as MeterModel;
 use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 use App\Api\Models\Energy\MeterLog as MeterLogModel;
-use App\Api\Services\Common\QrCodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Common\QrCodeService;
+use App\Api\Services\Contract\ContractService;
 use App\Enums\AppEnum;
 
 /**
@@ -59,6 +60,7 @@ class EnergyService
           $tenant = $this->getTenantByRoomId($DA['room_id'] ?? 0);
           $meter->tenant_id = $tenant['id'];
         }
+
         $meter->type         = $DA['type'];
         $meter->proj_id      = $DA['proj_id'];
         $meter->meter_no     = $DA['meter_no'];
@@ -80,11 +82,11 @@ class EnergyService
           $DA['meter_id'] = $meter->id;
           $this->initRecord($DA, $user, $is_add);
         }
-        if ($is_add) {
-          $DA['id']  = $meter->id;
-          $meter->qrcode_path = $this->createQrCode($meter->id, $user['company_id']);
-          $meter->save();
-        }
+        // if ($is_add) {
+        //   $DA['id']  = $meter->id;
+        //   $meter->qrcode_path = $this->createQrCode($meter->id, $user['company_id']);
+        //   $meter->save();
+        // }
         $res = $this->saveMeterLog($DA, $user);
         if (!$res) {
           throw new Exception("能耗日志保存失败！");
