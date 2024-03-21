@@ -304,22 +304,23 @@ class ContractController extends BaseController
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
                 $DA['contract_state'] = 0;
                 $contract = $this->saveContract($DA); //格式化并保存
+                $tenantId = $DA['tenant_id'];
                 if (!$contract) {
                     throw new Exception("合同保存失败", 1);
                 }
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->batchSave($DA['bill_rule'], $user, $contract->id, $tenantId);
                 }
                 // 押金规则
                 if ($DA['deposit_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $tenantId);
                 }
                 // 房间
                 if (!empty($DA['contract_room'])) {
-                    $roomList = $this->formatRoom($DA['contract_room'], $contract->id, $DA['proj_id']);
+                    $roomList = $this->formatRoom($DA['contract_room'], $contract->id, $DA['proj_id'], $tenantId);
                     $rooms = new ContractRoomModel;
                     $rooms->addAll($roomList);
                 }
@@ -457,10 +458,10 @@ class ContractController extends BaseController
                 if (!$contract) {
                     throw new Exception("保存失败");
                 }
-
+                $tenantId = $contract->tenant_id;
                 $contractService = new ContractService;
                 if (!empty($DA['contract_room'])) {
-                    $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], 2);
+                    $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
                     DB::enableQueryLog();
                     $res = ContractRoomModel::where('contract_id', $DA['id'])->delete();
                     // return response()->json(DB::getQueryLog());
@@ -992,12 +993,13 @@ class ContractController extends BaseController
         }
     }
 
-    private function formatRoom($DA, $contractId, $proj_id, $type = 1): array
+    private function formatRoom($DA, $contractId, $proj_id, $tenantId, $type = 1): array
     {
         $currentDateTime = date('Y-m-d H:i:s');
         foreach ($DA as $k => $v) {
             $BA[$k] = [
                 'contract_id' => $contractId,
+                'tenant_id' => $tenantId,
                 'proj_id' => $proj_id,
                 'proj_name' => $v['proj_name'],
                 'build_id' => $v['build_id'],
