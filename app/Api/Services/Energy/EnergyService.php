@@ -482,4 +482,31 @@ class EnergyService
       return $BA;
     }
   }
+
+
+  /**
+   * 根据房间id 补充所有的房间信息
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-21
+   * @param [type] $roomId
+   *
+   * @return void
+   */
+  public function buildRoomInfo($roomId)
+  {
+    $BA = [];
+    $room = ContractRoom::where('room_id', $roomId)->first();
+    if ($room) {
+      $BA = [
+        'build_id' => $room['build_id'] ?? 0,
+        'floor_id' => $room['floor_id'] ?? 0,
+        'room_id' => $roomId,
+        'build_no' => $room['build_no'] ?? "",
+        'floor_no' => $room['floor_no'] ?? "",
+        'room_no' => $room['room_no'] ?? ""
+      ];
+    }
+    return $BA;
+  }
 }

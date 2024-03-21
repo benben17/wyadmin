@@ -169,17 +169,7 @@ class MeterController extends BaseController
       return $this->error('表编号重复');
     }
 
-    if ($request->room_id) {
-      $room = ContractRoom::where('room_id', $request->room_id)->first();
-      if ($room) {
-        $DA['build_id'] = $room['build_id'];
-        $DA['floor_id'] = $room['floor_id'];
-        $DA['room_id'] = $request->room_id;
-        $DA['build_no'] = $room['build_no'];
-        $DA['floor_no'] = $room['floor_no'];
-        $DA['room_no'] = $room['room_no'];
-      }
-    }
+    $DA = array_merge($DA, $this->meterService->buildRoomInfo($request->room_id));
     $res = $this->meterService->saveMeter($DA, $this->user);
     if (!$res) {
       return $this->error('新增能源表失败！');
@@ -228,7 +218,8 @@ class MeterController extends BaseController
     if ($this->meterService->isRepeat($DA, $this->user)) {
       return $this->error('表编号重复');
     }
-    $user = auth('api')->user();
+
+    $DA = array_merge($DA, $this->meterService->buildRoomInfo($request->room_id));
     $res = $this->meterService->saveMeter($DA, $this->user);
     if (!$res) {
       return $this->error('更新能源表失败！');
