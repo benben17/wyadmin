@@ -2,7 +2,7 @@
 
 namespace App\Api\Services\Common;
 
-use QrCode;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 二维码
  */
-class QrCodeService
+class QrcodeService
 {
 
   /**
@@ -23,28 +23,25 @@ class QrCodeService
   public  function createQr($content, $companyId)
   {
     try {
+      Log::error(public_path('qrcode.png'));
       $fileName = uuid() . '.png';
-      QrCode::encoding('UTF-8')
-        // ->margin(2)
-        ->color(255, 0, 0, 25)
-        ->backgroundColor(255, 255, 255)
-        ->format('png')
-        ->size(400)
-        ->errorCorrection('H')
-        ->merge('/public/icon.png', .15)
+      QrCode::format('png')
+        ->encoding('UTF-8')
+        ->size(100)
+        ->color(255, 0, 255)
+        ->margin(100)
         ->generate($content, $fileName);
+
+      // Log::error($hahh);
+      // $saveFolder = $companyId . '/operation/' . date('Ymd');
+      // $res = Storage::putFile($saveFolder, public_path('/') . $fileName);
+      // Log::error($res);
+      // return $res;
+      // unlink(public_path('/') . $fileName);
     } catch (Exception $e) {
-      Log::error($e);
-      throw new Exception("生成二维码错误");
+      Log::error("二维码生成" . $e);
       return false;
     }
-    try {
-      $saveFolder = $companyId . '/operation/' . date('Ymd');
-      $res = Storage::putFile($saveFolder, public_path('/') . $fileName);
-      unlink(public_path('/') . $fileName);
-    } catch (Exception $e) {
-      return false;
-    }
-    return $res;
+    return "";
   }
 }

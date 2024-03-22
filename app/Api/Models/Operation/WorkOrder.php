@@ -66,6 +66,9 @@ class WorkOrder extends Model
       case '99':
         return '已取消';
         break;
+      case '100':
+        return '隐患库';
+        break;
     }
   }
 

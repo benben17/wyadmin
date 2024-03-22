@@ -46,7 +46,6 @@ class TemplateController extends BaseController
      */
     public function list(Request $request)
     {
-        // QrCode::generate('Hello World!');
         $validatedData = $request->validate([
             'type' => 'required|numeric|in:1,2'
         ]);

@@ -245,7 +245,7 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
-        'Aliyunsms' => Cisco\Alinyunsms\Facades\Aliyunsms::class,
+        'Aliyunsms' => Cisco\Aliyunsms\Facades\Aliyunsms::class,
         'Socialite' =>  Laravel\Socialite\Facades\Socialite::class,
     ],
 

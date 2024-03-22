@@ -3,17 +3,13 @@
 namespace App\Api\Controllers\Operation;
 
 use App\Api\Controllers\BaseController;
-use App\Api\Models\BuildingRoom;
-use App\Api\Models\Contract\ContractRoom;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Energy\EnergyService;
-use App\Api\Services\Common\QrcodeService;
-use App\Api\Services\CustomerService;
-use App\Api\Services\Tenant\TenantService;
+
 use Exception;
 
 /**
@@ -102,7 +98,7 @@ class MeterController extends BaseController
       $order = 'desc';
     }
     DB::enableQueryLog();
-    $currentDate = date('Y-m-01');
+    $currentMonth = date('Y-m-01');
     $data = $this->meterService->meterModel()
       ->where($map)
       ->where(function ($q) use ($request) {
@@ -120,8 +116,8 @@ class MeterController extends BaseController
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
       $record = $this->meterService->getNewMeterRecord($v['id']);
-      $v['last_record']  = $record->meter_value;
-      $v['last_date'] = $record->record_date;
+      $v['last_record']  = $record->meter_value ?? 0;
+      $v['last_date'] = $record->record_date ?? "";
       $DA = $this->meterService->getTenantByRoomId($v['room_id']);
       $v['tenant_name'] = $DA['tenant_name'];
     }
@@ -573,12 +569,5 @@ class MeterController extends BaseController
     }
     // return response()->json(DB::getQueryLog());
     return $this->success($data);
-  }
-
-
-  public function qrcode()
-  {
-    $qrcode = new QrCodeService;
-    return $qrcode->createQr('https://app.stararea.cn', $this->company_id);
   }
 }

@@ -42,7 +42,6 @@ class FeeTypeController extends BaseController
    */
   public function list(Request $request)
   {
-    // QrCode::generate('Hello World!');
     $pagesize = $request->input('pagesize');
     if (!$pagesize || $pagesize < 1) {
       $pagesize = config('per_size');

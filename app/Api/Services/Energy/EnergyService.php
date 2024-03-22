@@ -13,7 +13,7 @@ use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 use App\Api\Models\Energy\MeterLog as MeterLogModel;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Common\QrCodeService;
+use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Contract\ContractService;
 use App\Enums\AppEnum;
 
@@ -82,11 +82,11 @@ class EnergyService
           $DA['meter_id'] = $meter->id;
           $this->initRecord($DA, $user, $is_add);
         }
-        // if ($is_add) {
-        //   $DA['id']  = $meter->id;
-        //   $meter->qrcode_path = $this->createQrCode($meter->id, $user['company_id']);
-        //   $meter->save();
-        // }
+        if ($is_add) {
+          $DA['id']  = $meter->id;
+          $meter->qrcode_path = $this->createQrCode($meter->id, $user['company_id']);
+          $meter->save();
+        }
         $res = $this->saveMeterLog($DA, $user);
         if (!$res) {
           throw new Exception("能耗日志保存失败！");
@@ -102,7 +102,7 @@ class EnergyService
 
   public function createQrCode($meterId, $companyId)
   {
-    $qrCode = new QrCodeService;
+    $qrCode = new QrcodeService;
     return $qrCode->createQr($meterId, $companyId);
   }
 
