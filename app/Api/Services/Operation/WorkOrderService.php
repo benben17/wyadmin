@@ -198,10 +198,10 @@ class WorkOrderService
             'tenant_name'  => $order->tenant_name,
             'type'         => AppEnum::chargeIncome, // 收款
             'fee_type'     => AppEnum::maintenanceFeeType,
+            'bank_id'     => getBankIdByFeeType($order->proj_id, $order->proj_id),
             'amount'       => $chargeAmount,
             'remark'       => $order->order_no . "-" . $order->tenant_name . "-维修-" . $order->repair_content
           ];
-
           $billService = new TenantBillService;
           $billService->saveBillDetail($billDetail, $user);
         }
