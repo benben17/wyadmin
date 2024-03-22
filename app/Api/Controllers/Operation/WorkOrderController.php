@@ -417,12 +417,7 @@ class WorkOrderController extends BaseController
     if (compareTime($workOrder->order_time, $request->return_time)) {
       return $this->error('返单时间不允许小于接单时间！');
     }
-    if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
-      $bankId = getBankIdByFeeType(AppEnum::maintenanceFeeType, $DA['proj_id']);
-      if ($bankId == 0) {
-        return $this->error('工单处理失败！未找到【工程费】收款银行账户，请联系管理员处理！');
-      }
-    }
+
     $res = $this->workService->processWorkOrder($DA, $this->user);
     if (!$res) {
       return $this->error('工单处理失败！');
@@ -502,7 +497,13 @@ class WorkOrderController extends BaseController
       // 'is_notice' =>'required|numeric',
     ]);
     $DA = $request->toArray();
-
+    $workOrder = $this->workService->workModel()->find($DA['id']);
+    if ($workOrder->work_type == 1 && $workOrder->charge_amount > 0) {
+      $bankId = getBankIdByFeeType(AppEnum::maintenanceFeeType, $DA['proj_id']);
+      if ($bankId == 0) {
+        return $this->error('工单处理失败！未找到【工程费】收款银行账户，请联系管理员处理！');
+      }
+    }
     $res = $this->workService->closeWork($DA, $this->user);
     if (!$res) {
       return $this->error('工单关闭失败！');

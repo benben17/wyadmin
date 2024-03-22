@@ -122,20 +122,7 @@ class WorkOrderService
         $order->remark          = $order['tenant_name'] . "-维修-" . $order['repair_content'];
         $res = $order->save();
 
-        // 保存费用
-        if (isset($DA['charge_amount']) && $DA['charge_amount'] > 0) {
-          $BA['company_id']   = $order['company_id'];
-          $BA['proj_id']      = $order['proj_id'];
-          $BA['charge_date']  = $order['return_time'];
-          $BA['tenant_id']    = $order['tenant_id'];
-          $BA['tenant_name']  = $order['tenant_name'];
-          $BA['type']         = AppEnum::chargeIncome; // 收款
-          $BA['fee_type']     = AppEnum::maintenanceFeeType;
-          $BA['amount']       = $DA['charge_amount'];
-          $BA['remark']       = $order['tenant_name'] . "-维修-" . $order['repair_content'];
-          $billService = new TenantBillService;
-          $billService->saveBillDetail($BA, $user);
-        }
+
         // 发送短信通知
         if ($DA['is_notice'] && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
           $parm['open_time']      = $order['open_time'];
@@ -234,16 +221,31 @@ class WorkOrderService
         $order->feedback = $DA['feedback'] ?? "";
         $order->feedback_rate = $DA['feedback_rate'] ?? 5;
         // $order->is_notice       = $DA['is_notice']; // 工单关闭
-
         if ($order->status != AppEnum::workorderClose) {
           $order->status    = AppEnum::workorderClose; // 工单关闭
         }
-        $res = $order->save();
-        // Log::error($order->status);
-        if ($res) {
-          // 写入日志
-          $this->saveOrderLog($DA['id'], $order->status, $user, $order['remark']);
+        $order->save();
+
+        // 保存费用
+        $chargeAmount = $order->charge_amount;
+        if ($order->work_type == 1 && $chargeAmount > 0) {
+          $billDetail = [
+            'company_id'   => $order->company_id,
+            'proj_id'      => $order->proj_id,
+            'charge_date'  => $order->return_time,
+            'tenant_id'    => $order->tenant_id,
+            'tenant_name'  => $order->tenant_name,
+            'type'         => AppEnum::chargeIncome, // 收款
+            'fee_type'     => AppEnum::maintenanceFeeType,
+            'amount'       => $chargeAmount,
+            'remark'       => $order->order_no . "-" . $order->tenant_name . "-维修-" . $order->repair_content
+          ];
+
+          $billService = new TenantBillService;
+          $billService->saveBillDetail($billDetail, $user);
         }
+        // 写入日志
+        $this->saveOrderLog($DA['id'], $order->status, $user, $order['remark']);
       });
       return true;
     } catch (Exception $e) {

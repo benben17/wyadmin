@@ -393,9 +393,8 @@ class BillStatController extends BaseController
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
-    $formattedData[$tenantId]['total_amt'] = numFormat($formattedData[$tenantId]['total_amt']);
-    $formattedData[$tenantId]['total_receive_amt'] = numFormat($formattedData[$tenantId]['total_receive_amt']);
-    $formattedData[$tenantId]['total_unreceive_amt'] = numFormat($formattedData[$tenantId]['total_unreceive_amt']);
+
+
     $DA['data'] = array_values($formattedData);
     $DA['total'] = array(
       ["title" => "总金额", "amount" => numFormat($total_amt)],
