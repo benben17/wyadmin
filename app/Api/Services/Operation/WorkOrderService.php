@@ -182,8 +182,10 @@ class WorkOrderService
         $order->feedback = $DA['feedback'] ?? "";
         $order->feedback_rate = $DA['feedback_rate'] ?? 5;
         // $order->is_notice       = $DA['is_notice']; // 工单关闭
-        if ($order->status != AppEnum::workorderClose) {
+        if ($order->status != AppEnum::workorderClose && $order->status >= 3) {
           $order->status    = AppEnum::workorderClose; // 工单关闭
+        } else {
+          throw new Exception("工单状态不允许关闭，或者已经是关闭状态");
         }
         $order->save();
 
@@ -198,19 +200,21 @@ class WorkOrderService
             'tenant_name'  => $order->tenant_name,
             'type'         => AppEnum::chargeIncome, // 收款
             'fee_type'     => AppEnum::maintenanceFeeType,
-            'bank_id'     => getBankIdByFeeType($order->proj_id, $order->proj_id),
+            'bank_id'      => $DA['bank_id'],
             'amount'       => $chargeAmount,
             'remark'       => $order->order_no . "-" . $order->tenant_name . "-维修-" . $order->repair_content
           ];
+
           $billService = new TenantBillService;
           $billService->saveBillDetail($billDetail, $user);
         }
         // 写入日志
         $this->saveOrderLog($DA['id'], $order->status, $user, $order['remark']);
-      });
+      }, 2);
       return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());
+      throw new Exception($e->getMessage());
       return false;
     }
   }

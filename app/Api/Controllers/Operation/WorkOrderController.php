@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 use App\Api\Services\Operation\WorkOrderService;
 use App\Enums\AppEnum;
+use Exception;
 
 /**
  *   工单
@@ -454,16 +455,17 @@ class WorkOrderController extends BaseController
     $DA = $request->toArray();
     $workOrder = $this->workService->workModel()->find($DA['id']);
     if ($workOrder->charge_amount > 0) {
-      $bankId = getBankIdByFeeType(AppEnum::maintenanceFeeType, $DA['proj_id']);
+      $bankId = getBankIdByFeeType(AppEnum::maintenanceFeeType, $workOrder['proj_id']);
       if ($bankId == 0) {
         return $this->error('工单处理失败！未找到【工程费】收款银行账户，请联系管理员处理！');
       }
+      $DA['bank_id'] = $bankId;
     }
-    $res = $this->workService->closeWork($DA, $this->user);
-    if (!$res) {
-      return $this->error('工单关闭失败！');
-    } else {
-      return $this->success('工单关闭成功。');
+    try {
+      $res = $this->workService->closeWork($DA, $this->user);
+      return $res ? $this->success('工单关闭成功。') : $this->error('工单关闭失败！');
+    } catch (Exception $e) {
+      return $this->error('工单关闭失败！' . $e->getMessage());
     }
   }
 
