@@ -351,8 +351,20 @@ Route::group(['prefix' => 'operation/workorder'], function () {
     Route::post('/order', '\App\Api\Controllers\Operation\WorkOrderController@order');
     Route::post('/process', '\App\Api\Controllers\Operation\WorkOrderController@process');
     Route::post('/close', '\App\Api\Controllers\Operation\WorkOrderController@close');
+});
 
-    Route::post('/audit', '\App\Api\Controllers\Operation\WorkOrderController@audit');
+// 隐患工单
+Route::group(['prefix' => 'operation/yhworkorder'], function () {
+    Route::post('/list', '\App\Api\Controllers\Operation\YhWorkOrderController@list');
+    Route::post('/add', '\App\Api\Controllers\Operation\YhWorkOrderController@store');
+    Route::post('/edit', '\App\Api\Controllers\Operation\YhWorkOrderController@update');
+    Route::post('/show', '\App\Api\Controllers\Operation\YhWorkOrderController@show');
+    Route::post('/cancel', '\App\Api\Controllers\Operation\YhWorkOrderController@cancel');
+    Route::post('/order', '\App\Api\Controllers\Operation\YhWorkOrderController@order');
+    Route::post('/process', '\App\Api\Controllers\Operation\YhWorkOrderController@process');
+    Route::post('/close', '\App\Api\Controllers\Operation\YhWorkOrderController@close');
+    Route::post('/toWarehouse', '\App\Api\Controllers\Operation\YhWorkOrderController@toWarehouse');
+    Route::post('/audit', '\App\Api\Controllers\Operation\YhWorkOrderController@audit');
 });
 
 Route::group(['prefix' => 'operation/tenant'], function () {

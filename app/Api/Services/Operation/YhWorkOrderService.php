@@ -5,44 +5,43 @@ namespace App\Api\Services\Operation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Api\Models\Operation\WorkOrder as WorkOrderModel;
+use App\Api\Models\Operation\YhWorkOrder as YhWorkOrderModel;
 use App\Api\Models\Operation\WorkOrderLog as WorkOrderLogModel;
 use App\Api\Services\Common\MessageService;
 use App\Api\Services\Common\SmsService;
-use App\Api\Services\Bill\TenantBillService;
 use App\Enums\AppEnum;
 use Exception;
 
 /**
  * 工单服务
  */
-class WorkOrderService
+class YhWorkOrderService
 {
-  public function workModel()
+  public function yhWorkModel()
   {
-    return new WorkOrderModel;
+    return new YhWorkOrderModel;
   }
 
-  /** 保修工单开单 */
-  public function saveWorkOrder($DA, $user)
+  /** 隐患工单开单 */
+  public function saveYhWorkOrder($DA, $user)
   {
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
-        $order = $this->workModel()->find($DA['id']);
+        $order = $this->yhWorkModel()->find($DA['id']);
         $order->u_uid = $user['id'];
       } else {
-        $order = $this->workModel();
+        $order = $this->yhWorkModel();
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
-        $order->order_no = $DA['order_no'] ??  $this->workorderNo();
       }
+      $order->order_no        = $DA['order_no'] ??  $this->yhWorkorderNo();
       $order->proj_id         = $DA['proj_id'];
       $order->open_time       = $DA['open_time'] ?? nowTime();
       $order->urgency_level   = $DA['urgency_level'] ?? "";
       $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
       $order->tenant_name     = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
-      $order->building_floor_room = isset($DA['building_floor_room']) ? $DA['building_floor_room'] : "";
-      $order->build_floor_room_id = isset($DA['build_floor_room_id']) ? $DA['build_floor_room_id'] : 0;
+      $order->process_type = isset($DA['process_type']) ? $DA['process_type'] : "立即处理";
+      $order->deadline_time = isset($DA['deadline_time']) ? $DA['deadline_time'] : "";
       $order->position        = isset($DA['position']) ? $DA['position'] : "";
       $order->open_person     = isset($DA['open_person']) ? $DA['open_person'] : "";
       $order->repair_goods    = $DA['repair_goods'] ?? "";
@@ -59,11 +58,11 @@ class WorkOrderService
       if ($res) {
         $msg = new MessageService;
         $DA['title']    = '报修工单消息通知';
-        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个报修工单,请及时处理！</br>' . $DA['repair_content'];
+        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个隐患工单,请及时处理！</br>' . $DA['repair_content'];
         $DA['role_id']  = '-1';
         $msg->sendMsg($DA, $user, 2);
         // 写入日志
-        $this->saveOrderLog($order->id, 1, $user);
+        $this->saveYhOrderLog($order->id, 1, $user);
       }
     } catch (Exception $e) {
       Log::error($e->getMessage());
@@ -73,7 +72,7 @@ class WorkOrderService
 
 
   /**
-   * [接单处理]
+   * [隐患工单接单处理]
    * @Author   leezhua
    * @DateTime 2020-07-15
    * @param    [array]     $DA   [提交数据]
@@ -82,20 +81,20 @@ class WorkOrderService
    */
   public function orderWork($DA, $user)
   {
-    $order = $this->workModel()->find($DA['id']);
+    $order = $this->yhWorkModel()->find($DA['id']);
     $order->order_time   = $DA['order_time'];
     $order->order_uid    = $DA['order_uid'];
     $order->order_person = isset($DA['order_person']) ? $DA['order_person'] : $user['realname'];
     $order->status       = AppEnum::workorderTake;   // 接单
     $res = $order->save();
     // 写入日志
-    $this->saveOrderLog($DA['id'], 2, $user);
+    $this->saveYhOrderLog($DA['id'], 2, $user);
     return $res;
   }
 
 
   /**
-   * 工单处理
+   * 隐患工单-处理
    * @Author   leezhua
    * @DateTime 2020-07-15
    * @param    [type]     $DA [description]
@@ -105,7 +104,7 @@ class WorkOrderService
   {
     try {
       DB::transaction(function () use ($DA, $user) {
-        $order = WorkOrderModel::find($DA['id']);
+        $order = $this->yhWorkModel()->find($DA['id']);
         if ($order->status != 2) {
           return false;
         }
@@ -121,6 +120,7 @@ class WorkOrderService
         $order->remark          = $order['tenant_name'] . "-维修-" . $order['repair_content'];
         $order->save();
 
+
         // 发送短信通知
         if ($DA['is_notice'] && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
           $parm['open_time']      = $order['open_time'];
@@ -129,7 +129,7 @@ class WorkOrderService
           $smsService->sendSms($order['open_phone'], $parm);
         }
         // 写入日志
-        $this->saveOrderLog($DA['id'], $order->status, $user, $order->remark);
+        $this->saveYhOrderLog($DA['id'], $order->status, $user, $order->remark);
       }, 3);
 
       return true;
@@ -149,7 +149,7 @@ class WorkOrderService
    */
   public function cancelWorkorder(int $orderId, $user, $remark = "")
   {
-    $order = WorkOrderModel::find($orderId);
+    $order = $this->yhWorkModel()->find($orderId);
     if ($order->status >= 3) {
       return false;
     }
@@ -157,14 +157,46 @@ class WorkOrderService
     $order->remark = $remark;
     $res = $order->save();
     // 写入日志
-    $this->saveOrderLog($orderId, AppEnum::workorderCancel, $user, $order->remark);
+    $this->saveYhOrderLog($orderId, AppEnum::workorderCancel, $user, $order->remark);
     return $res;
   }
 
+  /**
+   * 隐患工单审核
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-30
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function auditWorkOrder($DA, $user)
+  {
+    try {
+      DB::transaction(function () use ($DA, $user) {
+        $order = $this->yhWorkModel()->find($DA['id']);
+        if ($order->status >= 3) {
+          throw new Exception("工单状态不允许审核");
+        }
+        $order->remark      .= $DA['remark'] ?? "";
+        $order->audit_time   = $DA['audit_time'] ?? nowYmd();
+        $order->audit_person = $user->username;
 
+        $order->status = $DA['audit_status'] == 1 ? AppEnum::workorderClose : AppEnum::workorderTake; // 工单关闭
+        $order->save();
+        // 写入日志
+        $this->saveYhOrderLog($DA['id'], $order->status, $user, $order->remark);
+      });
+      return true;
+    } catch (Exception $e) {
+      Log::error($e->getMessage());
+      return false;
+    }
+  }
 
   /**
-   * 工单关闭
+   * 隐患工单关闭
    *
    * @Author leezhua
    * @DateTime 2024-01-30
@@ -177,7 +209,7 @@ class WorkOrderService
   {
     try {
       DB::transaction(function () use ($DA, $user) {
-        $order = $this->workModel()->find($DA['id']);
+        $order = $this->yhWorkModel()->find($DA['id']);
 
         $order->feedback = $DA['feedback'] ?? "";
         $order->feedback_rate = $DA['feedback_rate'] ?? 5;
@@ -186,27 +218,8 @@ class WorkOrderService
           $order->status    = AppEnum::workorderClose; // 工单关闭
         }
         $order->save();
-
-        // 保存费用
-        $chargeAmount = $order->charge_amount;
-        if ($chargeAmount > 0) {
-          $billDetail = [
-            'company_id'   => $order->company_id,
-            'proj_id'      => $order->proj_id,
-            'charge_date'  => nowYmd(),
-            'tenant_id'    => $order->tenant_id,
-            'tenant_name'  => $order->tenant_name,
-            'type'         => AppEnum::chargeIncome, // 收款
-            'fee_type'     => AppEnum::maintenanceFeeType,
-            'amount'       => $chargeAmount,
-            'remark'       => $order->order_no . "-" . $order->tenant_name . "-维修-" . $order->repair_content
-          ];
-
-          $billService = new TenantBillService;
-          $billService->saveBillDetail($billDetail, $user);
-        }
         // 写入日志
-        $this->saveOrderLog($DA['id'], $order->status, $user, $order['remark']);
+        $this->saveYhOrderLog($DA['id'], $order->status, $user, $order['remark']);
       });
       return true;
     } catch (Exception $e) {
@@ -215,9 +228,10 @@ class WorkOrderService
     }
   }
   /** 生成工单编号 */
-  private function workorderNo()
-  {;
-    return 'WS-' . date('ymdHis') . random_int(10, 99);
+  private function yhWorkorderNo()
+  {
+
+    return 'YH-' . date('ymdHis') . mt_rand(10, 99);
   }
 
   /**
@@ -229,11 +243,11 @@ class WorkOrderService
    * @param    [type]     $user        [description]
    * @return   [type]                  [description]
    */
-  public function saveOrderLog($orderId, $orderStatus, $user, $remark = "")
+  public function saveYhOrderLog($orderId, $orderStatus, $user, $remark = "")
   {
     try {
       $orderLog = new WorkOrderLogModel;
-      $orderLog->workorder_id = $orderId;
+      $orderLog->yh_order_id = $orderId;
       $orderLog->status = $orderStatus;
       $orderLog->c_username = $user['realname'];
       $orderLog->c_uid = $user['id'];

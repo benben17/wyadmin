@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
 
 /**
- *  报修工单
+ *  隐患工单
  */
-class WorkOrder extends Model
+class YhWorkOrder extends Model
 {
 
   /**
@@ -17,34 +17,38 @@ class WorkOrder extends Model
    * @var string
    */
 
-  protected $table = 'bse_workorder';
+  protected $table = 'bse_yh_workorder';
   protected $fillable = [];
   protected $hidden = ['company_id'];
 
 
   protected $appends = ['status_label'];
 
+
   public function getStatusLabelAttribute()
   {
-    $status = $this->attributes['status'];
-    return $this->statusMap()[$status];
-  }
+    $status = $this->attributes['status'] ?? 0;
 
+    return $status ? $this->statusMap()[$status] : "";
+  }
 
   public function statusMap()
   {
     return [
+
       '1' => '待派单',
-      '2' => '处理中',
+      '2' => '已派单',
       '3' => '处理完成',
       '4' => '关闭',
+      '90' => '隐患库',
       '99' => '已取消'
     ];
   }
 
+
   public function orderLogs()
   {
-    return $this->hasMany(WorkOrderLog::class, 'workorder_id', 'id')->orderBy('id', 'desc');
+    return $this->hasMany(WorkOrderLog::class, 'yh_order_id', 'id')->orderBy('id', 'desc');
   }
 
   protected static function boot()
