@@ -178,14 +178,15 @@ class ChargeService
             $this->chargeBillRecordSave($billRecord, $user);
           }
 
-          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $totalVerifyAmt);
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $totalVerifyAmt;
+          // 收款记录更新
+          $charge = $this->model()->find($chargeBill['id']);
+          $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $totalVerifyAmt);
+          $charge->verify_amount = $chargeBill['verify_amount'] + $totalVerifyAmt;
 
           if ($chargeBill['unverify_amount'] == 0) {
-            $chargeBill['status'] = AppEnum::chargeVerify;
+            $charge->status = AppEnum::chargeVerify;
           }
-
-          $this->save($chargeBill, $user);
+          $charge->save();
         }, 3);
 
         return true;
@@ -360,7 +361,7 @@ class ChargeService
 
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
           $billDetail->receive_amount -= $record->amount;
-          $billDetail->charge_date = nowYmd();
+          $billDetail->updated_at = nowYmd();
           $billDetail->status = 0; // 未结清
           if ($billDetail['bill_id'] != 0) {
             $this->billModel()->where('id', $billDetail['bill_id'])->update(['status' => 0]);
