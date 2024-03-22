@@ -335,8 +335,6 @@ class BillStatController extends BaseController
       ->orderBy('tenant_id')
       ->orderBy('ym')
       ->get();
-    // 
-    // return $monthlySummaries;
     // return $monthlySummaries;
     $formattedData = [];
 
@@ -363,9 +361,9 @@ class BillStatController extends BaseController
       $ym = $summary->ym;
 
       // Check if the values are numeric before formatting
-      $amount = numFormat($summary->amount);
-      $receiveAmount = numFormat($summary->receiveAmt);
-      $unreceiveAmount = numFormat($summary->unreceiveAmt);
+      $amount = $summary->amount;
+      $receiveAmount = $summary->receiveAmt;
+      $unreceiveAmount = $summary->unreceiveAmt;
       $total_amt += $amount;
       $total_receiveAmount += $receiveAmount;
       $total_unreceiveAmount += $unreceiveAmount;
@@ -386,16 +384,18 @@ class BillStatController extends BaseController
       // Add data to the corresponding month
 
       $formattedData[$tenantId][$ym] = [
-        'amount' => $amount,
-        'receive_amount' => $receiveAmount,
-        'unreceive_amount' => $unreceiveAmount,
+        'amount' => numFormat($amount),
+        'receive_amount' => numFormat($receiveAmount),
+        'unreceive_amount' => numFormat($unreceiveAmount),
       ];
       // Update total amounts
       $formattedData[$tenantId]['total_amt'] += $amount;
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
-
+    $formattedData[$tenantId]['total_amt'] = numFormat($formattedData[$tenantId]['total_amt']);
+    $formattedData[$tenantId]['total_receive_amt'] = numFormat($formattedData[$tenantId]['total_receive_amt']);
+    $formattedData[$tenantId]['total_unreceive_amt'] = numFormat($formattedData[$tenantId]['total_unreceive_amt']);
     $DA['data'] = array_values($formattedData);
     $DA['total'] = array(
       ["title" => "总金额", "amount" => numFormat($total_amt)],

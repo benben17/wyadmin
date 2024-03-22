@@ -108,6 +108,10 @@ class ChargeService
         if ($chargeBill['unverify_amount'] == 0) {
           $chargeBill['status'] = AppEnum::chargeVerify;
         }
+
+        $this->model()->find($chargeBill['id'])->update($chargeBill);
+        //更新 收款
+
         $billRecord['amount'] = $verifyAmt;
         $detail_bill_data['receive_date']   = $verifyDate;
         $billRecord['charge_id']      = $chargeBill['id'];
@@ -118,7 +122,7 @@ class ChargeService
         $billRecord['verify_date'] = $verifyDate;
         $billService = new TenantBillService;
         $billService->billDetailModel()->where('id', $detailBill)->update($detail_bill_data); // 更新费用信息
-        $this->save($chargeBill, $user);  //更新 收款
+
         $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
       }, 3);
       return true;
