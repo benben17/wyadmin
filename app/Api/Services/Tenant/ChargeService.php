@@ -103,13 +103,13 @@ class ChargeService
           $detail_bill_data['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detail_bill_data['status'] = 0;
         }
-        $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
-        $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+        $chargeUpdate['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
+        $chargeUpdate['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
         if ($chargeBill['unverify_amount'] == 0) {
-          $chargeBill['status'] = AppEnum::chargeVerify;
+          $chargeUpdate['status'] = AppEnum::chargeVerify;
         }
 
-        $this->model()->find($chargeBill['id'])->update($chargeBill);
+        $this->model()->find($chargeBill['id'])->update($chargeUpdate);
         //更新 收款
 
         $billRecord['amount'] = $verifyAmt;
