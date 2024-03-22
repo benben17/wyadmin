@@ -94,7 +94,7 @@ class ChargeService
     try {
       DB::transaction(function () use ($detailBill,  $chargeBill, $verifyAmt, $verifyDate, $user) {
 
-        // $verifyAmt = $verifyAmount;
+        $charge = $this->model()->find($chargeBill['id']);
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt == $verifyAmt) {
           $detail_bill_data['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
@@ -103,13 +103,13 @@ class ChargeService
           $detail_bill_data['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
           $detail_bill_data['status'] = 0;
         }
-        $chargeUpdate['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
-        $chargeUpdate['verify_amount'] = $chargeBill['verify_amount'] + $verifyAmt;
+        $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
+        $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
         if ($chargeBill['unverify_amount'] == 0) {
-          $chargeUpdate['status'] = AppEnum::chargeVerify;
+          $charge->status = AppEnum::chargeVerify;
         }
 
-        $this->model()->find($chargeBill['id'])->update($chargeUpdate);
+        $charge->save();
         //更新 收款
 
         $billRecord['amount'] = $verifyAmt;
