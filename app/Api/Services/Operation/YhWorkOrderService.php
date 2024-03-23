@@ -34,24 +34,26 @@ class YhWorkOrderService
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
       }
-      $order->order_no        = $DA['order_no'] ??  $this->yhWorkorderNo();
-      $order->proj_id         = $DA['proj_id'];
-      $order->open_time       = $DA['open_time'] ?? nowTime();
-      $order->urgency_level   = $DA['urgency_level'] ?? "";
-      $order->tenant_id       = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
-      $order->tenant_name     = isset($DA['tenant_name']) ? $DA['tenant_name'] : "";
-      $order->process_type = isset($DA['process_type']) ? $DA['process_type'] : "立即处理";
-      $order->deadline_time = isset($DA['deadline_time']) ? $DA['deadline_time'] : "";
-      $order->position        = isset($DA['position']) ? $DA['position'] : "";
-      $order->open_person     = isset($DA['open_person']) ? $DA['open_person'] : "";
-      $order->repair_goods    = $DA['repair_goods'] ?? "";
-      $order->open_phone      = isset($DA['open_phone']) ? $DA['open_phone'] : "";
-      $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";
-      $order->pic             = isset($DA['pic']) ? $DA['pic'] : "";
+      $order->order_no = $DA['order_no'] ?? $this->yhWorkorderNo();
+      $order->proj_id = $DA['proj_id'];
+      $order->hazard_type = $DA['hazard_type'] ?? "";
+      $order->hazard_level = $DA['hazard_level'] ?? "";
+      $order->tenant_id = $DA['tenant_id'] ?? 0;
+      $order->tenant_name = $DA['tenant_name'] ?? "";
+      $order->process_type = $DA['process_type'] ?? "立即整改";
+      $order->deadline_time = $DA['deadline_time'] ?? "";
+      $order->position = $DA['position'] ?? "";
+      $order->open_person = $DA['open_person'] ?? "";
+      $order->check_type = $DA['check_type'] ?? "";
+      $order->user_in_charge = $DA['user_in_charge'] ?? "";
+      $order->open_phone = $DA['open_phone'] ?? "";
+      $order->open_time = $DA['open_time'] ?? nowTime();
+      $order->hazard_issues = $DA['hazard_issues'] ?? "";
+      $order->pic = $DA['pic'] ?? "";
       if (isset($DA['deadline_time'])) {
         $order->deadline_time   = $DA['deadline_time'];
       }
-      $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
+      // $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
       $order->status          = AppEnum::workorderOpen;  // 开单
       $res = $order->save();
       // Log::error(json_encode($order));
@@ -111,10 +113,9 @@ class YhWorkOrderService
         $order->process_result  = $DA['process_result'];
         $order->return_time     = $DA['return_time'];
         $order->time_used       = $DA['time_used'] ?? 0;
-        $order->maintain_pic    = isset($DA['maintain_pic']) ? $DA['maintain_pic'] : "";
-        $order->charge_amount   = isset($DA['charge_amount']) ? $DA['charge_amount'] : 0.00;
+        $order->process_pic    = isset($DA['process_pic']) ? $DA['process_pic'] : "";
         $order->engineering_type = isset($DA['engineering_type']) ? $DA['engineering_type'] : "";
-        $order->maintain_person = isset($DA['maintain_person']) ? $DA['maintain_person'] : "";
+        $order->process_person = isset($DA['process_person']) ? $DA['process_person'] : "";
         $order->status          = AppEnum::workorderProcess; // 处理完成
         $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
         $order->remark          = $order['tenant_name'] . "-维修-" . $order['repair_content'];
@@ -124,7 +125,7 @@ class YhWorkOrderService
         // 发送短信通知
         if ($DA['is_notice'] && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
           $parm['open_time']      = $order['open_time'];
-          $parm['repair_content'] = $order['repair_content'];
+          $parm['hazard_issues'] = $order['hazard_issues'];
           $smsService = new SmsService;
           $smsService->sendSms($order['open_phone'], $parm);
         }

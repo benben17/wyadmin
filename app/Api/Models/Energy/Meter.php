@@ -41,11 +41,8 @@ class Meter extends Model
   public function getMeterTypeAttribute()
   {
     if (isset($this->attributes['type'])) {
-      if ($this->attributes['type'] == 1) {
-        return '水表';
-      } else {
-        return '电表';
-      }
+
+      return  $this->attributes['type'] == 1 ? '水表' : '电表';
     }
   }
   public function getMasterSlaveLabelAttribute()

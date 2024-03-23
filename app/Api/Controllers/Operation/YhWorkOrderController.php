@@ -91,7 +91,7 @@ class YhWorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
-        $request->maintain_person  && $q->where('maintain_person', 'like', '%' . $request->maintain_person . '%');
+        $request->maintain_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
       });
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -156,8 +156,8 @@ class YhWorkOrderController extends BaseController
     $validatedData = $request->validate([
       'proj_id'       => 'required|numeric',
       'open_time'     => 'required|date',
-      'order_source'  => 'required|String',
-      'repair_content' => 'required|String',
+      // 'check_type'  => 'required|String',
+      'hazard_issues' => 'required|String',
     ]);
     $DA = $request->toArray();
     if (!isset($DA['tenant_id'])) {
@@ -201,11 +201,11 @@ class YhWorkOrderController extends BaseController
       'proj_id'       => 'required|numeric',
       // 'tenant_id'        => 'required|numeric',
       'open_time'     => 'required|date',
-      'order_source'  => 'required|String',
-      'repair_content' => 'required|String'
+      'check_type'  => 'required|String',
+      'hazard_issues' => 'required|String'
     ]);
     $DA = $request->toArray();
-    if (!$DA['tenant_id']) {
+    if (!isset($DA['tenant_id'])) {
       $DA['tenant_name'] = '公区';
     }
     $res = $this->workService->saveYhWorkOrder($DA, $this->user);
@@ -214,7 +214,7 @@ class YhWorkOrderController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/workorder/cancel",
+   *     path="/api/operation/yhworkorder/cancel",
    *     tags={"隐患工单"},
    *     summary="隐患工单-工单取消",
    *    @OA\RequestBody(
@@ -254,7 +254,7 @@ class YhWorkOrderController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/workorder/dispatch",
+   *     path="/api/operation/yhworkorder/dispatch",
    *     tags={"隐患工单"},
    *     summary="隐患工单-派单",
    *    @OA\RequestBody(

@@ -27,14 +27,12 @@ class EnergyService
   /** 表模型 */
   public function meterModel()
   {
-    $meterModel =  new MeterModel;
-    return $meterModel;
+    return new MeterModel;
   }
   // 抄表模型
   public function meterRecordModel()
   {
-    $model =  new MeterRecordModel;
-    return $model;
+    return  new MeterRecordModel;
   }
 
 
