@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Business\CusClue;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Api\Models\Tenant\TenantRoom;

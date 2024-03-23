@@ -110,11 +110,12 @@ class YhWorkOrderService
         if ($order->status != 2) {
           return false;
         }
+
         $order->process_result  = $DA['process_result'];
-        $order->return_time     = $DA['return_time'];
+        $order->process_time     = $DA['process_time'];
         $order->time_used       = $DA['time_used'] ?? 0;
         $order->process_pic    = isset($DA['process_pic']) ? $DA['process_pic'] : "";
-        $order->engineering_type = isset($DA['engineering_type']) ? $DA['engineering_type'] : "";
+        $order->process_status = $DA['process_status'];
         $order->process_person = isset($DA['process_person']) ? $DA['process_person'] : "";
         $order->status          = AppEnum::workorderProcess; // 处理完成
         $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
@@ -123,7 +124,7 @@ class YhWorkOrderService
 
 
         // 发送短信通知
-        if ($DA['is_notice'] && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
+        if (isset($DA['is_notice']) && preg_match("/^1[3456789]\d{9}$/", $order['open_phone'])) {
           $parm['open_time']      = $order['open_time'];
           $parm['hazard_issues'] = $order['hazard_issues'];
           $smsService = new SmsService;
@@ -136,30 +137,28 @@ class YhWorkOrderService
       return true;
     } catch (Exception $e) {
       Log::error("处理失败" . $e->getMessage());
-      throw new Exception("处理失败！");
       return false;
     }
   }
 
   /**
-   * 保修工单撤销
+   * 保修工单 删除
    * @Author   leezhua
    * @DateTime 2020-07-15
-   * @param    [type]     $DA [description]
-   * @return   [type]         [description]
+   * @param    [orderId]     $DA [description]
    */
-  public function cancelWorkorder(int $orderId, $user, $remark = "")
+  public function delWorkorder(int $orderId)
   {
-    $order = $this->yhWorkModel()->find($orderId);
-    if ($order->status >= 3) {
+    try {
+      $order = $this->yhWorkModel()->find($orderId);
+
+      $order->delete();
+      // 删除日志
+      WorkOrderLogModel::where('yh_order_id', $orderId)->delete();
+      return true;
+    } catch (Exception $e) {
       return false;
     }
-    $order->status = AppEnum::workorderCancel;
-    $order->remark = $remark;
-    $res = $order->save();
-    // 写入日志
-    $this->saveYhOrderLog($orderId, AppEnum::workorderCancel, $user, $order->remark);
-    return $res;
   }
 
   /**
@@ -177,12 +176,12 @@ class YhWorkOrderService
     try {
       DB::transaction(function () use ($DA, $user) {
         $order = $this->yhWorkModel()->find($DA['id']);
-        if ($order->status >= 3) {
+        if ($order->status != 3) {
           throw new Exception("工单状态不允许审核");
         }
         $order->remark      .= $DA['remark'] ?? "";
         $order->audit_time   = $DA['audit_time'] ?? nowYmd();
-        $order->audit_person = $user->username;
+        $order->audit_person = $user['username'];
 
         $order->status = $DA['audit_status'] == 1 ? AppEnum::workorderClose : AppEnum::workorderTake; // 工单关闭
         $order->save();
@@ -197,7 +196,7 @@ class YhWorkOrderService
   }
 
   /**
-   * 隐患工单关闭
+   * 隐患工单派单
    *
    * @Author leezhua
    * @DateTime 2024-01-30
@@ -206,32 +205,30 @@ class YhWorkOrderService
    *
    * @return void
    */
-  public function closeWork($DA, $user)
+  public function orderDispatch($DA, $user)
   {
     try {
       DB::transaction(function () use ($DA, $user) {
-        $order = $this->yhWorkModel()->find($DA['id']);
+        $yhWorkOrder = $this->yhWorkModel()->find($DA['id']);
 
-        $order->feedback = $DA['feedback'] ?? "";
-        $order->feedback_rate = $DA['feedback_rate'] ?? 5;
-        // $order->is_notice       = $DA['is_notice']; // 工单关闭
-        if ($order->status != AppEnum::workorderClose) {
-          $order->status    = AppEnum::workorderClose; // 工单关闭
-        }
-        $order->save();
+        $yhWorkOrder->dispatch_time = $DA['dispatch_time'] ?? nowTime();
+        $yhWorkOrder->dispatch_user = $DA['dispatch_user'] ?? $user['username'];
+        $yhWorkOrder->process_user_id     = $DA['process_user_id'];
+        $yhWorkOrder->process_user  = $DA['process_user'];
+
+        $yhWorkOrder->save();
         // 写入日志
-        $this->saveYhOrderLog($DA['id'], $order->status, $user, $order['remark']);
+        $this->saveYhOrderLog($DA['id'], $yhWorkOrder->status, $user, $yhWorkOrder['remark']);
       });
       return true;
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      Log::error("派单错误:" . $e->getMessage());
       return false;
     }
   }
   /** 生成工单编号 */
   private function yhWorkorderNo()
   {
-
     return 'YH-' . date('ymdHis') . mt_rand(10, 99);
   }
 

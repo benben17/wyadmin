@@ -499,7 +499,6 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $DA = $request->toArray();
     $res = $this->inspection->inspectionRecordModel()->whereIn('id', $request->Ids)->delete();
     if ($res) {
       return $this->success("记录删除成功。");

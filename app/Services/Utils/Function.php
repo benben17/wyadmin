@@ -452,7 +452,16 @@ function getDepartIds($parentIds, $arr): array
     return getDepartIds($depart_ids, $arr);
 }
 
-
+/**
+ * 日期对比
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-23
+ * @param string $dateString1
+ * @param string $dateString2
+ *
+ * @return boolean
+ */
 function compareTime(string $dateString1, string $dateString2): bool
 {
     $date1 = new DateTime($dateString1);

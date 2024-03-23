@@ -359,11 +359,11 @@ Route::group(['prefix' => 'operation/yhworkorder'], function () {
     Route::post('/add', '\App\Api\Controllers\Operation\YhWorkOrderController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\YhWorkOrderController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\YhWorkOrderController@show');
-    Route::post('/cancel', '\App\Api\Controllers\Operation\YhWorkOrderController@cancel');
+    Route::post('/del', '\App\Api\Controllers\Operation\YhWorkOrderController@del');
     Route::post('/order', '\App\Api\Controllers\Operation\YhWorkOrderController@order');
     Route::post('/process', '\App\Api\Controllers\Operation\YhWorkOrderController@process');
-    Route::post('/close', '\App\Api\Controllers\Operation\YhWorkOrderController@close');
-    Route::post('/toWarehouse', '\App\Api\Controllers\Operation\YhWorkOrderController@toWarehouse');
+    Route::post('/dispatch', '\App\Api\Controllers\Operation\YhWorkOrderController@dispatch');
+    // Route::post('/toWarehouse', '\App\Api\Controllers\Operation\YhWorkOrderController@toWarehouse');
     Route::post('/audit', '\App\Api\Controllers\Operation\YhWorkOrderController@audit');
 });
 

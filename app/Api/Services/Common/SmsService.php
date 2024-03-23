@@ -24,27 +24,20 @@ class SmsService
    * @return   [type]           [description]
    */
 
-  public function sendSms($PhoneNumber,Array $Param)
+  public function sendSms($PhoneNumber, array $Param)
   {
     try {
       $smsConfig = config('ALI_SMS');
       $SignName = $smsConfig['SignName'];
       $TemplateCode = $smsConfig['TemplateCode'];
-      $send = Aliyunsms::sendSms(strval($PhoneNumber),$SignName,$TemplateCode,$Param);
+      $send = Aliyunsms::sendSms(strval($PhoneNumber), $SignName, $TemplateCode, $Param);
       Log::info(json_encode($send));
-      if ($send->Code == 'OK') {
-        return true;
-      } else {
-         return false;
-      }
+
+      return $send->Code == 'OK';
     } catch (Exception $e) {
-      Log::error("messageService:".$e->getMessage());
+      Log::error("messageService:" . $e->getMessage());
       throw new Exception("短信发送失败!");
       return false;
     }
   }
-
-
-
-
 }

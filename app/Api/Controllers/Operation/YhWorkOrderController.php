@@ -91,7 +91,9 @@ class YhWorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
-        $request->maintain_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
+        $request->check_type && $q->where('check_type', $request->check_type);
+        $request->process_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
+        $request->order_no  && $q->where('order_no', 'like', '%' . $request->order_no . '%');
       });
     $data = $subQuery->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
@@ -100,29 +102,23 @@ class YhWorkOrderController extends BaseController
 
     $data = $this->handleBackData($data);
     // 统计
-    $stat = $subQuery->selectRaw(
-      'sum(case status when 1 then 1 else 0 end)  as "1",
-          sum(case status when 2 then 1 else 0 end) as "2",
-          sum(case status when 3 then 1 else 0 end) as "3",
-          sum(case status when 4 then 1 else 0 end) as "4",
-          sum(case status when 99 then 1 else 0 end) as "99",
-          count(*) total_count'
-    )
-      ->first();
+    $stat = $subQuery->selectRaw('status, COUNT(*) as count')
+      ->groupBy('status')
+      ->get()
+      ->pluck('count', 'status')
+      ->toArray();
 
     $statusMap =  $this->workService->yhWorkModel()->statusMap();
     $totalCount = 0;
-    foreach ($statusMap as $k => $v) {
+    foreach ($statusMap as $k => $label) {
       if ($k == '90') {
         continue;
       }
       $value = $stat[$k] ?? 0;
-      $data['stat'][] = array('label' => $v, 'value' => $value, 'status' => $k);
+      $data['stat'][] = array('label' => $label, 'value' => $value, 'status' => $k);
       $totalCount += $value;
     }
     $data['stat'][] = array('label' => "总计", 'value' => $totalCount, 'status' => '');
-
-
     return $this->success($data);
   }
   /**
@@ -135,12 +131,11 @@ class YhWorkOrderController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"proj_id","open_time","order_source","repair_content"},
+   *          required={"proj_id","open_time","order_source"},
    *       @OA\Property(property="open_time",type="int",description="开单时间"),
    *       @OA\Property(property="proj_id",type="int",description="项目ID"),
-   *       @OA\Property(property="repair_goods",type="String",description="报修物品"),
    *       @OA\Property(property="tenant_id",type="int",description="租户ID"),
-   *       @OA\Property(property="repair_content",type="String",description="保修内容")
+   *       @OA\Property(property="hazard_issues",type="String",description="隐患内容")
    *     ),
    *       example={}
    *       )
@@ -177,12 +172,11 @@ class YhWorkOrderController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"id","proj_id","open_time","order_source","repair_content"},
+   *          required={"id","proj_id","open_time","order_source","hazard_issues"},
    *       @OA\Property(property="open_time",type="int",description="开单时间"),
    *       @OA\Property(property="proj_id",type="int",description="项目ID"),
-   *       @OA\Property(property="repair_goods",type="String",description="报修物品"),
    *       @OA\Property(property="tenant_id",type="int",description="租户ID"),
-   *       @OA\Property(property="repair_content",type="String",description="保修内容")
+   *       @OA\Property(property="hazard_issues",type="String",description="隐患内容")
    *     ),
    *       example={}
    *       )
@@ -214,9 +208,9 @@ class YhWorkOrderController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/yhworkorder/cancel",
+   *     path="/api/operation/yhworkorder/del",
    *     tags={"隐患工单"},
-   *     summary="隐患工单-工单取消",
+   *     summary="隐患工单-工单取消/删除",
    *    @OA\RequestBody(
    *       @OA\MediaType(
    *           mediaType="application/json",
@@ -235,18 +229,15 @@ class YhWorkOrderController extends BaseController
    *     )
    * )
    */
-  public function cancel(Request $request)
+  public function del(Request $request)
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
 
     ]);
-    $DA = $request->toArray();
-    $res = $this->workService->cancelWorkorder($request->id, $this->user);
-    if (!$res) {
-      return $this->error('工单取消失败！');
-    }
-    return $this->success('工单取消成功。');
+
+    $res = $this->workService->delWorkorder($request->id);
+    return $res ? $this->success('工单删除成功。') : $this->error('工单删除失败！');
   }
 
 
@@ -266,10 +257,10 @@ class YhWorkOrderController extends BaseController
    *        @OA\Property(property="id",type="int",description="ID"),
    *        @OA\Property(property="dispatch_time",type="date",description="接单时间"),
    *        @OA\Property(property="dispatch_user",type="String",description="派单人"),
-   *        @OA\Property(property="order_person",type="String",description="接单人"),
-   *        @OA\Property(property="order_uid",type="int",description="接单人uid"),
+   *        @OA\Property(property="process_user",type="String",description="接单人"),
+   *        @OA\Property(property="process_user_id",type="int",description="接单人uid"),
    *     ),
-   *       example={"id":0,"dispatch_user":"","dispatch_time":"","order_time":"","order_uid":"","order_person":""}
+   *       example={"id":0,"dispatch_user":"","dispatch_time":"","process_user_id":"","process_user":""}
    *       )
    *     ),
    *     @OA\Response(
@@ -285,23 +276,21 @@ class YhWorkOrderController extends BaseController
       'id' => 'required|numeric|gt:0',
       'dispatch_time' => 'required|date',
       'dispatch_user' => 'required|string',
-      'order_uid' => 'required|numeric|gt:0',
-      'order_person' => 'required',
+      'process_user_id' => 'required|numeric|gt:0',
+      'process_user' => 'required|string',
     ]);
     $DA = $request->toArray();
-    $workOrder = $this->workService->yhWorkModel()->find($DA['id']);
-    if (compareTime($workOrder->dispatch_time, $request->order_time)) {
+    $yhWorkOrder = $this->workService->yhWorkModel()->find($DA['id']);
+    if (compareTime($yhWorkOrder->open_time, $request->dispatch_time)) {
       return $this->error('派单时间不允许小于下单时间！');
     }
-    $workOrder->dispatch_time = $request->dispatch_time;
-    $workOrder->dispatch_user = $request->dispatch_user;
-    $workOrder->order_uid     = $request->order_uid;
-    $workOrder->order_person  = $request->order_person;
-    $res = $workOrder->save();
+    if ($yhWorkOrder->status != 1) {
+      return $this->error('不是可派单状态！');
+    }
+    $res = $this->workService->orderDispatch($DA, $this->user);
     if (!$res) {
       return $this->error('派单失败！');
     }
-    $this->workService->saveYhOrderLog($DA['id'], 2, $this->user);
     return $this->success('派单成功。');
   }
 
@@ -334,11 +323,22 @@ class YhWorkOrderController extends BaseController
 
   public function order(Request $request)
   {
-    $validatedData = $request->validate([
+    $msg =  [
+      'id.required' => 'ID 字段是必需的。',
+      'id.numeric' => 'ID 必须是数字。',
+      'id.gt' => 'ID 必须大于 0。',
+      'order_time.required' => '订单时间字段是必需的。',
+      'order_time.date' => '订单时间必须是一个有效的日期。',
+      'order_uid.required' => '订单用户ID字段是必需的。',
+      'order_uid.numeric' => '订单用户ID必须是数字。',
+      'order_uid.gt' => '订单用户ID必须大于 0。',
+    ];
+    $request->validate([
       'id' => 'required|numeric|gt:0',
       'order_time' => 'required|date',
       'order_uid' => 'required|numeric|gt:0',
-    ]);
+    ], $msg);
+
     $DA = $request->toArray();
     $workOrder = $this->workService->yhWorkModel()->find($DA['id']);
     if (compareTime($workOrder->open_time, $request->order_time)) {
@@ -380,18 +380,20 @@ class YhWorkOrderController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
 
-
     $DA = $request->toArray();
+    if ($request->process_status == '2') {
+      $this->workService->yhWorkModel()->where('id', $request->id)->update(['status' => '90']);
+      $this->workService->saveYhOrderLog($request->id, '90', $this->user, "转隐患仓库");
+      return $this->success('隐患转隐患库处理成功。');
+    }
+
     $workOrder = $this->workService->yhWorkModel()->find($DA['id']);
-    if (compareTime($workOrder->order_time, $request->return_time)) {
-      return $this->error('返单时间不允许小于接单时间！');
+    if (compareTime($workOrder->order_time, $request->process_time)) {
+      return $this->error('处理时间不允许小于接单时间！');
     }
 
     $res = $this->workService->processWorkOrder($DA, $this->user);
-    if (!$res) {
-      return $this->error('工单处理失败！');
-    }
-    return $this->success('工单处理成功。');
+    return  $res ? $this->success('工单处理成功。') : $this->error('工单处理失败！');
   }
 
 
@@ -425,48 +427,10 @@ class YhWorkOrderController extends BaseController
       // "feedback_rate" => 'required|numeric',
     ]);
     $DA = $request->toArray();
-
     $res = $this->workService->auditWorkOrder($DA, $this->user);
-
     return $res ? $this->success('工单审核成功。') : $this->error('工单审核失败！');
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/operation/yhworkorder/close",
-   *     tags={"隐患工单"},
-   *     summary="隐患 工单关闭，并提交评价",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"id"},
-   *       @OA\Property(property="id",type="int",description="工单id"),
-   *       @OA\Property(property="feedback_rate",type="int",description="评分")
-   *     ),
-   *       example={"feedback_rate":1,"feedback":"","id":1}
-   *       )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description=""
-   *     )
-   * )
-   */
-  public function close(Request $request)
-  {
-    $validatedData = $request->validate([
-      'id' => 'required|numeric',
-      "feedback_rate" => 'required|numeric',
-      // 'is_notice' =>'required|numeric',
-    ]);
-    $DA = $request->toArray();
-
-    $res = $this->workService->closeWork($DA, $this->user);
-
-    return $res ? $this->success('工单关闭成功。') : $this->error('工单关闭失败！');
-  }
 
 
   /**
@@ -529,16 +493,47 @@ class YhWorkOrderController extends BaseController
   {
     $request->validate([
       'id' => 'required|numeric|gt:0',
-    ]);
+    ], ['id.required' => '工单ID必须']);
     try {
       DB::transaction(function () use ($request) {
-        $data['status'] = '90';
-        $res = $this->workService->yhWorkModel()->where('id', $request->id)->update($data);
+        $this->workService->yhWorkModel()->where('id', $request->id)->update(['status' => '90']);
         $this->workService->saveYhOrderLog($request->id, '90', $this->user, "转隐患仓库");
       }, 2);
-      return  $this->success("转隐患仓库成功");
+      return  $this->success("转隐患仓库成功。");
     } catch (Exception $e) {
-      return $this->error("转隐患仓库失败");
+      return $this->error("转隐患仓库失败！");
     }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/yhworkorder/addRemark",
+   *     tags={"隐患工单"},
+   *     summary="隐患工单-隐患仓库添加备注",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *       @OA\Property(property="id",type="int",description="ID")
+   *     ),
+   *       example={}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function addRemark(Request $request)
+  {
+    $request->validate([
+      'id' => 'required|numeric|gt:0',
+      'remark' => 'required|String'
+    ]);
+
+    $res =   $this->workService->saveYhOrderLog($request->id, '90', $this->user, $request->remark);
+    return $res ?  $this->success("转隐患仓库成功") : $this->error("转隐患仓库失败");
   }
 }
