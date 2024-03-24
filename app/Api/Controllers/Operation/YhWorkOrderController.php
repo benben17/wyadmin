@@ -91,6 +91,7 @@ class YhWorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
+        $request->hazard_level && $q->where('hazard_level', $request->hazard_level);
         $request->check_type && $q->where('check_type', $request->check_type);
         $request->process_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
         $request->order_no  && $q->where('order_no', 'like', '%' . $request->order_no . '%');
@@ -272,16 +273,16 @@ class YhWorkOrderController extends BaseController
 
   public function orderDispatch(Request $request)
   {
-    $validatedData = $request->validate([
+    $request->validate([
       'id' => 'required|numeric|gt:0',
-      'dispatch_time' => 'required|date',
-      'dispatch_user' => 'required|string',
-      'process_user_id' => 'required|numeric|gt:0',
-      'process_user' => 'required|string',
+      // 'dispatch_time' => 'required|date',
+      // 'dispatch_user' => 'required|string',
+      'pick_user_id' => 'required|numeric|gt:0',
+      'pick_user' => 'required|string',
     ]);
     $DA = $request->toArray();
     $yhWorkOrder = $this->workService->yhWorkModel()->find($DA['id']);
-    if (compareTime($yhWorkOrder->open_time, $request->dispatch_time)) {
+    if (compareTime($yhWorkOrder->open_time, nowTime())) {
       return $this->error('派单时间不允许小于下单时间！');
     }
     if ($yhWorkOrder->status != 1) {
@@ -378,6 +379,7 @@ class YhWorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
+      'process_time' => 'required|date'
     ]);
 
     $DA = $request->toArray();
@@ -388,7 +390,7 @@ class YhWorkOrderController extends BaseController
     }
 
     $workOrder = $this->workService->yhWorkModel()->find($DA['id']);
-    if (compareTime($workOrder->order_time, $request->process_time)) {
+    if (compareTime($workOrder->dispatch_time, $request->process_time)) {
       return $this->error('处理时间不允许小于接单时间！');
     }
 
@@ -457,13 +459,13 @@ class YhWorkOrderController extends BaseController
 
   public function show(Request $request)
   {
-    $validator = \Validator::make($request->all(), [
+    \Validator::make($request->all(), [
       'id' => 'required|numeric|gt:0',
     ]);
 
     $data = $this->workService->yhWorkModel()
       ->with('orderLogs')
-      ->find($request->id)->toArray();
+      ->find($request->id);
     return $this->success($data);
   }
 

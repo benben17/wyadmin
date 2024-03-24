@@ -111,15 +111,15 @@ class YhWorkOrderService
           return false;
         }
 
-        $order->process_result  = $DA['process_result'];
-        $order->process_time     = $DA['process_time'];
-        $order->time_used       = $DA['time_used'] ?? 0;
+        $order->process_result = $DA['process_result'];
+        $order->process_time   = $DA['process_time'];
+        $order->time_used      = $DA['time_used'] ?? 0;
         $order->process_pic    = isset($DA['process_pic']) ? $DA['process_pic'] : "";
         $order->process_status = $DA['process_status'];
-        $order->process_person = isset($DA['process_person']) ? $DA['process_person'] : "";
-        $order->status          = AppEnum::workorderProcess; // 处理完成
-        $order->is_notice       =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
-        $order->remark          = $order['tenant_name'] . "-维修-" . $order['repair_content'];
+        $order->process_user   = isset($DA['process_user']) ? $DA['process_user'] : "";
+        $order->status         = AppEnum::workorderProcess; // 处理完成
+        $order->is_notice      =  isset($DA['is_notice']) ? $DA['is_notice'] : 0;
+        $order->remark         = "【" . $user->name . "】-处理-" . $order['hazard_issues'];
         $order->save();
 
 
@@ -212,9 +212,10 @@ class YhWorkOrderService
         $yhWorkOrder = $this->yhWorkModel()->find($DA['id']);
 
         $yhWorkOrder->dispatch_time = $DA['dispatch_time'] ?? nowTime();
-        $yhWorkOrder->dispatch_user = $DA['dispatch_user'] ?? $user['username'];
-        $yhWorkOrder->process_user_id     = $DA['process_user_id'];
-        $yhWorkOrder->process_user  = $DA['process_user'];
+        $yhWorkOrder->dispatch_user = $DA['dispatch_user'] ?? $user->name;
+        $yhWorkOrder->pick_user_id     = $DA['pick_user_id'];
+        $yhWorkOrder->pick_user  = $DA['pick_user'];
+        $yhWorkOrder->status = AppEnum::workorderTake;
 
         $yhWorkOrder->save();
         // 写入日志

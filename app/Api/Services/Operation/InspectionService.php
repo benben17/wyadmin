@@ -125,8 +125,7 @@ class InspectionService
     $qrcode = $qrcodeService->createQr($info, $company_id);
     if ($qrcode) {
       $data->qr_code      = $qrcode;
-      $res = $data->save();
-      return $res;
+      return $data->save();
     } else {
       return false;
     }

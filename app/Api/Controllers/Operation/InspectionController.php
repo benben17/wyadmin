@@ -496,7 +496,7 @@ class InspectionController extends BaseController
 
   public function recordDelete(Request $request)
   {
-    $validatedData = $request->validate([
+    $request->validate([
       'Ids' => 'required|array',
     ]);
     $res = $this->inspection->inspectionRecordModel()->whereIn('id', $request->Ids)->delete();
