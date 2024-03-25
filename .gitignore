@@ -14,6 +14,7 @@ yarn-error.log
 .env
 .env.example
 config/database.php
+database.php
 /public/uploads/
 /storage/logs/*
 .phpintel
