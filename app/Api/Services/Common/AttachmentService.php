@@ -24,8 +24,7 @@ class AttachmentService
     $attachment->file_path   = $DA['file_path'];
     $attachment->c_username  = $user['realname'];
     $attachment->c_uid       = $user['id'];
-    $res = $attachment->save();
-    return $res;
+    return $attachment->save();
   }
 
   /**

@@ -1,7 +1,6 @@
 <?php
 
 use App\Api\Models\Company\BankAccount;
-use App\Api\Models\Project;
 use App\Enums\AppEnum;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -60,6 +59,7 @@ function getVariable($companyId, $key)
 // 获取公司配置
 function companyConfig($id)
 {
+
     $result = \App\Models\Company::select('config')->find($id);
     return json_decode($result->config, true);
 }
@@ -104,15 +104,6 @@ function getContractNo()
     return $contractNo;
 }
 
-/**
- * 获取合同编号
- *
- * @return void
- */
-function getTradeNo()
-{
-    return date("ymdHis") . mt_rand(1000, 9999);
-}
 
 /**
  * 数字转大写金额
@@ -178,7 +169,10 @@ function numFormat($num)
 /** 通过开始日期获取几个月之后的日期 ，并减去一天（合同需要） */
 function getEndNextYmd($ymd, $months)
 {
-    $days = intval($months);
+    if (empty($ymd) || empty($months)) {
+        return "";
+    }
+    $months = intval($months);
     $ymd =  date("Y-m-d", strtotime("+" . $months . "months", strtotime($ymd)));
     return date("Y-m-d", strtotime("-1days", strtotime($ymd)));
 }
@@ -242,16 +236,19 @@ function nowTime()
     return $datetime->format('Y-m-d H:i:s');
 }
 /** unix时间戳转 日期格式 */
-function unixToYmd($unixtime)
+function unixToYmd($unixTime)
 {
     $datetime = new \DateTime();
-    $datetime->setTimestamp($unixtime);
+    $datetime->setTimestamp($unixTime);
     return $datetime->format('Y-m-d H:i:s');
 }
 
 /*获取2个日期之间的间隔 天*/
 function diffDays($date1, $date2)
 {
+    if (empty($date1) || empty($date2)) {
+        return 0;
+    }
     $start_date = new DateTime($date1);
     $end_end    = new DateTime($date2);
     $days = $start_date->diff($end_end)->days;
@@ -266,12 +263,19 @@ function diffDays($date1, $date2)
  */
 function getNextMonth(String $ymd, $months)
 {
+    if (empty($ymd) || empty($months)) {
+        return "";
+    }
     $months = intval($months);
+
     return date('Y-m', strtotime("+" . $months . "months", strtotime($ymd)));
 }
 
 function getYmdPlusMonths(String $ymd, $months)
 {
+    if (empty($ymd) || empty($months)) {
+        return "";
+    }
     $months = intval($months);
     return date('Y-m-d', strtotime("+" . $months . "months", strtotime($ymd)));
 }
@@ -288,7 +292,18 @@ function dateFormat($style, $date)
     return $date->format($style);
 }
 
-function getMonthNum($date1, $date2, $tags = '-')
+/**
+ * 获取两个日期之间的月份差
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-25
+ * @param string $date1
+ * @param string $date2
+ * @param string $tags
+ *
+ * @return int
+ */
+function getMonthNum($date1, $date2, $tags = '-'): int
 {
     $datetime1 = new DateTime($date1);
     $datetime2 = new DateTime($date2);
@@ -298,10 +313,20 @@ function getMonthNum($date1, $date2, $tags = '-')
     return $interval->y * 12 + $interval->m;
 }
 
-// 获取图片full 地址
-//
+/**
+ * 获取图片full地址
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-25
+ * @param [type] $filePath
+ *
+ * @return void
+ */
 function getOssUrl($filePath)
 {
+    if (empty($filePath)) {
+        return "";
+    }
     return "https://" . config('filesystems.disks.oss.bucket') . '.' . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
 }
 
@@ -471,13 +496,11 @@ function compareTime(string $dateString1, string $dateString2): bool
 }
 
 // 根据月份获取当前月份的开始日期和结束日期返回数组
-function getMonthRange($yearMon): array
+function getMonthRange($yearMonth): array
 {
-    // Ensure two-digit month
 
-    $startDate = "$yearMon-01";
+    $startDate = "$yearMonth-01";
     $endDate = date('Y-m-t', strtotime($startDate));
-
     // Return an array with both start and end dates
     return [$startDate,  $endDate];
 }
