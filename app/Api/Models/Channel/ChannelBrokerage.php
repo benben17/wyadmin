@@ -33,6 +33,7 @@ class ChannelBrokerage extends Model
   {
     return $this->hasOne(Tenant::class, 'id', 'tenant_id');
   }
+
   protected static function boot()
   {
     parent::boot();

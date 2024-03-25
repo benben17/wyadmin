@@ -6,10 +6,8 @@ use App\Api\Models\Channel\Channel;
 use App\Api\Models\Channel\ChannelBrokerage;
 use App\Api\Models\Common\Maintain;
 use App\Api\Models\Contract\Contract;
-use App\Api\Models\Contract\ContractRoom;
 use Illuminate\Database\Eloquent\Model;
 use App\Api\Scopes\CompanyScope;
-use App\Api\Models\Project;
 use App\Enums\AppEnum;
 
 /**
@@ -25,14 +23,11 @@ class Tenant extends Model
 
   protected $appends = ['status_label'];
 
+  # 获取status 的label
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      if ($this->attributes['status'] == 1) {
-        return  '在租';
-      } else {
-        return '退租';
-      }
+      return $this->attributes['status'] == 1 ? '在租' : '退租';
     }
   }
   public function getProjNameAttribute()

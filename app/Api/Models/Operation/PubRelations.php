@@ -59,12 +59,12 @@ class PubRelations extends Model
    *
    * @return bool 
    */
-  public function batchSave($data): bool
+  public static function batchSave($data): bool
   {
     if (empty($data)) {
       return false;
     }
-    return $this->insert($data);
+    return self::insert($data);
   }
 
 
