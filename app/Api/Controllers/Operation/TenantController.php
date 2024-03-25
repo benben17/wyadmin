@@ -77,7 +77,7 @@ class TenantController extends BaseController
         } else {
             $order = 'desc';
         }
-
+        DB::enableQueryLog();
         $result = $this->tenantService->tenantModel()
             ->where($map)
             ->where('type', AppEnum::TenantType)
@@ -92,15 +92,14 @@ class TenantController extends BaseController
             ->withCount('contract')
             ->with(['contractStat'  => function ($q) {
                 $q->select(DB::Raw('id,sum(sign_area) total_area,tenant_id'));
-                $q->whereHas('billRule', function ($subQuery) {
-                    $subQuery->where('fee_type', AppEnum::rentFeeType);
-                });
-                $q->groupBy('tenant_id');
+                // $q->whereHas('billRule', function ($subQuery) {
+                //     $subQuery->where('fee_type', AppEnum::rentFeeType);
+                // });
+                $q->where('contract_state', AppEnum::contractExecute); // 执行中的合同
             }])
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
-        // return response()->json(DB::getQueryLog());
-        DB::enableQueryLog();
+        // return $result;
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$tenant) {
             $tenant['total_area'] =  $tenant['contract_stat']['total_area'] ?? 0.00;
@@ -111,7 +110,7 @@ class TenantController extends BaseController
                 ->where('tenant_id', $tenant['id'])
                 ->first() ?? [];
             $tenant['start_date'] =  $contract['start_date'] ?? "";
-            $tenant['end_date'] =  $contract['end_date'] ?? "";
+            $tenant['end_date']   =  $contract['end_date'] ?? "";
             $tenant['lease_term'] =  $contract['lease_term'] ?? 0;
 
             $free = $this->contractService->freeModel()->where('tenant_id', $tenant['id'])
