@@ -29,6 +29,8 @@ class LeasebackController extends BaseController
         $this->leasebackService = new LeasebackService;
     }
 
+
+
     /**
      * @OA\Post(
      *     path="/api/operation/tenant/leaseback/list",
