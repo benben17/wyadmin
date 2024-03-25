@@ -537,7 +537,8 @@ class YhWorkOrderController extends BaseController
       'remark' => 'required|String'
     ]);
     $remarkService = new BseRemarkService;
-    $parentType = AppEnum::YhWorkOrder; // 隐患工单 parent_type
+    $parentType = AppEnum::YhWorkOrder; // 隐患工单parent_type
+
     $data = [
       'parent_id' => $request->id,
       'parent_type' => $parentType,
