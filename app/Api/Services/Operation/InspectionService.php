@@ -19,8 +19,7 @@ class InspectionService
   // 巡检点
   public function inspectionModel()
   {
-    $model = new InspectionModel;
-    return $model;
+    return new InspectionModel;
   }
 
   /** 巡检 */

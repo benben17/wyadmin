@@ -363,7 +363,7 @@ Route::group(['prefix' => 'operation/yhworkorder'], function () {
     Route::post('/order', '\App\Api\Controllers\Operation\YhWorkOrderController@order');
     Route::post('/process', '\App\Api\Controllers\Operation\YhWorkOrderController@process');
     Route::post('/dispatch', '\App\Api\Controllers\Operation\YhWorkOrderController@orderDispatch');
-    // Route::post('/toWarehouse', '\App\Api\Controllers\Operation\YhWorkOrderController@toWarehouse');
+    Route::post('/addRemark', '\App\Api\Controllers\Operation\YhWorkOrderController@addRemark');
     Route::post('/audit', '\App\Api\Controllers\Operation\YhWorkOrderController@audit');
 });
 

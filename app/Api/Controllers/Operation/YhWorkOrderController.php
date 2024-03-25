@@ -536,6 +536,6 @@ class YhWorkOrderController extends BaseController
     ]);
 
     $res =   $this->workService->saveYhOrderLog($request->id, '90', $this->user, $request->remark);
-    return $res ?  $this->success("转隐患仓库成功") : $this->error("转隐患仓库失败");
+    return $res ?  $this->success("添加备注成功") : $this->error("添加备注失败！");
   }
 }
