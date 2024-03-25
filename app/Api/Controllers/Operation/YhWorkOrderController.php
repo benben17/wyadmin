@@ -12,6 +12,7 @@ use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\BseRemarkService;
 use App\Api\Services\Operation\YhWorkOrderService;
 use Exception;
+use Illuminate\Support\Facades\Validator;
 
 /**
  *   工单
@@ -460,7 +461,7 @@ class YhWorkOrderController extends BaseController
 
   public function show(Request $request)
   {
-    \Validator::make($request->all(), [
+    Validator::make($request->all(), [
       'id' => 'required|numeric|gt:0',
     ]);
 
