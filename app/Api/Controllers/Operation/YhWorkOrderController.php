@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Common\BseRemarkService;
 use App\Api\Services\Operation\YhWorkOrderService;
 use Exception;
 
@@ -465,6 +466,7 @@ class YhWorkOrderController extends BaseController
 
     $data = $this->workService->yhWorkModel()
       ->with('orderLogs')
+      ->with('remarks')
       ->find($request->id);
     return $this->success($data);
   }
@@ -534,8 +536,16 @@ class YhWorkOrderController extends BaseController
       'id' => 'required|numeric|gt:0',
       'remark' => 'required|String'
     ]);
+    $remarkService = new BseRemarkService;
+    $parentType = AppEnum::YhWorkOrder; // 隐患工单 parent_type
+    $data = [
+      'parent_id' => $request->id,
+      'parent_type' => $parentType,
+      'remark' => $request->remark,
+      'add_date' => $request->add_date ?? nowTime(),
+    ];
+    $res = $remarkService->save($data, $this->user);
 
-    $res =   $this->workService->saveYhOrderLog($request->id, '90', $this->user, $request->remark);
-    return $res ?  $this->success("添加备注成功") : $this->error("添加备注失败！");
+    return $res ?  $this->success("添加成功") : $this->error("添加失败！");
   }
 }

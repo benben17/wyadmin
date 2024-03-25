@@ -5,6 +5,12 @@ namespace App\Enums;
 use MyCLabs\Enum\Enum;
 
 
+/**
+ * 应用变量信息
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-25
+ */
 abstract class AppEnum extends Enum
 {
   const Channel       = 1;  //  渠道
@@ -13,6 +19,7 @@ abstract class AppEnum extends Enum
   const Relationship  = 4;  // 公共关系
   const Tenant        = 5;  // 租户
   const CusClue       = 6;  // 线索
+  const YhWorkOrder   = 7;  // 隐患工单
 
   // 招商合同状态
   const contractSave      = 0;  // 保存
@@ -60,11 +67,11 @@ abstract class AppEnum extends Enum
   const chargeCategoryRefund  = 3;    // 收入退款
 
   // 免租类型
-  const freeMonth = 1;
-  const freeDay = 2;
+  const freeMonth = 1; // 按月免租
+  const freeDay = 2; // 按天免租
 
   const chargeVerify  = 1;  // 
-  const chargeUnVerify  = 0;
+  const chargeUnVerify  = 0; // 未核销
 
 
   // 单位

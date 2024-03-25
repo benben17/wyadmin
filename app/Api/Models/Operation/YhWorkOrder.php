@@ -5,6 +5,7 @@ namespace App\Api\Models\Operation;
 use Illuminate\Database\Eloquent\Model;
 // use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+use App\Enums\AppEnum;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -46,6 +47,11 @@ class YhWorkOrder extends Model
     ];
   }
 
+
+  public function remarks()
+  {
+    return $this->hasMany('App\Api\Models\Common\BseRemark', 'parent_id', 'id')->where('parent_type', AppEnum::YhWorkOrder);
+  }
 
   public function orderLogs()
   {

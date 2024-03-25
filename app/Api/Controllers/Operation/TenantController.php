@@ -212,7 +212,7 @@ class TenantController extends BaseController
                 }
 
                 $log['tenant_id'] = $tenantId;
-                $log['content'] =  $this->user['name'] . '新增租户:' . $res->name;
+                $log['content'] =  $this->user['realname'] . '新增租户:' . $res->name;
                 $this->tenantService->saveTenantLog($log, $this->user);
             }, 2);
 
@@ -304,7 +304,7 @@ class TenantController extends BaseController
                     }
                 }
                 $log['tenant_id'] = $DA['id'];
-                $log['content'] =  $this->user['name'] . '编辑租户:' . $tenantRes->name;
+                $log['content'] =  $this->user['realname'] . '编辑租户:' . $tenantRes->name;
                 $this->tenantService->saveTenantLog($log, $this->user);
             });
             return $this->success('客户更新成功。');

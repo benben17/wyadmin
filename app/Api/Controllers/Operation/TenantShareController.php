@@ -142,7 +142,7 @@ class TenantShareController extends BaseController
         $res = $this->tenantService->saveTenant($DA, $this->user);
         if ($res) {
             $log['tenant_id'] = $DA['parent_id'];
-            $log['content'] =  $this->user['name'] . '新增分摊租户:' . $DA['name'];
+            $log['content'] =  $this->user['realname'] . '新增分摊租户:' . $DA['name'];
             $this->tenantService->saveTenantLog($log, $this->user);
             return $this->success("分摊租户添加成功");
         }
@@ -307,7 +307,7 @@ class TenantShareController extends BaseController
                 $BA['contract_state'] = '租户分摊';
                 $BA['remark'] = '增加分摊租户' .  implode(', ', array_unique($shareTenants));
                 $BA['c_uid'] = $user['id'];
-                $BA['c_username'] = $user['name'];
+                $BA['c_username'] = $user['realname'];
                 $contractService->saveLog($BA);
             }, 2);
             return $this->success("分摊处理成功");

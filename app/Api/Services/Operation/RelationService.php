@@ -49,7 +49,6 @@ class RelationService
           $contact = new ContactService;
           // 更新供应商的时候删除所有的联系人
           if ($type == 2) {
-
             $contact->delete(str2Array($relation->id));
           }
           $user['parent_type'] = AppEnum::Relationship;

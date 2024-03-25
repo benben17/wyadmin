@@ -896,11 +896,11 @@ class ContractController extends BaseController
 
                 // 保存日志
                 $log['id'] = $contract['id'];
-                $log['remark'] = $this->user['name'] . "在" . nowTime() . "变更合同";
+                $log['remark'] = $this->user['realname'] . "在" . nowTime() . "变更合同";
                 $log['contract_id'] = $contract['id'];
                 $log['title'] = "合同变更";
                 $log['c_uid'] = $this->uid;
-                $log['c_username'] = $this->user['name'];
+                $log['c_username'] = $this->user['realname'];
                 $contractService->saveLog($log);
             }, 2);
 

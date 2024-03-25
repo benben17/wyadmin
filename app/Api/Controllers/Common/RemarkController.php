@@ -8,21 +8,33 @@ use Illuminate\Http\Request;
 
 
 use Illuminate\Support\Facades\DB;
-use App\Api\Services\BseRemark as remarkService;
-use App\Api\Models\Common\Remark as remarkModel;
-
-
+use App\Api\Services\Common\BseRemarkService;
+use App\Enums\AppEnum;
 
 /**
- *  parent_type  1 房源
+ * 公共方法备注 
  *
+ * @Author leezhua
+ * @DateTime 2024-03-25
  */
 class RemarkController extends BaseController
 {
-
+    /**
+     *  parent_type  1 房源 2 客户 3 供应商 4 政府关系 5 租户 6 线索 
+     * const Channel       = 1;  //  渠道
+     *    Customer      = 2;  // 客户
+     *    Supplier      = 3;  //  供应商
+     *    Relationship  = 4;  // 公共关系
+     *     Tenant        = 5;  // 租户
+     *    CusClue       = 6;  // 线索
+     *    YhWorkOrder   = 7;  // 隐患工单
+     *
+     */
+    protected $remarkService;
     public function __construct()
     {
         parent::__construct();
+        $this->remarkService = new BseRemarkService;
     }
 
     /**
@@ -86,8 +98,8 @@ class RemarkController extends BaseController
     public function list(Request $request)
     {
         $validatedData = $request->validate([
-            'parent_type' => 'required|in:1,2,3,4,5',
-            'parent_id' => 'required|min:1',
+            'parent_type' => 'required|gt:0',
+            // 'parent_id' => 'required|min:1',
         ]);
         $pagesize = $request->input('pagesize');
         if (!$pagesize || $pagesize < 1) {
@@ -97,8 +109,6 @@ class RemarkController extends BaseController
             $pagesize = config('export_rows');
         }
 
-        $map['parent_type'] = $request->parent_type;
-        $map['parent_id'] = $request->parent_id;
 
         // 排序字段
         if ($request->input('orderBy')) {
@@ -113,7 +123,11 @@ class RemarkController extends BaseController
             $orderByAsc = 'desc';
         }
         DB::enableQueryLog();
-        $data = remarkModel::where($map)
+        $data = $this->remarkService->model()
+            ->where(function ($query) use ($request) {
+                $request->parent_type && $query->where('parent_type', $request->parent_type);
+                $request->parent_id && $query->where('parent_id', $request->parent_id);
+            })
             ->orderBy($orderBy, $orderByAsc)
             ->paginate($pagesize)->toArray();
 
@@ -162,7 +176,7 @@ class RemarkController extends BaseController
     {
         $validatedData = $request->validate([
             'parent_id' => 'required|min:1',
-            'parent_type' => 'required|min:1|in:1,2,3,4,5',
+            'parent_type' => 'required|min:1',
             'remark_content' => 'required|String|min:1',
             'c_user' => 'required|String',
         ]);
@@ -171,8 +185,7 @@ class RemarkController extends BaseController
         $user = auth('api')->user();
         // $DA['parent_id'] = $DA['parent_id'];
         // $DA['parent_type'] = $DA['parent_type'];
-        $remark = new remarkService;
-        $res = $remark->save($DA, $user);
+        $res = $this->remarkService->save($DA, $user);
 
         if ($res) {
             return $this->success('备注添加成功！');
@@ -214,7 +227,7 @@ class RemarkController extends BaseController
         ]);
 
         $DA =  $request->toArray();
-        $res = remarkModel::find($DA['id'])->delete();
+        $res = $this->remarkService->model()->find($DA['id'])->delete();
         if ($res) {
             return $this->success('备注删除成功！');
         } else {
