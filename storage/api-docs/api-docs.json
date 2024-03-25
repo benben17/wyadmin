@@ -10761,8 +10761,7 @@
                                 "required": [
                                     "proj_id",
                                     "open_time",
-                                    "order_source",
-                                    "repair_content"
+                                    "order_source"
                                 ],
                                 "properties": {
                                     "open_time": {
@@ -10773,16 +10772,12 @@
                                         "description": "项目ID",
                                         "type": "int"
                                     },
-                                    "repair_goods": {
-                                        "description": "报修物品",
-                                        "type": "String"
-                                    },
                                     "tenant_id": {
                                         "description": "租户ID",
                                         "type": "int"
                                     },
-                                    "repair_content": {
-                                        "description": "保修内容",
+                                    "hazard_issues": {
+                                        "description": "隐患内容",
                                         "type": "String"
                                     }
                                 },
@@ -10816,7 +10811,7 @@
                                     "proj_id",
                                     "open_time",
                                     "order_source",
-                                    "repair_content"
+                                    "hazard_issues"
                                 ],
                                 "properties": {
                                     "open_time": {
@@ -10827,16 +10822,12 @@
                                         "description": "项目ID",
                                         "type": "int"
                                     },
-                                    "repair_goods": {
-                                        "description": "报修物品",
-                                        "type": "String"
-                                    },
                                     "tenant_id": {
                                         "description": "租户ID",
                                         "type": "int"
                                     },
-                                    "repair_content": {
-                                        "description": "保修内容",
+                                    "hazard_issues": {
+                                        "description": "隐患内容",
                                         "type": "String"
                                     }
                                 },
@@ -10853,13 +10844,13 @@
                 }
             }
         },
-        "/api/operation/yhworkorder/cancel": {
+        "/api/operation/yhworkorder/del": {
             "post": {
                 "tags": [
                     "隐患工单"
                 ],
-                "summary": "隐患工单-工单取消",
-                "operationId": "82bcf758f2f23ab532926e804c1a1601",
+                "summary": "隐患工单-工单取消/删除",
+                "operationId": "7eae5d72ff751ea34e8e33327f3f42b0",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -10918,11 +10909,11 @@
                                         "description": "派单人",
                                         "type": "String"
                                     },
-                                    "order_person": {
+                                    "process_user": {
                                         "description": "接单人",
                                         "type": "String"
                                     },
-                                    "order_uid": {
+                                    "process_user_id": {
                                         "description": "接单人uid",
                                         "type": "int"
                                     }
@@ -10933,9 +10924,8 @@
                                 "id": 0,
                                 "dispatch_user": "",
                                 "dispatch_time": "",
-                                "order_time": "",
-                                "order_uid": "",
-                                "order_person": ""
+                                "process_user_id": "",
+                                "process_user": ""
                             }
                         }
                     }
@@ -11093,48 +11083,6 @@
                 }
             }
         },
-        "/api/operation/yhworkorder/close": {
-            "post": {
-                "tags": [
-                    "隐患工单"
-                ],
-                "summary": "隐患 工单关闭，并提交评价",
-                "operationId": "d2e18a91ee760e5a3f1996ae5d44eb5f",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "工单id",
-                                        "type": "int"
-                                    },
-                                    "feedback_rate": {
-                                        "description": "评分",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "feedback_rate": 1,
-                                "feedback": "",
-                                "id": 1
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/operation/yhworkorder/show": {
             "post": {
                 "tags": [
@@ -11173,6 +11121,37 @@
                 ],
                 "summary": "隐患工单-转隐患仓库",
                 "operationId": "cb35744b90726405ccb39e8665114d18",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "properties": {
+                                    "id": {
+                                        "description": "ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/yhworkorder/addRemark": {
+            "post": {
+                "tags": [
+                    "隐患工单"
+                ],
+                "summary": "隐患工单-隐患仓库添加备注",
+                "operationId": "aa6115961c24ea72218ac1de39045aa6",
                 "requestBody": {
                     "content": {
                         "application/json": {
