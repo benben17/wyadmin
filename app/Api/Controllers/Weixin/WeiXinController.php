@@ -3,7 +3,7 @@
 namespace App\Api\Controllers\Weixin;
 
 use JWTAuth;
-use Socialite;
+use Laravel\Socialite\Facades\Socialite;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Weixin\WeiXinServices;
 use Illuminate\Http\Request;
@@ -11,7 +11,7 @@ use SocialiteProviders\WeixinWeb\Provider;
 use App\Api\Services\Sys\UserServices;
 use App\Api\Models\Weixin\WxInfo;
 use FFI\Exception;
-use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -54,8 +54,9 @@ class WeiXinController extends BaseController
 
         $wxService = new WeiXinServices;
         DB::enableQueryLog();
+        $wxOpenid = $wx_user['openid'];
         // return response()->json(DB::getQueryLog());
-        $res = $wxService->bindWx($wx_user, $uid);
+        $res = $wxService->bindWx($wxOpenid, $wx_user, $uid);
         if ($res) {
           return $this->success("绑定成功;");
         } else {
