@@ -124,7 +124,7 @@ class VariableService
       $project->proj_type = AppEnum::projType;
       $project->proj_name = '默认项目';
       $project->company_id = $companyId;
-      $project->is_vaild = 1;
+      $project->is_valid = 1;
       $project->save();
 
       $depart = new Depart;
