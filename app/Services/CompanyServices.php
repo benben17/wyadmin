@@ -2,6 +2,7 @@
 namespace App\Services;
 use App\Models\Company as CompanyModel;
 use App\Api\Models\Project;
+
 /**
  *
  */
@@ -23,13 +24,9 @@ class CompanyServices
    */
   public function checkProjCount($Id)
   {
-    $projCount = Project::where('is_vaild',1)->count();
+    $projCount = Project::where('is_valid', 1)->count();
     $companyInfo = $this->getCompanyById($Id);
-    if ($projCount < $companyInfo['proj_count']) {
-      return false;
-    } else {
-      return true;
-    }
+    return $projCount < $companyInfo['proj_count'] ? false : true;
   }
   /**
    * 获取项目名称
