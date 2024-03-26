@@ -1,7 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
-/public/template/
+/public/template/*
 /vendor/
 /bootstrap/cache/*
 .env.backup
@@ -15,7 +15,7 @@ yarn-error.log
 .env.example
 config/database.php
 database.php
-/public/uploads/
+/public/uploads/*
 /storage/logs/*
 .phpintel
 .editorconfig
