@@ -460,7 +460,7 @@ function getProjIdByName($projName)
  * @param [type] $parentIds
  * @param array $arr
  *
- * @return void
+ * @return array
  */
 function getDepartIds($parentIds, $arr): array
 {

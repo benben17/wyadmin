@@ -5107,7 +5107,7 @@
                                         "description": "维护记录ID",
                                         "type": "int"
                                     },
-                                    "prent_type": {
+                                    "parent_type": {
                                         "description": "1 channel 2 客户 3 供应商 4 政府关系 5 租户",
                                         "type": "int"
                                     }
@@ -6184,6 +6184,42 @@
                                 "type": "object"
                             },
                             "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "api/pub/depart/getAll": {
+            "post": {
+                "tags": [
+                    "选择公用接口"
+                ],
+                "summary": "部门选择",
+                "operationId": "f6adf6784f1da0e6e10148ced062a87c",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "is_vaild"
+                                ],
+                                "properties": {
+                                    "is_vaild": {
+                                        "description": "0 无效 1 有效",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "is_vaild": 1
+                            }
                         }
                     }
                 },

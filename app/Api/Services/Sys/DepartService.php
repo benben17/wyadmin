@@ -107,20 +107,20 @@ class DepartService
    * @Author leezhua
    * @DateTime 2021-08-23
    * @param [type] $parentId
-   * @param integer $isVaild
+   * @param integer $isValid
    *
-   * @return void
+   * @return array
    */
-  public function getDepartSelect($parentId, $isVaild = 1)
+  public function getDepartSelect($parentId, $isValid = 1)
   {
     DB::enableQueryLog();
     $data = $this->model()->selectRaw('id,name,seq')
       ->where('parent_id', $parentId)
-      ->where(function ($q) use ($isVaild) {
-        $isVaild && $q->where('is_vaild', $isVaild);
+      ->where(function ($q) use ($isValid) {
+        $isValid && $q->where('is_vaild', $isValid);
       })
       ->orderBy('seq', 'asc')->get()->toArray();
-    // return response()->json(DB::getQueryLog());
+    return response()->json(DB::getQueryLog());
 
     foreach ($data as $k => &$v) {
       $v['id'] = $v['id'];

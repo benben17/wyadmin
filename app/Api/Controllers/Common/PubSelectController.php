@@ -809,13 +809,27 @@ class PubSelectController extends BaseController
 
 
 	/**
-	 * 获取部门信息
-	 *
-	 * @Author leezhua
-	 * @DateTime 2023-11-30
-	 * @param Request $request
-	 *
-	 * @return void
+	 * @OA\Post(
+	 *     path="api/pub/depart/getAll",
+	 *     tags={"选择公用接口"},
+	 *     summary="部门选择",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"is_vaild"},
+	 *  				@OA\Property(property="is_vaild",type="int",description="0 无效 1 有效"),
+	 * 				
+	 *     ),
+	 *       example={"is_vaild":1}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
 	 */
 	public function getDeparts(Request $request)
 	{
