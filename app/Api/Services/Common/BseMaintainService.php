@@ -20,8 +20,7 @@ class BseMaintainService
 
     public function maintainModel(): MaintainModel
     {
-        $model =  new MaintainModel;
-        return $model;
+        return  new MaintainModel;
     }
 
     /**
