@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Services;
+namespace App\Api\Services\Common;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -15,8 +15,14 @@ use App\Enums\AppEnum;
 /**
  *  维护。type  1 channel 2 客户 3 供应商 4 政府关系 5 租户
  */
-class BseMaintain
+class BseMaintainService
 {
+
+    public function maintainModel(): MaintainModel
+    {
+        $model =  new MaintainModel;
+        return $model;
+    }
 
     /**
      * @Author   leezhua
@@ -27,9 +33,9 @@ class BseMaintain
     public function add($DA, $user)
 
     {
-        $times = MaintainModel::where('parent_id', $DA['parent_id'])->count();
+        $times = $this->maintainModel()->where('parent_id', $DA['parent_id'])->count();
         try {
-            $maintain = new MaintainModel;
+            $maintain = $this->maintainModel();
             $maintain->parent_id    = $DA['parent_id'];
             $maintain->proj_id    = $DA['proj_id'];
             $maintain->parent_type   = $DA['parent_type'];
@@ -45,19 +51,15 @@ class BseMaintain
             $maintain->company_id = $user['company_id'];
             $maintain->times = $times + 1;
             $maintain->role_id = $user['role_id'];
-            $res = $maintain->save();
+            $maintain->save();
             return $maintain;
         } catch (Exception $e) {
-            Log::error('保存维护记录失败' . $e->getMessage());
+            Log::error('保存维护记录失败:' . $e->getMessage());
             return false;
         }
     }
 
-    public function maintainModel()
-    {
-        $model =  new MaintainModel;
-        return $model;
-    }
+
 
     /**
      * @Author   leezhua
@@ -69,7 +71,7 @@ class BseMaintain
     public function edit($DA, $user)
     {
         try {
-            $maintain = MaintainModel::find($DA['id']);
+            $maintain = $this->maintainModel()->find($DA['id']);
             $maintain->parent_id = $DA['parent_id'];
             $maintain->parent_type = $DA['parent_type'];
             $maintain->maintain_date  = $DA['maintain_date'];
@@ -95,12 +97,11 @@ class BseMaintain
      * @Author   leezhua
      * @DateTime 2020-05-26
      * @param    [type]     $contactId [父ID]
-     * @return   [type]                [description]
+     * @return   bool                [description]
      */
-    public function delete($maintainIds)
+    public function delete($maintainIds): bool
     {
-        $res = MaintainModel::whereIn('id', $maintainIds)->delete();
-        return $res;
+        return $this->maintainModel()->whereIn('id', $maintainIds)->delete();
     }
 
     /**
@@ -119,8 +120,7 @@ class BseMaintain
         if (!empty($parent_type)) {
             $map['parent_type'] = $parentType;
         }
-        $maintain = MaintainModel::where($map)->get();
-        return $maintain;
+        return $this->maintainModel()->where($map)->get();
     }
 
     /**
@@ -155,13 +155,13 @@ class BseMaintain
      * 根据维护id 和维护类型获取 维护信息
      * @Author   leezhua
      * @DateTime 2020-07-04
-     * @param    [int]     $id         [description]
-     * @param    [int]     $parentType [1，2，3，4，5]
+     * @param    int     $id         [description]
+     * @param    int     $parentType [1，2，3，4，5]
      * @return   [type]                 [description]
      */
     public function showMaintain($id, $parentType)
     {
-        $data = MaintainModel::find($id);
+        $data = $this->maintainModel()->find($id);
         Log::error("维护租户id" . $data['parent_id']);
         $data['name'] = $this->getParentName($data['parent_id'], $parentType);
         $data['maintain_type_label'] = getDictName($data['maintain_type']);

@@ -156,7 +156,7 @@ class DictController extends BaseController
         $map['company_id']  = $this->company_id;
         $checkDict = DictModel::where($map)->exists();
         if ($checkDict) {
-            return $this->error('数据重复');
+            return $this->error('【' . $data['dict_value'] . '】数据重复');
         }
         $dict = new DictModel;
         $dict->company_id = $this->company_id;
@@ -226,18 +226,15 @@ class DictController extends BaseController
         $map['company_id'] = $this->company_id;
         // DB::enableQueryLog();
         $checkDict = DictModel::where($map)
-            ->where('id', '!=', $request['id'])->exists();
+            ->where('id', '!=', $request->id)->exists();
 
         // return response()->json(DB::getQueryLog());
         if ($checkDict) {
-            return $this->error('数据重复');
+            return $this->error('【' . $data['dict_value'] . '】数据重复');
         }
-        $dict = DictModel::where('id', $request['id'])->update($data);
-        if ($dict) {
-            return $this->success('数据更新成功');
-        } else {
-            return $this->error('数据更新失败');
-        }
+        $res = DictModel::where('id', $request->id)->update($data);
+
+        return $res ? $this->success('数据更新成功') : $this->error('数据更新失败');
     }
 
     /**
