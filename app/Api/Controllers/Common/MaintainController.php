@@ -7,13 +7,10 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\BseMaintain as maintainService;
+use App\Api\Services\Common\BseMaintainService as maintainService;
 use App\Enums\AppEnum;
 use App\Api\Excel\Common\MaintainExcel;
-use App\Api\Models\Channel\Channel as  ChannelModel;
-use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Models\Operation\Supplier as SupplierModel;
-use App\Api\Models\Operation\PubRelations as RelationsModel;
+
 
 /**
  *  parent_type  1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -296,7 +293,7 @@ class MaintainController extends BaseController
      *          description="维护记录ID"
      *       ),
      *       @OA\Property(
-     *          property="prent_type",
+     *          property="parent_type",
      *          type="int",
      *          description="1 channel 2 客户 3 供应商 4 政府关系 5 租户"
      *       )

@@ -13,11 +13,10 @@ use App\Api\Models\Company\FeeType;
  */
 class FeeTypeService
 {
-  public function model()
+  public function model(): FeeType
   {
     try {
-      $model = new FeeType;
-      return $model;
+      return new FeeType;
     } catch (Exception $e) {
       Log::error($e->getMessage());
       throw new Exception("模型获取失败！");
@@ -105,10 +104,8 @@ class FeeTypeService
    */
   public function getFeeNames($feeIds): array
   {
-
     $feeType = FeeType::selectRaw('GROUP_CONCAT(fee_name) as fee_names')
       ->whereIn('id', str2Array($feeIds))->first();
-
     return str2Array($feeType['fee_names']) ?? array();
   }
 }

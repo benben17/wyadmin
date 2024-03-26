@@ -192,12 +192,14 @@ class TenantBillService
         }
         $billDetail->u_uid       = $user['id'];
 
-        $this->saveBillDetailLog($billDetail, $DA, $user);
+        $billDetail->charge_date = $DA['charge_date'] ?? $billDetail->charge_date;
         $billDetail->amount = $DA['amount'];
         $billDetail->discount_amount = $DA['discount_amount'] ?? 0;
         $billDetail->fee_type = $billDetail['fee_type'];
         $billDetail->bank_id = $this->getBankId($billDetail->proj_id, $billDetail->fee_type);
         $billDetail->save();
+        // 保存日志
+        $this->saveBillDetailLog($billDetail, $DA, $user);
       }, 2);
       return true;
     } catch (Exception $th) {

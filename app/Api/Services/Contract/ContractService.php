@@ -164,7 +164,7 @@ class ContractService
     $DA['c_username'] = $user->realname;
     $DA['title'] = "作废合同";
     $DA['contract_state'] = 99;
-    $contract = ContractModel::find($DA['id']);
+    $contract = $this->model()->find($DA['id']);
     if ($contract->contract_state == 99 || $contract->contract_state == 2) {
       return array('code' => 0, 'msg' => '合同为取消状态或者正式合同不允许取消');
     }
@@ -174,6 +174,8 @@ class ContractService
         $contract->contract_state = AppEnum::contractCancel;
         $contract->save();
 
+        $detailBill = new TenantBillService;
+        $detailBill->billDetailModel()->where('contract_id', $DA['id'])->delete();
         // 写入合同日志
         $this->saveLog($DA);
       });
