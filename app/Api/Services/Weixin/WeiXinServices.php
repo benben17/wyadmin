@@ -151,9 +151,7 @@ class WeiXinServices
      * 其中 session_key 是对用户数据进行加密签名的密钥。为了自身应用安全，session_key 不应该在网络上传输。
      */
     // 微信小程序ID
-
     $weixinConf = config('weixin');
-
     try {
       $params = http_build_query([
         'appid'       => $weixinConf['appid'],
