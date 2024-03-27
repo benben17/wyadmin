@@ -161,7 +161,7 @@ function amountToCny(float $number)
 
 
 /** 保留两位小数 并格式化数据输出 */
-function numFormat($num)
+function numFormat($num): float
 {
     if (!$num || empty($num) || is_null($num) || $num === NULL || $num == 0) {
         return 0.00;

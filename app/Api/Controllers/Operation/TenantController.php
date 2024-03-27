@@ -102,7 +102,7 @@ class TenantController extends BaseController
         // return $result;
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$tenant) {
-            $tenant['total_area'] =  $tenant['contract_stat']['total_area'] ?? 0.00;
+            $tenant['total_area'] =  numFormat($tenant['contract_stat']['total_area']) ?? 0.00;
             unset($tenant['contract_stat']);
             $contract = $this->contractService->model()
                 ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id', 'free_type')

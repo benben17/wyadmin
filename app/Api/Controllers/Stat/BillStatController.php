@@ -389,9 +389,10 @@ class BillStatController extends BaseController
         'unreceive_amount' => numFormat($unreceiveAmount),
       ];
       // Update total amounts
-      $formattedData[$tenantId]['total_amt'] += $amount;
-      $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
-      $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
+      // 
+      $formattedData[$tenantId]['total_amt'] += numFormat($amount);
+      $formattedData[$tenantId]['total_receive_amt'] += numFormat($receiveAmount);
+      $formattedData[$tenantId]['total_unreceive_amt'] += numFormat($unreceiveAmount);
     }
 
 
@@ -404,4 +405,7 @@ class BillStatController extends BaseController
 
     return $this->success($DA);
   }
+
+  // 处理数字，保留2位小数
+
 }
