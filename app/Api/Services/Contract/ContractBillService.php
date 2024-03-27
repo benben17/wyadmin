@@ -117,7 +117,7 @@ class ContractBillService
 
       if ($i == 0) {
         Log::error($startDate);
-        $bill[$i]['charge_date']  = $startDate;
+        $bill[$i]['charge_date']  = getPreYmd($startDate, 1);
       } else {
         $bill[$i]['charge_date'] = formatYmd(formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, $rule['ahead_pay_month'])))));
       }
