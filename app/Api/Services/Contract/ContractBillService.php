@@ -51,7 +51,7 @@ class ContractBillService
 
       if ($i == 0) { // 第一次账单 收费日期为签合同日期开始日期为合同开始日期
         $startDate = formatYmd($rule['start_date']);
-        $bill[$i]['charge_date'] = formatYmd($rule['start_date']);
+        $bill[$i]['charge_date'] = getPreYmd($startDate, 1);
       } else {
         // 收费日期根据提前几个月（ahead_pay_month）算出来的
         $chargeDate = getNextYmd($startDate, $period - $rule['ahead_pay_month']);
@@ -271,7 +271,7 @@ class ContractBillService
       $bill[$i]['unit_price_label'] = $rule['unit_price_label'];
       if ($i == 0) {
         $startDate = $rule['start_date'];
-        $bill[$i]['charge_date'] = $startDate;
+        $bill[$i]['charge_date'] = getPreYmd($startDate, 1);
       } else {  // 其他累加
         $startDate = $endDate;
         $chargeDate = getPreYmd($endDate, $rule['ahead_pay_month']);

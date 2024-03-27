@@ -39,14 +39,17 @@ function getCompanyIds($uid)
  */
 function getBankIdByFeeType($feeId, $projId): int
 {
-    if (!$feeId || !$projId) {
-        return 0;
+    try {
+        $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
+        if ($bank) {
+            return $bank->id;
+        } else {
+            throw new \Exception("未找到【" . getFeeNameById($feeId) . "】费用的银行账户");
+        }
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        throw new \Exception("费用的银行账户获取失败");
     }
-    $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
-    if ($bank) {
-        return $bank->id;
-    }
-    return 0;
 }
 
 function getVariable($companyId, $key)

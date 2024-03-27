@@ -111,7 +111,6 @@ class ContractService
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
           if ($v === 1) {
-
             $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
             // Log::info("fee_type_label" . $feeBill[$i]['fee_type_label']);
           } else {

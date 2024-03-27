@@ -109,8 +109,8 @@ class TenantBillService
         $billDetail->fee_type    = $DA['fee_type']; // 费用类型
         $billDetail->amount      = $DA['amount'];
         $billDetail->bank_id     = $DA['bank_id'] ?? 0;
-        if (isset($DA['contract_id']) && $billDetail->bank_id === 0) {
-          $billDetail->bank_id     = $this->getBankIdByContractId($DA['contract_id'], $DA['fee_type']);
+        if ($billDetail->bank_id === 0) {
+          $billDetail->bank_id     = getFeeNameById($DA['contract_id'], $DA['fee_type']);
         }
 
         if (isset($DA['charge_date'])) {
@@ -140,24 +140,7 @@ class TenantBillService
   }
 
 
-  /**
-   * 通过费用id获取银行id
-   *
-   * @Author leezhua
-   * @DateTime 2024-03-20
-   * @param [type] $projId
-   * @param [type] $feeId
-   *
-   * @return void
-   */
-  public function getBankId($feeType, int $projId)
-  {
-    $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeType])->where('proj_id', $projId)->first();
-    if ($bank) {
-      return $bank->id;
-    }
-    return 0;
-  }
+
 
   /**
    * 分享账单主表更新
@@ -172,18 +155,31 @@ class TenantBillService
   public function updateShareBillDetail(int $detailId, $updateData)
   {
     try {
-      $billDetail = $this->billDetailModel()->where('id', $detailId)->update($updateData);
+      $this->billDetailModel()->where('id', $detailId)->update($updateData);
     } catch (Exception $e) {
       Log::error("分享后账单更新失败!" . $e->getMessage());
       throw new Exception("分享后账单更新失败");
     }
   }
 
+  /**
+   * 编辑账单明细
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-27
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
   public function editBillDetail($DA, $user)
   {
     try {
       DB::transaction(function () use ($DA, $user) {
         $billDetail = $this->billDetailModel()->find($DA['id']);
+        if (!$billDetail) {
+          throw new Exception("费用不存在");
+        }
         $oldAmt = $billDetail->amount;
         if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
           throw new Exception("已有收款不允许编辑");
@@ -195,9 +191,12 @@ class TenantBillService
 
         $billDetail->charge_date = $DA['charge_date'] ?? $billDetail->charge_date;
         $billDetail->amount = $DA['amount'];
-        $billDetail->discount_amount = $DA['discount_amount'] ?? 0;
-        $billDetail->fee_type = $billDetail['fee_type'];
-        $billDetail->bank_id = $this->getBankId($billDetail->proj_id, $billDetail->fee_type);
+        $billDetail->discount_amount = $DA['discount_amount'] ?? $billDetail->discount_amount;
+        // $billDetail->fee_type = $billDetail['fee_type'];
+        if ($billDetail->bank_id == 0) {
+          $billDetail->bank_id = getFeeNameById($billDetail->fee_type, $billDetail->proj_id);
+        }
+
         $billDetail->save();
         $DA['old_amount'] = $oldAmt;
         // 保存日志
@@ -206,9 +205,10 @@ class TenantBillService
       return true;
     } catch (Exception $th) {
       Log::error("费用保存失败" . $th);
-      throw new Exception("费用保存失败" . $th);
+      throw new Exception("费用保存失败" . $th->getMessage());
     }
   }
+
   public function saveBillDetailLog($billDetail, $DA, $user)
   {
     try {
@@ -382,7 +382,7 @@ class TenantBillService
             $tenantName = $v['tenant_name'];
           }
           $data[$k]['contract_bill_id'] = $v['id'];
-          $data[$k]['bank_id']     = $this->getBankIdByContractId($v['contract_id'], $v['fee_type']);
+          $data[$k]['bank_id']     = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
           $data[$k]['tenant_name'] = $tenantName;
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
