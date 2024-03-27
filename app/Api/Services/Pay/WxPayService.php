@@ -27,10 +27,10 @@ class WxPayService
   private $confService;
   public function __construct()
   {
+
     $user = auth('api')->user();
 
     $this->companyId = $user->company_id;
-
     $this->confService = new WxConfService;
 
     $conf = $this->confService->getWechatPayConf();
@@ -133,13 +133,13 @@ class WxPayService
           'out_refund_no'   => $pay['out_trade_no'],
           'reason'          => $pay['description'],
           'amount'          => [
-            'refund'    => $pay['refundAmt'],
-            'total'     => $pay['total'],
-            'currency' => 'CNY',
+            'refund'        => $pay['refundAmt'],
+            'total'         => $pay['total'],
+            'currency'      => 'CNY',
           ]
         ]]);
 
-      // return "okok";
+
       $res = (array)json_decode($resp->getBody(), true);
       if (array_key_exists('status', $res)) {
         $out_refund_no = $res['out_refund_no'];
@@ -175,8 +175,8 @@ class WxPayService
     $platformPublicKeyInstance = Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC);
     // // 检查通知时间偏移量，允许5分钟之内的偏移
     $timeOffsetStatus = 300 >= abs(Formatter::timestamp() - (int)$wxTimestamp);
+    //   // 构造验签名串
     $verifiedStatus = Rsa::verify(
-      //   // 构造验签名串
       Formatter::joinedByLineFeed($wxTimestamp, $wxpayNonce, $wxBody),
       $wxSignature,
       $platformPublicKeyInstance

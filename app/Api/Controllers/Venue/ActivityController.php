@@ -157,7 +157,7 @@ class ActivityController extends BaseController
 		]);
 		DB::enableQueryLog();
 		$data = $this->activityRegService->model()->find($request->id);
-		$data['pay_status_label'] = $this->activityRegService->getStatus($data['pay_status']);
+
 		// $data['venue_book'] = $this->venueServices->getVenueBook($request->id);
 		// return response()->json(DB::getQueryLog());
 
@@ -166,6 +166,32 @@ class ActivityController extends BaseController
 
 
 
+	/**
+	 * @OA\Post(
+	 *     path="/api/wx/pay/notify_url",
+	 *     tags={"微信支付回调"},
+	 *     summary="微信支付回调",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"id"},
+	 *       @OA\Property(
+	 *          property="id",
+	 *          type="int",
+	 *          description="场馆Id"
+	 *       )
+	 *     ),
+	 *       example={"id": 11}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
 
 	public function WxPayNotify(Request $request)
 	{
