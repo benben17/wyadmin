@@ -110,13 +110,13 @@ class TenantBillService
         $billDetail->amount      = $DA['amount'];
         $billDetail->bank_id     = $DA['bank_id'] ?? 0;
         if ($billDetail->bank_id === 0) {
-          $billDetail->bank_id     = getFeeNameById($DA['contract_id'], $DA['fee_type']);
+          $billDetail->bank_id     = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
         }
 
         if (isset($DA['charge_date'])) {
           $billDetail->charge_date = $DA['charge_date']; //账单日期
         }
-        Log::error("billDetail-bank_id" . $billDetail->bank_id);
+        // Log::error("billDetail-bank_id" . $billDetail->bank_id);
         $billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
         $billDetail->discount_amount = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
         if (isset($DA['receive_date'])) {
