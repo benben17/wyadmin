@@ -60,15 +60,32 @@ class BaseController extends Controller
     }
 
     //如果返回的数据中有 null 则那其值修改为空 （安卓和IOS 对null型的数据不友好，会报错）
-    public function parseNull(&$data)
+    // public function parseNull(&$data)
+    // {
+    //     if (is_array($data)) {
+    //         foreach ($data as &$v) {
+    //             $this->parseNull($v);
+    //             if ($v instanceof float) {
+    //                 $v = numFormat($v);
+    //             }
+    //         }
+    //     } else {
+    //         if (is_null($data)) {
+    //             $data = "";
+    //         }
+    //     }
+    // }
+
+    public function parseNull(array &$data): void
     {
-        if (is_array($data)) {
-            foreach ($data as &$v) {
-                $this->parseNull($v);
-            }
-        } else {
-            if (is_null($data)) {
-                $data = "";
+        foreach ($data as &$value) {
+            if (is_array($value)) {
+                $this->parseNull($value);
+            } elseif ($value === null) {
+                $value = "";
+            } elseif (is_float($value)) {
+                // Assuming numFormat is defined elsewhere
+                $value = numFormat($value);
             }
         }
     }

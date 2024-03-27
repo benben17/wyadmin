@@ -390,9 +390,9 @@ class BillStatController extends BaseController
       ];
       // Update total amounts
       // 
-      $formattedData[$tenantId]['total_amt'] += numFormat($amount);
-      $formattedData[$tenantId]['total_receive_amt'] += numFormat($receiveAmount);
-      $formattedData[$tenantId]['total_unreceive_amt'] += numFormat($unreceiveAmount);
+      $formattedData[$tenantId]['total_amt'] += $amount;
+      $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
+      $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
 
 
@@ -402,7 +402,6 @@ class BillStatController extends BaseController
       ["title" => "总收款金额", "amount" => numFormat($total_receiveAmount)],
       ["title" => "总未收款金额", "amount" => numFormat($total_unreceiveAmount)]
     );
-
     return $this->success($DA);
   }
 
