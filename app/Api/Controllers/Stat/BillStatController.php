@@ -404,7 +404,4 @@ class BillStatController extends BaseController
     );
     return $this->success($DA);
   }
-
-  // 处理数字，保留2位小数
-
 }
