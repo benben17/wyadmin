@@ -125,7 +125,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/add",
+   *     path="/api/operation/tenant/deposit/add",
    *     tags={"押金管理"},
    *     summary="押金管理新增",
    *    @OA\RequestBody(
@@ -265,6 +265,7 @@ class DepositController extends BaseController
     DB::enableQueryLog();
     $data = $this->depositService->depositBillModel()
       ->with('depositRecord')
+      ->with('billDetailLog')
       ->find($request->id)->toArray();
     // return response()->json(DB::getQueryLog());
     $recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);
@@ -275,7 +276,7 @@ class DepositController extends BaseController
 
   /**
    * @OA\Post(
-   *     path="/api/operation/tenant/bill/deposit/del",
+   *     path="/api/operation/tenant/deposit/del",
    *     tags={"押金管理"},
    *     summary="押金管理删除",
    *    @OA\RequestBody(

@@ -1167,13 +1167,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/add": {
+        "/api/operation/tenant/deposit/add": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理新增",
-                "operationId": "214243f1e90027b05a97835d2f2bc56a",
+                "operationId": "cc21d45736d63097efeb3d6fe4d1e477",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1326,13 +1326,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/del": {
+        "/api/operation/tenant/deposit/del": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理删除",
-                "operationId": "e4127e1f36e2421e39198568607ad9ea",
+                "operationId": "4db79829a8e8d6de156b71d5c044d2bb",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12333,6 +12333,42 @@
                 ],
                 "summary": "根据场馆id获取信息",
                 "operationId": "a686e40d45da4e30b9290f95804316b5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "场馆Id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/wx/pay/notify_url": {
+            "post": {
+                "tags": [
+                    "微信支付回调"
+                ],
+                "summary": "微信支付回调",
+                "operationId": "2124550f01fe1c702f6a6320d5449c0b",
                 "requestBody": {
                     "content": {
                         "application/json": {
