@@ -10,6 +10,7 @@ use App\Enums\AppEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\App;
 
 /**
  * 合同账单
@@ -71,8 +72,9 @@ class ContractBillService
       }
 
       // 如有免租，账单期内减免
-      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $contract['free_list']) {
-        $free = $this->freeRental($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+      $freeList = $contract['free_list'];
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $freeList) {
+        $free = $this->freeRental($freeList, $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
           $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
           $remark = $free['remark'];
@@ -92,7 +94,7 @@ class ContractBillService
   }
 
   /**
-   * 根据自然月计算账单
+   *  遇免租计算管理费收款账单
    *
    * @param [array] $contract
    * @param [integer] $leaseTerm
@@ -100,7 +102,7 @@ class ContractBillService
    * @param integer $type
    * @return void
    */
-  public function createBillziranyue($contract, $rule, int $uid)
+  public function createManagerFeeBill($contract, $rule, int $uid)
   {
     $type = 1; //  费用
     // Log::error("遇免租顺延" . "费用id");
@@ -109,6 +111,7 @@ class ContractBillService
     $data['total'] = 0.00;
     $bill = array();
     $startDate = formatYmd($rule['start_date']);
+    $freeType = $contract['free_type']; // 免租类型 1 按月 2 按天
     while (strtotime($startDate) < strtotime($rule['end_date'])) {
       $bill[$i]['type'] = $type;
       $bill[$i]['price'] = $rule['unit_price'];
@@ -129,34 +132,35 @@ class ContractBillService
       $bill[$i]['amount'] = numFormat($rule['month_amt'] * $rule['pay_method']);
       $endDate = date("Y-m-t", strtotime(getYmdPlusMonths($startDate, $rule['pay_method'] - 1)));
       $bill[$i]['end_date'] = formatYmd($endDate);
-      // if (strtotime($startDate) == strtotime($rule['start_date'])) {
-      //   if (date('d', strtotime($startDate)) != "01") {
-      //     $days =  diffDays($startDate, date('Y-m-t', strtotime($startDate)));
-      //     // Log::error("第一期账单天数：" . numFormat($rule['month_amt'] * ($rule['pay_method'] - 1)));
-      //     $daysAmt = $this->countDaysAmt($rule, $days, $uid);
-      //     $bill[$i]['amount'] = numFormat($daysAmt + ($rule['month_amt'] * ($rule['pay_method'] - 1)));
-      //     $bill[$i]['charge_date'] = $startDate;
-      //   } else {
-      //     $bill[$i]['charge_date'] = formatYmd(date("Y-m-" . $rule['bill_day'], strtotime(getPreYmd($startDate, 1))));
-      //   }
-      // }
+
+      // 最后一期账单
       if (strtotime($endDate) > strtotime($rule['end_date'])) {
         $days =  diffDays($startDate,  $rule['end_date']);
         $bill[$i]['end_date'] = formatYmd($rule['end_date']);
         // Log::error($days . "最后一期天数");
         $bill[$i]['amount'] = numFormat($rule['month_amt'] * $leaseTerm - $data['total']);
       }
-      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $contract['free_list']) {
-        $free = $this->freeRental($contract['free_list'], $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
+
+      // 如有免租，账单期内不减免但是会加长收缴管理费时间
+      $freeList = $contract['free_list'];
+      if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $freeList) {
+        $free = $this->freeRental($freeList, $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
-          $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
+          $bill[$i]['amount'] = $bill[$i]['amount'] + $free['free_amt'];
           $bill[$i]['remark'] = $free['remark'];
+          if ($freeType == AppEnum::freeMonth) {
+            $bill[$i]['end_date'] = getNextYmd($endDate, $free['free_num']);
+          } else if ($freeType == AppEnum::freeDay) {
+            $bill[$i]['end_date'] = getNextYmdByDay($endDate, $free['free_num']);
+          }
+          $endDate = $bill[$i]['end_date'];
         }
       }
       $bill[$i]['bill_date'] =  formatYmd($bill[$i]['start_date']) . '至' . formatYmd($bill[$i]['end_date']);
       $bill[$i]['mouth_amt'] = $rule['month_amt'];
       $bill[$i]['fee_type']  = $rule['fee_type'];
       $bill[$i]['bill_num']  = $i + 1;
+
       $data['total'] += $bill[$i]['amount'];
       $i++;
       $startDate = getNextYmd(date('Y-m-01', strtotime($endDate)), 1);
@@ -282,17 +286,15 @@ class ContractBillService
 
       // 免租处理
       if (!empty($DA['free_list'])) {
-        if ($freeType == AppEnum::freeMonth) { // 免租类型为1 的时候 按月免租
+        if ($freeType == AppEnum::freeMonth) {
+          // 按月免租，计算账单结束日期
           $billEndDate = $this->endDateByMonth($startDate, $period, $DA['free_list'], $freeNum, $rule['end_date'], $remark);
-
-          $endDate = $billEndDate;
-        } else if ($freeType == AppEnum::freeDay) {
-          // 按天免租 获取免租后账单的结束日期
-          // 开始时间 周期 免租列表 0 合同结束时间
+        } elseif ($freeType == AppEnum::freeDay) {
+          // 按天免租，计算账单结束日期
           $billEndDate = $this->endDateByDays($startDate, $period, $DA['free_list'], $freeNum, $rule['end_date'], $remark);
-          // 天转换成月
-          $endDate = $billEndDate;
         }
+        // 设置结束日期
+        $endDate = $billEndDate;
       }
 
       // 账单逻辑
@@ -304,6 +306,7 @@ class ContractBillService
           if ($period === $freeNum && $period == 1) {
             $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
           } else {
+            //  租金免租 账单金额 = 月租金 * (周期 - 免租月数)
             $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
           }
         } else { // 按天免租

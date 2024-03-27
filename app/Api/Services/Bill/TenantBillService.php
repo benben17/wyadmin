@@ -341,10 +341,6 @@ class TenantBillService
       }, 3);
 
       return ['flag' => true, 'message' => ''];
-    } catch (QueryException $e) {
-      Log::error("生成账单失败: " . $e->getMessage());
-      // throw new Exception("生成账单失败: " . $e->getMessage());
-      return ['flag' => false, 'message' => "生成账单失败: " . $e->getMessage()];
     } catch (Exception $e) {
       Log::error("生成账单失败: " . $e->getMessage());
       // throw $e;
@@ -375,14 +371,13 @@ class TenantBillService
           $data[$k]['proj_id']     = $projId === 0 ? $v['proj_id'] : $projId;
           $data[$k]['contract_id'] = $v['contract_id'];
           $data[$k]['tenant_id']   = $v['tenant_id'];
+          $data[$k]['contract_bill_id'] = $v['id'];
+          $data[$k]['bank_id']     = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
           if (!isset($v['tenant_name']) || !$v['tenant_name']) {
-            $tenant = TenantModel::select('name')->find($v['tenant_id']);
-            $tenantName = $tenant['name'];
+            $tenantName = getTenantNameById($v['tenant_id']);
           } else {
             $tenantName = $v['tenant_name'];
           }
-          $data[$k]['contract_bill_id'] = $v['id'];
-          $data[$k]['bank_id']     = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
           $data[$k]['tenant_name'] = $tenantName;
           $data[$k]['type']        = $v['type']; // 1 费用 2 押金
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型

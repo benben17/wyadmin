@@ -110,14 +110,22 @@ class ContractService
           }
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
-          if ($v === 1) {
-            $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
-            // Log::info("fee_type_label" . $feeBill[$i]['fee_type_label']);
-          } else {
-            $v === 2 &&  $feeBill[$i]['fee_type_label'] = '押金';
-            $v === 3 &&  $feeBill[$i]['fee_type_label'] = '其他费用';
-            // Log::info("fee_type_label" . $feeBill[$i]['fee_type_label']);
+
+          switch ($v) {
+            case 1:
+              $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
+              break;
+            case 2:
+              $feeBill[$i]['fee_type_label'] = '押金';
+              break;
+            case 3:
+              $feeBill[$i]['fee_type_label'] = '其他费用';
+              break;
+            default:
+              // 处理未知费用类型的情况，如果有必要
+              break;
           }
+
           $i++;
         }
       }

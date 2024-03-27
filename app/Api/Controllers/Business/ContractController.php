@@ -16,6 +16,8 @@ use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Contract\ContractBillService;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Tenant\TenantShareService;
+use App\Enums\AppEnum;
+use Illuminate\Support\Facades\App;
 
 /**
  * 合同管理
@@ -288,12 +290,22 @@ class ContractController extends BaseController
             'free_list' => 'array',
             'fee_bill' => 'array',
             'deposit_bill' => 'array'
+        ], [
+            'bill_rule.array' => '租金规则必须是数组',
+            'deposit_rule.array' => '押金规则必须是数组',
+            'contract_room.array' => '房间信息必须是数组',
+            'free_list.array' => '免租信息必须是数组',
+            'fee_bill.array' => '费用账单必须是数组',
+            'deposit_bill.array' => '押金账单必须是数组',
+
         ]);
         $DA = $request->toArray();
 
         $DA['contract_state'] = $DA['save_type'];
         // $DA['contract_state'] = $DA['save_type'];
 
+        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
@@ -331,10 +343,9 @@ class ContractController extends BaseController
                     }
                 }
                 // 保存合同账单
-                if (!$DA['fee_bill']) {
-                    throw new Exception("无账单数据");
+                if ($DA['fee_bill']) {
+                    $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 }
-                $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 if (isset($DA['deposit_bill'])) {
                     $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
                 }
@@ -460,7 +471,7 @@ class ContractController extends BaseController
                 $contractService = new ContractService;
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
-                    DB::enableQueryLog();
+                    // DB::enableQueryLog();
                     $res = ContractRoomModel::where('contract_id', $DA['id'])->delete();
                     // return response()->json(DB::getQueryLog());
                     $rooms = new ContractRoomModel;
@@ -485,7 +496,9 @@ class ContractController extends BaseController
                     $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
                 // 保存费用账单
-                $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                if ($DA['fee_bill']) {
+                    $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                }
                 // 保存押金账单
                 if (isset($DA['deposit_bill'])) {
                     $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
@@ -538,6 +551,10 @@ class ContractController extends BaseController
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
+        ], [
+            'bill_rule.array' => '租金规则必须是数组',
+            'contract_room.array' => '房间信息必须是数组',
+            'free_list.array' => '免租信息必须是数组',
         ]);
         $billService = new ContractBillService;
         $contract = $request->toArray();
@@ -554,11 +571,13 @@ class ContractController extends BaseController
                 //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
                 // } 
             } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
-                if ($rule['fee_type'] == 101) {
+                if ($rule['fee_type'] == AppEnum::rentFeeType) {
                     $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
                 } else {
                     $feeList = $billService->createBill($contract, $rule, $this->uid);
                 }
+            } else if ($rule['bill_type'] == 3) { // 遇见免租租金和管理费账期顺延
+                $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
             }
             array_push($fee_list, $feeList);
         }
