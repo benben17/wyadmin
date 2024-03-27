@@ -184,6 +184,7 @@ class TenantBillService
     try {
       DB::transaction(function () use ($DA, $user) {
         $billDetail = $this->billDetailModel()->find($DA['id']);
+        $oldAmt = $billDetail->amount;
         if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
           throw new Exception("已有收款不允许编辑");
         }
@@ -198,6 +199,7 @@ class TenantBillService
         $billDetail->fee_type = $billDetail['fee_type'];
         $billDetail->bank_id = $this->getBankId($billDetail->proj_id, $billDetail->fee_type);
         $billDetail->save();
+        $DA['old_amount'] = $oldAmt;
         // 保存日志
         $this->saveBillDetailLog($billDetail, $DA, $user);
       }, 2);
@@ -212,7 +214,7 @@ class TenantBillService
     try {
       $detailLogModel = new TenantBillDetailLog;
       $detailLogModel->company_id     = $user['company_id'];
-      $detailLogModel->amount         = $billDetail->amount;
+      $detailLogModel->amount         = $DA['old_amount'];
       $detailLogModel->edit_amount    = $DA['amount'];
       $detailLogModel->discount_amount = $billDetail['discount_amount'] ?? 0;
       $detailLogModel->edit_discount_amount = $DA['discount_amount'] ?? 0;
