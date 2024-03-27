@@ -538,6 +538,18 @@ class ContractController extends BaseController
      */
     public function contractBill(Request $request)
     {
+        $msg =  [
+            'bill_rule.array' => '租金规则必须是数组',
+            'contract_room.array' => '房间信息必须是数组',
+            'free_list.array' => '免租信息必须是数组',
+            'contract_type.numeric' => '合同类型必须是数字',
+            'contract_type.in' => '合同类型不正确,[1 or 2]',
+            'contract_type.required' => '合同类型是必须',
+            'sign_date.required' => '签署日期是必须',
+            'start_date.required' => '合同开始时间是必须',
+            'end_date.required' => '合同截止时间是必须',
+            'tenant_id.required' => '租户ID是必须',
+        ];
         $validatedData = $request->validate([
             'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
             'sign_date' => 'required|date',
@@ -551,11 +563,7 @@ class ContractController extends BaseController
             'bill_rule' => 'array',
             'contract_room' => 'array',
             'free_list' => 'array',
-        ], [
-            'bill_rule.array' => '租金规则必须是数组',
-            'contract_room.array' => '房间信息必须是数组',
-            'free_list.array' => '免租信息必须是数组',
-        ]);
+        ], $msg);
         $billService = new ContractBillService;
         $contract = $request->toArray();
         $data = array();
@@ -576,8 +584,6 @@ class ContractController extends BaseController
                 } else {
                     $feeList = $billService->createBill($contract, $rule, $this->uid);
                 }
-            } else if ($rule['bill_type'] == 3) { // 遇见免租租金和管理费账期顺延
-                $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
             }
             array_push($fee_list, $feeList);
         }

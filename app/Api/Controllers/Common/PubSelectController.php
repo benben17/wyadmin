@@ -13,6 +13,7 @@ use App\Api\Models\Channel\Channel as channelModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
+use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
@@ -702,7 +703,8 @@ class PubSelectController extends BaseController
 			->get()->toArray();
 
 		foreach ($data as &$v) {
-			$v['bank_id'] = getBankIdByFeeType($v['id'], $request->proj_id);
+			$bank = BankAccount::where('fee_type_id', $v['id'])->where('proj_id', $request->proj_id)->first();
+			$v['bank_id'] = $bank ? $bank->id : 0;
 			$v['notice'] = $v['bank_id'] == 0 ? "未绑定银行收款账户" : "已绑定银行收款账户";
 		}
 

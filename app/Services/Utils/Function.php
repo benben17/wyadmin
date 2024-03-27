@@ -52,6 +52,7 @@ function getBankIdByFeeType($feeId, $projId): int
     }
 }
 
+
 function getVariable($companyId, $key)
 {
 
