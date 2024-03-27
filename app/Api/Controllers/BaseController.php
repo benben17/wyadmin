@@ -65,7 +65,7 @@ class BaseController extends Controller
     //     if (is_array($data)) {
     //         foreach ($data as &$v) {
     //             $this->parseNull($v);
-    //             if ($v instanceof float) {
+    //             if (is_float($v)) {
     //                 $v = numFormat($v);
     //             }
     //         }
@@ -76,19 +76,24 @@ class BaseController extends Controller
     //     }
     // }
 
-    public function parseNull(array &$data): void
+    public function parseNull(&$data): void
     {
-        foreach ($data as &$value) {
-            if (is_array($value)) {
-                $this->parseNull($value);
-            } elseif ($value === null) {
-                $value = "";
-            } elseif (is_float($value)) {
-                // Assuming numFormat is defined elsewhere
-                $value = numFormat($value);
+        if (is_string($data) && is_null($data)) {
+            $data = "";
+        } elseif (is_array($data)) {
+            foreach ($data as &$value) {
+                if (is_array($value)) {
+                    $this->parseNull($value);
+                } elseif (is_null($value)) {
+                    $value = "";
+                } elseif (is_float($value)) {
+                    // Assuming numFormat is defined elsewhere
+                    $value = numFormat($value);
+                }
             }
         }
     }
+
 
     public function handleBackData($data)
     {
