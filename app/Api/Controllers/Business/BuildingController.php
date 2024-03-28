@@ -77,12 +77,7 @@ class BuildingController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        } else if ($request->export) {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
         $map = array();
 

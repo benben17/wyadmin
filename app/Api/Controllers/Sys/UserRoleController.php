@@ -52,13 +52,7 @@ class UserRoleController extends BaseController
    */
   public function list(Request $request)
   {
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('app.pagesize');
-    }
-    if ($pagesize == -1) {
-      $pagesize = config('export_rows');
-    }
+    $pagesize =
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
     } else {

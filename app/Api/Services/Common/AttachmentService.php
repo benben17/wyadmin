@@ -40,6 +40,7 @@ class AttachmentService
 
     $map['parent_id'] = $parent_id;
     $map['parent_type'] = $parent_type;
+    DB::enableQueryLog();
     $data = AttachmentModel::where($map)->get();
     if ($data) {
       $data = $data->toArray();

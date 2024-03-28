@@ -72,13 +72,8 @@ class MaintainController extends BaseController
 
         ]);
 
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($request->export) {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
+
 
         // $map['parent_type'] = $request->parent_type;
         $map = array();

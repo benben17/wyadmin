@@ -44,7 +44,7 @@ class UploadController extends BaseController
                 return $this->error($this->getError());
             }
 
-            $company_id = $this->user->company_id;
+            $company_id = $this->company_id;
             $saveFolder = $company_id . '/business/' . date('Ymd');
             // 上传文件操作
             $path = Storage::putFile($saveFolder, $file);
@@ -163,8 +163,11 @@ class UploadController extends BaseController
     public function uploadFile(Request $request)
     {
 
-        $messages = ['file.file' => '类型必须为文件！', 'file.required' => '请选择要上传的文件！'];
-        $validator = \Validator::make($request->all(), [
+        $messages = [
+            'file.file' => '类型必须为文件！',
+            'file.required' => '请选择要上传的文件！'
+        ];
+        $validator = Validator::make($request->all(), [
             'file' => 'required|file'
         ], $messages);
         $error = $validator->errors()->first();
@@ -175,8 +178,7 @@ class UploadController extends BaseController
         if (!$this->checkFile($file)) {
             return $this->error($this->getError());
         }
-        $user = auth('api')->user();
-        $company_id = $user->company_id;
+        $company_id = $this->company_id;
         $saveFolder = $company_id . '/business/' . date('Ymd');
         // 上传文件操作
         $res = Storage::putFile($saveFolder, $file);

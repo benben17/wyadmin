@@ -64,12 +64,7 @@ class ChargeController extends BaseController
     ]);
 
     $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
     // 排序字段
     if ($request->input('orderBy')) {
@@ -443,13 +438,7 @@ class ChargeController extends BaseController
       'proj_ids' => 'required|array',
     ], $msg);
 
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
     // 排序字段
     if ($request->input('orderBy')) {

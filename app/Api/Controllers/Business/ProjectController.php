@@ -71,14 +71,7 @@ class ProjectController extends BaseController
      */
     public function index(Request $request)
     {
-        // return "ok";
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
         $map = array();
         if ($request->proj_province_id && $request->proj_province_id > 0) {

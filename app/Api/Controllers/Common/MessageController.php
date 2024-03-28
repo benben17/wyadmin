@@ -53,10 +53,7 @@ class MessageController extends BaseController
             'is_read' => 'required|int|in:1,2,3',
         ]);
         $DA = $request->toArray();
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         // 消息类型
         if ($request->input('type')) {
@@ -311,10 +308,7 @@ class MessageController extends BaseController
     public function sendList(Request $request)
     {
         $DA = $request->toArray();
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         // 排序字段
         if ($request->input('orderBy')) {

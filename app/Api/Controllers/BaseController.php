@@ -2,9 +2,10 @@
 
 namespace App\Api\Controllers;
 
+
 use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\Controller;
-
+use Illuminate\Http\Request;
 
 /**
  * @OA\Info(
@@ -90,6 +91,18 @@ class BaseController extends Controller
         }, $data);
     }
 
+
+    public function setPagesize(Request $request): int
+    {
+        $pagesize = $request->pagesize;
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('per_size');
+        }
+        if ($request->export) {
+            $pagesize = config('export_rows');
+        }
+        return $pagesize;
+    }
 
     public function exportToExcel($data, $exportClass)
     {

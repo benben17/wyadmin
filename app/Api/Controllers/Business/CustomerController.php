@@ -68,13 +68,7 @@ class CustomerController extends BaseController
         // $validatedData = $request->validate([
         //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
         // ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         if ($request->id) {
             $map['id'] = $request->id;

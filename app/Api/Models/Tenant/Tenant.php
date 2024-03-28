@@ -102,10 +102,10 @@ class Tenant extends Model
     return $this->hasOne(Channel::class,  'id', 'channel_id');
   }
 
-  public function contractStat()
-  {
-    return $this->hasOne(Contract::class, 'tenant_id', 'id');
-  }
+  // public function contractStat()
+  // {
+  //   return $this->hasMany(Contract::class, 'tenant_id', 'id');
+  // }
 
   public function tenantRooms()
   {

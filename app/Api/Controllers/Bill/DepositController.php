@@ -67,13 +67,7 @@ class DepositController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
     // 排序字段
     if ($request->input('orderBy')) {
@@ -562,13 +556,7 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'proj_ids' => 'required|array',
     ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');

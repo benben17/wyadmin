@@ -53,13 +53,7 @@ class InspectionController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
 
     // 排序字段
     if ($request->input('orderBy')) {
@@ -274,13 +268,7 @@ class InspectionController extends BaseController
    */
   public function recordList(Request $request)
   {
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
 
     // 排序字段
     if ($request->input('orderBy')) {

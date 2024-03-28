@@ -73,13 +73,7 @@ class ChannelController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
-        if ($request->export) {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         // 渠道ID
         if ($request->id && $request->id > 0) {
@@ -228,17 +222,15 @@ class ChannelController extends BaseController
         $validatedData = $request->validate([
             'channel_id' => 'required|numeric',
         ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
-        DB::enableQueryLog();
+        $pagesize = $this->setPagesize($request);
+
+        // DB::enableQueryLog();
         $data = Tenant::with('extraInfo:tenant_id,demand_area,id')
             ->withCount(['brokerageLog as brokerage_amount' => function ($q) {
                 $q->select(DB::Raw('sum(brokerage_amount)'));
             }])
             ->where('channel_id', $request->channel_id)
-            ->paginate($pagesize)->toArray();
+            ->paginate($pagesize);
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         return $this->success($data);
@@ -390,13 +382,7 @@ class ChannelController extends BaseController
      */
     public function brokerageList(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
 
         $map = array();
@@ -690,13 +676,7 @@ class ChannelController extends BaseController
      */
     public function policyList(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         if ($request->id && $request->id > 0) {
             $map['id'] = $request->id;

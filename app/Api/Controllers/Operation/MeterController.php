@@ -62,13 +62,7 @@ class MeterController extends BaseController
     $validator = \Validator::make($request->all(), [
       'type' => 'required|numeric|in:1,2',   //"1水表 2 电表"
     ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     if ($request->type) {
       $map['type'] = $request->type;
     } else {
@@ -505,13 +499,7 @@ class MeterController extends BaseController
     $validatedData = $request->validate([
       'type' => 'required|numeric|in:1,2',   // "1水表 2 电表"
     ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
     if (isset($request->audit_status) && !$request->audit_status) {
       $map['audit_status'] = $request->audit_status;

@@ -48,10 +48,7 @@ class BankAccountController extends BaseController
     public function list(Request $request)
     {
 
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
+        $pagesize = $this->setPagesize($request);
 
         // 排序字段
         if ($request->input('orderBy')) {

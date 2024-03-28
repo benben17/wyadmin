@@ -106,15 +106,9 @@ class ContractController extends BaseController
 
     public function index(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config("per_size");
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
-        $map = array();
+        $pagesize = $this->setPagesize($request);
 
+        $map = array();
         if ($request->tenant_id && $request->tenant_id > 0) {
             $map['tenant_id'] = $request->tenant_id;
         }

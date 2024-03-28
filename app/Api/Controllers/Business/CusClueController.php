@@ -19,14 +19,11 @@ use Exception;
 class CusClueController extends BaseController
 {
 
+  private $clueService;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
-    $this->user = auth('api')->user();
+    parent::__construct();
+    $this->clueService = new CusClueService;
   }
 
   /**
@@ -58,13 +55,7 @@ class CusClueController extends BaseController
     // $validatedData = $request->validate([
     //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
     // ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($request->export) {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
 
     // 排序字段
@@ -79,9 +70,9 @@ class CusClueController extends BaseController
     } else {
       $order = 'desc';
     }
-    $clueService = new CusClueService;
-    DB::enableQueryLog();
-    $result = $clueService->model()->where($map)
+
+    // DB::enableQueryLog();
+    $result = $this->clueService->model()->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('clue_time', '>=', $request->start_date);
         $request->end_date && $q->where('clue_time', '<=', $request->end_date);
@@ -91,7 +82,6 @@ class CusClueController extends BaseController
       })
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
-
     $data = $this->handleBackData($result);
     if ($request->export) {
       return $this->exportToExcel($data['result'], CusClueExcel::class);
@@ -135,12 +125,9 @@ class CusClueController extends BaseController
     ]);
 
     // DB::transaction(function () use ($request) {
-    $incomeService = new CusClueService;
-    $res = $incomeService->save($request->toArray(), $this->user);
-    if ($res) {
-      return $this->success('客户线索新增成功！');
-    }
-    return $this->error("客户线索新增失败！");
+    $res = $this->clueService->save($request->toArray(), $this->user);
+
+    return $res ? $this->success('客户线索新增成功！') : $this->error("客户线索新增失败！");
   }
 
   /**
@@ -176,8 +163,7 @@ class CusClueController extends BaseController
       'clue_type' => 'required|gt:0',
       'phone' => 'required',
     ]);
-    $incomeService = new CusClueService;
-    $res = $incomeService->save($request->toArray(), $this->user);
+    $res = $this->clueService->save($request->toArray(), $this->user);
     if ($res) {
       return $this->success('客户线索编辑成功！');
     }
@@ -213,8 +199,7 @@ class CusClueController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $incomeService = new CusClueService;
-    $data = $incomeService->model()->find($request->id);
+    $data = $this->clueService->model()->find($request->id);
     return $this->success($data);
   }
 
@@ -247,8 +232,7 @@ class CusClueController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $clueService = new CusClueService;
-    $clue = $clueService->model()->find($request->id);
+    $clue = $this->clueService->model()->find($request->id);
     $clue->status = 3;
     $clue->invalid_time = nowYmd();
     $clue->invalid_reason = $request->invalid_reason;
@@ -265,15 +249,12 @@ class CusClueController extends BaseController
 
     // Get the file from the request
     $file = $request->file('file');
-
     // Pass additional parameters (e.g., user) to the import class
-    $user = auth()->user(); // or get the user in any other way
-    $import = new CusClueImport($user);
+    $import = new CusClueImport($this->user);
 
     // Import the data using the CusClueImport class
     try {
       Excel::import($import, $file);
-
       return $this->success("导入成功");
     } catch (\Exception $e) {
       // Handle the import error
