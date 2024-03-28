@@ -36,10 +36,10 @@ class RoleController extends AdminController
             $actions->disableDelete();
 
             // 去掉编辑
-           $actions->disableEdit();
+            $actions->disableEdit();
 
             // 去掉查看
-           // $actions->disableView();
+            // $actions->disableView();
         });
         $grid->tools(function ($tools) {
             $tools->batch(function ($batch) {
@@ -83,7 +83,7 @@ class RoleController extends AdminController
         $form->tools(function (Form\Tools $tools) {
 
             // 去掉`列表`按钮
-           // $tools->disableList();
+            // $tools->disableList();
 
             // 去掉`删除`按钮
             $tools->disableDelete();
@@ -92,12 +92,13 @@ class RoleController extends AdminController
             //$tools->disableView();
 
             // 添加一个按钮, 参数可以是字符串, 或者实现了Renderable或Htmlable接口的对象实例
-           // $tools->add('<a class="btn btn-sm btn-danger"><i class="fa fa-trash"></i>&nbsp;&nbsp;delete</a>');
+            // $tools->add('<a class="btn btn-sm btn-danger"><i class="fa fa-trash"></i>&nbsp;&nbsp;delete</a>');
         });
         return $form;
     }
-	public function select(){
-		$data = Role::where('company_id',0)->select('id', 'name as text')->get();
-		return $data;
-	}
+    public function select()
+    {
+        $data = Role::where('company_id', 0)->select('id', 'name as text')->get();
+        return $data;
+    }
 }

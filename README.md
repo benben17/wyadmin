@@ -1,13 +1,14 @@
-##环境信息
-php 版本为7.2 以上版本
-php-mysqlnd 模块
-MySQL 5.7 以上版本
+### 环境信息
+- php 版本为7.2 以上版本
+- php-mysqlnd 模块
+- MySQL 5.7 以上版本
+- redis 模块
 
 
-#安装所需组件
+### 安装所需组件
 `composer install`
 
-更改数据库链接串需要清理一下文件
+### 更改数据库链接串需要清理一下文件
 - `rm -rf bootstrap/cache/*.php`
 - `php artisan config:cache`
 - `php artisan cache:clear`
@@ -15,7 +16,7 @@ MySQL 5.7 以上版本
 - `php artisan route:clear`
 - 
 
-## 必须存在的目录
+### 必须存在的目录
 - storage/framework/cache/data
 - storage/framework/sessions
 - storage/framework/views
@@ -25,7 +26,7 @@ MySQL 5.7 以上版本
 
 
 
-Excel 扩展!   
+### Excel 扩展!   
 - PHP extension php_zip enabled
 - PHP extension php_xml enabled
 - PHP extension php_gd2 enabled
@@ -33,8 +34,9 @@ Excel 扩展!
 
 [测试日志](http://note.youdao.com/s/6L586NmV)
 
+[更新日志](changelog.md)
 
-刷新 api文档
+### 刷新 api文档
 - php artisan l5-swagger:generate
     
 
