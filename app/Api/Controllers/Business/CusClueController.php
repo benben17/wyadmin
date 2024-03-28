@@ -86,7 +86,7 @@ class CusClueController extends BaseController
     if ($request->export) {
       return $this->exportToExcel($data['result'], CusClueExcel::class);
     }
-    $data['clueStat'] = $clueService->clueStat($request, $map);
+    $data['clueStat'] = $this->clueService->clueStat($request, $map);
     return $this->success($data);
   }
 
