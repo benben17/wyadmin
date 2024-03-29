@@ -89,14 +89,14 @@ class BillController extends BaseController
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->start_date && $q->whereBetween('charge_date', [$request->start_date, $request->end_date]);
       })
-      ->with('tenant:id,tenant_name')
+      ->with('tenant:id,name')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
-      $v['tenant_name'] = $v['tenant']['tenant_name'];
+      $v['tenant_name'] = $v['tenant']['name'];
       unset($v['tenant']);
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')

@@ -95,7 +95,7 @@ class BillDetailController extends BaseController
           $request->is_bill ?   $q->where('bill_id', '>', 0) : $q->where('bill_id', 0);
         }
       });
-    $result = $subQuery->with('tenant:id,tenant_name')
+    $result = $subQuery->with('tenant:id,name')
       ->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $feeStat =  FeeType::selectRaw('fee_name,id,type')
@@ -113,7 +113,7 @@ class BillDetailController extends BaseController
     }
     $data = $this->handleBackData($result);
     foreach ($data['data'] as $k => &$v) {
-      $v['tenant_name'] = $v['tenant']['tenant_name'];
+      $v['tenant_name'] = $v['tenant']['name'];
       unset($v['tenant']);
     }
     $data['stat'] = $feeStat;
