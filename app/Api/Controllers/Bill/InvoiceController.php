@@ -15,20 +15,15 @@ use App\Enums\AppEnum;
 use Exception;
 
 /**
- * 租户账单
+ * 发票管理
  */
-
 class InvoiceController extends BaseController
 {
 
+  private $invoiceService;
   function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
-    $this->company_id = getCompanyId($this->uid);
-    $this->user = auth('api')->user();
+    parent::__construct();
     $this->invoiceService = new InvoiceService;
   }
 
@@ -106,8 +101,8 @@ class InvoiceController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"invoce_id","amount","invoice_no","status","bill_detail_id"},
-   *       @OA\Property(property="invoce_id",type="int",description="发票titleID"),
+   *          required={"invoice_id","amount","invoice_no","status","bill_detail_id"},
+   *       @OA\Property(property="invoice_id",type="int",description="发票ID"),
    *       @OA\Property(property="amount",type="float",description="开票金额"),
    *       @OA\Property(property="invoice_no",type="String",description="发票no"),
    *       @OA\Property(property="status",type="int",description="0未开 1 已开"),
@@ -159,9 +154,9 @@ class InvoiceController extends BaseController
    *           mediaType="application/json",
    *       @OA\Schema(
    *          schema="UserModel",
-   *          required={"id","invoce_id","amount","invoice_no","status","bill_detail_id"},
+   *          required={"id","invoice_id","amount","invoice_no","status","bill_detail_id"},
    *        @OA\Property(property="id",type="int",description="发票记录id"),
-   *       @OA\Property(property="invoce_id",type="int",description="发票titleID"),
+   *       @OA\Property(property="invoice_id",type="int",description="发票ID"),
    *       @OA\Property(property="amount",type="float",description="开票金额"),
    *       @OA\Property(property="invoice_no",type="String",description="发票no"),
    *       @OA\Property(property="status",type="int",description="0未开 1 已开"),
@@ -190,7 +185,6 @@ class InvoiceController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-
       $res = $this->invoiceService->invoiceModel()->find($DA['id']);
       if ($res['status'] == 3) {
         return $this->error("已取消，不可编辑!");
@@ -239,6 +233,8 @@ class InvoiceController extends BaseController
         $billService = new TenantBillService;
         $billDetail = $billService->billDetailModel()->whereIn('id', str2Array($data['bill_detail_id']))->get();
         $data['bill_detail'] = $billDetail;
+      } else {
+        $data['bill_detail'] = [];
       }
       return $this->success($data);
     } catch (Exception $th) {
@@ -275,10 +271,6 @@ class InvoiceController extends BaseController
       'id'         => 'required|numeric'
     ]);
     $res = $this->invoiceService->cancelInvoice($request->id);
-    if ($res) {
-      return $this->success("发票取消成功");
-    } else {
-      return $this->error("发票取消失败!");
-    }
+    return $res ? $this->success("发票取消成功") : $this->error("发票取消失败!");
   }
 }

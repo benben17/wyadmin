@@ -478,8 +478,7 @@ class ChargeController extends BaseController
     $totalAmt = 0.00;
     $data = $this->handleBackData($data);
     foreach ($data['result'] as &$v) {
-      $v['tenant_name'] = isset($v['bill_detail']['tenant_name']) ? $v['bill_detail']['tenant_name'] : "";
-      unset($v['bill_detail']);
+      $v['tenant_name'] = getTenantNameById($v['tenant_id']);
       if ($v['type'] == 1) {
         $totalAmt += $v['amount'];
       } else {

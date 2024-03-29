@@ -88,7 +88,9 @@ class CusClueService
   {
 
     $stat = $this->model()->where($map)
-      ->selectRaw('count(*) cule_total,ifnull(sum(case when status = 2 then 1 end),0) customer_count,ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
+      ->selectRaw('count(*) cule_total,
+                  ifnull(sum(case when status = 2 then 1 end),0) customer_count,
+                  ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
       ->where(function ($q) use ($request) {
         $request->start_time && $q->where('clue_time', '>=', $request->start_time);
         $request->end_time && $q->where('clue_time', '<=', $request->end_time);

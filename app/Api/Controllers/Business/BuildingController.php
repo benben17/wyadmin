@@ -27,11 +27,7 @@ class BuildingController extends BaseController
     private $buildService;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
+        parent::__construct();
         $this->buildService = new BuildingService;
     }
 
@@ -101,7 +97,7 @@ class BuildingController extends BaseController
             $subMap['room_state'] = $request->room_state;
         }
         DB::enableQueryLog();
-        $data = BuildingModel::where($map)
+        $subQuery = BuildingModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -127,23 +123,24 @@ class BuildingController extends BaseController
                 $q->select(DB::raw('ifnull(sum(room_area),"0.00")'));
                 $q->where($subMap);
                 $q->where('room_state', 1);
-            }])
-            // ->whereHas('floor', function ($q) use ($request) {
-            //     $request->floor_count && $q->havingRaw('count(*) = ?', [$request->floor_count]);
-            // })
-            // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
-            //     $q->where($subMap);
-            //     $request->room_count && $q->havingRaw('count(*) = ?', [$request->room_count]);
-            // })
-            // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
-            //     if ($request->free_room_count) {
-            //         $q->havingRaw('count(*) = ?', [$request->free_room_count]);
-            //         $q->where($subMap);
-            //         $q->where('room_state', 1);
-            //     }
-            // })
-            ->paginate($pagesize)->toArray();
-        // return response()->json(DB::getQueryLog());
+            }]);
+        // ->whereHas('floor', function ($q) use ($request) {
+        //     $request->floor_count && $q->havingRaw('count(*) = ?', [$request->floor_count]);
+        // })
+        // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+        //     $q->where($subMap);
+        //     $request->room_count && $q->havingRaw('count(*) = ?', [$request->room_count]);
+        // })
+        // ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
+        //     if ($request->free_room_count) {
+        //         $q->havingRaw('count(*) = ?', [$request->free_room_count]);
+        //         $q->where($subMap);
+        //         $q->where('room_state', 1);
+        //     }
+        // })
+
+        $list = $subQuery->get();
+        $data = $subQuery->paginate($pagesize)->toArray();
 
         // 获取统计信息
         $data = $this->handleBackData($data);
@@ -157,7 +154,7 @@ class BuildingController extends BaseController
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
 
-        $data['stat'] = $buildingService->getBuildingAllStat($data['result']);
+        $data['stat'] = $buildingService->getBuildingAllStat($list);
         return $this->success($data);
     }
 

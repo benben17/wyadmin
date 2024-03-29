@@ -27,16 +27,12 @@ use Exception;
 class ChannelController extends BaseController
 {
     private $parent_type;
+    private $channelService;
     public function __construct()
     {
-        // $this->channel = 'bse_channel';
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
+        parent::__construct();
         $this->parent_type = AppEnum::Channel;
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        $this->channelService = new ChannelService;
     }
     /**
      * @OA\Post(
@@ -73,6 +69,10 @@ class ChannelController extends BaseController
      */
     public function index(Request $request)
     {
+        \Validator::make($request->all(), [
+            'proj_ids' => 'required',
+        ])->validate();
+
         $pagesize = $this->setPagesize($request);
         $map = array();
         // 渠道ID
@@ -100,7 +100,7 @@ class ChannelController extends BaseController
 
         DB::enableQueryLog();
         // Use a single query to fetch the main data
-        $data = channelModel::where($map)
+        $data = $this->channelService->model()->where($map)
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
@@ -145,7 +145,8 @@ class ChannelController extends BaseController
         $cusCount = 0;
         // $stat = array();
         foreach ($stat as $key => &$v) {
-            $channel = ChannelModel::select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
+            $channel = $this->channelService->model()
+                ->select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
                 ->where($map)
                 ->where(function ($q) use ($request) {
                     $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
@@ -178,7 +179,6 @@ class ChannelController extends BaseController
 
         $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
         // return response()->json(DB::getQueryLog());
-
         $data['stat'] = $stat;
         return $this->success($data);
     }

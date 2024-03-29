@@ -60,6 +60,14 @@ abstract class AppEnum extends Enum
   const depositRecordRefund = 3;  // 押金退款
 
 
+  // 0 => "未收款",
+  // 1 => "已收款",
+  // 2 => "退款",
+  // 3 => '已结清',
+  const depositStatusUnReceive = 0;  // 未收款
+  const depositStatusReceived = 1;  // 已收款
+  const depositStatusRefund = 2;  // 部分退款
+  const depositStatusClear = 3;  // 已结清
 
 
   const chargeCategoryFee  = 1;   //费用

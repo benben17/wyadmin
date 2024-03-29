@@ -26,13 +26,9 @@ class DepositController extends BaseController
   private $chargeService;
   public function __construct()
   {
-    $this->uid  = auth()->payload()->get('sub');
-    if (!$this->uid) {
-      return $this->error('用户信息错误');
-    }
+    parent::__construct();
     $this->depositService = new DepositService;
     $this->chargeService = new ChargeService;
-    $this->user = auth('api')->user();
   }
 
   /**
@@ -105,14 +101,13 @@ class DepositController extends BaseController
       ->paginate($pagesize)->toArray();
 
     $list = $subQuery->get()->toArray();
-    // return response()->json(DB::getQueryLog());
-    // 统计每种类型费用的应收/实收/ 退款/ 转收入
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v1) {
       $record = $this->depositService->formatDepositRecord($v1['deposit_record']);
       $v1 = $v1 + $record;
     }
+    // 统计每种类型费用的应收/实收/ 退款/ 转收入
     $data['stat'] = $this->depositService->depositStat($list);
     return $this->success($data);
   }
@@ -371,7 +366,7 @@ class DepositController extends BaseController
         // 押金转收入 写入到charge  收支表
         $this->chargeService->depositToCharge($deposit, $DA, $user);
         if ($availableAmt == $DA['amount']) {
-          $updateData['status'] = 3;
+          $updateData['status'] = AppEnum::depositStatusClear;
           $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
         }
       }, 2);
@@ -440,7 +435,7 @@ class DepositController extends BaseController
         }
         // 应收和实际收款 相等时
         if ($depositFee['amount'] == $totalReceiveAmt) {
-          $updateData['status'] =  1;
+          $updateData['status'] =  AppEnum::depositStatusReceived;
         }
         $updateData['receive_date'] = $DA['receive_date'] ?? nowYmd();
         // 保存押金流水记录
@@ -513,9 +508,9 @@ class DepositController extends BaseController
           throw new Exception("此押金可用余额小于退款金额，不可操作!");
         }
         if ($availableAmt > $DA['amount']) {
-          $updateData['status'] = 2; // 部分退款
+          $updateData['status'] = AppEnum::depositStatusRefund; // 退款
         } else {
-          $updateData['status'] = 3; // 已结清
+          $updateData['status'] = AppEnum::depositStatusClear; // 已结清
         }
         // 插入记录
         $this->depositService->saveDepositRecord($depositBill, $DA, $user);

@@ -15,8 +15,14 @@ use Exception;
  *
  */
 class ChannelService
-
 {
+
+  public function model()
+  {
+    return new ChannelModel;
+  }
+
+  /** 保存渠道 */
   public function savePolicy($DA, $user)
   {
     if (isset($DA['id']) &&  $DA['id'] > 0) {
