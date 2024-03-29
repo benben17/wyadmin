@@ -112,7 +112,7 @@ class BillDetailController extends BaseController
       $v['unreceive_amt'] = $v['total_amt'] - $v['receive_amt'];
     }
     $data = $this->handleBackData($result);
-    foreach ($data['data'] as $k => &$v) {
+    foreach ($data['result'] as $k => &$v) {
       $v['tenant_name'] = $v['tenant']['name'];
       unset($v['tenant']);
     }
