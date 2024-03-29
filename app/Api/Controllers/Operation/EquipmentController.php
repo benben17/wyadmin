@@ -505,7 +505,7 @@ class EquipmentController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     $DA = $request->toArray();
-    $data = $this->equipment->maintainModel()->find($DA['id'])->toArray();
+    $data = $this->equipment->maintainModel()->find($DA['id']);
     // $data['maintain_type_label'] = getDictName($data['maintain_type']);
     return $this->success($data);
   }
@@ -789,10 +789,9 @@ class EquipmentController extends BaseController
       'id' => 'required',
     ]);
     $data = $this->equipment->MaintainPlanModel()
-      ->whereId($request->id)
       ->withCount('maintain')
       // ->where('year', $request->year)
-      ->with('maintain')->first();
+      ->with('maintain')->find($request->id);
     return $this->success($data);
   }
 }

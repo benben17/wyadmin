@@ -49,7 +49,7 @@ class DepositService
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
         $dRecord->type          = $DA['type'];
-        $dRecord->bank_id          = $deposit['bank_id'];
+        $dRecord->bank_id       = $deposit['bank_id'];
         $dRecord->remark        = isset($DA['remark']) ? $DA['remark'] : "";
         $dRecord->c_user        = $user['realname'];
         $dRecord->c_uid         = $user['id'];

@@ -410,35 +410,39 @@ class DepositController extends BaseController
     $validatedData = $request->validate([
       'id'      => 'required|gt:0',
       'amount' => 'required|gt:0',
+      'receive_date' => 'required|date',
     ],  [
       'id' => '押金应收id是必填的',
       'amount.required' => '金额字段是必填的。',
-
+      'amount.gt' => '金额必须大于0。',
+      'receive_date.required' => '收款日期字段是必填的。',
+      'receive_date.date' => '收款日期必须是有效的日期。',
     ]);
     $DA = $request->toArray();
     $DA['type'] = AppEnum::depositRecordReceive;
 
-    $depositBill = $this->depositService->depositBillModel()->find($request->id);
-    if ($depositBill['status'] != 0) {
+    $depositFee = $this->depositService->depositBillModel()->find($request->id);
+    if ($depositFee['status'] != 0) {
       return $this->error("此押金已经收款结清!");
     }
 
     try {
       $user = $this->user;
-      DB::transaction(function () use ($depositBill, $DA, $user) {
+      DB::transaction(function () use ($depositFee, $DA, $user) {
         // 已收款金额+ 本次收款金额 
-        $totalReceiveAmt = $depositBill['receive_amount'] + $DA['amount'];
-        $unreceiveAmt  = $depositBill['unreceive_amount'];
+        $totalReceiveAmt = $depositFee['receive_amount'] + $DA['amount'];
+        $unreceiveAmt  = $depositFee['unreceive_amount'];
         $updateData['receive_amount'] =  $totalReceiveAmt;
         if ($DA['amount'] > $unreceiveAmt) {
           throw new Exception("收款金额不允许大于未收金额!");
         }
         // 应收和实际收款 相等时
-        if ($DA['amount'] === $unreceiveAmt) {
+        if ($depositFee['amount'] === $totalReceiveAmt || $DA['amount'] === $unreceiveAmt) {
           $updateData['status'] =  1;
         }
+        $updateData['receive_date'] = $DA['receive_date'] ?? nowYmd();
         // 保存押金流水记录
-        $this->depositService->saveDepositRecord($depositBill, $DA, $user);
+        $this->depositService->saveDepositRecord($depositFee, $DA, $user);
         // 更新 押金信息 【状态，收款金额】
         $this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
       }, 2);

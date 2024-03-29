@@ -447,7 +447,12 @@ class ContractController extends BaseController
         if ($res->contract_state == 2 || $res->contract_state == 99) {
             return $this->error('正式合同或者作废合同不允许更新');
         }
+
+        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
+
         try {
+
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
@@ -951,8 +956,8 @@ class ContractController extends BaseController
         }
         // 合同编号不设置的时候系统自动生成
         if (!isset($DA['contract_no']) || empty($DA['contract_no'])) {
-            $contract_prefix = getVariable($user->company_id, 'contract_prefix');
-            $contract->contract_no = $contract_prefix . getContractNo();
+
+            $contract->contract_no = getContractNo($user->company_id);
         } else {
             $contract->contract_no = $DA['contract_no'];
         }

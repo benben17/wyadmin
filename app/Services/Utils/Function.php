@@ -48,7 +48,7 @@ function getBankIdByFeeType($feeId, $projId): int
         }
     } catch (\Exception $e) {
         Log::error($e->getMessage());
-        throw new \Exception("费用的银行账户获取失败");
+        throw new \Exception("【" . getFeeNameById($feeId) . "】费用的银行账户获取失败");
     }
 }
 
@@ -99,12 +99,13 @@ function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 
 /**
  * 获取合同编号
- *
- * @return void
+ *  生成规则：前缀+年月日时分秒+3位随机数
+ * @return string
  */
-function getContractNo()
+function getContractNo($companyId): string
 {
-    $contractNo = date("ymdHis") . mt_rand(1000, 9999);
+    $contractPrefix = getVariable($companyId, 'contract_prefix');
+    $contractNo = $contractPrefix . date("ymdHis") . mt_rand(10, 99);
     return $contractNo;
 }
 
@@ -360,7 +361,7 @@ function uuid($prefix = '')
 }
 
 /**
- * 生成6位流水号
+ * 生成流水号
  *
  * @Author leezhua
  * @DateTime 2021-07-14
@@ -371,12 +372,13 @@ function getChargeNo($type)
 {
     $no = date('ymdHis', strtotime(nowTime()));
     if ($type == AppEnum::chargeIncome) {
-        return  'IE-' . $no . mt_rand(10, 99);
+        return  'IE-' . $no . mt_rand(10, 99); // 收入
     } else {
-        return  'EX-' . $no . mt_rand(10, 99);
+        return  'EX-' . $no . mt_rand(10, 99); // 支出
     }
 }
 
+// 核销流水号
 function getChargeVerifyNo()
 {
     $no = date('ymdHis', strtotime(nowTime()));
