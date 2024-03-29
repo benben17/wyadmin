@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Channel\ChannelPolicy as PolicyModel;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+use App\Api\Models\Tenant\Tenant;
+use App\Api\Services\Common\DictServices;
 use App\Api\Services\Contract\BillRuleService;
 use App\Enums\AppEnum;
 use Exception;
@@ -158,5 +160,66 @@ class ChannelService
       log::error($brokerage);
       return false;
     }
+  }
+
+  /**
+   * list channel stat
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-29
+   * @param [type] $subQuery
+   * @param [type] $userId
+   *
+   * @return array
+   */
+  public function statChannel($subQuery, $userId): array
+
+  {
+    $statData = [];
+    $dict = new DictServices;
+    $channelTypes = $dict->getByKey(getCompanyIds($userId), 'channel_type');
+
+    $channelStat = $subQuery
+      ->selectRaw('group_concat(id) as Ids,count(id) as count,channel_type')
+      ->groupBy('channel_type')->get();
+
+
+    $channelCount = [
+      'channel_type' => '渠道总计',
+      'count' => 0,
+      'cus_count' => 0
+    ];
+
+    foreach ($channelTypes as $v) {
+      $channelTypeName = $v['value'];
+      $found = false;
+
+      foreach ($channelStat as $val) {
+        if ($channelTypeName == $val['channel_type']) {
+          $statData[] = [
+            'channel_type' => $channelTypeName,
+            'count' => $val['count'],
+            'cus_count' => Tenant::whereIn('channel_id', str2Array($val['Ids']))->count()
+          ];
+          $channelCount['count'] += $val['count'];
+          $channelCount['cus_count'] += end($statData)['cus_count']; // Last element added to statData
+          $found = true;
+          break;
+        }
+      }
+
+      if (!$found) {
+        // If channel type not found in $channelStat, add with count 0
+        $statData[] = [
+          'channel_type' => $channelTypeName,
+          'count' => 0,
+          'cus_count' => 0
+        ];
+      }
+    }
+
+    // Add total count row
+    $statData[] = $channelCount;
+    return $statData;
   }
 }

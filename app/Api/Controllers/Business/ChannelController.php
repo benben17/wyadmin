@@ -69,9 +69,6 @@ class ChannelController extends BaseController
      */
     public function index(Request $request)
     {
-        \Validator::make($request->all(), [
-            'proj_ids' => 'required',
-        ])->validate();
 
         $pagesize = $this->setPagesize($request);
         $map = array();
@@ -99,87 +96,38 @@ class ChannelController extends BaseController
         }
 
         DB::enableQueryLog();
-        // Use a single query to fetch the main data
-        $data = $this->channelService->model()->where($map)
+        $subQuery = $this->channelService->model()->where($map)
             ->where(function ($q) use ($request) {
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
                 if ($request->proj_ids) {
-                    // $q->orWhere(DB::Raw("proj_ids = ''"));
                     $q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
                 }
                 $request->c_uid && $q->where('c_uid', $request->c_uid);
                 $request->start_time && $q->where('created_at', '>=', $request->start_time);
                 $request->end_time && $q->where('created_at', '<=', $request->end_time);
-            })
-            ->with([
-                'channelPolicy:id,name',
-                'channelContact',
-            ])
+            })->whereHas('channelPolicy', function ($q) use ($request) {
+                $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
+            });
+
+
+        $data = $subQuery->with(['channelPolicy:id,name', 'channelContact'])
             ->withCount('customer')
             ->withCount([
                 'customer as cus_deal_count' => function ($q) {
                     $q->where('state', '成交客户');
                 }
             ])
-
-            ->whereHas('channelPolicy', function ($q) use ($request) {
-                $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
-            })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)
             ->toArray();
 
-
-        $data = $this->handleBackData($data);
-        // return response()->json(DB::getQueryLog());
-
         if ($request->export) {
             return $this->exportToExcel($data['result'], ChannelExcel::class);
         }
-        /** 根据渠道类型统计有多少渠道 */
-        $dict = new DictServices;
-        $stat = $dict->getByKey(getCompanyIds($this->uid), 'channel_type');
-        $channelTypeCounts = [];
-        $channelTotal = 0;
-        $cusCount = 0;
-        // $stat = array();
-        foreach ($stat as $key => &$v) {
-            $channel = $this->channelService->model()
-                ->select(DB::Raw('group_concat(id) as Ids,count(id) as count'))
-                ->where($map)
-                ->where(function ($q) use ($request) {
-                    $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
-                    if ($request->proj_ids) {
-                        // $q->orWhere(DB::Raw("proj_ids = ''"));
-                        $q->whereRaw(" proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids)");
-                    }
-                    $request->c_uid && $q->where('c_uid', $request->c_uid);
-                    $request->start_time && $q->where('created_at', '>=', $request->start_time);
-                    $request->end_time && $q->where('created_at', '<=', $request->end_time);
-                })
-                ->where('channel_type', $v['value'])
-                ->with('channelPolicy:id,name')
-                ->whereHas('channelPolicy', function ($q) use ($request) {
-                    $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
-                })
-                ->first();
-
-            $v['count'] = $channel['count'];
-            $v['channel_type'] = $v['value'];
-            if (empty($channel['Ids']) || !$channel['Ids']) {
-                $v['cus_count'] = 0;
-            } else {
-                $Ids = explode(",", $channel['Ids']);
-                $v['cus_count'] = Tenant::whereIn('channel_id', $Ids)->count();
-            }
-            $cusCount += $v['cus_count'];
-            $channelTotal += $v['count'];
-        }
-
-        $stat = array_merge($stat, array(array('channel_type' => '总计', 'count' => $channelTotal, 'cus_count' => $cusCount)));
-        // return response()->json(DB::getQueryLog());
-        $data['stat'] = $stat;
+        $data = $this->handleBackData($data);
+        // 统计渠道类型的客户数量以及渠道数量
+        $data['stat'] = $this->channelService->statChannel($subQuery, $this->uid);
         return $this->success($data);
     }
 
