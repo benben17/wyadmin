@@ -29,12 +29,7 @@ class CustomerController extends BaseController
     private $parent_type;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        parent::__construct();
         $this->parent_type = AppEnum::Tenant;
         $this->customerService = new CustomerService;
     }
@@ -94,7 +89,7 @@ class CustomerController extends BaseController
 
         $request->type = [1, 2, 3];  // 只显示客户，和退租客户 不显示租户
         DB::enableQueryLog();
-        $result = $this->customerService->tenantModel()
+        $subQuery = $this->customerService->tenantModel()
             ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
@@ -123,7 +118,8 @@ class CustomerController extends BaseController
                         $q->havingRaw('count(*) >0');
                     });
                 }
-            })
+            });
+        $result = $subQuery
             ->with('channel:channel_name,channel_type,id')
             // ->with('contacts')
             ->with('contactInfo')
@@ -138,33 +134,8 @@ class CustomerController extends BaseController
         // return response()->json(DB::getQueryLog());
         $cusState = "";
         // if ($request->list_type == 1) {
-        $customerStat = $this->customerService->tenantModel()
+        $customerStat = $subQuery
             ->select('state', DB::Raw('ifnull(count(*),0) as count'))
-            ->where($map)
-            ->where(function ($q) use ($request) {
-                $request->type && $q->whereIn('type', $request->type);
-                $request->room_type && $q->where('room_type', $request->room_type);
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->source_type && $q->where('source_type', $request->source_type);
-                if (!$this->user['is_admin']) {
-                    if ($request->depart_id) {
-                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                        $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                        $q->whereIn('depart_id', $departIds);
-                    } else if (!$request->depart_id) {
-                        $q->where('belong_uid', $this->uid);
-                    }
-                }
-                if ($request->visit_times) {
-                    $q->whereHas('follow', function ($q) {
-                        $q->where('follow_type', AppEnum::followVisit);
-                        $q->havingRaw('count(*) >1');
-                    });
-                }
-            })
             ->groupBy('state')->get()->toArray();
         // return response()->json(DB::getQueryLog());
         $dict = new DictServices;  // 根据ID 获取字典信息

@@ -24,7 +24,6 @@ class CusFollowController extends BaseController
   public function __construct()
   {
     parent::__construct();
-
     $this->parent_type = AppEnum::Tenant;
     $this->tenant = new TenantService;
   }
@@ -157,6 +156,8 @@ class CusFollowController extends BaseController
     $data['stat'] = $dictKeys;
     return $this->success($data);
   }
+
+
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/add",
@@ -233,9 +234,9 @@ class CusFollowController extends BaseController
     ]);
 
     $DA = $request->toArray();
-    $user = auth('api')->user();
+
     $follow = new CustomerService;
-    $res = $follow->saveFollow($DA, $user);
+    $res = $follow->saveFollow($DA, $this->user);
     if ($res) {
       return $this->success('跟进记录保存成功。');
     }
@@ -275,10 +276,10 @@ class CusFollowController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $user = auth('api')->user();
+   
     $data = $request->toArray();
     unset($data['state']);
-    $data['u_uid'] = $user->uid;
+    $data['u_uid'] = $this->uid;
     $res = Follow::whereId($request->id)->update($data);
     if ($res) {
       return $this->success('跟进记录保存成功。');

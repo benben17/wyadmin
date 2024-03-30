@@ -3,11 +3,11 @@
 namespace App\Api\Services\Bill;
 
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Bill\DepositRecord;
 use App\Api\Models\Bill\TenantBillDetail;
-use App\Enums\AppEnum;
 
 /**
  * 押金流水记录
@@ -20,6 +20,7 @@ class DepositService
   public function recordModel()
   {
     return new DepositRecord;
+
   }
 
   public function depositBillModel()
@@ -65,7 +66,7 @@ class DepositService
 
   private function depositRecordNo()
   {
-    return "DR-" . date('ymdHis') . mt_rand(10, 99);
+    return "DR-".date('ymdHis') . mt_rand(10, 99);
   }
 
 

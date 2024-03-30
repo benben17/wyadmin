@@ -2,12 +2,12 @@
 
 namespace App\Api\Services\Business;
 
-use App\Api\Models\Business\CusClue;
-use App\Enums\AppEnum;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-
 use Exception;
+use App\Enums\AppEnum;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+use App\Api\Models\Business\CusClue;
 
 /**
  * 客户线索管理
@@ -88,7 +88,7 @@ class CusClueService
   {
 
     $stat = $this->model()->where($map)
-      ->selectRaw('count(*) cule_total,
+      ->selectRaw('count(*) clue_total,
                   ifnull(sum(case when status = 2 then 1 end),0) customer_count,
                   ifnull(sum(case when status = 3 then 1 end),0) invalid_count')
       ->where(function ($q) use ($request) {
@@ -105,15 +105,15 @@ class CusClueService
     if ($stat['visit_count']  == 0) {
       $visitRate = '0.00%';
     } else {
-      $visitRate =  numFormat($stat['visit_count'] / $stat['cule_total'] * 100) . "%";
+      $visitRate =  numFormat($stat['visit_count'] / $stat['clue_total'] * 100) . "%";
     }
     if ($stat['customer_count']  == 0) {
       $cusRate = '0.00%';
     } else {
-      $cusRate =  numFormat($stat['customer_count'] / $stat['cule_total'] * 100) . "%";
+      $cusRate =  numFormat($stat['customer_count'] / $stat['clue_total'] * 100) . "%";
     }
     $clueStat = array(
-      ['label' => "线索总数", 'value' => $stat['cule_total']],
+      ['label' => "线索总数", 'value' => $stat['clue_total']],
       ['label' => "转客户", 'value' => $stat['customer_count']],
       ['label' => "来访数", 'value' => $stat['visit_count']],
       ['label' => "无效数", 'value' => $stat['invalid_count']],

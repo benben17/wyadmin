@@ -4,18 +4,18 @@ namespace App\Api\Controllers\Bill;
 
 use JWTAuth;
 //use App\Exceptions\ApiException;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Api\Models\Company\FeeType;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\TenantBillDetail;
-use App\Api\Models\Company\FeeType;
 use App\Api\Services\Bill\InvoiceService;
-use App\Api\Services\Tenant\ChargeService;
-use Illuminate\Support\Facades\DB;
 
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\TenantService;
-use App\Enums\AppEnum;
 
 /**
  * 租户账单
@@ -119,6 +119,7 @@ class BillDetailController extends BaseController
     $data['stat'] = $feeStat;
     return $this->success($data);
   }
+
   /**
    * @OA\Post(
    *     path="/api/operation/tenant/bill/fee/show",
@@ -132,7 +133,7 @@ class BillDetailController extends BaseController
    *          required={"id"},
    *       @OA\Property(property="id",type="int",description="费用 id")
    *     ),
-   *       example={}
+   *       example={"id":1}
    *       )
    *     ),
    *     @OA\Response(
@@ -145,6 +146,9 @@ class BillDetailController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
+    ], [
+      'id.gt' => '费用ID必须大于0',
+      'id.required' => '费用ID不能为空',
     ]);
     DB::enableQueryLog();
 
@@ -155,6 +159,7 @@ class BillDetailController extends BaseController
       ->with('billDetailLog')
       ->with('contract:id,contract_no')
       ->find($request->id);
+
     // $invoiceService = new InvoiceService;
     // $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
     // if (!$invoiceRecord) {
@@ -281,6 +286,7 @@ class BillDetailController extends BaseController
         return $this->error("此费用类型已存在，是否继续添加？");
       }
     }
+
     $DA = $request->toArray();
     if (!isset($DA['contract_id'])) {
       $contractService = new ContractService;

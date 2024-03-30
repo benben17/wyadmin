@@ -4,15 +4,15 @@ namespace App\Api\Controllers\Bill;
 
 use JWTAuth;
 //use App\Exceptions\ApiException;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\InvoiceService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 use App\Api\Services\Bill\TenantBillService;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  * 发票管理
@@ -76,6 +76,7 @@ class InvoiceController extends BaseController
     if (isset($request->status) && $request->status != "") {
       $map['status'] = $request->status;
     }
+
     DB::enableQueryLog();
     $subQuery = $this->invoiceService->invoiceRecordModel()
       ->where(function ($q) use ($request) {

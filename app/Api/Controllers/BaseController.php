@@ -92,6 +92,15 @@ class BaseController extends Controller
     }
 
 
+    /**
+     * 设置分页 默认每页20条
+     *
+     * @Author leezhua
+     * @DateTime 2024-03-29
+     * @param Request $request
+     *
+     * @return integer
+     */
     public function setPagesize(Request $request): int
     {
         $pagesize = $request->pagesize;

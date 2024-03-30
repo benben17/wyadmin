@@ -3,18 +3,12 @@
 namespace App\Api\Controllers\Bill;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
-use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Tenant\TenantShare;
-use App\Api\Services\Contract\ContractService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Company\VariableService;
-use App\Api\Services\Tenant\ShareRuleService;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Tenant\ShareRuleService;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 租户账单
@@ -51,7 +45,7 @@ class BillSyncController extends BaseController
       $billService = new TenantBillService;
       $shareRule = new ShareRuleService;
 
-      $chargeDate = date('Y-m-d');
+      $chargeDate = nowYmd();
       // $chargeDate = "2021-09-01";
 
       $bills = $contractService->contractBillModel()

@@ -50,7 +50,8 @@ class BillController extends BaseController
    *       @OA\Property(property="name",type="String",description="客户名称"),
    *        @OA\Property(property="start_date",type="String",description="开始日期")
    *     ),
-   *       example={}
+   *       example={"name":"","start_date":"2021-07-01",
+   *        "end_date":"2021-07-31","orderBy":"created_at","order":"desc","pagesize":10}
    *       )
    *     ),
    *     @OA\Response(

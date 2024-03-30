@@ -2,17 +2,20 @@
 
 namespace App\Api\Services\Building;
 
+use Exception;
 use App\Api\Models\Building;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
 /**
+ * 楼宇服务
  *
+ * @Author leezhua
+ * @DateTime 2024-03-28
  */
 class BuildingService
 {
@@ -38,14 +41,13 @@ class BuildingService
 
     if (!$DA['t_manager_area']) {
       $rentalRate = 0;
-      $freeRate = 0;
+      $freeRate   = 0;
     } else {
       $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
       $freeRate = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
     }
     $stat[] = array('label' => '当前出租率', 'value' => $rentalRate . ' %');
     $stat[] = array('label' => '当前空闲率', 'value' => $freeRate . ' %');
-
     return $stat;
   }
 
@@ -97,7 +99,7 @@ class BuildingService
       $roomIds = str2Array($roomIds);
       $res = BuildingRoomModel::whereIn('id', $roomIds)->update(['room_state' => $roomState]);
     } catch (Exception $e) {
-      throw $e->getMessage();
+      throw new Exception("更新房间错误：".$e->getMessage());
       Log::error($e->getMessage());
     }
     return $res;

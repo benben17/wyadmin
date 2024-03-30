@@ -144,16 +144,11 @@ class BuildingController extends BaseController
 
         // 获取统计信息
         $data = $this->handleBackData($data);
-        $buildingService = new BuildingService;
-        foreach ($data['result'] as $k => &$v) {
-            // $v['free_area'] = numFormat($v['free_area']);
-            $v['total_area'] = numFormat($v['total_area']);
-        }
 
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
-
+        $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($list);
         return $this->success($data);
     }
@@ -380,15 +375,15 @@ class BuildingController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"buidingId"},
+     *          required={"id"},
      *       @OA\Property(
-     *          property="buidingId",
+     *          property="id",
      *          type="int",
      *          description="楼ID"
      *       )
      *     ),
      *       example={
-     *              "buidingId": 1
+     *              "id": 1
      *           }
      *       )
      *     ),

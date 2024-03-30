@@ -35,16 +35,7 @@ class ContractController extends BaseController
     private $contractService;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        try {
-            $this->user = auth('api')->user();
-            // Log::error($this->user);
-        } catch (Exception $e) {
-            Log::error($e);
-        }
+        parent::__construct();
         $this->tenantShareService = new TenantShareService;
         $this->contractService = new ContractService;
     }

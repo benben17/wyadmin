@@ -1,10 +1,10 @@
 <?php
 
-use App\Api\Models\Company\BankAccount;
 use App\Enums\AppEnum;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Company\BankAccount;
 
 /**
  * 公用方法 获取用户公司ID
@@ -52,10 +52,9 @@ function getBankIdByFeeType($feeId, $projId): int
     }
 }
 
-
+// 获取公司配置变量信息
 function getVariable($companyId, $key)
 {
-
     $data =  \App\Api\Models\Company\CompanyVariable::select($key)->find($companyId);
     return $data[$key];
 }
@@ -291,8 +290,17 @@ function isDate($dateString)
     return strtotime(date('Y-m-d', strtotime($dateString))) === strtotime($dateString);
 }
 
+/**
+ * 
+ * @Author leezhua
+ * @Date 2024-03-29
+ * @param [type] $style
+ * @param [type] $date
+ * @return void
+ */
 function dateFormat($style, $date)
 {
+
     $date = new DateTime($date);
     return $date->format($style);
 }
@@ -325,16 +333,28 @@ function getMonthNum($date1, $date2, $tags = '-'): int
  * @DateTime 2024-03-25
  * @param [type] $filePath
  *
- * @return void
+ * @return string
  */
-function getOssUrl($filePath)
+function getOssUrl($filePath): string
 {
     if (empty($filePath)) {
         return "";
     }
-    return "https://" . config('filesystems.disks.oss.bucket') . '.' . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
+    return "https://" . config('filesystems.disks.oss.bucket') . '.'
+        . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
 }
 
+/**
+ * @Desc: 字段模糊查询
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param string $column
+ * @return string
+ */
+function columnLike(string $column): string
+{
+    return "%" . $column . "%";
+}
 
 function str2Array($str, $tag = ',')
 {

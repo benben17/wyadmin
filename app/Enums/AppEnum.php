@@ -96,4 +96,9 @@ abstract class AppEnum extends Enum
 
   // 跟进方式
   const followVisit = 87;
+
+  // 发票状态
+  const invoiceStatusUnOpen = 1;  // 未开
+  const invoiceStatusOpened = 2;  // 已开
+  const invoiceStatusCancel = 3;  // 作废
 }

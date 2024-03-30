@@ -185,7 +185,7 @@ class StatController extends BaseController
             $v2['source_type_label'] = getDictName($v2['source_type']);
         }
         /** 统计每种状态下的客户  */
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
         $customerByState = $this->customerService->tenantModel()
             ->where('parent_id', 0)
             ->selectRaw('state, count(*) as cus_count')

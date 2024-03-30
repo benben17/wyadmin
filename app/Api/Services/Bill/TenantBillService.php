@@ -2,21 +2,21 @@
 
 namespace App\Api\Services\Bill;
 
-use App\Api\Models\Bill\ChargeBill;
-use App\Api\Models\Bill\ChargeBillRecord;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Bill\ChargeBill;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
 use Illuminate\Database\QueryException;
+use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Contract\ContractBill;
 use App\Api\Models\Bill\TenantBillDetailLog;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Models\Bill\TenantBill as BillModel;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
-use App\Api\Services\Contract\ContractService;
 
 /**
  *   租户账单服务
@@ -109,7 +109,7 @@ class TenantBillService
         $billDetail->fee_type    = $DA['fee_type']; // 费用类型
         $billDetail->amount      = $DA['amount'];
         $billDetail->bank_id     = $DA['bank_id'] ?? 0;
-        if ($billDetail->bank_id === 0) {
+        if ($billDetail->bank_id == 0) {
           $billDetail->bank_id     = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
         }
 

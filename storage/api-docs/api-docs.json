@@ -231,7 +231,14 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "name": "",
+                                "start_date": "2021-07-01",
+                                "end_date": "2021-07-31",
+                                "orderBy": "created_at",
+                                "order": "desc",
+                                "pagesize": 10
+                            }
                         }
                     }
                 },
@@ -431,7 +438,9 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "id": 1
+                            }
                         }
                     }
                 },
@@ -1619,15 +1628,15 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "invoce_id",
+                                    "invoice_id",
                                     "amount",
                                     "invoice_no",
                                     "status",
                                     "bill_detail_id"
                                 ],
                                 "properties": {
-                                    "invoce_id": {
-                                        "description": "发票titleID",
+                                    "invoice_id": {
+                                        "description": "发票ID",
                                         "type": "int"
                                     },
                                     "amount": {
@@ -1678,7 +1687,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "id",
-                                    "invoce_id",
+                                    "invoice_id",
                                     "amount",
                                     "invoice_no",
                                     "status",
@@ -1689,8 +1698,8 @@
                                         "description": "发票记录id",
                                         "type": "int"
                                     },
-                                    "invoce_id": {
-                                        "description": "发票titleID",
+                                    "invoice_id": {
+                                        "description": "发票ID",
                                         "type": "int"
                                     },
                                     "amount": {
@@ -1984,10 +1993,10 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "buidingId"
+                                    "id"
                                 ],
                                 "properties": {
-                                    "buidingId": {
+                                    "id": {
                                         "description": "楼ID",
                                         "type": "int"
                                     }
@@ -1995,7 +2004,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "buidingId": 1
+                                "id": 1
                             }
                         }
                     }

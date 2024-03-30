@@ -3,17 +3,18 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
 
-use App\Api\Models\BuildingRoom  as RoomModel;
+use App\Api\Controllers\BaseController;
+use App\Api\Excel\Business\BuildingRoomExcel;
 use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Services\Contract\ContractService;
+use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
 
-use App\Api\Excel\Business\BuildingRoomExcel;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Models\Tenant\Tenant as TenantModel;
 
 /**
  * 项目房源信息
@@ -90,11 +91,11 @@ class BuildingRoomController extends BaseController
         DB::enableQueryLog();
         $data = RoomModel::where($map)
             ->where(function ($q) use ($request) {
-                $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
+                $request->room_no && $q->where('room_no', 'like', columnLike($request->room_no));
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
+                $request->build_no && $q->where('build_no', 'like', columnLike($request->build_no));
             })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
@@ -111,7 +112,6 @@ class BuildingRoomController extends BaseController
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
-
         $data['stat'] = $buildService->areaStat($map, $request->proj_ids, array());
         return $this->success($data);
     }
