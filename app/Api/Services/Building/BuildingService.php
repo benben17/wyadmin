@@ -57,7 +57,7 @@ class BuildingService
       $DA['t_room_count']   += $v['build_room_count'];
       $DA['t_free_count']   += $v['free_room_count'];
     }
-   
+
     $rentalRate = 0.00;
     $freeRate = 0.00;
     if ($DA['t_manager_area']) {
@@ -71,7 +71,7 @@ class BuildingService
       ['label' => '可招商房间', 'value' => $DA['t_free_count']],
       ['label' => '当前出租率', 'value' => "$rentalRate %"],
       ['label' => '当前空闲率', 'value' => "$freeRate %"]
-  ];
+    ];
   }
 
   /**
