@@ -20,12 +20,12 @@ class BaseController extends Controller
     protected $user;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
+        $this->user = auth('api')->user();
+        $this->uid  = $this->user->id;
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
     }
 
 
@@ -64,13 +64,12 @@ class BaseController extends Controller
         if (is_array($data)) {
             foreach ($data as &$v) {
                 $this->parseNull($v);
-                if (is_float($v)) {
-                    $v = numFormat($v);
-                }
             }
         } else {
             if (is_null($data)) {
                 $data = "";
+            } elseif (is_float($data)) {
+                $data = numFormat($data);
             }
         }
     }

@@ -12,19 +12,42 @@ use App\Api\Services\Contract\ContractService;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
 /**
- * 楼宇服务
- *
- * @Author leezhua
- * @DateTime 2024-03-28
+ * 楼宇服务类
+ * Description
+ * @package App\Api\Services\Building
  */
 class BuildingService
 {
 
-  public function buildRoomModel()
+  /**
+   * 获取房间模型
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @return BuildingRoomModel 
+   */
+  public function RoomModel()
   {
     return new BuildingRoomModel();
   }
 
+  /**
+   * 获取楼宇信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @return array BuildingModel 
+   */
+  public function BuildingModel()
+  {
+    return new Building();
+  }
+
+  /**
+   * 获取楼宇统计信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param mixed $data 
+   * @return array 
+   */
   public function getBuildingAllStat($data)
   {
     $DA = array('t_manager_area' => 0, 't_free_are' => 0, 't_room_count' => 0, 't_free_count' => 0);
@@ -34,21 +57,21 @@ class BuildingService
       $DA['t_room_count']   += $v['build_room_count'];
       $DA['t_free_count']   += $v['free_room_count'];
     }
-    $stat[] = array('label' => '招商面积', 'value' => $DA['t_manager_area'] . ' ㎡');
-    $stat[] = array('label' => '可招商面积', 'value' => $DA['t_free_are'] . " ㎡");
-    $stat[] = array('label' => '总房间数', 'value' => $DA['t_room_count']);
-    $stat[] = array('label' => '可招商房间', 'value' => $DA['t_free_count']);
-
-    if (!$DA['t_manager_area']) {
-      $rentalRate = 0;
-      $freeRate   = 0;
-    } else {
+   
+    $rentalRate = 0.00;
+    $freeRate = 0.00;
+    if ($DA['t_manager_area']) {
       $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
       $freeRate = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
     }
-    $stat[] = array('label' => '当前出租率', 'value' => $rentalRate . ' %');
-    $stat[] = array('label' => '当前空闲率', 'value' => $freeRate . ' %');
-    return $stat;
+    return [
+      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']} ㎡"],
+      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']} ㎡"],
+      ['label' => '总房间数', 'value' => $DA['t_room_count']],
+      ['label' => '可招商房间', 'value' => $DA['t_free_count']],
+      ['label' => '当前出租率', 'value' => "$rentalRate %"],
+      ['label' => '当前空闲率', 'value' => "$freeRate %"]
+  ];
   }
 
   /**

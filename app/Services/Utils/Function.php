@@ -202,12 +202,22 @@ function formatYmd(String $date): string
     return date('Y-m-d', strtotime($date));
 }
 
+/**
+ * 获取下几个月的日期
+ * @param mixed $ymd 
+ * @param mixed $months 
+ * @return string 
+ */
 function getNextYmd($ymd, $months)
 {
     $months = intval($months);
     return date('Y-m-d', strtotime("+" . $months . "months", strtotime($ymd)));
 }
 
+/**
+ * 获取当前日期
+ * @return string 
+ */
 function nowYmd()
 {
     $datetime = new \DateTime;
@@ -227,6 +237,12 @@ function getNextYmdByDay($ymd, $days)
     $ymd =  date("Y-m-d", strtotime("+" . $days . "days", strtotime($ymd)));
     return $ymd;
 }
+/**
+ * 获取多少天后的日期
+ * @param mixed $ymd 
+ * @param mixed $days 
+ * @return string 
+ */
 function getYmdPlusDays($ymd, $days)
 {
     $days = intval($days);
@@ -482,7 +498,7 @@ function getDepartById($departId)
 
 function getProjIdByName($projName)
 {
-    $project = App\Api\Models\Project::select('id')->where('name', $projName)->fisrt();
+    $project = App\Api\Models\Project::select('id')->where('name', $projName)->first();
     return $project ? $project['id'] : "";
 }
 

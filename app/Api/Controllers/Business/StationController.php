@@ -8,28 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\BuildingRoom  as RoomModel;
-use App\Api\Models\Project as ProjectModel;
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Building\BuildingService;
 use App\Api\Excel\Business\BuildingRoomExcel;
+use App\Api\Models\Building as BuildingModel;
+use App\Api\Models\BuildingRoom  as RoomModel;
+use App\Api\Services\Building\BuildingService;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 项目工位信息
  */
+
 class StationController extends BaseController
 {
-
+    private $buildingService;
     public function __construct()
     {
         // Token 验证
         // $this->middleware('jwt.api.auth');
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
+        parent::__construct();
+        $this->buildingService = new BuildingService;
     }
 
     /**
@@ -90,7 +87,7 @@ class StationController extends BaseController
             $order = 'desc';
         }
         DB::enableQueryLog();
-        $result = RoomModel::where($map)
+        $subQuery = $this->buildingService->RoomModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
                 $request->is_valid && $q->where('is_valid', $request->is_valid);
@@ -98,21 +95,15 @@ class StationController extends BaseController
             })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })
+            });
+        $result = $subQuery
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        $data = RoomModel::select(DB::Raw('sum(case room_state when 1 then 1 else 0 end) free_count,count(*) total_count'))
-            ->where(function ($q) use ($request) {
-                $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $request->is_valid && $q->where('is_valid', $request->is_valid);
-                $request->station_no && $q->where('station_no', 'like', '%' . $request->station_no . '%');
-            })
-            ->whereHas('building', function ($q) use ($request) {
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })
+        $data = $subQuery->select(DB::Raw('count(*) total_count,
+            sum(case room_state when 1 then 1 else 0 end) free_count'))
             ->where($map)
             ->first();
         // return response()->json(DB::getQueryLog());
@@ -197,18 +188,17 @@ class StationController extends BaseController
             'station_list' => 'required|array',
         ]);
 
-        $building = BuildingModel::whereId($request->build_id)->exists();
+        $building = $this->buildingService->RoomModel()->whereId($request->build_id)->exists();
         if (!$building) {
             return $this->error('楼宇不存在');
         }
-
         $data = $request->toArray();
         $fail_msg = "";
         foreach ($data['station_list'] as $k => $v) {
             $data['station_no'] = $v['station_no'];
             $res = $this->saveStation($data);
             if (!$res) {
-                $fail_msg .= $v . "|";
+                $fail_msg .= $v['station_no'] . "|";
             }
         }
         if ($fail_msg) {
@@ -332,7 +322,7 @@ class StationController extends BaseController
 
     private function saveStation($DA, $type = 1)
     {
-        $res = $this->checkReapet($DA, $type);
+        $res = $this->checkRepeat($DA, $type);
         if ($res) {
             return 0;
         }
@@ -366,18 +356,15 @@ class StationController extends BaseController
         return $res;
     }
 
-    private function checkReapet($DA, $type = 1)
+    private function checkRepeat($DA, $type = 1)
     {
         $map['build_id']    = $DA['build_id'];
         $map['room_no']     = $DA['room_no'];
         $map['station_no']  = $DA['station_no'];
         $map['floor_id']    = $DA['floor_id'];
         if ($type != 1) {
-            $res = RoomModel::where($map)->where('id', '!=', $DA['id'])->exists();
-        } else {
-            $res = RoomModel::where($map)->exists();
+            $map['id'] = ['<>', $DA['id']];
         }
-
-        return $res;
+        return RoomModel::where($map)->exists();
     }
 }

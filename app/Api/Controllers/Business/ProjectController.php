@@ -25,11 +25,7 @@ class ProjectController extends BaseController
 
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
+        parent::__construct();
     }
     /**
      * @OA\Post(
@@ -102,21 +98,23 @@ class ProjectController extends BaseController
 
         DB::enableQueryLog();
         // 获取项目信息
-        $data = ProjectModel::where($map)
+        $subQuery = ProjectModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
                 $request->proj_ids && $q->whereIn('id', $request->proj_ids);
                 $request->is_valid &&  $q->where('is_valid', $request->is_valid);
                 $request->proj_type &&  $q->where('proj_type', $request->proj_type);
-            })
-            ->orderBy($orderBy, $order)
+            });
+
+        $data = $subQuery->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
         $data = $this->handleBackData($data);
         //通过项目获取房间信息 并进行数据合并
+        $projStat = $subQuery->get()->toArray();
 
-        foreach ($data['result'] as $k => &$v) {
-            $result =  BuildingModel::where('proj_id', $v['id'])
+        foreach ($projStat as $k => &$v) {
+            $statData =  BuildingModel::where('proj_id', $v['id'])
                 ->withCount(['buildRoom'  => function ($q) use ($subMap) {
                     $q->where($subMap);
                 }])
@@ -142,28 +140,25 @@ class ProjectController extends BaseController
                     $q->select(DB::raw("sum(room_area)"));
                     $q->where('room_state', 1);
                     $q->where($subMap);
-                }])->get()->toArray();
+                }])->get();
 
-            $DA = array(
-                'total_room_count' => 0, // 总的房源数
+            $v += array(
+                'build_room_count' => 0, // 总的房源数
                 'free_room_count' => 0, //空闲房源数
-                'manager_area' => 0.00,  // 管理面积（所有房源面积总和）
-                'free_area' => 0.00
-            );  // 空闲面积
-            foreach ($result as $kr => $vr) {
-                $DA['total_room_count'] += $vr['build_room_count'];
-                $DA['free_room_count']  += $vr['free_room_count'];
-                $DA['manager_area']     += $vr['total_area'];
-                $DA['free_area']        += $vr['free_area'];
+                'total_area' => 0.00,  // 管理面积（所有房源面积总和）
+                'free_area' => 0.00, // 空闲面积
+            );
+            foreach ($statData as $kr => $vr) {
+                $v['build_room_count'] += $vr['build_room_count'] ?? 0;
+                $v['free_room_count']  += $vr['free_room_count'] ?? 0;
+                $v['total_area']       += $vr['total_area'] ?? 0.00;
+                $v['free_area']        += $vr['free_area'] ?? 0.00;
             }
-            $v['build_room_count']   = $DA['total_room_count'];
-            $v['free_room_count']    = $DA['free_room_count'];
-            $v['total_area']         = numFormat($DA['manager_area']);
-            $v['free_area']          = numFormat($DA['free_area']);
         }
+
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;
-        $data['stat'] = $buildingService->getBuildingAllStat($data['result']);
+        $data['stat'] = $buildingService->getBuildingAllStat($projStat);
         return $this->success($data);
     }
 
@@ -254,9 +249,7 @@ class ProjectController extends BaseController
      *          description="项目名称"
      *       )
      *     ),
-     *       example={
-     *              "id": "","proj_name":""
-     *           }
+     *       example={"id": "","proj_name":""}
      *       )
      *     ),
      *     @OA\Response(
@@ -356,14 +349,14 @@ class ProjectController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"projectId"},
+     *          required={"id"},
      *       @OA\Property(
-     *          property="projectId",
+     *          property="id",
      *          type="int",
      *          description="项目Id"
      *       )
      *     ),
-     *       example={"projectId": 11}
+     *       example={"id": 11}
      *       )
      *     ),
      *     @OA\Response(
@@ -378,11 +371,9 @@ class ProjectController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|min:1',
         ]);
-        $projectId = $request->id;
-        // DB::enableQueryLog();
 
         DB::enableQueryLog();
-        $data = ProjectModel::with('building')->find($request->id)->toArray();
+        $data = ProjectModel::with('building')->find($request->id);
         // return $data;
         $rooms =  BuildingModel::where('proj_id', $request->id)
             ->withCount('buildRoom')
@@ -396,25 +387,18 @@ class ProjectController extends BaseController
                 $q->select(DB::raw("sum(room_area)"));
                 $q->where('room_state', 1);
             }])
-            ->get()->toArray();
-        // return $rooms;
-        $room_count = 0;
-        $free_room = 0;
-        $manager_area = 0;
-        $free_area = 0;
+            ->get();
+
+        $data['room_count'] = 0;
+        $data['free_room'] = 0;
+        $data['manager_area'] = 0;
+        $data['free_area'] = 0;
         foreach ($rooms as $k => $v) {
-            $room_count += $v['build_room_count'];
-            $free_room += $v['free_room_count'];
-            $manager_area += $v['manager_area'];
-            $free_area += $v['free_area'];
+            $data['room_count'] += $v['build_room_count'];
+            $data['free_room'] += $v['free_room_count'];
+            $data['manager_area'] += $v['manager_area'];
+            $data['free_area'] += $v['free_area'];
         }
-        $data['room_count'] = $room_count;
-        $data['free_room'] = $free_room;
-        $data['manager_area'] = $manager_area;
-        $data['free_area'] = $free_area;
-
-        // dump(response()->json(DB::getQueryLog()));
-
         return $this->success($data);
     }
 
