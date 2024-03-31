@@ -512,7 +512,6 @@ Route::group(['prefix' => 'operation/charge'], function () {
     Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
     Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
     Route::post('/record/delete', '\App\Api\Controllers\Bill\ChargeController@deleteRecord');
-
     Route::post('/refund', '\App\Api\Controllers\Bill\ChargeController@chargeRefund');
 });
 
@@ -526,24 +525,20 @@ Route::group(['prefix' => 'operation/stat'], function () {
 });
 
 
-
-
 Route::group(['prefix' => 'sys/excel'], function () {
     Route::post('import', '\App\Api\Controllers\Excel\ExcelController@test');
 });
 
 
-
 // 微信
-Route::group(['prefix' => 'business/wx', 'middleware' => 'web'], function () {
+Route::group(['prefix' => 'business/wx'], function () {
     Route::post('room/list', '\App\Api\Controllers\Weixin\WxRoomController@index');
     Route::post('room/show', '\App\Api\Controllers\Weixin\WxRoomController@show');
     Route::post('rooms', '\App\Api\Controllers\Weixin\WxRoomController@rooms');
     Route::post('project/list', '\App\Api\Controllers\Weixin\WxRoomController@wxGetProj');
 });
 
-
-
+// 微信 登录
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WeiXinController@redirectToProvider');
     Route::get('/callback', '\App\Api\Controllers\Weixin\WeiXinController@handleProviderCallback');
@@ -555,7 +550,6 @@ Route::group(['prefix' => 'wx'], function () {
     Route::post('/activity/reg/pay', '\App\Api\Controllers\Venue\ActivityController@activityPay');
     Route::post('/pay/notify_url', '\App\Api\Controllers\Venue\ActivityController@WxPayNotify');
 });
-
 
 
 Route::group(['prefix' => 'wxapp/customer'], function () {

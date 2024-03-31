@@ -2,20 +2,22 @@
 
 namespace App\Api\Controllers\Bill;
 
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Company\BankAccount;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Models\Company\BankAccount;
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\TenantBillService;
 use Illuminate\Validation\ValidationException;
 
-class ChargeController extends BaseController {
+class ChargeController extends BaseController
+{
 	private $chargeService;
 
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
 		$this->chargeService = new ChargeService;
 	}
@@ -47,7 +49,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function list(Request $request) {
+	public function list(Request $request)
+	{
 		$request->validate([
 			'source' => 'required|in:1,2',
 		], [
@@ -125,7 +128,8 @@ class ChargeController extends BaseController {
 	 * )
 	 */
 
-	public function store(Request $request) {
+	public function store(Request $request)
+	{
 		$validatedData = $request->validate([
 			'tenant_id' => 'required|numeric|gt:0',
 			'amount' => 'required',
@@ -170,7 +174,8 @@ class ChargeController extends BaseController {
 	 * )
 	 */
 
-	public function edit(Request $request) {
+	public function edit(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|numeric|gt:0',
 			'tenant_id' => 'required|numeric|gt:0',
@@ -215,13 +220,14 @@ class ChargeController extends BaseController {
 	 * )
 	 */
 
-	public function cancel(Request $request) {
+	public function cancel(Request $request)
+	{
 		$validatedData = $request->validate([
 			'ids' => 'required|array',
 		]);
 		DB::enableQueryLog();
 		$res = $this->chargeService->model()
-		
+
 			->whereDoesntHave('chargeBillRecord')
 			->whereIn('id', $request->ids)->delete();
 		// return response()->json(DB::getQueryLog());
@@ -250,7 +256,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function show(Request $request) {
+	public function show(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required',
 		]);
@@ -289,7 +296,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function chargeWriteOff(Request $request) {
+	public function chargeWriteOff(Request $request)
+	{
 		$request->validate([
 			'id' => 'required',
 			'bill_detail_ids' => 'required|array',
@@ -332,11 +340,9 @@ class ChargeController extends BaseController {
 
 			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge, $verifyDate, $this->user);
 
-			return $writeOffRes
-			? $this->success("核销成功")
-			: $this->error("核销失败");
+			return $writeOffRes ? $this->success("核销成功") : $this->error("核销失败");
 		} catch (\Exception $e) {
-			return $this->error("发生错误：". $e->getMessage());		
+			return $this->error("发生错误：" . $e->getMessage());
 		}
 	}
 
@@ -349,7 +355,8 @@ class ChargeController extends BaseController {
 	 *
 	 * @return void
 	 */
-	public function chargeWriteOffOne(Request $request) {
+	public function chargeWriteOffOne(Request $request)
+	{
 		try {
 			$validatedData = $request->validate([
 				'id' => 'required',
@@ -376,8 +383,8 @@ class ChargeController extends BaseController {
 			$writeOffRes = $this->chargeService->detailBillListWriteOffOne($billDetail, $charge, $verifyDate, $this->user);
 
 			return $writeOffRes
-			? $this->success("核销成功")
-			: $this->error("核销失败");
+				? $this->success("核销成功")
+				: $this->error("核销失败");
 		} catch (ValidationException $e) {
 			return $this->error($e->validator->errors()->first());
 		} catch (\Exception $e) {
@@ -412,7 +419,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function recordList(Request $request) {
+	public function recordList(Request $request)
+	{
 		$msg = ['proj_ids.required' => '项目id是必传'];
 		$request->validate([
 			'proj_ids' => 'required|array',
@@ -491,7 +499,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function deleteCharge(Request $request) {
+	public function deleteCharge(Request $request)
+	{
 		$msg = ['id.required' => '收款id必须'];
 		$request->validate([
 			'id' => 'required|numeric|gt:0',
@@ -523,7 +532,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function deleteRecord(Request $request) {
+	public function deleteRecord(Request $request)
+	{
 		$msg = ['id.required' => '核销id必须'];
 		$request->validate([
 			'id' => 'required|numeric|gt:0',
@@ -557,7 +567,8 @@ class ChargeController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function chargeRefund(Request $request) {
+	public function chargeRefund(Request $request)
+	{
 		$msg = [
 			'id.required' => '收款id必须',
 			'refund_amt.required' => '退款金额必须',

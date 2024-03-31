@@ -2,19 +2,20 @@
 
 namespace App\Api\Controllers\Bill;
 
+use Exception;
+use App\Enums\AppEnum;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Tenant\ShareRuleService;
-use App\Enums\AppEnum;
-use Exception;
-use Illuminate\Support\Facades\Log;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 租户账单
  */
 
-class BillSyncController extends BaseController {
+class BillSyncController extends BaseController
+{
 
 	/**
 	 * 构造函数
@@ -23,7 +24,8 @@ class BillSyncController extends BaseController {
 	 * @DateTime 2021-07-24
 	 */
 	private $parent_type;
-	function __construct() {
+	function __construct()
+	{
 		parent::__construct();
 		$this->parent_type = AppEnum::Tenant;
 	}
@@ -36,7 +38,8 @@ class BillSyncController extends BaseController {
 	 *
 	 * @return void
 	 */
-	public function syncContractBill() {
+	public function syncContractBill()
+	{
 		try {
 			$contractService = new ContractService;
 			$billService = new TenantBillService;
@@ -118,7 +121,8 @@ class BillSyncController extends BaseController {
 	 *
 	 * @return void
 	 */
-	private function getMonthPrice(array $rule, float $shareNum): float {
+	private function getMonthPrice(array $rule, float $shareNum): float
+	{
 		$monthPrice = 0.00;
 		if ($rule['price_type'] == 1) {
 			$yearDays = getVariable($rule['company_id'], 'year_days');

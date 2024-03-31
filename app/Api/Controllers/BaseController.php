@@ -2,10 +2,9 @@
 
 namespace App\Api\Controllers;
 
-
-use Maatwebsite\Excel\Facades\Excel;
-use App\Api\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Api\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * @OA\Info(
@@ -80,7 +79,11 @@ class BaseController extends Controller
     public function handleBackData($data)
     {
         $backData['result'] = $data['data'];
-        $backData['pageInfo'] =  ['currentPage' => $data['current_page'], 'totalPage' => $data['last_page'], 'totalNum' => $data['total']];
+        $backData['pageInfo'] =  [
+            'currentPage'   => $data['current_page'],
+            'totalPage'     => $data['last_page'],
+            'totalNum'      => $data['total']
+        ];
         return $backData;
     }
 

@@ -2,21 +2,27 @@
 
 namespace App\Api\Controllers\Bill;
 
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Bill\InvoiceService;
-use App\Api\Services\Bill\TenantBillService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\InvoiceService;
+use App\Api\Services\Bill\TenantBillService;
 
 /**
  * 发票管理
+ *
+ * @Desc:
+ * @Author leezhua
+ * @Date 2024-03-31
  */
-class InvoiceController extends BaseController {
+class InvoiceController extends BaseController
+{
 
 	private $invoiceService;
-	function __construct() {
+	function __construct()
+	{
 		parent::__construct();
 		$this->invoiceService = new InvoiceService;
 	}
@@ -46,7 +52,8 @@ class InvoiceController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function list(Request $request) {
+	public function list(Request $request)
+	{
 		$pagesize = $this->setPagesize($request);
 		$map = array();
 
@@ -112,7 +119,8 @@ class InvoiceController extends BaseController {
 	 * )
 	 */
 
-	public function store(Request $request) {
+	public function store(Request $request)
+	{
 		$validatedData = $request->validate([
 			// 'invoice_no' => 'required',
 			'status' => 'required|in:1,2,3',
@@ -165,7 +173,8 @@ class InvoiceController extends BaseController {
 	 * )
 	 */
 
-	public function edit(Request $request) {
+	public function edit(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|numeric',
 			'invoice_no' => 'required|numeric|gt:0',
@@ -212,7 +221,8 @@ class InvoiceController extends BaseController {
 	 * )
 	 */
 
-	public function show(Request $request) {
+	public function show(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|numeric',
 		]);
@@ -255,7 +265,8 @@ class InvoiceController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function cancel(Request $request) {
+	public function cancel(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|numeric',
 		]);

@@ -2,15 +2,14 @@
 
 namespace App\Api\Controllers\Bill;
 
-use App\Api\Controllers\BaseController;
-//use App\Exceptions\ApiException;
-use App\Api\Models\Company\FeeType;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Company\FeeType;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 租户账单

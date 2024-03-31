@@ -5,17 +5,15 @@ namespace App\Api\Controllers\Weixin;
 use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-
 use Illuminate\Support\Facades\DB;
 
-use App\Api\Models\BuildingRoom  as RoomModel;
+use App\Api\Controllers\BaseController;
+
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Services\Contract\ContractService;
+use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
-use SebastianBergmann\CodeCoverage\Report\Xml\Project;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 项目房源信息
@@ -26,6 +24,7 @@ class WxRoomController extends BaseController
     public function __construct()
     {
         // Token 验证
+        parent::__construct();
         // $this->middleware('jwt.api.auth');
         // $this->uid  = auth()->payload()->get('sub');
         // if (!$this->uid) {
@@ -64,7 +63,7 @@ class WxRoomController extends BaseController
             //         $q->whereIn('id', $DA['proj_limit']);
             //     }
             // })
-            ->where('is_vaild', 1)
+            ->where('is_valid', 1)
             ->get()->toArray();
 
         return $this->success($data);
@@ -138,7 +137,7 @@ class WxRoomController extends BaseController
         $data = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
-                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+                $request->is_valid && $q->where('is_valid', $request->is_valid);
                 $request->min_area && $q->where('room_area', '>=', $request->min_area);
                 $request->max_area && $q->where('room_area', '<=', $request->max_area);
                 $request->min_price && $q->where('room_price', '>=', $request->min_price);
@@ -228,21 +227,21 @@ class WxRoomController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"Ids","is_vaild"},
+     *          required={"Ids","is_valid"},
      *       @OA\Property(
      *          property="Ids",
      *          type="list",
      *          description="房源ID集合"
      *       ),
      *       @OA\Property(
-     *          property="is_vaild",
+     *          property="is_valid",
      *          type="int",
      *          description="0禁用1 启用"
      *       )
      *
      *     ),
      *       example={
-     *              "Ids":"[1]","is_vaild":"0"
+     *              "Ids":"[1]","is_valid":"0"
      *           }
      *       )
      *     ),
@@ -254,30 +253,31 @@ class WxRoomController extends BaseController
      */
     public function rooms(Request $request)
     {
-        $validatedData = $request->validate([
+        $request->validate([
             'Ids' => 'required|array',
-            'is_vaild' => 'required|numeric|in:0,1',
-            // 'is_vaild' => 'required|numeric|in:0,1',
+            'is_valid' => 'required|numeric|in:0,1',
+            // 'is_valid' => 'required|numeric|in:0,1',
+        ], [
+            'Ids.required' => '房源ID不能为空',
+            'is_valid.required' => '启用禁用状态不能为空',
+            'is_valid.in' => '启用禁用状态不正确',
+            'Ids.array' => '房源ID格式不正确',
         ]);
 
-        $data = RoomModel::where(function ($q) use ($request) {
+        $subQuery = RoomModel::where(function ($q) use ($request) {
             $request->Ids && $q->whereIn('id', $request->Ids);
-            $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
+            $request->is_valid && $q->where('is_valid', $request->is_valid);
         })
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })
-            ->with('building:id,proj_name,build_no,proj_id')
+            });
+        $data = $subQuery->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
-            ->get()->toArray();
-        $roomStat = RoomModel::selectRaw('min(room_area) min_area,max(room_area) max_area,avg(room_price) avg_price')
-            ->where(function ($q) use ($request) {
-                $request->Ids && $q->whereIn('id', $request->Ids);
-                $request->is_vaild && $q->where('is_vaild', $request->is_vaild);
-            })
-            ->whereHas('building', function ($q) use ($request) {
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })->first();
+            ->get();
+
+        $roomStat = $subQuery->selectRaw('min(room_area) min_area,
+                max(room_area) max_area,
+                avg(room_price) avg_price')->first();
         $roomStat['avg_price'] = numFormat($roomStat['avg_price']);
         $result['stat'] = $roomStat;
         $result['rooms'] = $data;
