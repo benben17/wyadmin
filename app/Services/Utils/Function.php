@@ -25,7 +25,7 @@ function getCompanyId($uid): int
  * @param [type] $uid
  * @return array
  */
-function getCompanyIds($uid):array
+function getCompanyIds($uid): array
 {
     $companyIds = getCompanyId($uid);
     if ($companyIds) {
@@ -275,7 +275,7 @@ function diffDays($date1, $date2)
  */
 function getNextMonth(String $ymd, $months)
 {
-    if (empty($ymd) || empty($months)) {
+    if (empty($ymd)) {
         return "";
     }
     $months = intval($months);
@@ -285,7 +285,7 @@ function getNextMonth(String $ymd, $months)
 
 function getYmdPlusMonths(String $ymd, $months)
 {
-    if (empty($ymd) || empty($months)) {
+    if (empty($ymd)) {
         return "";
     }
     $months = intval($months);

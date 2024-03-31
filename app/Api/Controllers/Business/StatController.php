@@ -2,21 +2,22 @@
 
 namespace App\Api\Controllers\Business;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\Business\CusClue;
-use App\Api\Services\Common\DictServices;
-use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Contract\ContractBill as ContractBillModel;
-use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
-use App\Api\Models\Tenant\Follow;
-use App\Api\Services\CustomerService;
 use App\Enums\AppEnum;
+use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Follow;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Business\CusClue;
+use App\Api\Services\CustomerService;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Common\DictServices;
+use App\Api\Models\Building as BuildingModel;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Models\Contract\Contract as ContractModel;
+use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
+use App\Api\Models\Contract\ContractBill as ContractBillModel;
 
 /**
  *
@@ -25,10 +26,12 @@ class StatController extends BaseController
 {
 
     private $customerService;
+    private $contractService;
     public function __construct()
     {
         parent::__construct();
         $this->customerService = new CustomerService;
+        $this->contractService = new ContractService;
     }
 
     /**
@@ -309,15 +312,13 @@ class StatController extends BaseController
             'proj_ids' => 'required|array',
         ]);
 
-        if (!$request->year) {
-            $request->year = date('Y');
-        }
+        $year = $request->year ?? date('Y');
         $startDate = $request->year . '-01-01';
-
         // return $startDate.'+++++++'.$endDate;
         // 如果是月单价（rental_price_type 2 ）乘以12除以365 获取日金额
         // DB::enableQueryLog();
-        $contract = ContractModel::select(DB::Raw('count(*) contract_total,
+        $contract = $this->contractService->model()
+            ->select(DB::Raw('count(*) contract_total,
             count(distinct(tenant_id)) cus_total,
             sum(case rental_price_type when 1 then rental_price*sign_area else rental_price*sign_area*12/365 end) amount,
             sum(sign_area) area, DATE_FORMAT(sign_date,"%Y-%m") as ym'))
@@ -326,7 +327,7 @@ class StatController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
-            ->whereYear('sign_date', $request->year)
+            ->whereYear('sign_date', $year)
             ->groupBy('ym')->get();
         // return response()->json(DB::getQueryLog());
         $i = 0;
@@ -395,8 +396,8 @@ class StatController extends BaseController
         }
         $dict = new DictServices;
         $cusState = $dict->getByKeyGroupBy('0,' . $this->company_id, 'cus_state');
-        $State = str2Array($cusState['value']);
-        Log::error(json_encode($cusState['value']));
+        $StateList = str2Array($cusState['value']);
+        // Log::error(json_encode($cusState['value']));
         DB::enableQueryLog();
         $belongPerson = $this->customerService->tenantModel()->select(DB::Raw('group_concat(distinct belong_person) as user,count(*) total'))
             ->where(function ($q) use ($DA) {
@@ -404,14 +405,12 @@ class StatController extends BaseController
                 isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
             })
             ->groupBy('belong_person')
-            ->get()->toArray();
+            ->get();
         // return response()->json(DB::getQueryLog());
-        $i = 0;
-        $stat_cus = array(['name' => '']);
 
         foreach ($belongPerson as $k => &$v) {
-            foreach ($State as $ks => $vs) {
-                // Log::error($vs . '----' . $v['user']);
+            $v['followCount'] = 0;
+            foreach ($StateList as $ks => $vs) {
                 $cusCount = $this->customerService->tenantModel()
                     ->where('state', $vs)
                     ->where('belong_person', $v['user'])
@@ -421,32 +420,35 @@ class StatController extends BaseController
                     })
                     ->count();
 
-                if ($vs == '成交客户') {
-                    $area = ContractModel::selectRaw('sum(sign_area) deal_area')
-                        ->where('room_type', 1)
-                        ->where('belong_person', $v['user'])
-                        ->where(function ($q) use ($DA) {
-                            $q->whereBetween('sign_date', [$DA['start_date'], $DA['end_date']]);
-                            isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
-                        })
-                        ->first();
-                    $v['dealArea']  = $area['deal_area'];
-                    $v['deal'] = $cusCount;
-                } else if ($vs == '潜在客户') {
-                    $v['potential'] = $cusCount;
-                } else if ($vs == '初次接触') {
-                    $v['first'] = $cusCount;
-                } else if ($vs == '意向客户') {
-                    $v['intention'] = $cusCount;
-                } else if ($vs == '流失客户') {
-                    $v['lose'] = $cusCount;
+                switch ($vs) {
+                    case '成交客户':
+                        $dealArea = ContractModel::where('room_type', 1)
+                            ->where('belong_person', $v['user'])
+                            ->whereBetween('sign_date', [$DA['start_date'], $DA['end_date']])
+                            ->when(isset($DA['proj_ids']), function ($q) use ($DA) {
+                                return $q->whereIn('proj_id', $DA['proj_ids']);
+                            })
+                            ->sum('sign_area');
+
+                        $v['dealArea'] = $dealArea;
+                        $v['deal'] = $cusCount;
+                        break;
+                    case '潜在客户':
+                        $v['potential'] = $cusCount;
+                        break;
+                    case '初次接触':
+                        $v['first'] = $cusCount;
+                        break;
+                    case '意向客户':
+                        $v['intention'] = $cusCount;
+                        break;
+                    case '流失客户':
+                        $v['lose'] = $cusCount;
+                        break;
                 }
+                // 总计
+                $v['followCount'] += $v['total'];
             }
-            $v['followCount'] = Follow::whereHas('tenant', function ($q) use ($DA, $v) {
-                $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
-                isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
-                $q->where('belong_person', $v['user']);
-            })->count();
         }
         return $this->success($belongPerson);
     }
@@ -482,45 +484,54 @@ class StatController extends BaseController
         // ]);
         if ($request->start_date && $request->end_date) {
             $startDate = date('Y-01-01', $request->start_date);
-            $endDate = date('Y-12-t', strtotime($startDate));
+            // $endDate = getNextYmd(date('Y-m-t', strtotime($startDate)), 24);
         } else {
-            $thisMonth = date('Y-m-01', time());
-            $startDate = getPreYmd($thisMonth, 11);
-            $endDate = getNextYmd($thisMonth, 1);
+            $startDate = date('Y-m-01', time());
         }
+        $endDate = getNextYmd(date('Y-m-t',  strtotime($startDate)), 24);
 
         DB::enableQueryLog();
-        $res = ContractBillModel::whereBetween('charge_date', [$startDate, $endDate])
+        $res = $this->contractService->contractBillModel()
+            ->select(DB::Raw('DATE_FORMAT(charge_date,"%Y-%m") as ym,
+            count(distinct(tenant_id)) cus_count,
+            sum(case when fee_type = 101  then amount else 0.00 end) rental_amount,           
+            sum(case when  fee_type = 102  then amount else 0.00 end) manager_amount'))
+            ->whereBetween('charge_date', [$startDate, $endDate])
             ->whereHas('contract', function ($q)  use ($request) {
                 $q->where('contract_state', 2);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
             })
-            ->select(DB::Raw('count(distinct(tenant_id)) cus_count,
-            sum(case when fee_type = 101  then amount else 0 end) rental_amount,           
-            sum(case when  fee_type = 102  then amount else 0 end) manager_amount,
-            DATE_FORMAT(charge_date,"%Y-%m") as ym'))
             ->groupBy('ym')
             ->orderBy('ym')
             ->get();
         // return response()->json(DB::getQueryLog());
-        // return $res;
-        $i = 0;
-        $stat = array();
 
-        while ($i < 24) {
+        $stat = [];
+        $nextMonth = $startDate;
+
+        for ($i = 0; $i < 24; $i++) {
+            $nextMonth = getNextMonth($startDate, $i);
+            $found = false;
+
             foreach ($res as $k => $v) {
-                if ($v['ym'] == getNextMonth($startDate, $i)) {
+                if ($v['ym'] == $nextMonth) {
                     $stat[$i] = $v;
-                    $i++;
+                    $found = true;
+                    break;
                 }
             }
-            $stat[$i]['cus_count'] = 0;
-            $stat[$i]['ym'] = getNextMonth($startDate, $i);
-            $stat[$i]['rental_amount'] = 0.00;
-            $stat[$i]['manager_amount'] = 0.00;
-            $i++;
+
+            if (!$found) {
+                $stat[$i] = [
+                    'ym' => $nextMonth,
+                    'cus_count' => 0,
+                    'rental_amount' => 0.00,
+                    'manager_amount' => 0.00
+                ];
+            }
         }
+
         return $this->success($stat);
     }
 
@@ -534,9 +545,10 @@ class StatController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={},
-     *     ),
-     *       example={}
+     *          required={"year"},
+     *     @OA\Property(property="year",type="int",description="年份")
+     *    ),
+     *       example={"year":2020}
      *       )
      *     ),
      *     @OA\Response(
@@ -547,18 +559,16 @@ class StatController extends BaseController
      */
     public function getMonthReceive(Request $request)
     {
-        if (!$request->year) {
-            $request->year = date('Y');
-        }
-        $data = ContractBillModel::select(DB::Raw('sum(amount) amount ,type
-            ,count(distinct cus_id) cus_count'))
-            ->whereHas('contract', function ($q)  use ($request) {
+
+        $year = $request->year ?? date('Y');
+        $data = $this->contractService->contractBillModel()
+            ->select(DB::Raw('sum(amount) amount,type,count(distinct tenant_id) cus_count'))
+            ->whereHas('contract', function ($q)  use ($request, $year) {
                 $q->where('contract_state', 2);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->room_type && $q->where('room_type', $request->room_type);
-                $request->year && $q->whereYear('charge_date', $request->year);
+                $q->whereYear('charge_date', $year);
             })
-
             ->groupBy('type')->get();
         return $this->success($data);
     }

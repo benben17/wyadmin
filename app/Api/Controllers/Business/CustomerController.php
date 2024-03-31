@@ -306,13 +306,35 @@ class CustomerController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"id","type","tenant_id,"name"},
-     *       @OA\Property(property="id",type="int",description="客户id"),
-     *       @OA\Property(property="type",type="int",description="客户类型 1:公司 2 个人"),
-     *       @OA\Property(property="name",type="String",description="客户名称")
+     *          required={"channel_id","type","name","id"},
+     *       @OA\Property(
+     *          property="type",
+     *          type="int",
+     *          description="客户类型 1:公司 2 个人"
+     *       ),
+     *       @OA\Property(
+     *          property="name",
+     *          type="String",
+     *          description="客户名称"
+     *       ),
+     *       @OA\Property(
+     *          property="channel_id",
+     *          type="int",
+     *          description="渠道ID"
+     *       ),
+     *       @OA\Property(
+     *          property="contact_name",
+     *          type="String",
+     *          description="联系人名称"
+     *       ),
+     *       @OA\Property(
+     *          property="contact_phone",
+     *          type="String",
+     *          description="联系人电话"
+     *       )
      *     ),
      *       example={
-     *             "id":1,"type":1,"name":"公司客户"
+     *             "channel_id":1,"type":1,"name":"公司客户","contact_name":"","contact_phone":""
      *           }
      *       )
      *     ),
