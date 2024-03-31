@@ -4,6 +4,7 @@ namespace App\Api\Services;
 
 use Exception;
 use App\Enums\AppEnum;
+use Illuminate\Support\Arr;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Remind;
 use App\Api\Models\Tenant\Tenant;
@@ -277,5 +278,60 @@ class CustomerService
       throw $th;
       return false;
     }
+  }
+
+  /**
+   * @Desc: 格式化客户附加信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $DA
+   * @return void
+   */
+  public function formatCusExtra($DA)
+  {
+    $BA['demand_area'] = isset($DA['demand_area']) ? $DA['demand_area'] : "";
+    // $BA['demand_area_end'] = isset($DA['demand_area_end'])? $DA['demand_area_end']:0.00;
+    $BA['trim_state'] = isset($DA['trim_state']) ? $DA['trim_state'] : "";
+    $BA['recommend_room_id'] = isset($DA['recommend_room_id']) ? $DA['recommend_room_id'] : "";
+    $BA['recommend_room'] = isset($DA['recommend_room']) ? $DA['recommend_room'] : "";
+    $BA['purpose_room'] = isset($DA['purpose_room']) ? $DA['purpose_room'] : 0.00;
+    $BA['purpose_price'] = isset($DA['purpose_price']) ? $DA['purpose_price'] : 0.00;
+    $BA['purpose_term_lease'] = isset($DA['purpose_term_lease']) ? $DA['purpose_term_lease'] : 0.00;
+    $BA['purpose_free_time'] = isset($DA['purpose_free_time']) ? $DA['purpose_free_time'] : 0.00;
+    $BA['current_proj'] = isset($DA['current_proj']) ? $DA['current_proj'] : "";
+    $BA['current_addr'] = isset($DA['current_addr']) ? $DA['current_addr'] : "";
+    $BA['current_area'] = isset($DA['current_area']) ? $DA['current_area'] : "";
+    $BA['current_price'] = isset($DA['current_price']) ? $DA['current_price'] : "";
+    return $BA;
+  }
+
+  /**
+   * @Desc: 格式化客户房源信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param array $DA
+   * @param int $tenantId 客户ID
+   * @param int $roomType 房源类型
+   * @return array
+   */
+  public function formatCustomerRoom(array $DA, $tenantId, $roomType): array
+  {
+    $rooms = array();
+    foreach ($DA as $k => $v) {
+      $rooms[$k]['created_at']   = nowTime();
+      $rooms[$k]['updated_at']   = nowTime();
+      $rooms[$k]['tenant_id']    = $tenantId;
+      $rooms[$k]['proj_id']      = $v['proj_id'];
+      $rooms[$k]['proj_name']    = isset($v['proj_name']) ? $v['proj_name'] : "";
+      $rooms[$k]['build_id']     = $v['build_id'];
+      $rooms[$k]['build_no']    = $v['build_no'];
+      $rooms[$k]['floor_id']    = $v['floor_id'];
+      $rooms[$k]['floor_no']    = $v['floor_no'];
+      $rooms[$k]['room_id']    = $v['room_id'];
+      $rooms[$k]['room_no']    = $v['room_no'];
+      $rooms[$k]['room_area']    = $v['room_area'];
+      $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
+    }
+    return $rooms;
   }
 }

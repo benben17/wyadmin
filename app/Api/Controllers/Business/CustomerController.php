@@ -239,22 +239,22 @@ class CustomerController extends BaseController
                 $res = $this->customerService->saveTenant($DA, $user);
                 //写入联系人
                 $parent_id = $res->id;
-                $cusExtra = $this->formatCusExtra($DA['extra_info']);
+                $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $parent_id;
                 $cusExtra['c_uid'] = $this->uid;
-                $customerExtra = ExtraInfo::Create($cusExtra);
+                ExtraInfo::Create($cusExtra);
                 // 写入联系人 支持多联系人写入
 
                 if ($DA['contacts']) {
                     $user['parent_type'] = $this->parent_type;
                     $contacts = formatContact($DA['contacts'], $parent_id, $user);
-                    // return $contacts;
+                    // 联系人保存
                     $contact = new contactModel;
                     $contact->addAll($contacts);
                 }
                 // 房间
                 if (!empty($DA['tenant_rooms']) && $DA['tenant_rooms']) {
-                    $roomList = $this->formatRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
+                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -306,13 +306,13 @@ class CustomerController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"id","type","tenant_idname"},
+     *          required={"id","type","tenant_id,"name"},
      *       @OA\Property(property="id",type="int",description="客户id"),
      *       @OA\Property(property="type",type="int",description="客户类型 1:公司 2 个人"),
      *       @OA\Property(property="name",type="String",description="客户名称")
      *     ),
      *       example={
-     *              "id":1,"type":1,"name":"公司客户"
+     *             "id":1,"type":1,"name":"公司客户"
      *           }
      *       )
      *     ),
@@ -344,8 +344,8 @@ class CustomerController extends BaseController
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();
                 DB::enableQueryLog();
-                $res = $this->customerService->saveTenant($DA, $user, 2);
-                $cusExtra = $this->formatCusExtra($DA['extra_info']);
+                $this->customerService->saveTenant($DA, $user, 2);
+                $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $DA['id'];
                 $cusExtra['u_uid'] = $this->uid;
                 ExtraInfo::where('tenant_id', $DA['id'])->update($cusExtra);
@@ -363,7 +363,7 @@ class CustomerController extends BaseController
                 // 房间
                 if ($DA['tenant_rooms'] && !empty($DA['tenant_rooms'])) {
                     $res = TenantRoom::where('tenant_id', $DA['id'])->delete();  // 删除
-                    $roomList = $this->formatRoom($DA['tenant_rooms'], $DA['id'], $DA['room_type']);
+                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $DA['id'], $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -538,7 +538,7 @@ class CustomerController extends BaseController
         }
         $user = auth('api')->user();
         $skyeyeService = new BaseInfoService;
-        $data = $skyeyeService->getCompanyInfo($request->name, $user->toArray());
+        $data = $skyeyeService->getCompanyInfo($request->name, $user);
         return $this->success($data);
     }
 
@@ -583,44 +583,5 @@ class CustomerController extends BaseController
             return $this->success('公司工商信息编辑成功。');
         }
         return $this->error('公司工商信息编辑失败！');
-    }
-
-    private function formatCusExtra($DA)
-    {
-        $BA['demand_area'] = isset($DA['demand_area']) ? $DA['demand_area'] : "";
-        // $BA['demand_area_end'] = isset($DA['demand_area_end'])? $DA['demand_area_end']:0.00;
-        $BA['trim_state'] = isset($DA['trim_state']) ? $DA['trim_state'] : "";
-        $BA['recommend_room_id'] = isset($DA['recommend_room_id']) ? $DA['recommend_room_id'] : "";
-        $BA['recommend_room'] = isset($DA['recommend_room']) ? $DA['recommend_room'] : "";
-        $BA['purpose_room'] = isset($DA['purpose_room']) ? $DA['purpose_room'] : 0.00;
-        $BA['purpose_price'] = isset($DA['purpose_price']) ? $DA['purpose_price'] : 0.00;
-        $BA['purpose_term_lease'] = isset($DA['purpose_term_lease']) ? $DA['purpose_term_lease'] : 0.00;
-        $BA['purpose_free_time'] = isset($DA['purpose_free_time']) ? $DA['purpose_free_time'] : 0.00;
-        $BA['current_proj'] = isset($DA['current_proj']) ? $DA['current_proj'] : "";
-        $BA['current_addr'] = isset($DA['current_addr']) ? $DA['current_addr'] : "";
-        $BA['current_area'] = isset($DA['current_area']) ? $DA['current_area'] : "";
-        $BA['current_price'] = isset($DA['current_price']) ? $DA['current_price'] : "";
-        return $BA;
-    }
-
-    private function formatRoom(array $DA, $tenantId, $roomType)
-    {
-        $rooms = array();
-        foreach ($DA as $k => &$v) {
-            $rooms[$k]['created_at']   = nowTime();
-            $rooms[$k]['updated_at']   = nowTime();
-            $rooms[$k]['tenant_id']    = $tenantId;
-            $rooms[$k]['proj_id']    = $v['proj_id'];
-            $rooms[$k]['proj_name']    = isset($v['proj_name']) ? $v['proj_name'] : "";
-            $rooms[$k]['build_id']    = $v['build_id'];
-            $rooms[$k]['build_no']    = $v['build_no'];
-            $rooms[$k]['floor_id']    = $v['floor_id'];
-            $rooms[$k]['floor_no']    = $v['floor_no'];
-            $rooms[$k]['room_id']    = $v['room_id'];
-            $rooms[$k]['room_no']    = $v['room_no'];
-            $rooms[$k]['room_area']    = $v['room_area'];
-            $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
-        }
-        return $rooms;
     }
 }
