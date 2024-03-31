@@ -61,7 +61,6 @@ class CusFollowController extends BaseController
    */
   public function list(Request $request)
   {
-    $pagesize = $this->setPagesize($request);
 
     // $map['company_id'] = $this->company_id;
     $map = array();
@@ -72,17 +71,11 @@ class CusFollowController extends BaseController
       $map['follow_type'] = $request->follow_type;
     }
     // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'follow_time';
-    }
+
+    $request->orderBy = 'follow_time';
+
     // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
+
 
     DB::enableQueryLog();
     $subQuery = $this->customerService->followModel()->where($map)
@@ -97,11 +90,9 @@ class CusFollowController extends BaseController
       ->whereHas('tenant', function ($q) use ($request) {
         $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
       });
-    $result = $subQuery
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
+
     // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($result);
+    $data = $this->pageData($subQuery, $request);
 
     $stat = $subQuery
       ->selectRaw('count(*) as count,follow_type ,count(distinct(tenant_id)) tenant_count')

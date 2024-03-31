@@ -67,8 +67,6 @@ class ProjectController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
-
         $map = array();
         if ($request->proj_province_id && $request->proj_province_id > 0) {
             $map['proj_province_id'] = $request->input('proj_province_id');
@@ -80,8 +78,6 @@ class ProjectController extends BaseController
         if ($request->input('is_valid')) {
             $map['is_valid'] = $request->input('is_valid');
         }
-        $order = $request->input('order', 'created_at'); // 默认为 'created_at'
-        $sort = $request->input('sort', 'desc'); // 默认为 'desc'
         $subMap['room_type'] = 1;
         // 获取项目信息
         DB::enableQueryLog();
@@ -92,11 +88,7 @@ class ProjectController extends BaseController
                 $request->proj_type &&  $q->where('proj_type', $request->proj_type);
             });
         // 分页数据
-        $data = $subQuery->orderBy($order, $sort)
-            ->paginate($pagesize);
-        // return response()->json(DB::getQueryLog());
-
-        $result = $this->handleBackData($data);
+        $result = $this->pageData($subQuery, $request);
 
         //通过项目获取房间信息 并进行数据合并
         $projStat = $subQuery->get()->toArray();

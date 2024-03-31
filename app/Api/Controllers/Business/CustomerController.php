@@ -46,10 +46,10 @@ class CustomerController extends BaseController
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"pagesize","orderBy","order"},
-     *       @OA\Property(property="list_type",type="int",description="// 1 客户列表 2 在租户 3 退租租户")
+     *       @OA\Property(property="list_type",type="int",description="1 客户列表 2 在租户 3 退租租户")
      *     ),
      *       example={
-     *
+     *            "list_type":1,"pagesize":10,"orderBy":"id","order":"desc"
      *           }
      *       )
      *     ),
@@ -64,7 +64,6 @@ class CustomerController extends BaseController
         // $validatedData = $request->validate([
         //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
         // ]);
-        $pagesize = $this->setPagesize($request);
         $map = array();
         if ($request->id) {
             $map['id'] = $request->id;
@@ -73,20 +72,6 @@ class CustomerController extends BaseController
         if ($request->channel_id && $request->channel_id > 0) {
             $map['channel_id'] = $request->channel_id;
         }
-
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
-
 
         $request->type = [1, 2, 3];  // 只显示客户，和退租客户 不显示租户
         $subQuery = $this->customerService->tenantModel()
@@ -117,10 +102,17 @@ class CustomerController extends BaseController
             ->withCount('follow')
             ->withCount(['follow as visit_times' => function ($q) {
                 $q->where('follow_type', AppEnum::followVisit);
-            }])
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            }]);
 
+        $data = $this->pageData($result, $request);
+        foreach ($data['result'] as $k => &$v) {
+            $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
+            $v['source_type_label'] = getDictName($v['source_type']);
+            $v['contact_user'] = $v['contact_info']['name'] ?? "";
+            $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
+            $v['channel_name'] = $v['channel']['channel_name'] ?? "";
+            $v['channel_type'] = $v['channel']['channel_type'] ?? "";
+        }
 
         // 通过数据库查询获取统计数据
         $cusStat = $subQuery
@@ -143,24 +135,13 @@ class CustomerController extends BaseController
             ];
             $cusTotalCount += $count;
         }
-
         // 添加客户总计到客户统计数据数组
         $customerStat[] = [
             'state' => '客户总计',
             'count' => $cusTotalCount
         ];
-
-
         // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($result);
-        foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
-            $v['source_type_label'] = getDictName($v['source_type']);
-            $v['contact_user'] = $v['contact_info']['name'] ?? "";
-            $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
-            $v['channel_name'] = $v['channel']['channel_name'] ?? "";
-            $v['channel_type'] = $v['channel']['channel_type'] ?? "";
-        }
+
         $data['stat'] = $customerStat;
         return $this->success($data);
     }

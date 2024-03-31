@@ -53,9 +53,7 @@ class StationController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
         $map = array();
-
         if ($request->build_id) {
             $map['build_id'] = $request->build_id;
             if ($request->build_floor_id) {
@@ -73,19 +71,6 @@ class StationController extends BaseController
         } else {
             $map['room_type'] = 2;
         }
-
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
         DB::enableQueryLog();
         $subQuery = $this->buildingService->RoomModel()->where($map)
             ->where(function ($q) use ($request) {
@@ -96,26 +81,23 @@ class StationController extends BaseController
             ->whereHas('building', function ($q) use ($request) {
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             });
-        $result = $subQuery
+        $resultQuery = $subQuery
             ->with('building:id,proj_name,build_no,proj_id')
-            ->with('floor:id,floor_no')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            ->with('floor:id,floor_no');
+        $result = $this->pageData($resultQuery, $request);
 
         $data = $subQuery->select(DB::Raw('count(*) total_count,
             sum(case room_state when 1 then 1 else 0 end) free_count'))
             ->where($map)
             ->first();
         // return response()->json(DB::getQueryLog());
-        $result = $this->handleBackData($result);
 
         $contract = new ContractService;
         $buildService  = new BuildingService;
+        $freeRate = '0.00';
+        $data['free_count'] = 0;
         if ($data['free_count']) {
             $freeRate = numFormat($data['free_count'] / $data['total_count'] * 100);
-        } else {
-            $freeRate = '0.00';
-            $data['free_count'] = 0;
         }
         if ($result['result']) {
             $result['result'] = $buildService->formatData($result['result']);
@@ -129,7 +111,7 @@ class StationController extends BaseController
             ['title' => '空闲工位', 'value' => $data['free_count']],
             ['title' => '总工位', 'value' => $data['total_count']],
             ['title' => '空闲率', 'value' => $freeRate . '%'],
-            ['title' => '在租平均单价', 'value' => $avgPrice . '元/天']
+            ['title' => '在租平均单价', 'value' => $avgPrice . '元']
         );
         $result['stat'] = $stat;
         return $this->success($result);
