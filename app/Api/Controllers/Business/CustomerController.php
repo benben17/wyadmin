@@ -4,20 +4,21 @@ namespace App\Api\Controllers\Business;
 
 use JWTAuth;
 //use App\Exceptions\ApiException;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Business\CusClue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use App\Api\Models\Tenant\TenantRoom;
-use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Business\CusClue;
 use App\Api\Models\Tenant\ExtraInfo;
-use App\Api\Services\Business\CusClueService;
+use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\CustomerService;
+use App\Api\Services\Sys\UserServices;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Tenant\BaseInfoService;
-use App\Enums\AppEnum;
+use App\Api\Services\Business\CusClueService;
+use App\Api\Models\Common\Contact as ContactModel;
 
 /**
  *  客户
@@ -88,7 +89,6 @@ class CustomerController extends BaseController
 
 
         $request->type = [1, 2, 3];  // 只显示客户，和退租客户 不显示租户
-        DB::enableQueryLog();
         $subQuery = $this->customerService->tenantModel()
             ->where($map)
             ->where(function ($q) use ($request) {
@@ -100,24 +100,14 @@ class CustomerController extends BaseController
                 $request->industry && $q->where('industry', $request->industry);
                 $request->parent_id && $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
-                if (!$this->user['is_admin']) {
-                    if ($request->depart_id) {
-                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                        $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                        $q->whereIn('depart_id', $departIds);
-                    } else if (!$request->depart_id) {
-                        $q->where('belong_uid', $this->uid);
-                    }
-                }
+
                 if ($request->visit_times) {
                     $q->whereHas('follow', function ($q) {
                         $q->where('follow_type', AppEnum::followVisit);
                         $q->havingRaw('count(*) >0');
                     });
                 }
+                return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
             });
         $result = $subQuery
             ->with('channel:channel_name,channel_type,id')
@@ -131,47 +121,47 @@ class CustomerController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
-        $cusState = "";
-        // if ($request->list_type == 1) {
-        $customerStat = $subQuery
-            ->select('state', DB::Raw('ifnull(count(*),0) as count'))
-            ->groupBy('state')->get()->toArray();
-        // return response()->json(DB::getQueryLog());
-        $dict = new DictServices;  // 根据ID 获取字典信息
-        $cusState = $dict->getByKey([0, $this->company_id], 'cus_state');
 
-        $total = 0;
-        foreach ($cusState as $kt => &$vt) {
-            $vt['count'] = 0;
-            $vt['state'] = $vt['value'];
-            foreach ($customerStat as $k => $v) {
-                if ($v['state'] == $vt['value']) {
-                    $vt['state'] = $vt['value'];
-                    $vt['count'] = $v['count'];
-                    $total += $cusState[$kt]['count'];
-                    break;
-                } else {
-                    $vt['count'] = 0;
-                    $vt['state'] = $vt['value'];
-                }
-            }
+        // 通过数据库查询获取统计数据
+        $cusStat = $subQuery
+            ->selectRaw('state, ifnull(count(*),0) as count')
+            ->groupBy('state')
+            ->get();
+
+        // 根据ID获取字典信息
+        $dict = new DictServices;
+        $cusStateDicts = $dict->getByKey([0, $this->company_id], 'cus_state');
+
+        // 构建客户统计数据数组
+        $customerStat = array();
+        $cusTotalCount = 0;
+        foreach ($cusStateDicts as $kt => $vt) {
+            $count = $cusStat->firstWhere('state', $vt['value'])['count'] ?? 0;
+            $customerStat[$kt] = [
+                'state' => $vt['value'],
+                'count' => $count,
+            ];
+            $cusTotalCount += $count;
         }
-        $cus_total[sizeof($cusState)]['state'] = '客户总计';
-        $cus_total[sizeof($cusState)]['count'] = $total;
-        $cusState = array_merge($cusState, $cus_total);
-        // }
+
+        // 添加客户总计到客户统计数据数组
+        $customerStat[] = [
+            'state' => '客户总计',
+            'count' => $cusTotalCount
+        ];
+
+
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['extra_info']['demand_area'] ?? 0;
+            $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
             $v['source_type_label'] = getDictName($v['source_type']);
             $v['contact_user'] = $v['contact_info']['name'] ?? "";
             $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
             $v['channel_name'] = $v['channel']['channel_name'] ?? "";
             $v['channel_type'] = $v['channel']['channel_type'] ?? "";
         }
-        $data['stat'] = $cusState;
+        $data['stat'] = $customerStat;
         return $this->success($data);
     }
 
