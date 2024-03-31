@@ -317,11 +317,7 @@ class CustomerController extends BaseController
      *          type="String",
      *          description="客户名称"
      *       ),
-     *       @OA\Property(
-     *          property="channel_id",
-     *          type="int",
-     *          description="渠道ID"
-     *       ),
+     *       @OA\Property(property="channel_id",type="int", description="渠道ID"),
      *       @OA\Property(
      *          property="contact_name",
      *          type="String",
