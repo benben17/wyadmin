@@ -3,15 +3,15 @@
 namespace App\Api\Services\Operation;
 
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Api\Models\Equipment\EquipmentPlan;
-use App\Api\Models\Equipment\Equipment as EquipmentModel;
-use App\Api\Models\Equipment\EquipmentMaintain as MaintainModel;
-use App\Api\Services\Common\MessageService;
 use DateTime;
 use Exception;
 use function Complex\add;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Equipment\EquipmentPlan;
+use App\Api\Services\Common\MessageService;
+use App\Api\Models\Equipment\Equipment as EquipmentModel;
+use App\Api\Models\Equipment\EquipmentMaintain as MaintainModel;
 
 /**
  * 工单服务

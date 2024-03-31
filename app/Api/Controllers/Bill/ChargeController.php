@@ -15,7 +15,6 @@ use Illuminate\Validation\ValidationException;
 class ChargeController extends BaseController
 {
 	private $chargeService;
-
 	public function __construct()
 	{
 		parent::__construct();

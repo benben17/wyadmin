@@ -3,17 +3,17 @@
 namespace App\Api\Controllers\Weixin;
 
 use JWTAuth;
-use Laravel\Socialite\Facades\Socialite;
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Weixin\WeiXinServices;
-use Illuminate\Http\Request;
-use SocialiteProviders\WeixinWeb\Provider;
-use App\Api\Services\Sys\UserServices;
-use App\Api\Models\Weixin\WxInfo;
 use FFI\Exception;
-
+use Illuminate\Http\Request;
+use App\Api\Models\Weixin\WxInfo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Services\Sys\UserServices;
+use App\Api\Controllers\BaseController;
+use Laravel\Socialite\Facades\Socialite;
+
+use SocialiteProviders\WeixinWeb\Provider;
+use App\Api\Services\Weixin\WeiXinServices;
 
 
 
