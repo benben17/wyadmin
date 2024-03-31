@@ -538,7 +538,7 @@ class CustomerController extends BaseController
      *       )
      *     ),
      *       example={
-     *              "name":"北京玄墨信息科技有限公司"
+     *              "name":"公司名字","tenant_id":1
      *           }
      *       )
      *     ),

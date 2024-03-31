@@ -2,18 +2,18 @@
 
 namespace App\Api\Controllers\Business;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
-
-use App\Api\Models\Project as ProjectModel;
-use Illuminate\Support\Facades\DB;
 use App\Models\Area as AreaModel;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
-use App\Api\Services\Building\BuildingService;
+
 use App\Services\CompanyServices;
+use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
+use App\Api\Models\Project as ProjectModel;
+use App\Api\Models\Building as BuildingModel;
+use App\Api\Services\Building\BuildingService;
+use App\Api\Models\Sys\UserGroup as UserGroupModel;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
 
 /**
@@ -213,12 +213,12 @@ class ProjectController extends BaseController
 
         $projCheck = ProjectModel::where('proj_name', $data['proj_name'])->count();
         if ($projCheck > 0) {
-            return $this->error($data['proj_name'] . '项目名称重复');
+            return $this->error($data['proj_name'] . '名称重复');
         }
         // 判断公司的项目是否到达限制数量
         $companyServices = new CompanyServices;
         if ($companyServices->checkProjCount($this->company_id)) {
-            return  $this->error('已达到最大项目数量，如有需要请联系商务！');
+            return  $this->error('项目已达到最大数量，如有需要请联系商务！');
         }
 
         $data = $this->formatProj($data);

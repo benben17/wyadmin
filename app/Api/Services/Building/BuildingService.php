@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 use App\Api\Models\Tenant\TenantRoom;
-use App\Api\Models\Contract\ContractRoom;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 

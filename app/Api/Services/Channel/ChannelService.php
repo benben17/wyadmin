@@ -4,7 +4,6 @@ namespace App\Api\Services\Channel;
 
 use Exception;
 use App\Enums\AppEnum;
-use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Common\DictServices;
@@ -62,11 +61,10 @@ class ChannelService
   public function policyIsUsed($DA)
   {
     if (isset($DA['id']) &&  $DA['id'] > 0) {
-      $isUsed = ChannelModel::where('policy_id', $DA['id'])->exists();
+      return ChannelModel::where('policy_id', $DA['id'])->exists();
     } else {
-      $isUsed = false;
+      return false;
     }
-    return $isUsed;
   }
 
   public function policyModel()
@@ -78,24 +76,26 @@ class ChannelService
   /** 渠道租金更新 */
   public function saveBrokerage($DA, $companyId)
   {
-    $channel = ChannelModel::find($DA['channel_id']);
-    $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
-    if (!$channel) {
-      // Log::info('渠道不存在：'.$DA['channel_id']);
-      return true;
-    }
-    if (!$policy) {
-      // 不做处理直接返回成功
-      return true;
-    }
+
     // 目前只有一种政策，按照固定的几个月租金进行处理
-    $brokerageAmount = numFormat($DA['rental_month_amount'] * $policy['month']);
+
     /**  更新渠道的总佣金 */
     try {
+      DB::transaction(function () use ($DA, $companyId) {
+        $channel = ChannelModel::find($DA['channel_id']);
+        $policy = PolicyModel::where('id', $channel['policy_id'])->where('is_vaild', 1)->first();
+        if (!$channel) {
+          // Log::info('渠道不存在：'.$DA['channel_id']);
+          throw new Exception("渠道不存在");
+        }
+        if (!$policy) {
+          // 不做处理直接返回成功
+          throw new Exception("政策不存在");
+        }
+        $brokerageAmount = numFormat($DA['rental_month_amount'] * $policy['month']);
+        $channel->brokerage_amount = $channel['brokerage_amount'] +  $brokerageAmount;
+        $channel->save();
 
-      $channel->brokerage_amount = $channel['brokerage_amount'] +  $brokerageAmount;
-      $res = $channel->save();
-      if ($res) {
         $brokerage = new BrokerageModel;
         $brokerage->channel_id = $companyId;
         $brokerage->channel_id = $channel['id'];
@@ -106,13 +106,13 @@ class ChannelService
         // 计算本次佣金的金额
         $brokerage->brokerage_amount = $brokerageAmount;
         $brokerage->remark = $policy['name'] . $policy['remark'] . '|' . $policy['month'] . '个月租金';
-        $res = $brokerage->save();
-      }
-      return $res;
+        $brokerage->save();
+      }, 2);
+      return true;
     } catch (Exception $e) {
       throw new Exception("更新佣金失败" . $e->getMessage());
       log::error("佣金保存:" . $e->getMessage());
-      log::error($brokerage);
+      return false;
     }
   }
 
