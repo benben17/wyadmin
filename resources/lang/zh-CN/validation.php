@@ -89,12 +89,6 @@ return [
         'string' => ':attribute 必须多于 :value 个字符。',
         'array' => ':attribute 必须包含多于 :value 个项目。',
     ],
-    'attributes' => [
-        'proj_ids' => '项目ID数组',
-        'status' => '状态',
-        'work_type' => '工单类型',
-        'proj_id' => '项目ID',
-    ],
 
     /*
 |--------------------------------------------------------------------------
@@ -127,7 +121,12 @@ return [
     'attributes' => [
         'name'         => '名字',
         'age'          => '年龄',
-        'pagesize'     => '页码'
+        'pagesize'     => '页码',
+        'is_valid'     => '是否有效',
+        'proj_ids'     => '项目ID数组',
+        'status'       => '状态',
+        'work_type'    => '工单类型',
+        'proj_id'      => '项目ID',
     ],
 
 ];

@@ -21,6 +21,7 @@ class Building extends Model
 
   protected $table = 'bse_building';
   protected $fillable = ['company_id', 'proj_id', 'proj_name', 'build_type', 'build_no', 'build_floor_no', 'build_certificate', 'build_block', 'floor_height', 'build_area', 'build_date', 'remark', 'is_valid', 'c_uid', 'u_uid', 'build_usage', 'manager_area'];
+  
   protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'updated_at', 'created_at'];
 
   public function project()

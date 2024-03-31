@@ -355,6 +355,9 @@ class BuildingRoomController extends BaseController
         $validatedData = $request->validate([
             'Ids' => 'required|array',
             'is_vaild' => 'required|numeric|in:0,1',
+        ],[
+            'Ids.required' => '房源ID不能为空',
+            'is_vaild.required' => '启用禁用状态不能为空',
         ]);
         $data['is_vaild'] = $request->is_vaild;
         $res = RoomModel::whereIn('id', $request->Ids)->update($data);
@@ -401,10 +404,15 @@ class BuildingRoomController extends BaseController
      */
     public function rooms(Request $request)
     {
-        $validatedData = $request->validate([
+        $request->validate([
             'Ids' => 'required|array',
             'is_vaild' => 'required|numeric|in:0,1',
             // 'is_vaild' => 'required|numeric|in:0,1',
+        ],[
+            'Ids.required' => '房源ID不能为空',
+            'is_vaild.required' => '启用禁用状态不能为空',
+            'is_vaild.in' => '启用禁用状态不正确',
+            'Ids.array' => '房源ID格式不正确',
         ]);
 
         $data = RoomModel::where(function ($q) use ($request) {

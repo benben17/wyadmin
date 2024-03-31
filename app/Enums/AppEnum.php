@@ -78,7 +78,7 @@ abstract class AppEnum extends Enum
   const freeMonth = 1; // 按月免租
   const freeDay = 2; // 按天免租
 
-  const chargeVerify  = 1;  // 
+  const chargeVerify  = 1;  //  已核销
   const chargeUnVerify  = 0; // 未核销
 
 
@@ -101,4 +101,10 @@ abstract class AppEnum extends Enum
   const invoiceStatusUnOpen = 1;  // 未开
   const invoiceStatusOpened = 2;  // 已开
   const invoiceStatusCancel = 3;  // 作废
+
+  // 应收状态
+  const feeStatusUnReceive = 0;  // 未结清
+  const feeStatusReceived = 1;  // 已经清
+  const feeStatusPartRefund = 2;  // 部分退款
+  const feeStatusRefund = 3;  // 已退款
 }

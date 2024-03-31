@@ -10,7 +10,7 @@ use App\Api\Models\Company\BankAccount;
  * 公用方法 获取用户公司ID
  * @param $uid 用户id
  */
-function getCompanyId($uid)
+function getCompanyId($uid): int
 {
     if ($uid) {
         $result = \App\Models\User::select('company_id')->find($uid);
@@ -18,10 +18,18 @@ function getCompanyId($uid)
         return $result->company_id;
     }
 }
-function getCompanyIds($uid)
+/**
+ * @Desc: 获取用户公司ID和公共id0 集合
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param [type] $uid
+ * @return array
+ */
+function getCompanyIds($uid):array
 {
-    if (getCompanyId($uid)) {
-        return array(0, getCompanyId($uid));
+    $companyIds = getCompanyId($uid);
+    if ($companyIds) {
+        return array(0, $companyIds);
     }
     return array(0);
 }
