@@ -8,6 +8,7 @@ use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
+use Hamcrest\Text\StringStartsWith;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -350,11 +351,17 @@ class BillStatController extends BaseController
       ]
     );
 
-
-    // return array_values($monthsTemplate);
-    $total_amt = 0.00;
-    $total_receiveAmount = 0.00;
-    $total_unreceiveAmount = 0.00;
+    // Create a template for all tenants
+    if (!isset($formattedData['total'])) {
+      $formattedData['total'] = [
+        'tenant_id' => '0',
+        'tenant_name' => '总计',
+        'total_amt' => 0.00,
+        'total_receive_amt' => 0.00,
+        'total_unreceive_amt' => 0.00,
+        'year' => $request->year,
+      ] + $monthsTemplate;
+    }
     foreach ($monthlySummaries as $summary) {
       $tenantId = $summary->tenant_id;
       $tenantName = $summary->tenant_name;
@@ -364,10 +371,7 @@ class BillStatController extends BaseController
       $amount = $summary->amount;
       $receiveAmount = $summary->receiveAmt;
       $unreceiveAmount = $summary->unreceiveAmt;
-      $total_amt += $amount;
-      $total_receiveAmount += $receiveAmount;
-      $total_unreceiveAmount += $unreceiveAmount;
-      // return $summary;
+
 
       // Create an entry for the tenant if not exists
       if (!isset($formattedData[$tenantId])) {
@@ -382,26 +386,36 @@ class BillStatController extends BaseController
       }
 
       // Add data to the corresponding month
-
       $formattedData[$tenantId][$ym] = [
-        'amount' => numFormat($amount),
-        'receive_amount' => numFormat($receiveAmount),
-        'unreceive_amount' => numFormat($unreceiveAmount),
+        'amount' => floatval($amount),
+        'receive_amount' => floatval($receiveAmount),
+        'unreceive_amount' => floatval($unreceiveAmount),
       ];
+      $formattedData['total']['total_amt'] += $amount;
+      $formattedData['total']['total_receive_amt'] += $receiveAmount;
+      $formattedData['total']['total_unreceive_amt'] += $unreceiveAmount;
+      $formattedData['total'][$ym] = array(
+        'amount' =>  $formattedData['total'][$ym]['amount'] + $amount,
+        'receive_amount' => $formattedData['total'][$ym]['receive_amount'] + $receiveAmount,
+        'unreceive_amount' => $formattedData['total'][$ym]['unreceive_amount'] +  $unreceiveAmount,
+      );
+
       // Update total amounts
+      // 
       $formattedData[$tenantId]['total_amt'] += $amount;
       $formattedData[$tenantId]['total_receive_amt'] += $receiveAmount;
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
 
-
+    $DA['allTenant'] = $formattedData['total'];
+    unset($formattedData['total']);
     $DA['data'] = array_values($formattedData);
-    $DA['total'] = array(
-      ["title" => "总金额", "amount" => numFormat($total_amt)],
-      ["title" => "总收款金额", "amount" => numFormat($total_receiveAmount)],
-      ["title" => "总未收款金额", "amount" => numFormat($total_unreceiveAmount)]
-    );
 
+    $DA['total'] = array(
+      ["title" => "总金额", "amount" => $DA['allTenant']['total_amt']],
+      ["title" => "总收款金额", "amount" => $DA['allTenant']['total_receive_amt']],
+      ["title" => "总未收款金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
+    );
     return $this->success($DA);
   }
 }

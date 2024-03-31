@@ -13,6 +13,7 @@ use App\Api\Models\Channel\Channel as channelModel;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
+use App\Api\Models\Company\BankAccount;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Tenant\Tenant;
@@ -521,14 +522,14 @@ class PubSelectController extends BaseController
 
 	public function tenantList(Request $request)
 	{
-		if (!is_array($request->proj_ids)) {
-			$request->proj_ids = str2Array($request->proj_ids);
-		}
+		$request->validate([
+			'proj_ids' => 'required',
+		]);
 
 		$data = \App\Api\Models\Tenant\Tenant::select('id', 'name', 'industry', 'level', 'proj_id', 'on_rent', 'state')
 			->where(function ($q) use ($request) {
 				// $q->where('parent_id', 0);
-				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
 				if ($request->type == 1) {
 					$q->where('type', "!=", AppEnum::TenantType);
 					if (!$this->user['is_admin']) {
@@ -548,7 +549,7 @@ class PubSelectController extends BaseController
 					$q->where('type', AppEnum::TenantType);
 				}
 			})
-			->with('contacts:contact_name,contact_phone,contact_role,is_default,parent_id,parent_type')
+			->with('contacts:id,contact_name,contact_phone,contact_role,is_default,parent_id,parent_type')
 			->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();
@@ -702,7 +703,8 @@ class PubSelectController extends BaseController
 			->get()->toArray();
 
 		foreach ($data as &$v) {
-			$v['bank_id'] = getBankIdByFeeType($v['id'], $request->proj_id);
+			$bank = BankAccount::where('fee_type_id', $v['id'])->where('proj_id', $request->proj_id)->first();
+			$v['bank_id'] = $bank ? $bank->id : 0;
 			$v['notice'] = $v['bank_id'] == 0 ? "未绑定银行收款账户" : "已绑定银行收款账户";
 		}
 
@@ -809,13 +811,27 @@ class PubSelectController extends BaseController
 
 
 	/**
-	 * 获取部门信息
-	 *
-	 * @Author leezhua
-	 * @DateTime 2023-11-30
-	 * @param Request $request
-	 *
-	 * @return void
+	 * @OA\Post(
+	 *     path="api/pub/depart/getAll",
+	 *     tags={"选择公用接口"},
+	 *     summary="部门选择",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"is_vaild"},
+	 *  				@OA\Property(property="is_vaild",type="int",description="0 无效 1 有效"),
+	 * 				
+	 *     ),
+	 *       example={"is_vaild":1}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
 	 */
 	public function getDeparts(Request $request)
 	{

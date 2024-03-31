@@ -3,16 +3,14 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
-use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-
-use App\Api\Models\Tenant\Follow;
-use App\Api\Services\Common\DictServices;
-use App\Api\Services\CustomerService;
-use App\Api\Services\Tenant\TenantService;
 use App\Enums\AppEnum;
+use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\DB;
+use App\Api\Services\CustomerService;
+use App\Api\Services\Sys\UserServices;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Common\DictServices;
 
 /**
  *
@@ -20,13 +18,12 @@ use App\Enums\AppEnum;
 class CusFollowController extends BaseController
 {
   protected $parent_type;
-  protected $tenant;
+  protected $customerService;
   public function __construct()
   {
     parent::__construct();
-
     $this->parent_type = AppEnum::Tenant;
-    $this->tenant = new TenantService;
+    $this->customerService = new CustomerService;
   }
 
   /**
@@ -64,13 +61,8 @@ class CusFollowController extends BaseController
    */
   public function list(Request $request)
   {
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
+
     // $map['company_id'] = $this->company_id;
     $map = array();
     if ($request->tenant_id) {
@@ -93,75 +85,50 @@ class CusFollowController extends BaseController
     }
 
     DB::enableQueryLog();
-    $result = Follow::where($map)
+    $subQuery = $this->customerService->followModel()->where($map)
       ->where(function ($q) use ($request) {
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->follow_username && $q->where('follow_username', 'like', $request->follow_username);
-        if (!$this->user['is_admin']) {
-          if ($request->depart_id) {
-            $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-            $q->whereIn('depart_id', $departIds);
-          }
-          if ($this->user['is_manager']) {
-            $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-            $q->whereIn('depart_id', $departIds);
-          } else if (!$request->depart_id) {
-            $q->where('c_uid', $this->uid);
-          }
-        }
-      })->whereHas('tenant', function ($q) use ($request) {
-        $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
+        return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
       })
+      ->whereHas('tenant', function ($q) use ($request) {
+        $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
+      });
+    $result = $subQuery
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
     $data = $this->handleBackData($result);
 
-    $stat = Follow::where($map)
+    $stat = $subQuery
       ->selectRaw('count(*) as count,follow_type ,count(distinct(tenant_id)) tenant_count')
-      ->where(function ($q) use ($request) {
-        $request->start_time && $q->where('follow_time', '>=', $request->start_time);
-        $request->end_time && $q->where('follow_time', '<=', $request->end_time);
-        $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
-        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-
-        if (!$this->user['is_admin']) {
-          if ($request->depart_id) {
-            $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-            $q->whereIn('depart_id', $departIds);
-          }
-          if ($this->user['is_manager']) {
-            $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-            $q->whereIn('depart_id', $departIds);
-          } else if (!$request->depart_id) {
-            $q->where('c_uid', $this->uid);
-          }
-        }
-      })->whereHas('tenant', function ($q) use ($request) {
-        $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
-      })
       ->groupBy('follow_type')->get();
 
     $dictService = new DictServices;
     $dictKeys = $dictService->getDicts([0, $this->user['company_id']], 'follow_type');
+    $followStat = array();
     foreach ($dictKeys as $k => &$v) {
-      $v['label'] = $v['dict_value'];
+      $followStat[$k] = [
+        'label' => $v['dict_value'],
+        'count' => 0,
+        'tenant_count' => 0
+      ];
       foreach ($stat as $k1 => $v1) {
         if ($v['id'] == $v1['follow_type']) {
-          $v['count'] = $v1['count'];
-          $v['tenant_count'] = $v1['tenant_count'];
+          $followStat[$k]['count'] = $v1['count'];
+          $followStat[$k]['tenant_count'] = $v1['tenant_count'];
           break;
         }
-        $v['count'] = 0;
       }
-      unset($v['id']);
     }
-    $data['stat'] = $dictKeys;
+    $data['stat'] = $followStat;
     return $this->success($data);
   }
+
+
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/add",
@@ -238,13 +205,13 @@ class CusFollowController extends BaseController
     ]);
 
     $DA = $request->toArray();
-    $user = auth('api')->user();
-    $follow = new CustomerService;
-    $res = $follow->saveFollow($DA, $user);
-    if ($res) {
+
+    try {
+      $this->customerService->saveFollow($DA, $this->user);
       return $this->success('跟进记录保存成功。');
+    } catch (\Exception $e) {
+      return $this->error('跟进记录保存失败' . $e->getMessage());
     }
-    return $this->error('跟进记录保存失败');
   }
   /**
    * @OA\Post(
@@ -276,15 +243,15 @@ class CusFollowController extends BaseController
    */
   public function update(Request $request)
   {
-    return "disable";
+    return 'not allowed';
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $user = auth('api')->user();
+
     $data = $request->toArray();
     unset($data['state']);
-    $data['u_uid'] = $user->uid;
-    $res = Follow::whereId($request->id)->update($data);
+    $data['u_uid'] = $this->uid;
+    $res = $this->customerService->followModel()->whereId($request->id)->update($data);
     if ($res) {
       return $this->success('跟进记录保存成功。');
     }
@@ -319,7 +286,7 @@ class CusFollowController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
 
-    $data = Follow::find($request->id);
+    $data = $this->customerService->followModel()->find($request->id);
     return $this->success($data);
   }
 }

@@ -59,13 +59,7 @@ class YhWorkOrderController extends BaseController
       'proj_ids' => 'required|array',
       // 'status' => 'array'
     ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;

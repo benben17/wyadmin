@@ -54,26 +54,4 @@ class ActivityRegService
         $res = $activityReg->save();
         return $res;
     }
-
-
-
-
-
-
-    // 支付状态
-    public function payState($status)
-    {
-        switch ($status) {
-            case '1':
-                return '未支付';
-                break;
-
-            case '2':
-                return '已支付';
-                break;
-            case '99':
-                return '已取消';
-                break;
-        }
-    }
 }

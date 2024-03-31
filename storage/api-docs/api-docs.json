@@ -231,7 +231,14 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "name": "",
+                                "start_date": "2021-07-01",
+                                "end_date": "2021-07-31",
+                                "orderBy": "created_at",
+                                "order": "desc",
+                                "pagesize": 10
+                            }
                         }
                     }
                 },
@@ -431,7 +438,9 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "id": 1
+                            }
                         }
                     }
                 },
@@ -687,7 +696,8 @@
                                 "tenant_id": "1",
                                 "tenant_name": "",
                                 "start_date": "",
-                                "end_date": ""
+                                "end_date": "",
+                                "proj_ids": "[]"
                             }
                         }
                     }
@@ -1167,13 +1177,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/add": {
+        "/api/operation/tenant/deposit/add": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理新增",
-                "operationId": "214243f1e90027b05a97835d2f2bc56a",
+                "operationId": "cc21d45736d63097efeb3d6fe4d1e477",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1326,13 +1336,13 @@
                 }
             }
         },
-        "/api/operation/tenant/bill/deposit/del": {
+        "/api/operation/tenant/deposit/del": {
             "post": {
                 "tags": [
                     "押金管理"
                 ],
                 "summary": "押金管理删除",
-                "operationId": "e4127e1f36e2421e39198568607ad9ea",
+                "operationId": "4db79829a8e8d6de156b71d5c044d2bb",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1619,15 +1629,15 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "invoce_id",
+                                    "invoice_id",
                                     "amount",
                                     "invoice_no",
                                     "status",
                                     "bill_detail_id"
                                 ],
                                 "properties": {
-                                    "invoce_id": {
-                                        "description": "发票titleID",
+                                    "invoice_id": {
+                                        "description": "发票ID",
                                         "type": "int"
                                     },
                                     "amount": {
@@ -1678,7 +1688,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "id",
-                                    "invoce_id",
+                                    "invoice_id",
                                     "amount",
                                     "invoice_no",
                                     "status",
@@ -1689,8 +1699,8 @@
                                         "description": "发票记录id",
                                         "type": "int"
                                     },
-                                    "invoce_id": {
-                                        "description": "发票titleID",
+                                    "invoice_id": {
+                                        "description": "发票ID",
                                         "type": "int"
                                     },
                                     "amount": {
@@ -1984,10 +1994,10 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "buidingId"
+                                    "id"
                                 ],
                                 "properties": {
-                                    "buidingId": {
+                                    "id": {
                                         "description": "楼ID",
                                         "type": "int"
                                     }
@@ -1995,7 +2005,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "buidingId": 1
+                                "id": 1
                             }
                         }
                     }
@@ -2061,20 +2071,25 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": [],
+                                "required": [
+                                    "build_id"
+                                ],
                                 "properties": {
                                     "build_id": {
                                         "description": "楼号ID",
-                                        "type": "int"
+                                        "type": "integer"
                                     },
                                     "proj_id": {
                                         "description": "项目ID",
-                                        "type": "int"
+                                        "type": "integer"
                                     }
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "build_id": 1,
+                                "proj_id": 1
+                            }
                         }
                     }
                 },
@@ -2141,7 +2156,13 @@
                                     "order"
                                 ]
                             },
-                            "example": []
+                            "example": {
+                                "pagesize": 10,
+                                "proj_id": 11,
+                                "build_id": 1,
+                                "orderBy": "created_at",
+                                "order": "desc"
+                            }
                         }
                     }
                 },
@@ -2297,48 +2318,6 @@
                 ],
                 "summary": "房源启用禁用",
                 "operationId": "b64607433bd6a7c66e661931ebb0d917",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "Ids",
-                                    "is_vaild"
-                                ],
-                                "properties": {
-                                    "Ids": {
-                                        "description": "房源ID集合",
-                                        "type": "list"
-                                    },
-                                    "is_vaild": {
-                                        "description": "0禁用1 启用",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "Ids": "[1]",
-                                "is_vaild": 0
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/building/wx/rooms": {
-            "post": {
-                "tags": [
-                    "房源"
-                ],
-                "summary": "房源启用禁用",
-                "operationId": "cf839f5bc3931bceb5a93102bd31b6e8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -3693,15 +3672,11 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "id",
+                                    "channel_id",
                                     "type",
-                                    "tenant_idname"
+                                    "name"
                                 ],
                                 "properties": {
-                                    "id": {
-                                        "description": "客户id",
-                                        "type": "int"
-                                    },
                                     "type": {
                                         "description": "客户类型 1:公司 2 个人",
                                         "type": "int"
@@ -3709,14 +3684,28 @@
                                     "name": {
                                         "description": "客户名称",
                                         "type": "String"
+                                    },
+                                    "channel_id": {
+                                        "description": "渠道ID",
+                                        "type": "int"
+                                    },
+                                    "contact_name": {
+                                        "description": "联系人名称",
+                                        "type": "String"
+                                    },
+                                    "contact_phone": {
+                                        "description": "联系人电话",
+                                        "type": "String"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "id": 1,
+                                "channel_id": 1,
                                 "type": 1,
-                                "name": "公司客户"
+                                "name": "公司客户",
+                                "contact_name": "",
+                                "contact_phone": ""
                             }
                         }
                     }
@@ -4486,9 +4475,20 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": []
+                                "required": [
+                                    "year"
+                                ],
+                                "properties": {
+                                    "year": {
+                                        "description": "年份",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "year": 2020
+                            }
                         }
                     }
                 },
@@ -4719,7 +4719,12 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "parent_id": "",
+                                "parent_type": "",
+                                "name": "",
+                                "file_path": ""
+                            }
                         }
                     }
                 },
@@ -5107,7 +5112,7 @@
                                         "description": "维护记录ID",
                                         "type": "int"
                                     },
-                                    "prent_type": {
+                                    "parent_type": {
                                         "description": "1 channel 2 客户 3 供应商 4 政府关系 5 租户",
                                         "type": "int"
                                     }
@@ -6184,6 +6189,42 @@
                                 "type": "object"
                             },
                             "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "api/pub/depart/getAll": {
+            "post": {
+                "tags": [
+                    "选择公用接口"
+                ],
+                "summary": "部门选择",
+                "operationId": "f6adf6784f1da0e6e10148ced062a87c",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "is_vaild"
+                                ],
+                                "properties": {
+                                    "is_vaild": {
+                                        "description": "0 无效 1 有效",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "is_vaild": 1
+                            }
                         }
                     }
                 },
@@ -12326,6 +12367,42 @@
                 }
             }
         },
+        "/api/wx/pay/notify_url": {
+            "post": {
+                "tags": [
+                    "微信支付回调"
+                ],
+                "summary": "微信支付回调",
+                "operationId": "2124550f01fe1c702f6a6320d5449c0b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "场馆Id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/activity/reg/pay": {
             "post": {
                 "tags": [
@@ -13139,14 +13216,14 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "Ids",
-                                    "is_vaild"
+                                    "is_valid"
                                 ],
                                 "properties": {
                                     "Ids": {
                                         "description": "房源ID集合",
                                         "type": "list"
                                     },
-                                    "is_vaild": {
+                                    "is_valid": {
                                         "description": "0禁用1 启用",
                                         "type": "int"
                                     }
@@ -13155,7 +13232,7 @@
                             },
                             "example": {
                                 "Ids": "[1]",
-                                "is_vaild": "0"
+                                "is_valid": "0"
                             }
                         }
                     }

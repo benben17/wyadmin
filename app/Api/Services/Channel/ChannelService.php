@@ -2,21 +2,29 @@
 
 namespace App\Api\Services\Channel;
 
-use Illuminate\Support\Facades\Log;
+use Exception;
+use App\Enums\AppEnum;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Api\Services\Common\DictServices;
+use App\Api\Services\Contract\BillRuleService;
 use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Channel\ChannelPolicy as PolicyModel;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
-use App\Api\Services\Contract\BillRuleService;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  *
  */
 class ChannelService
-
 {
+
+  public function model()
+  {
+    return new ChannelModel;
+  }
+
+  /** 保存渠道 */
   public function savePolicy($DA, $user)
   {
     if (isset($DA['id']) &&  $DA['id'] > 0) {
@@ -152,5 +160,51 @@ class ChannelService
       log::error($brokerage);
       return false;
     }
+  }
+
+  /**
+   * list channel stat
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-29
+   * @param [type] $subQuery
+   * @param [type] $userId
+   *
+   * @return array
+   */
+  public function statChannel($subQuery, $userId): array
+  {
+    $statData = [];
+    $dict = new DictServices;
+    $channelTypes = $dict->getByKey(getCompanyIds($userId), 'channel_type');
+
+    $channelStat = $subQuery
+      ->selectRaw('group_concat(id) as Ids,count(id) as count,channel_type')
+      ->groupBy('channel_type')->get();
+
+    $channelCount = [
+      'channel_type' => '渠道总计',
+      'count' => 0,
+      // 'cus_count' => 0
+    ];
+
+    foreach ($channelTypes as &$v) {
+      $channelTypeName = $v['value'];
+      $statData[] = [
+        'channel_type' => $channelTypeName,
+        'count' => 0
+      ];
+    }
+    foreach ($statData as &$v1) {
+      foreach ($channelStat as $val) {
+        if ($v1['channel_type'] == $val['channel_type']) {
+          $v1['count'] = $val['count'];
+          $channelCount['count'] += $val['count'];
+          break;
+        }
+      }
+    }
+    $statData[] = $channelCount;
+    return $statData;
   }
 }

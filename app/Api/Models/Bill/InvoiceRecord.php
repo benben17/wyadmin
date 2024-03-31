@@ -2,11 +2,12 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Api\Models\Company\BankAccount;
-use App\Api\Models\Tenant\Invoice;
-use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\AppEnum;
 use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
+use App\Api\Models\Tenant\Invoice;
+use App\Api\Models\Company\BankAccount;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InvoiceRecord extends Model
@@ -23,13 +24,13 @@ class InvoiceRecord extends Model
     if (isset($this->attributes['status'])) {
       $status = $this->attributes['status'];
       switch ($status) {
-        case '1':
+        case AppEnum::invoiceStatusUnOpen:
           return '未开';
           break;
-        case '2':
+        case AppEnum::invoiceStatusOpened:
           return "已开";
           break;
-        case '3':
+        case AppEnum::invoiceStatusCancel:
           return "作废";
           break;
       }

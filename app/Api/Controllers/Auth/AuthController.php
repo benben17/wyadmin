@@ -3,13 +3,13 @@
 namespace App\Api\Controllers\Auth;
 
 use JWTAuth;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
-use App\Api\Services\Sys\UserServices;
-use Illuminate\Support\Facades\Log;
-use Exception;
 
 class AuthController extends BaseController
 {
@@ -89,7 +89,7 @@ class AuthController extends BaseController
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
-            'avatar' => "https://" . env("OSS_BUCKET") . "." . env('OSS_ENDPOINT') . "/" . $user->avatar,
+            'avatar' => getOssUrl($user->avatar),
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
@@ -324,7 +324,7 @@ class AuthController extends BaseController
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
         ]);
     }
 }

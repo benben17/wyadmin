@@ -3,6 +3,7 @@
 namespace App\Api\Services\Bill;
 
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Bill\DepositRecord;
@@ -19,6 +20,7 @@ class DepositService
   public function recordModel()
   {
     return new DepositRecord;
+
   }
 
   public function depositBillModel()
@@ -49,7 +51,7 @@ class DepositService
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
         $dRecord->type          = $DA['type'];
-        $dRecord->bank_id          = $deposit['bank_id'];
+        $dRecord->bank_id       = $deposit['bank_id'];
         $dRecord->remark        = isset($DA['remark']) ? $DA['remark'] : "";
         $dRecord->c_user        = $user['realname'];
         $dRecord->c_uid         = $user['id'];
@@ -64,7 +66,7 @@ class DepositService
 
   private function depositRecordNo()
   {
-    return "DR-" . date('ymdHis') . mt_rand(10, 99);
+    return "DR-".date('ymdHis') . mt_rand(10, 99);
   }
 
 
@@ -82,11 +84,11 @@ class DepositService
     $BA = ['receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'available_amt' => 0.00];
     if (!empty($recordList)) {
       foreach ($recordList as $v1) {
-        if ($v1['type'] === 1) {
+        if ($v1['type'] == AppEnum::depositRecordReceive) {
           $BA['receive_amt'] += $v1['amount'];
-        } elseif ($v1['type'] == 2) {
+        } elseif ($v1['type'] == AppEnum::depositRecordRefund) {
           $BA['refund_amt'] +=  $v1['amount'];
-        } elseif ($v1['type'] == 3) {
+        } elseif ($v1['type'] == AppEnum::depositRecordToCharge) {
           $BA['charge_amt'] +=  $v1['amount'];
         }
       }

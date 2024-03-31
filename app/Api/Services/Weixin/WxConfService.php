@@ -10,12 +10,12 @@ class WxConfService
 {
 
 
-  private $merchantId;
-  private $merchantPrivateKeyInstance;
-  private $merchantCertificateSerial;
-  private $platformPublicKeyInstance;
-  private $platformCertificateSerial;
-  private $notifyUrl;
+  // private $merchantId;
+  // private $merchantPrivateKeyInstance;
+  // private $merchantCertificateSerial;
+  // private $platformPublicKeyInstance;
+  // private $platformCertificateSerial;
+  // private $notifyUrl;
   private $wxPayConfModel;
   private $companyId;
   public function __construct()

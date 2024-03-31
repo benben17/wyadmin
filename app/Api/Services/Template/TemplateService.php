@@ -2,18 +2,18 @@
 
 namespace App\Api\Services\Template;
 
-use App\Api\Models\Company\BankAccount;
-use Illuminate\Support\Facades\Log;
 use Exception;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Shared\Html;
-use PhpOffice\PhpWord\Writer\Html as WriteHtml;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Company\BankAccount;
 use PhpOffice\PhpWord\TemplateProcessor;
-
-use App\Api\Models\Company\Template as TemplateModel;
 use App\Api\Services\Bill\TenantBillService;
+
 use App\Api\Services\Contract\BillRuleService;
+use PhpOffice\PhpWord\Writer\Html as WriteHtml;
+use App\Api\Models\Company\Template as TemplateModel;
 
 /**
  *合同模版生成

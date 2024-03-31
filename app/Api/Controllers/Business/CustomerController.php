@@ -4,20 +4,21 @@ namespace App\Api\Controllers\Business;
 
 use JWTAuth;
 //use App\Exceptions\ApiException;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Business\CusClue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use App\Api\Models\Tenant\TenantRoom;
-use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Business\CusClue;
 use App\Api\Models\Tenant\ExtraInfo;
-use App\Api\Services\Business\CusClueService;
+use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\CustomerService;
+use App\Api\Services\Sys\UserServices;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Tenant\BaseInfoService;
-use App\Enums\AppEnum;
+use App\Api\Services\Business\CusClueService;
+use App\Api\Models\Common\Contact as ContactModel;
 
 /**
  *  客户
@@ -29,12 +30,7 @@ class CustomerController extends BaseController
     private $parent_type;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
-        $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
+        parent::__construct();
         $this->parent_type = AppEnum::Tenant;
         $this->customerService = new CustomerService;
     }
@@ -68,13 +64,7 @@ class CustomerController extends BaseController
         // $validatedData = $request->validate([
         //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
         // ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         if ($request->id) {
             $map['id'] = $request->id;
@@ -99,8 +89,7 @@ class CustomerController extends BaseController
 
 
         $request->type = [1, 2, 3];  // 只显示客户，和退租客户 不显示租户
-        DB::enableQueryLog();
-        $result = $this->customerService->tenantModel()
+        $subQuery = $this->customerService->tenantModel()
             ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
@@ -111,25 +100,16 @@ class CustomerController extends BaseController
                 $request->industry && $q->where('industry', $request->industry);
                 $request->parent_id && $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
-                if (!$this->user['is_admin']) {
-                    if ($request->depart_id) {
-                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                        $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                        $q->whereIn('depart_id', $departIds);
-                    } else if (!$request->depart_id) {
-                        $q->where('belong_uid', $this->uid);
-                    }
-                }
+
                 if ($request->visit_times) {
                     $q->whereHas('follow', function ($q) {
                         $q->where('follow_type', AppEnum::followVisit);
                         $q->havingRaw('count(*) >0');
                     });
                 }
-            })
+                return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
+            });
+        $result = $subQuery
             ->with('channel:channel_name,channel_type,id')
             // ->with('contacts')
             ->with('contactInfo')
@@ -141,72 +121,47 @@ class CustomerController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
-        $cusState = "";
-        // if ($request->list_type == 1) {
-        $customerStat = $this->customerService->tenantModel()
-            ->select('state', DB::Raw('ifnull(count(*),0) as count'))
-            ->where($map)
-            ->where(function ($q) use ($request) {
-                $request->type && $q->whereIn('type', $request->type);
-                $request->room_type && $q->where('room_type', $request->room_type);
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->source_type && $q->where('source_type', $request->source_type);
-                if (!$this->user['is_admin']) {
-                    if ($request->depart_id) {
-                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                        $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                        $q->whereIn('depart_id', $departIds);
-                    } else if (!$request->depart_id) {
-                        $q->where('belong_uid', $this->uid);
-                    }
-                }
-                if ($request->visit_times) {
-                    $q->whereHas('follow', function ($q) {
-                        $q->where('follow_type', AppEnum::followVisit);
-                        $q->havingRaw('count(*) >1');
-                    });
-                }
-            })
-            ->groupBy('state')->get()->toArray();
-        // return response()->json(DB::getQueryLog());
-        $dict = new DictServices;  // 根据ID 获取字典信息
-        $cusState = $dict->getByKey([0, $this->company_id], 'cus_state');
 
-        $total = 0;
-        foreach ($cusState as $kt => &$vt) {
-            $vt['count'] = 0;
-            $vt['state'] = $vt['value'];
-            foreach ($customerStat as $k => $v) {
-                if ($v['state'] == $vt['value']) {
-                    $vt['state'] = $vt['value'];
-                    $vt['count'] = $v['count'];
-                    $total += $cusState[$kt]['count'];
-                    break;
-                } else {
-                    $vt['count'] = 0;
-                    $vt['state'] = $vt['value'];
-                }
-            }
+        // 通过数据库查询获取统计数据
+        $cusStat = $subQuery
+            ->selectRaw('state, ifnull(count(*),0) as count')
+            ->groupBy('state')
+            ->get();
+
+        // 根据ID获取字典信息
+        $dict = new DictServices;
+        $cusStateDicts = $dict->getByKey([0, $this->company_id], 'cus_state');
+
+        // 构建客户统计数据数组
+        $customerStat = array();
+        $cusTotalCount = 0;
+        foreach ($cusStateDicts as $kt => $vt) {
+            $count = $cusStat->firstWhere('state', $vt['value'])['count'] ?? 0;
+            $customerStat[$kt] = [
+                'state' => $vt['value'],
+                'count' => $count,
+            ];
+            $cusTotalCount += $count;
         }
-        $cus_total[sizeof($cusState)]['state'] = '客户总计';
-        $cus_total[sizeof($cusState)]['count'] = $total;
-        $cusState = array_merge($cusState, $cus_total);
-        // }
+
+        // 添加客户总计到客户统计数据数组
+        $customerStat[] = [
+            'state' => '客户总计',
+            'count' => $cusTotalCount
+        ];
+
+
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['extra_info']['demand_area'] ?? 0;
+            $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
             $v['source_type_label'] = getDictName($v['source_type']);
             $v['contact_user'] = $v['contact_info']['name'] ?? "";
             $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
             $v['channel_name'] = $v['channel']['channel_name'] ?? "";
             $v['channel_type'] = $v['channel']['channel_type'] ?? "";
         }
-        $data['stat'] = $cusState;
+        $data['stat'] = $customerStat;
         return $this->success($data);
     }
 
@@ -284,22 +239,22 @@ class CustomerController extends BaseController
                 $res = $this->customerService->saveTenant($DA, $user);
                 //写入联系人
                 $parent_id = $res->id;
-                $cusExtra = $this->formatCusExtra($DA['extra_info']);
+                $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $parent_id;
                 $cusExtra['c_uid'] = $this->uid;
-                $customerExtra = ExtraInfo::Create($cusExtra);
+                ExtraInfo::Create($cusExtra);
                 // 写入联系人 支持多联系人写入
 
                 if ($DA['contacts']) {
                     $user['parent_type'] = $this->parent_type;
                     $contacts = formatContact($DA['contacts'], $parent_id, $user);
-                    // return $contacts;
+                    // 联系人保存
                     $contact = new contactModel;
                     $contact->addAll($contacts);
                 }
                 // 房间
                 if (!empty($DA['tenant_rooms']) && $DA['tenant_rooms']) {
-                    $roomList = $this->formatRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
+                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -351,13 +306,35 @@ class CustomerController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"id","type","tenant_idname"},
-     *       @OA\Property(property="id",type="int",description="客户id"),
-     *       @OA\Property(property="type",type="int",description="客户类型 1:公司 2 个人"),
-     *       @OA\Property(property="name",type="String",description="客户名称")
+     *          required={"channel_id","type","name","id"},
+     *       @OA\Property(
+     *          property="type",
+     *          type="int",
+     *          description="客户类型 1:公司 2 个人"
+     *       ),
+     *       @OA\Property(
+     *          property="name",
+     *          type="String",
+     *          description="客户名称"
+     *       ),
+     *       @OA\Property(
+     *          property="channel_id",
+     *          type="int",
+     *          description="渠道ID"
+     *       ),
+     *       @OA\Property(
+     *          property="contact_name",
+     *          type="String",
+     *          description="联系人名称"
+     *       ),
+     *       @OA\Property(
+     *          property="contact_phone",
+     *          type="String",
+     *          description="联系人电话"
+     *       )
      *     ),
      *       example={
-     *              "id":1,"type":1,"name":"公司客户"
+     *             "channel_id":1,"type":1,"name":"公司客户","contact_name":"","contact_phone":""
      *           }
      *       )
      *     ),
@@ -389,8 +366,8 @@ class CustomerController extends BaseController
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();
                 DB::enableQueryLog();
-                $res = $this->customerService->saveTenant($DA, $user, 2);
-                $cusExtra = $this->formatCusExtra($DA['extra_info']);
+                $this->customerService->saveTenant($DA, $user, 2);
+                $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $DA['id'];
                 $cusExtra['u_uid'] = $this->uid;
                 ExtraInfo::where('tenant_id', $DA['id'])->update($cusExtra);
@@ -408,7 +385,7 @@ class CustomerController extends BaseController
                 // 房间
                 if ($DA['tenant_rooms'] && !empty($DA['tenant_rooms'])) {
                     $res = TenantRoom::where('tenant_id', $DA['id'])->delete();  // 删除
-                    $roomList = $this->formatRoom($DA['tenant_rooms'], $DA['id'], $DA['room_type']);
+                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $DA['id'], $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
@@ -583,7 +560,7 @@ class CustomerController extends BaseController
         }
         $user = auth('api')->user();
         $skyeyeService = new BaseInfoService;
-        $data = $skyeyeService->getCompanyInfo($request->name, $user->toArray());
+        $data = $skyeyeService->getCompanyInfo($request->name, $user);
         return $this->success($data);
     }
 
@@ -628,44 +605,5 @@ class CustomerController extends BaseController
             return $this->success('公司工商信息编辑成功。');
         }
         return $this->error('公司工商信息编辑失败！');
-    }
-
-    private function formatCusExtra($DA)
-    {
-        $BA['demand_area'] = isset($DA['demand_area']) ? $DA['demand_area'] : "";
-        // $BA['demand_area_end'] = isset($DA['demand_area_end'])? $DA['demand_area_end']:0.00;
-        $BA['trim_state'] = isset($DA['trim_state']) ? $DA['trim_state'] : "";
-        $BA['recommend_room_id'] = isset($DA['recommend_room_id']) ? $DA['recommend_room_id'] : "";
-        $BA['recommend_room'] = isset($DA['recommend_room']) ? $DA['recommend_room'] : "";
-        $BA['purpose_room'] = isset($DA['purpose_room']) ? $DA['purpose_room'] : 0.00;
-        $BA['purpose_price'] = isset($DA['purpose_price']) ? $DA['purpose_price'] : 0.00;
-        $BA['purpose_term_lease'] = isset($DA['purpose_term_lease']) ? $DA['purpose_term_lease'] : 0.00;
-        $BA['purpose_free_time'] = isset($DA['purpose_free_time']) ? $DA['purpose_free_time'] : 0.00;
-        $BA['current_proj'] = isset($DA['current_proj']) ? $DA['current_proj'] : "";
-        $BA['current_addr'] = isset($DA['current_addr']) ? $DA['current_addr'] : "";
-        $BA['current_area'] = isset($DA['current_area']) ? $DA['current_area'] : "";
-        $BA['current_price'] = isset($DA['current_price']) ? $DA['current_price'] : "";
-        return $BA;
-    }
-
-    private function formatRoom(array $DA, $tenantId, $roomType)
-    {
-        $rooms = array();
-        foreach ($DA as $k => &$v) {
-            $rooms[$k]['created_at']   = nowTime();
-            $rooms[$k]['updated_at']   = nowTime();
-            $rooms[$k]['tenant_id']    = $tenantId;
-            $rooms[$k]['proj_id']    = $v['proj_id'];
-            $rooms[$k]['proj_name']    = isset($v['proj_name']) ? $v['proj_name'] : "";
-            $rooms[$k]['build_id']    = $v['build_id'];
-            $rooms[$k]['build_no']    = $v['build_no'];
-            $rooms[$k]['floor_id']    = $v['floor_id'];
-            $rooms[$k]['floor_no']    = $v['floor_no'];
-            $rooms[$k]['room_id']    = $v['room_id'];
-            $rooms[$k]['room_no']    = $v['room_no'];
-            $rooms[$k]['room_area']    = $v['room_area'];
-            $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
-        }
-        return $rooms;
     }
 }

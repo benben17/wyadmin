@@ -16,15 +16,18 @@ use Illuminate\Support\Arr;
 
 class ChargeService
 {
+  // 收款模型
   public function model()
   {
     return new ChargeBill;
   }
+  // 收款核销记录模型
   public function chargeRecord()
   {
     return new ChargeBillRecord;
   }
 
+  // 租户应收明细
   public function billDetailModel()
   {
     return new TenantBillDetail;

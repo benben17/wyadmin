@@ -2,15 +2,15 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-use App\Api\Services\Operation\EquipmentService;
 use Exception;
 use Svg\Tag\Rect;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Operation\EquipmentService;
 
 /**
  *   设备
@@ -56,13 +56,7 @@ class EquipmentController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     if (!$request->year) {
       $request->year = date('Y');
     }
@@ -83,9 +77,9 @@ class EquipmentController extends BaseController
     $data = $this->equipment->equipmentModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
+        $request->device_name && $q->where('device_name', 'like', columnLike($request->device_name));
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
-        $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
+        $request->system_name && $q->where('system_name', 'like', columnLike($request->system_name));
       })
       // ->where('year', $request->year)
       ->withCount(['maintainPlan' => function ($q) use ($request) {
@@ -98,7 +92,8 @@ class EquipmentController extends BaseController
     $data = $this->handleBackData($data);
 
     foreach ($data['result'] as $k => &$v) {
-      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
+      $planData = $this->equipment->MaintainPlanModel()
+        ->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
         ->where('equipment_id', $v['id'])
         ->whereYear('plan_date', $request->year)
         ->first();
@@ -160,9 +155,9 @@ class EquipmentController extends BaseController
 
     $equipmentId = $this->equipment->saveEquipment($DA, $this->user);
     if (!$equipmentId) {
-
       return $this->error('设备保存失败！');
     }
+    // 是否生成维护计划
     if ($DA['generate_plan']) {
       $this->equipment->saveBatchMaintainPlan($equipmentId, $DA['maintain_period'], $this->user, date('Y'));
     }
@@ -338,14 +333,7 @@ class EquipmentController extends BaseController
    */
   public function maintainList(Request $request)
   {
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
-
+    $pagesize = $this->setPagesize($request);
     // 排序字段
     if ($request->input('orderBy')) {
       $orderBy = $request->input('orderBy');
@@ -518,7 +506,7 @@ class EquipmentController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     $DA = $request->toArray();
-    $data = $this->equipment->maintainModel()->find($DA['id'])->toArray();
+    $data = $this->equipment->maintainModel()->find($DA['id']);
     // $data['maintain_type_label'] = getDictName($data['maintain_type']);
     return $this->success($data);
   }
@@ -592,13 +580,7 @@ class EquipmentController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     // if (!$request->year) {
     //   // $request->year = date('Y');
     // }
@@ -808,10 +790,9 @@ class EquipmentController extends BaseController
       'id' => 'required',
     ]);
     $data = $this->equipment->MaintainPlanModel()
-      ->whereId($request->id)
       ->withCount('maintain')
       // ->where('year', $request->year)
-      ->with('maintain')->first();
+      ->with('maintain')->find($request->id);
     return $this->success($data);
   }
 }

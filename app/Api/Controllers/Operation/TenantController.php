@@ -90,20 +90,17 @@ class TenantController extends BaseController
             })
             ->withCount('maintain')
             ->withCount('contract')
-            ->with(['contractStat'  => function ($q) {
-                $q->select(DB::Raw('id,sum(sign_area) total_area,tenant_id'));
-                // $q->whereHas('billRule', function ($subQuery) {
-                //     $subQuery->where('fee_type', AppEnum::rentFeeType);
-                // });
-                $q->where('contract_state', AppEnum::contractExecute); // 执行中的合同
-            }])
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
+
         // return $result;
+        // return DB::getQueryLog();
         $data = $this->handleBackData($result);
         foreach ($data['result'] as $k => &$tenant) {
-            $tenant['total_area'] =  $tenant['contract_stat']['total_area'] ?? 0.00;
-            unset($tenant['contract_stat']);
+            $contractService = new ContractService;
+            $signArea = $contractService->model()->where('tenant_id', $tenant['id'])->where('contract_state', AppEnum::contractExecute)->sum('sign_area');
+            $tenant['total_area'] =  $signArea ?? 0.00;
+
             $contract = $this->contractService->model()
                 ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id', 'free_type')
                 ->where('contract_state', 2)->orderByDesc('sign_date')
@@ -187,10 +184,11 @@ class TenantController extends BaseController
                 }
                 // 更新发票信息
                 if ($DA['invoice']) {
-                    $DA['invoice']['tenant_id']  = $tenantId;
-                    $DA['invoice']['company_id'] = $this->company_id;
-                    $DA['invoice']['proj_id']    = $DA['proj_id'];
-                    $this->tenantService->saveInvoice($DA['invoice'], $this->user);
+                    $invoice = $DA['invoice'];
+                    $invoice['tenant_id'] = $tenantId;
+                    $invoice['company_id'] = $this->company_id;
+                    $invoice['proj_id'] = $DA['proj_id'];
+                    $this->tenantService->saveInvoice($invoice, $this->user);
                 }
                 // 工商信息
 

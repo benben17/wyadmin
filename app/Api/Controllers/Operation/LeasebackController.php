@@ -61,13 +61,7 @@ class LeasebackController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required',
         ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
         $map = array();
         if ($request->tenant_id) {
             $map['tenant_id'] = $request->tenant_id;

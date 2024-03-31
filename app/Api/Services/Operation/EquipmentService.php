@@ -3,15 +3,15 @@
 namespace App\Api\Services\Operation;
 
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Api\Models\Equipment\EquipmentPlan;
-use App\Api\Models\Equipment\Equipment as EquipmentModel;
-use App\Api\Models\Equipment\EquipmentMaintain as MaintainModel;
-use App\Api\Services\Common\MessageService;
 use DateTime;
 use Exception;
 use function Complex\add;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Equipment\EquipmentPlan;
+use App\Api\Services\Common\MessageService;
+use App\Api\Models\Equipment\Equipment as EquipmentModel;
+use App\Api\Models\Equipment\EquipmentMaintain as MaintainModel;
 
 /**
  * 工单服务
@@ -74,15 +74,14 @@ class EquipmentService
     return $equipment->id;
   }
 
+
   /**
    * 根据维护周期生成维护计划
    *
-   * @Author leezhua
-   * @DateTime 2024-02-26
-   * @param [type] $equipment
-   * @param [type] $maintainPeriod
-   * @param [type] $user
-   *
+   * @param int $equipmentId The ID of the equipment.
+   * @param int $maintainPeriod The maintain period in days.
+   * @param string $user The user who is saving the maintain plan.
+   * @param int $year The year for which the maintain plan is being saved.
    * @return void
    */
   public function saveBatchMaintainPlan($equipmentId, $maintainPeriod, $user, $year)

@@ -2,11 +2,12 @@
 
 namespace App\Api\Services\Bill;
 
-use App\Api\Models\Bill\InvoiceRecord;
+use Exception;
+use App\Enums\AppEnum;
 use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use App\Api\Models\Bill\InvoiceRecord;
 
 /**
  *   发票服务
@@ -41,14 +42,11 @@ class InvoiceService
       $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
       $invoiceRecord->tax_rate       = $DA['tax_rate'];
       $invoiceRecord->invoice_type   = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
-      if (isset($DA['invoice_date'])) {
-        $invoiceRecord->invoice_date    = $DA['invoice_date'];
-      }
-      $invoiceRecord->open_person  = isset($DA['open_person']) ? $DA['open_person'] : "";
-
-      $invoiceRecord->status       = $DA['status'];
+      $invoiceRecord->invoice_date   = $DA['invoice_date'] ?? nowYmd();
+      $invoiceRecord->open_person    = isset($DA['open_person']) ? $DA['open_person'] : "";
+      $invoiceRecord->status         = $DA['status'];
       // 作废发票更新费用 发票信息
-      if ($DA['status'] == 3 && isset($DA['id']) && $DA['id'] > 0) {
+      if ($DA['status'] == AppEnum::invoiceStatusCancel && isset($DA['id']) && $DA['id'] > 0) {
         $this->cancelInvoice($DA['id']);
       }
       $invoiceRecord->title        = $DA['title'];

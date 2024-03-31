@@ -1,16 +1,16 @@
 <?php
 
-use App\Api\Models\Company\BankAccount;
 use App\Enums\AppEnum;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Company\BankAccount;
 
 /**
  * 公用方法 获取用户公司ID
  * @param $uid 用户id
  */
-function getCompanyId($uid)
+function getCompanyId($uid): int
 {
     if ($uid) {
         $result = \App\Models\User::select('company_id')->find($uid);
@@ -18,10 +18,18 @@ function getCompanyId($uid)
         return $result->company_id;
     }
 }
-function getCompanyIds($uid)
+/**
+ * @Desc: 获取用户公司ID和公共id0 集合
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param [type] $uid
+ * @return array
+ */
+function getCompanyIds($uid): array
 {
-    if (getCompanyId($uid)) {
-        return array(0, getCompanyId($uid));
+    $companyIds = getCompanyId($uid);
+    if ($companyIds) {
+        return array(0, $companyIds);
     }
     return array(0);
 }
@@ -39,19 +47,22 @@ function getCompanyIds($uid)
  */
 function getBankIdByFeeType($feeId, $projId): int
 {
-    if (!$feeId || !$projId) {
-        return 0;
+    try {
+        $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
+        if ($bank) {
+            return $bank->id;
+        } else {
+            throw new \Exception("未找到【" . getFeeNameById($feeId) . "】费用的银行账户");
+        }
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        throw new \Exception("【" . getFeeNameById($feeId) . "】费用的银行账户获取失败");
     }
-    $bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
-    if ($bank) {
-        return $bank->id;
-    }
-    return 0;
 }
 
+// 获取公司配置变量信息
 function getVariable($companyId, $key)
 {
-
     $data =  \App\Api\Models\Company\CompanyVariable::select($key)->find($companyId);
     return $data[$key];
 }
@@ -95,12 +106,13 @@ function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 
 /**
  * 获取合同编号
- *
- * @return void
+ *  生成规则：前缀+年月日时分秒+3位随机数
+ * @return string
  */
-function getContractNo()
+function getContractNo($companyId): string
 {
-    $contractNo = date("ymdHis") . mt_rand(1000, 9999);
+    $contractPrefix = getVariable($companyId, 'contract_prefix');
+    $contractNo = $contractPrefix . date("ymdHis") . mt_rand(10, 99);
     return $contractNo;
 }
 
@@ -157,7 +169,7 @@ function amountToCny(float $number)
 
 
 /** 保留两位小数 并格式化数据输出 */
-function numFormat($num)
+function numFormat($num): float
 {
     if (!$num || empty($num) || is_null($num) || $num === NULL || $num == 0) {
         return 0.00;
@@ -263,7 +275,7 @@ function diffDays($date1, $date2)
  */
 function getNextMonth(String $ymd, $months)
 {
-    if (empty($ymd) || empty($months)) {
+    if (empty($ymd)) {
         return "";
     }
     $months = intval($months);
@@ -273,7 +285,7 @@ function getNextMonth(String $ymd, $months)
 
 function getYmdPlusMonths(String $ymd, $months)
 {
-    if (empty($ymd) || empty($months)) {
+    if (empty($ymd)) {
         return "";
     }
     $months = intval($months);
@@ -286,8 +298,17 @@ function isDate($dateString)
     return strtotime(date('Y-m-d', strtotime($dateString))) === strtotime($dateString);
 }
 
+/**
+ * 
+ * @Author leezhua
+ * @Date 2024-03-29
+ * @param [type] $style
+ * @param [type] $date
+ * @return void
+ */
 function dateFormat($style, $date)
 {
+
     $date = new DateTime($date);
     return $date->format($style);
 }
@@ -320,16 +341,28 @@ function getMonthNum($date1, $date2, $tags = '-'): int
  * @DateTime 2024-03-25
  * @param [type] $filePath
  *
- * @return void
+ * @return string
  */
-function getOssUrl($filePath)
+function getOssUrl($filePath): string
 {
     if (empty($filePath)) {
         return "";
     }
-    return "https://" . config('filesystems.disks.oss.bucket') . '.' . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
+    return "https://" . config('filesystems.disks.oss.bucket') . '.'
+        . config('filesystems.disks.oss.endpoint') . "/" . $filePath;
 }
 
+/**
+ * @Desc: 字段模糊查询
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param string $column
+ * @return string
+ */
+function columnLike(string $column): string
+{
+    return "%" . $column . "%";
+}
 
 function str2Array($str, $tag = ',')
 {
@@ -356,7 +389,7 @@ function uuid($prefix = '')
 }
 
 /**
- * 生成6位流水号
+ * 生成流水号
  *
  * @Author leezhua
  * @DateTime 2021-07-14
@@ -367,12 +400,13 @@ function getChargeNo($type)
 {
     $no = date('ymdHis', strtotime(nowTime()));
     if ($type == AppEnum::chargeIncome) {
-        return  'IE-' . $no . mt_rand(10, 99);
+        return  'IE-' . $no . mt_rand(10, 99); // 收入
     } else {
-        return  'EX-' . $no . mt_rand(10, 99);
+        return  'EX-' . $no . mt_rand(10, 99); // 支出
     }
 }
 
+// 核销流水号
 function getChargeVerifyNo()
 {
     $no = date('ymdHis', strtotime(nowTime()));
@@ -460,7 +494,7 @@ function getProjIdByName($projName)
  * @param [type] $parentIds
  * @param array $arr
  *
- * @return void
+ * @return array
  */
 function getDepartIds($parentIds, $arr): array
 {

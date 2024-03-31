@@ -2,9 +2,9 @@
 
 namespace App\Api\Controllers;
 
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\Request;
 use App\Api\Controllers\Controller;
-
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * @OA\Info(
@@ -18,7 +18,6 @@ class BaseController extends Controller
     protected $uid;
     protected $company_id;
     protected $user;
-
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -65,6 +64,9 @@ class BaseController extends Controller
         if (is_array($data)) {
             foreach ($data as &$v) {
                 $this->parseNull($v);
+                if (is_float($v)) {
+                    $v = numFormat($v);
+                }
             }
         } else {
             if (is_null($data)) {
@@ -76,7 +78,11 @@ class BaseController extends Controller
     public function handleBackData($data)
     {
         $backData['result'] = $data['data'];
-        $backData['pageInfo'] =  ['currentPage' => $data['current_page'], 'totalPage' => $data['last_page'], 'totalNum' => $data['total']];
+        $backData['pageInfo'] =  [
+            'currentPage'   => $data['current_page'],
+            'totalPage'     => $data['last_page'],
+            'totalNum'      => $data['total']
+        ];
         return $backData;
     }
 
@@ -88,11 +94,38 @@ class BaseController extends Controller
     }
 
 
+    /**
+     * 设置分页 默认每页20条
+     *
+     * @Author leezhua
+     * @DateTime 2024-03-29
+     * @param Request $request
+     *
+     * @return integer
+     */
+    public function setPagesize(Request $request): int
+    {
+        $pagesize = $request->pagesize;
+        if (!$pagesize || $pagesize < 1) {
+            $pagesize = config('per_size');
+        }
+        if ($request->export) {
+            $pagesize = config('export_rows');
+        }
+        return $pagesize;
+    }
+
+    /**
+     * Export data to Excel using a specified export class.
+     *
+     * @param mixed $data The data to be exported.
+     * @param string $exportClass The class name of the export.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse The Excel file download response.
+     */
     public function exportToExcel($data, $exportClass)
     {
         $export = new $exportClass($data);
         $fileName = date('Ymd') . ".xlsx";
-        // return $fileName;
         return Excel::download($export, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 }

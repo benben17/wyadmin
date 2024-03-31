@@ -2,15 +2,15 @@
 
 namespace App\Api\Services\Sys;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Exception;
-
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
-use App\Api\Models\Sys\UserRole as UserRoleModel;
-use App\Api\Models\Sys\UserProfile as UserProfileModel;
-use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Weixin\WxInfo;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Project as ProjectModel;
+use App\Api\Models\Sys\UserRole as UserRoleModel;
+use App\Api\Models\Sys\UserGroup as UserGroupModel;
+use App\Api\Models\Sys\UserProfile as UserProfileModel;
 
 /**
  * 用户、用户角色、用户组服务
@@ -103,6 +103,14 @@ class UserServices
   }
 
 
+  /**
+   * @Desc: 微信登录用户信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $user
+   * @param string $token
+   * @return void
+   */
   public function loginUserInfo($user, $token = "")
   {
     $result = \App\Models\Company::with("product")->find($user['company_id']);
@@ -130,5 +138,30 @@ class UserServices
     ];
     // $data['menu_list'] = $this->userMenu($user);
     return $data;
+  }
+
+  /**
+   * @Desc: 权限认证
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $user
+   * @return void
+   */
+  public static function filterByDepartId($query, $user, $depart_id)
+  {
+    if ($user['is_admin']) {
+      return $query;
+    }
+    if ($depart_id) {
+      $departIds = getDepartIds([$depart_id], [$depart_id]);
+      $query->whereIn('depart_id', $departIds);
+    }
+    if ($user['is_manager']) {
+      $departIds = getDepartIds([$user['depart_id']], [$user['depart_id']]);
+      $query->whereIn('depart_id', $departIds);
+    } else if (!$depart_id) {
+      $query->where('c_uid', $user['id']);
+    }
+    return $query;
   }
 }

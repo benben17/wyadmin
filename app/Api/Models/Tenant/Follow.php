@@ -2,11 +2,11 @@
 
 namespace App\Api\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Support\Facades\Log;
-use App\Api\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use App\Api\Models\Tenant\Tenant as TenantModel;
 
 class Follow extends Model
 {
@@ -22,7 +22,7 @@ class Follow extends Model
 
   public function tenant()
   {
-    return $this->belongsTo(Tenant::class,  'tenant_id', 'id');
+    return $this->belongsTo(TenantModel::class,  'tenant_id', 'id');
   }
   public function user()
   {
@@ -31,14 +31,9 @@ class Follow extends Model
   public function getTenantNameAttribute()
   {
     if (isset($this->attributes['tenant_id'])) {
-      $tenant = Tenant::select('name')->find($this->attributes['tenant_id']);
-      return $tenant['name'];
+      return getTenantNameById($this->attributes['tenant_id']);
     }
   }
-
-
-
-
 
   public function getFollowTypeLabelAttribute()
   {

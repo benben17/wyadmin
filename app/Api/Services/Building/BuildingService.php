@@ -2,17 +2,21 @@
 
 namespace App\Api\Services\Building;
 
+use Exception;
 use App\Api\Models\Building;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
+use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
 /**
+ * 楼宇服务
  *
+ * @Author leezhua
+ * @DateTime 2024-03-28
  */
 class BuildingService
 {
@@ -38,14 +42,13 @@ class BuildingService
 
     if (!$DA['t_manager_area']) {
       $rentalRate = 0;
-      $freeRate = 0;
+      $freeRate   = 0;
     } else {
       $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
       $freeRate = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
     }
     $stat[] = array('label' => '当前出租率', 'value' => $rentalRate . ' %');
     $stat[] = array('label' => '当前空闲率', 'value' => $freeRate . ' %');
-
     return $stat;
   }
 
@@ -97,14 +100,14 @@ class BuildingService
       $roomIds = str2Array($roomIds);
       $res = BuildingRoomModel::whereIn('id', $roomIds)->update(['room_state' => $roomState]);
     } catch (Exception $e) {
-      throw $e->getMessage();
+      throw new Exception("更新房间错误：" . $e->getMessage());
       Log::error($e->getMessage());
     }
     return $res;
   }
 
   /**
-   * 格式化返回数据
+   * 格式化房源list返回数据
    *
    * @Author leezhua
    * @DateTime 2021-07-19
@@ -112,13 +115,13 @@ class BuildingService
    *
    * @return void
    */
-  public function formatData($data)
+  public function formatData($data): array
   {
     foreach ($data as $k => &$v) {
-      $num = ContractRoom::select(DB::Raw('ifnull(count(*),0) count'))
+      $viewNum = TenantRoom::select(DB::Raw('ifnull(count(*),0) as  count'))
         ->where('room_id', $v['id'])
-        ->first();
-      $v['view_num']  = $num['count'];
+        ->first()->count;
+      $v['view_num']  = $viewNum;
       $v['IsValid']   = $this->getIsValid($v['is_valid']);
       $v['Status']    = $this->getStatus($v['channel_state']);
       $v['roomState'] = $this->getRoomState($v['room_state']);

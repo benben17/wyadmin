@@ -40,6 +40,7 @@ class AttachmentService
 
     $map['parent_id'] = $parent_id;
     $map['parent_type'] = $parent_type;
+    DB::enableQueryLog();
     $data = AttachmentModel::where($map)->get();
     if ($data) {
       $data = $data->toArray();
@@ -59,8 +60,7 @@ class AttachmentService
    */
   public function delete($Ids)
   {
-    $res = AttachmentModel::whereIn('id', $Ids)->delete();
-    return $res;
+    return AttachmentModel::whereIn('id', $Ids)->delete();
   }
 
   /** 通过附件ID集合获取所有的附件路径信息 */

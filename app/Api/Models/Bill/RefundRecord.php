@@ -1,5 +1,5 @@
 <?php
-
+{
 // namespace App\Api\Models\Bill;
 
 // use Illuminate\Database\Eloquent\Model;

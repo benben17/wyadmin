@@ -71,14 +71,7 @@ class ProjectController extends BaseController
      */
     public function index(Request $request)
     {
-        // return "ok";
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
         $map = array();
         if ($request->proj_province_id && $request->proj_province_id > 0) {
@@ -211,6 +204,10 @@ class ProjectController extends BaseController
     {
         $validatedData = $request->validate([
             'proj_name' => 'required|String|max:64',
+        ], [
+            'proj_name.required' => '项目名称不能为空',
+            'proj_name.max' => '项目名称最大长度为64',
+            'proj_name.String' => '项目名称必须为字符串',
         ]);
         $data = $request->toArray();
 
@@ -273,9 +270,13 @@ class ProjectController extends BaseController
         $validatedData = $request->validate([
             'id'    => 'required|min:1',
             'proj_name' => 'required|String|max:64',
+        ], [
+            'id.required' => '项目ID不能为空',
+            'proj_name.required' => '项目名称不能为空',
+            'proj_name.max' => '项目名称最大长度为64',
+            'proj_name.String' => '项目名称必须为字符串',
         ]);
         $data = $request->toArray();
-        // $data['company_id'] = $this->company_id;
 
         $map['proj_name'] = $data['proj_name'];
         $map['company_id'] = $this->company_id;

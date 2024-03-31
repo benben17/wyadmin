@@ -15,6 +15,7 @@ class DictServices
   {
     $data = DictModel::select(DB::Raw('dict_value as value'))
       ->whereIn('company_id', $companyIds)
+      ->where('is_vaild', 1)
       ->where('dict_key', $dictKey)->get()->toArray();
     return $data;
   }

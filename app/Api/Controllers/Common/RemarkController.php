@@ -101,13 +101,7 @@ class RemarkController extends BaseController
             'parent_type' => 'required|gt:0',
             // 'parent_id' => 'required|min:1',
         ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
 
         // 排序字段

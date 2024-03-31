@@ -385,9 +385,6 @@ class EnergyService
           // 插入水电费用到 租户费用表
           if ($record['status'] == 0) { // 不是初始化的数据，审核时产生的费用到租户费用列表
             $BA['bank_id'] = getBankIdByFeeType($BA['fee_type'], $BA['proj_id']);
-            if ($BA['bank_id'] == 0) {
-              throw new Exception("未找到【" . getFeeNameById($BA['fee_type'])['fee_name'] . "】收款账户信息，请联系管理员配置");
-            }
             $billService->saveBillDetail($BA, $user);
           }
         }

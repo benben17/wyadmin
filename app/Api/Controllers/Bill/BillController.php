@@ -50,7 +50,8 @@ class BillController extends BaseController
    *       @OA\Property(property="name",type="String",description="客户名称"),
    *        @OA\Property(property="start_date",type="String",description="开始日期")
    *     ),
-   *       example={}
+   *       example={"name":"","start_date":"2021-07-01",
+   *        "end_date":"2021-07-31","orderBy":"created_at","order":"desc","pagesize":10}
    *       )
    *     ),
    *     @OA\Response(
@@ -62,13 +63,7 @@ class BillController extends BaseController
   public function list(Request $request)
   {
 
-    $pagesize = $request->input('pagesize');
-    if (!$pagesize || $pagesize < 1) {
-      $pagesize = config('per_size');
-    }
-    if ($pagesize == '-1') {
-      $pagesize = config('export_rows');
-    }
+    $pagesize = $this->setPagesize($request);
     $map = array();
 
     // 排序字段
@@ -95,12 +90,15 @@ class BillController extends BaseController
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->start_date && $q->whereBetween('charge_date', [$request->start_date, $request->end_date]);
       })
+      ->with('tenant:id,name')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)->toArray();
     // return response()->json(DB::getQueryLog());
 
     $data = $this->handleBackData($data);
     foreach ($data['result'] as $k => &$v) {
+      $v['tenant_name'] = $v['tenant']['name'];
+      unset($v['tenant']);
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
