@@ -95,7 +95,9 @@ class ProjectController extends BaseController
         $data = $subQuery->orderBy($order, $sort)
             ->paginate($pagesize);
         // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($data);
+
+        $result = $this->handleBackData($data);
+
         //通过项目获取房间信息 并进行数据合并
         $projStat = $subQuery->get()->toArray();
         foreach ($projStat as $k => &$v) {
@@ -143,8 +145,8 @@ class ProjectController extends BaseController
 
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;
-        $data['stat'] = $buildingService->getBuildingAllStat($projStat);
-        return $this->success($data);
+        $result['stat'] = $buildingService->getBuildingAllStat($projStat);
+        return $this->success($result);
     }
 
     /**

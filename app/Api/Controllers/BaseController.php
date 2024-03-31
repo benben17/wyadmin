@@ -64,18 +64,22 @@ class BaseController extends Controller
         if (is_array($data)) {
             foreach ($data as &$v) {
                 $this->parseNull($v);
+                if (is_float($v)) {
+                    $v = numFormat($v);
+                }
             }
         } else {
             if (is_null($data)) {
                 $data = "";
-            } elseif (is_float($data)) {
-                $data = numFormat($data);
             }
         }
     }
 
     public function handleBackData($data)
     {
+        if (is_object($data)) {
+            $data = $data->toArray();
+        }
         $backData['result'] = $data['data'];
         $backData['pageInfo'] =  [
             'currentPage'   => $data['current_page'],

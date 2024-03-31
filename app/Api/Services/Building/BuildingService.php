@@ -150,6 +150,10 @@ class BuildingService
       $v['proj_name'] = $v['building']['proj_name'];
       $v['build_no']  = $v['building']['build_no'];
       $v['floor_no']  = $v['floor']['floor_no'];
+      $v['pic_list_full'] = [];
+      foreach ($v['pic_list'] ?? [] as $key => $val) {
+        $v['pic_list_full'][$key] = getOssUrl($val);
+      }
     }
     return $data;
   }
