@@ -84,8 +84,6 @@ class BuildingController extends BaseController
         if ($request->build_id) { // 楼号ID
             $map['build_id'] = $request->build_id;
         }
-
-
         if ($request->room_type) {
             $subMap['room_type'] = $request->room_type;
         } else {
@@ -123,15 +121,12 @@ class BuildingController extends BaseController
                 $q->where('room_state', 1);
             }]);
 
-        $list = $subQuery->get();
-        $data = $subQuery->paginate($pagesize)->toArray();
-
-        // 获取统计信息
-        $data = $this->handleBackData($data);
-
+        $data = $this->pageData($subQuery, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
+
+        $list = $subQuery->get();
         $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($list);
         return $this->success($data);

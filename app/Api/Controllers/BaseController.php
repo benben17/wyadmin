@@ -5,6 +5,7 @@ namespace App\Api\Controllers;
 use Illuminate\Http\Request;
 use App\Api\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * @OA\Info(
@@ -96,7 +97,23 @@ class BaseController extends Controller
         }, $data);
     }
 
+    /**
+     * 分页数据
+     * @Author leezhua
+     * @Date 2024-04-01
+     * @param mixed $query 
+     * @param mixed $request 
+     * @return array  
+     */
+    public function pageData($query, $request)
+    {
+        $pagesize = $this->setPagesize($request);
+        $order = $request->orderBy ?? 'created_at';
+        $sort = $request->order ?? 'desc';
 
+        $data = $query->orderBy($order, $sort)->paginate($pagesize)->toArray();
+        return $this->handleBackData($data);
+    }
     /**
      * 设置分页 默认每页20条
      *
