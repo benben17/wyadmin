@@ -40,7 +40,7 @@ class ChargeController extends BaseController
 	 *       @OA\Property(property="end_date",type="date",description="结束时间"),
 	 *        @OA\Property(property="proj_ids",type="list",description="")
 	 *     ),
-	 *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":""}
+	 *       example={"tenant_id":"1","tenant_name":"","start_date":"","end_date":"","proj_ids":"[]"}
 	 *       )
 	 *     ),
 	 *     @OA\Response(

@@ -2,15 +2,15 @@
 
 namespace App\Api\Controllers\Bill;
 
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Bill\DepositService;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Tenant\ChargeService;
-use App\Enums\AppEnum;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\DepositService;
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\TenantBillService;
 
 /**
  * 租户押金管理
@@ -18,11 +18,13 @@ use Illuminate\Support\Facades\Log;
  * @Author leezhua
  * @DateTime 2024-03-07
  */
-class DepositController extends BaseController {
+class DepositController extends BaseController
+{
 	private $depositService;
 	private $depositType = AppEnum::depositFeeType;
 	private $chargeService;
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
 		$this->depositService = new DepositService;
 		$this->chargeService = new ChargeService;
@@ -55,7 +57,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function list(Request $request) {
+	public function list(Request $request)
+	{
 		// $validatedData = $request->validate([
 		//     'order_type' => 'required|numeric',
 		// ]);
@@ -134,7 +137,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function store(Request $request) {
+	public function store(Request $request)
+	{
 		$validatedData = $request->validate([
 			'amount' => 'required',
 			'fee_type' => 'required|gt:0',
@@ -187,7 +191,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function edit(Request $request) {
+	public function edit(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
 			'amount' => 'required',
@@ -239,7 +244,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function show(Request $request) {
+	public function show(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required',
 		]);
@@ -278,7 +284,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function del(Request $request) {
+	public function del(Request $request)
+	{
 		$validatedData = $request->validate([
 			'Ids' => 'required|array',
 		]);
@@ -311,7 +318,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function toCharge(Request $request) {
+	public function toCharge(Request $request)
+	{
 		$request->validate([
 			'id' => 'required',
 			'amount' => 'required|gt:0',
@@ -387,7 +395,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function receive(Request $request) {
+	public function receive(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
 			'amount' => 'required|gt:0',
@@ -461,7 +470,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function refund(Request $request) {
+	public function refund(Request $request)
+	{
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
 			'amount' => 'required|gt:0',
@@ -536,7 +546,8 @@ class DepositController extends BaseController {
 	 *     )
 	 * )
 	 */
-	public function recordList(Request $request) {
+	public function recordList(Request $request)
+	{
 		$validatedData = $request->validate([
 			'proj_ids' => 'required|array',
 		]);

@@ -9,22 +9,21 @@ use Illuminate\Support\Facades\DB;
 
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\BuildingRoomExcel;
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
-
 use App\Api\Services\Contract\ContractService;
 use App\Api\Models\Tenant\Tenant as TenantModel;
+use App\Api\Services\Building\BuildingRoomService;
 
 /**
  * 项目房源信息
  */
 class BuildingRoomController extends BaseController
 {
-    private $buildService;
+    private $buildRoomService;
     public function __construct()
     {
         parent::__construct();
+        $this->buildRoomService = new BuildingRoomService;
     }
 
     /**
@@ -39,8 +38,7 @@ class BuildingRoomController extends BaseController
      *          schema="UserModel",
      *          required={"pagesize","proj_id","build_id","orderBy","order"},
      *     ),
-     *       example={
-     *           }
+     *       example={"pagesize": 10,"proj_id": 11,"build_id":1,"orderBy":"created_at","order":"desc"}
      *       )
      *     ),
      *     @OA\Response(
@@ -89,7 +87,7 @@ class BuildingRoomController extends BaseController
             $order = 'desc';
         }
         DB::enableQueryLog();
-        $data = RoomModel::where($map)
+        $data = $this->buildRoomService->model()->where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', columnLike($request->room_no));
             })
@@ -102,16 +100,16 @@ class BuildingRoomController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
+        }
         $data = $this->handleBackData($data);
         $buildService  = new BuildingService;
 
         if ($data['result']) {
             $data['result'] = $buildService->formatData($data['result']);
         }
-        if ($request->export) {
-            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
-        }
+
         $data['stat'] = $buildService->areaStat($map, $request->proj_ids, array());
         return $this->success($data);
     }
@@ -150,7 +148,7 @@ class BuildingRoomController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|gt:0',
         ]);
-        $data = RoomModel::whereHas('building', function ($q) use ($request) {
+        $data = $this->buildRoomService->model()->whereHas('building', function ($q) use ($request) {
             $request->proj_id && $q->where('proj_id', $request->proj_id);
         })
             ->with('building:id,proj_name,build_no,proj_id')
@@ -224,17 +222,17 @@ class BuildingRoomController extends BaseController
         $map['room_no'] = $request->build_room_no;
         $map['floor_id'] = $request->floor_id;
 
-        $building = BuildingModel::whereId($request->build_id)->exists();
+        $building = $this->buildRoomService->model()->whereId($request->build_id)->exists();
         if (!$building) {
             return $this->error('项目或者楼不存在');
         }
-        $checkRoom = RoomModel::where($map)->exists();
+        $checkRoom = $this->buildRoomService->model()->where($map)->exists();
         if ($checkRoom) {
             return $this->error('房源重复');
         }
         $data = $request->toArray();
-        $room = $this->formatRoom($data);
-        $res = RoomModel::create($room);
+        $room = $this->buildRoomService->formatRoom($data, $this->user);
+        $res = $this->buildRoomService->model()->create($room);
         if ($res) {
             return $this->success('房源保存成功');
         }
@@ -301,15 +299,15 @@ class BuildingRoomController extends BaseController
         $map['floor_id'] = $request->floor_id;
         $map['room_type'] = $request->room_type;
 
-        $checkRoom = RoomModel::where($map)
+        $checkRoom = $this->buildRoomService->model()->where($map)
             ->where('id', '!=', $request->id)
             ->exists();
         if ($checkRoom) {
             return $this->error('房源重复');
         }
         $data = $request->toArray();
-        $room = $this->formatRoom($data, 2);
-        $res = RoomModel::whereId($room['id'])->update($room);
+        $room = $this->buildRoomService->formatRoom($data, $this->user, 2);
+        $res = $this->buildRoomService->model()->whereId($room['id'])->update($room);
         if ($res) {
             return $this->success('房源保存成功');
         }
@@ -360,43 +358,10 @@ class BuildingRoomController extends BaseController
             'is_vaild.required' => '启用禁用状态不能为空',
         ]);
         $data['is_vaild'] = $request->is_vaild;
-        $res = RoomModel::whereIn('id', $request->Ids)->update($data);
+        $res = $this->buildRoomService->model()->whereIn('id', $request->Ids)->update($data);
         if ($res) {
             return $this->success('房源删除成功');
         }
         return $this->error('房源删除失败');
-    }
-
-
-
-
-    private function formatRoom($DA, $type = 1)
-    {
-        if ($type == 1) {
-            $BA['c_uid'] = $this->uid;
-        } else {
-            $BA['id'] = $DA['id'];
-            $BA['u_uid'] = $this->uid;
-        }
-        $BA['room_type'] = 1;
-        $BA['company_id'] = $this->company_id;
-        $BA['build_id'] = $DA['build_id'];
-        $BA['floor_id'] = $DA['floor_id'];
-        $BA['room_no'] = $DA['room_no'];
-        $BA['room_state'] = $DA['room_state'];
-        $BA['room_measure_area'] = isset($DA['room_measure_area']) ? $DA['room_measure_area'] : 0;
-        $BA['room_trim_state'] = isset($DA['room_trim_state']) ? $DA['room_trim_state'] : "";
-        $BA['room_price'] = isset($DA['room_price']) ? $DA['room_price'] : 0.00;
-        $BA['price_type'] = isset($DA['price_type']) ? $DA['price_type'] : 1;
-        $BA['room_tags'] = isset($DA['room_tags']) ? $DA['room_tags'] : "";
-        $BA['channel_state'] = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
-        $BA['room_area'] = isset($DA['room_area']) ? $DA['room_area'] : 0;
-        if (isset($DA['rentable_date']) && isDate($DA['rentable_date'])) {
-            $BA['rentable_date'] = $DA['rentable_date'];
-        }
-        $BA['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
-        $BA['pics'] = isset($DA['pics']) ? $DA['pics'] : "";
-        $BA['detail'] = isset($DA['detail']) ? $DA['detail'] : "";
-        return $BA;
     }
 }
