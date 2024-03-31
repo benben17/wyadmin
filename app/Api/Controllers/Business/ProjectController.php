@@ -12,13 +12,13 @@ use App\Api\Controllers\BaseController;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Building\BuildingService;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
+
 
 
 /**
- * 项目（园区）管理
- *
+ * 
+ * Description 项目（园区）管理
+ * @package App\Api\Controllers\Business
  */
 class ProjectController extends BaseController
 {
@@ -80,39 +80,24 @@ class ProjectController extends BaseController
         if ($request->input('is_valid')) {
             $map['is_valid'] = $request->input('is_valid');
         }
-
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
-
+        $order = $request->input('order', 'created_at'); // 默认为 'created_at'
+        $sort = $request->input('sort', 'desc'); // 默认为 'desc'
         $subMap['room_type'] = 1;
-
-        DB::enableQueryLog();
         // 获取项目信息
+        DB::enableQueryLog();
         $subQuery = ProjectModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
                 $request->proj_ids && $q->whereIn('id', $request->proj_ids);
-                $request->is_valid &&  $q->where('is_valid', $request->is_valid);
                 $request->proj_type &&  $q->where('proj_type', $request->proj_type);
             });
-
-        $data = $subQuery->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
-
+        // 分页数据
+        $data = $subQuery->orderBy($order, $sort)
+            ->paginate($pagesize);
+        // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($data);
         //通过项目获取房间信息 并进行数据合并
         $projStat = $subQuery->get()->toArray();
-
         foreach ($projStat as $k => &$v) {
             $statData =  BuildingModel::where('proj_id', $v['id'])
                 ->withCount(['buildRoom'  => function ($q) use ($subMap) {
