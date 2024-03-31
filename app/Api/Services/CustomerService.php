@@ -2,15 +2,15 @@
 
 namespace App\Api\Services;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Enums\AppEnum;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Remind;
 use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\TenantLog;
 use App\Api\Services\Company\VariableService;
-use App\Enums\AppEnum;
 
 /**
  *
@@ -123,16 +123,16 @@ class CustomerService
           $this->saveRemind($follow->tenant_id, $DA['next_date'], $user);
         }
         // 第几次跟进
-        $followTimes = Follow::where('tenant_id', $DA['tenant_id'])->count();
+        $followTimes = $this->followModel()->where('tenant_id', $DA['tenant_id'])->count();
         $follow->times = $followTimes + 1;
         if (AppEnum::followVisit == $DA['follow_type']) {
-          $visitTimes = Follow::where('tenant_id', $DA['tenant_id'])->where('follow_type', AppEnum::followVisit)->count();
+          $visitTimes = $this->followModel()->where('tenant_id', $DA['tenant_id'])->where('follow_type', AppEnum::followVisit)->count();
           $follow->visit_times = $visitTimes + 1;
         }
-        $res = $follow->save();
+        $follow->save();
         //更新客户状态
         $this->tenantModel()->whereId($follow->tenant_id)->update(['state' => $follow->state]);
-      });
+      }, 2);
       return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());
@@ -145,7 +145,7 @@ class CustomerService
   {
 
     DB::enableQueryLog();
-    $laifang = Follow::select(DB::Raw('count(*) / count(distinct tenant_id) avg'))
+    $laifang = $this->followModel()->select(DB::Raw('count(*) / count(distinct tenant_id) avg'))
       ->where($map)
       ->whereHas('customer', function ($q) {
         $q->where('state', '成交客户');

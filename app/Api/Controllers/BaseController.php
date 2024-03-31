@@ -18,7 +18,6 @@ class BaseController extends Controller
     protected $uid;
     protected $company_id;
     protected $user;
-
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -116,11 +115,17 @@ class BaseController extends Controller
         return $pagesize;
     }
 
+    /**
+     * Export data to Excel using a specified export class.
+     *
+     * @param mixed $data The data to be exported.
+     * @param string $exportClass The class name of the export.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse The Excel file download response.
+     */
     public function exportToExcel($data, $exportClass)
     {
         $export = new $exportClass($data);
         $fileName = date('Ymd') . ".xlsx";
-        // return $fileName;
         return Excel::download($export, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 }

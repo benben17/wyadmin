@@ -2,10 +2,10 @@
 
 namespace App\Api\Controllers\Common;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
 
 use App\Api\Services\Common\AttachmentService;
 
@@ -54,7 +54,7 @@ class AttachmentController extends BaseController
      *          description="文件路径"
      *       )
      *     ),
-     *       example={}
+     *       example={"parent_id": "","parent_type":"","name":"","file_path":""}
      *       )
      *     ),
      *     @OA\Response(

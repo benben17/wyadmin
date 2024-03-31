@@ -2,22 +2,22 @@
 
 namespace App\Api\Controllers\Business;
 
-use JWTAuth;
-//use App\Exceptions\ApiException;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Exception;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\BuildingFloor as FloorModel;
-use App\Api\Services\Building\BuildingService;
-use App\Api\Models\Project as ProjectModel;
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
-use App\Api\Models\Contract\ContractRoom;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Api\Excel\Business\BuildingExcel;
 use Common;
+//use App\Exceptions\ApiException;
+use JWTAuth;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Api\Controllers\BaseController;
+use App\Api\Excel\Business\BuildingExcel;
+use App\Api\Models\Contract\ContractRoom;
+use App\Api\Models\Project as ProjectModel;
+use App\Api\Models\Building as BuildingModel;
+use App\Api\Services\Building\BuildingService;
+use App\Api\Models\BuildingFloor as FloorModel;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
 /**
  * 房源管理
@@ -467,7 +467,7 @@ class BuildingController extends BaseController
 
                 foreach ($checkRoom as $k => $v) {
                     if ($v['floor_room_count'] == 0) { // 有房间不允许删除
-                        $res = FloorModel::whereId($v['id'])->delete();
+                        FloorModel::whereId($v['id'])->delete();
                     }
                 }
             });
@@ -479,31 +479,33 @@ class BuildingController extends BaseController
 
     /**
      * @OA\Post(
-     *     path="/api/business/building/floor/list",
-     *     tags={"楼宇管理"},
-     *     summary="通过楼宇ID楼层查看",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
+     *   path="/api/business/building/floor/list",
+     *   tags={"楼宇管理"},
+     *   summary="通过楼宇ID楼层查看",
+     *   @OA\RequestBody(
+     *     @OA\MediaType(
+     *       mediaType="application/json",
      *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={},
-     *       @OA\Property(
-     *          property="build_id",
-     *          type="int",
-     *          description="楼号ID"
+     *         schema="UserModel",
+     *         required={"build_id"},
+     *         @OA\Property(
+     *           property="build_id",
+     *           type="integer",
+     *           description="楼号ID"
+     *         ),
+     *         @OA\Property(
+     *           property="proj_id",
+     *           type="integer",
+     *           description="项目ID"
+     *         )
      *       ),
-     *       @OA\Property( property="proj_id",type="int",description="项目ID")
-     *     ),
-     *       example={
-     *
-     *           }
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
+     *       example={"build_id": 1, "proj_id": 1}
      *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description=""
+     *   )
      * )
      */
     public function listFloor(Request $request)
@@ -513,23 +515,20 @@ class BuildingController extends BaseController
         ]);
 
         if ($request->proj_id) {
-            $building = BuildingModel::where('proj_id', $request->proj_id)
-                ->select(DB::Raw('group_concat(proj_id) proj_id'))->first()->toArray();
-            $buildId = explode(",", $building['proj_id']);
+            $buildIds = BuildingModel::where('proj_id', $request->proj_id)
+                ->pluck('id')
+                ->toArray();
         } else {
-            $buildId = explode(",", $request->build_id);
+            $buildIds = explode(",", $request->build_id);
         }
         // DB::enableQueryLog();
-        // $map['company_id'] = $this->company_id;
 
         $data = FloorModel::with('building')
-            ->whereIn('build_id', $buildId)
+            ->whereIn('build_id', $buildIds)
             ->get();
         // return response()->json(DB::getQueryLog());
-        if ($data) {
-            return $this->success($data);
-        }
-        return $this->error('获取楼层信息失败！');
+
+        return $this->success($data);
     }
 
     /**

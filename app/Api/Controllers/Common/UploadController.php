@@ -3,10 +3,9 @@
 namespace App\Api\Controllers\Common;
 
 use JWTAuth;
-// use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Api\Controllers\BaseController;
+use Illuminate\Support\Facades\Storage;
 
 /**
  *  文件上传
@@ -43,7 +42,6 @@ class UploadController extends BaseController
             if (!$this->checkImg($file)) {
                 return $this->error($this->getError());
             }
-
             $company_id = $this->company_id;
             $saveFolder = $company_id . '/business/' . date('Ymd');
             // 上传文件操作

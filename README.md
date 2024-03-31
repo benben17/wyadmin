@@ -7,15 +7,15 @@
 
 ### 安装所需组件
 
-`composer install`
+`# composer install`
 
 ### 更改数据库链接串需要清理一下文件
 
-- `rm -rf bootstrap/cache/*.php`
-- `php artisan config:cache`
-- `php artisan cache:clear`
-- `php artisan view:clear`
-- `php artisan route:clear`
+- `# rm -rf bootstrap/cache/*.php`
+- `# php artisan config:cache`
+- `# php artisan cache:clear`
+- `# php artisan view:clear`
+- `# php artisan route:clear`
 -
 
 ### 必须存在的目录
@@ -31,13 +31,11 @@
 - PHP extension php_gd2 enabled
 - PHP extension php_zip enabled.   phpoffice
 
-[测试日志](http://note.youdao.com/s/6L586NmV)
-
 [更新日志](changelog.md)
 
 ### 刷新 api文档
 
-- php artisan l5-swagger:generate
+- `# php artisan l5-swagger:generate`
 
 [Excel文档](https://docs.laravel-excel.com/3.1/getting-started/upgrade.html)
 

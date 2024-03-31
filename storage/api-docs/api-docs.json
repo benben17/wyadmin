@@ -696,7 +696,8 @@
                                 "tenant_id": "1",
                                 "tenant_name": "",
                                 "start_date": "",
-                                "end_date": ""
+                                "end_date": "",
+                                "proj_ids": "[]"
                             }
                         }
                     }
@@ -2070,20 +2071,25 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": [],
+                                "required": [
+                                    "build_id"
+                                ],
                                 "properties": {
                                     "build_id": {
                                         "description": "楼号ID",
-                                        "type": "int"
+                                        "type": "integer"
                                     },
                                     "proj_id": {
                                         "description": "项目ID",
-                                        "type": "int"
+                                        "type": "integer"
                                     }
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "build_id": 1,
+                                "proj_id": 1
+                            }
                         }
                     }
                 },
@@ -2150,7 +2156,13 @@
                                     "order"
                                 ]
                             },
-                            "example": []
+                            "example": {
+                                "pagesize": 10,
+                                "proj_id": 11,
+                                "build_id": 1,
+                                "orderBy": "created_at",
+                                "order": "desc"
+                            }
                         }
                     }
                 },
@@ -2306,48 +2318,6 @@
                 ],
                 "summary": "房源启用禁用",
                 "operationId": "b64607433bd6a7c66e661931ebb0d917",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "Ids",
-                                    "is_vaild"
-                                ],
-                                "properties": {
-                                    "Ids": {
-                                        "description": "房源ID集合",
-                                        "type": "list"
-                                    },
-                                    "is_vaild": {
-                                        "description": "0禁用1 启用",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "Ids": "[1]",
-                                "is_vaild": 0
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/building/wx/rooms": {
-            "post": {
-                "tags": [
-                    "房源"
-                ],
-                "summary": "房源启用禁用",
-                "operationId": "cf839f5bc3931bceb5a93102bd31b6e8",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -4728,7 +4698,12 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "parent_id": "",
+                                "parent_type": "",
+                                "name": "",
+                                "file_path": ""
+                            }
                         }
                     }
                 },
@@ -13220,14 +13195,14 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "Ids",
-                                    "is_vaild"
+                                    "is_valid"
                                 ],
                                 "properties": {
                                     "Ids": {
                                         "description": "房源ID集合",
                                         "type": "list"
                                     },
-                                    "is_vaild": {
+                                    "is_valid": {
                                         "description": "0禁用1 启用",
                                         "type": "int"
                                     }
@@ -13236,7 +13211,7 @@
                             },
                             "example": {
                                 "Ids": "[1]",
-                                "is_vaild": "0"
+                                "is_valid": "0"
                             }
                         }
                     }
