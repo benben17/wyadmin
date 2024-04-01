@@ -328,7 +328,7 @@ class CustomerController extends BaseController
             'type' => 'required|in:1,2',
             'name' => 'required|String|max:64',
             'contacts' => 'array',
-            'extra_info' => 'array',
+            // 'extra_info' => 'array',
             'tenant_rooms' => 'array'
         ]);
         $DA = $request->toArray();
@@ -477,7 +477,7 @@ class CustomerController extends BaseController
             ->with('contacts')
             ->with('extraInfo')
             ->with('tenantRooms')
-            ->with('channel:id,channel_name,channel_type')
+            ->with('channel')
             ->find($request->id)->toArray();
 
         $info = new BaseInfoService;
@@ -490,6 +490,9 @@ class CustomerController extends BaseController
         $data['clue'] = (object)[];
         if ($clue) {
             $data['clue'] = $clue;
+        }
+        if (!$data['extraInfo']) {
+            $data['extraInfo'] = (object)[];
         }
         $data['business_info'] = $business_info;
         $data['channel_name'] = $data['channel']['channel_name'] ?? "";
