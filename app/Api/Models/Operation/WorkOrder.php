@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Operation;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  *  报修工单
@@ -22,7 +22,7 @@ class WorkOrder extends Model
   protected $hidden = ['company_id'];
 
 
-  protected $appends = ['status_label'];
+  protected $appends = ['status_label', 'pic_full', 'maintain_pic_full'];
 
   public function getStatusLabelAttribute()
   {
@@ -30,7 +30,17 @@ class WorkOrder extends Model
     return $this->statusMap()[$status];
   }
 
+  public function getPicFullAttribute()
+  {
+    $pic = $this->attributes['pic'] ?? "";
+    return picFullPath($pic);
+  }
 
+  public function getMaintainPicFullAttribute()
+  {
+    $pic = $this->attributes['maintain_pic'] ?? "";
+    return picFullPath($pic);
+  }
   public function statusMap()
   {
     return [

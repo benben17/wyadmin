@@ -2,10 +2,10 @@
 
 namespace App\Api\Models\Operation;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\AppEnum;
 // use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
-use App\Enums\AppEnum;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -25,14 +25,25 @@ class YhWorkOrder extends Model
   protected $hidden = ['company_id'];
 
 
-  protected $appends = ['status_label'];
+  protected $appends = ['status_label', "pic_full", 'process_pic_full'];
 
 
   public function getStatusLabelAttribute()
   {
     $status = $this->attributes['status'] ?? 0;
-
     return $status ? $this->statusMap()[$status] : "";
+  }
+
+  public function getPicFullAttribute()
+  {
+    $pic = $this->attributes['pic'] ?? "";
+    return picFullPath($pic);
+  }
+
+  public function getProcessPicFullAttribute()
+  {
+    $pic = $this->attributes['process_pic'] ?? "";
+    return picFullPath($pic);
   }
 
   public function statusMap()

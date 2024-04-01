@@ -5,6 +5,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Company\BankAccount;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * 公用方法 获取用户公司ID
@@ -553,4 +554,22 @@ function getMonthRange($yearMonth): array
     $endDate = date('Y-m-t', strtotime($startDate));
     // Return an array with both start and end dates
     return [$startDate,  $endDate];
+}
+
+
+/**
+ * 图片地址转换
+ * @Author leezhua
+ * @Date 2024-04-01
+ * @param mixed $pic 
+ * @return string[] 
+ */
+function picFullPath($pic)
+{
+    $picFull = [];
+    $picList = str2Array($pic);
+    foreach ($picList as $key => $value) {
+        $picFull[] = getOssUrl($value);
+    }
+    return $picFull;
 }

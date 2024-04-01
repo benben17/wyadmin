@@ -211,7 +211,7 @@ class AuthController extends BaseController
      *          description="邮箱"
      *       )
      *     ),
-     *       example={
+     *       example={"email": "", "phone": "", "remark": "", "avatar": ""}
      *           }
      *       )
      *     ),

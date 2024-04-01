@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Operation;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  *  保修工单
@@ -12,32 +12,29 @@ use App\Api\Scopes\CompanyScope;
 class WorkOrderLog extends Model
 {
 
-   /**
-    * 关联到模型的数据表
-    * @var string
-    */
+  /**
+   * 关联到模型的数据表
+   * @var string
+   */
 
   protected $table = 'bse_workorder_log';
   protected $fillable = [];
   protected $hidden = [];
 
+  // protected $appends = ["pic_full", 'maintain_pic_full'];
+
 
   public function getStatusAttribute($status)
   {
-    if( $status == 1 )
+    if ($status == 1)
       return '待接单';
-    else if( $status == 2 )
+    else if ($status == 2)
       return '处理中';
-    else if( $status == 3 )
+    else if ($status == 3)
       return '处理完成';
-    else if( $status == 4 )
+    else if ($status == 4)
       return '关闭';
-    else if( $status == 99 )
+    else if ($status == 99)
       return '已取消';
-
   }
-
-
-
-
 }
