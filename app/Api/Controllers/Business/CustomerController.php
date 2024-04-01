@@ -104,45 +104,15 @@ class CustomerController extends BaseController
                 $q->where('follow_type', AppEnum::followVisit);
             }]);
 
-        $data = $this->pageData($result, $request);
-        foreach ($data['result'] as $k => &$v) {
-            $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
-            $v['source_type_label'] = getDictName($v['source_type']);
-            $v['contact_user'] = $v['contact_info']['name'] ?? "";
-            $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
-            $v['channel_name'] = $v['channel']['channel_name'] ?? "";
-            $v['channel_type'] = $v['channel']['channel_type'] ?? "";
-        }
+        $pageData = $this->pageData($result, $request);
+        $data = $this->customerService->pageDataFormat($pageData);
 
         // 通过数据库查询获取统计数据
         $cusStat = $subQuery
             ->selectRaw('state, ifnull(count(*),0) as count')
             ->groupBy('state')
             ->get();
-
-        // 根据ID获取字典信息
-        $dict = new DictServices;
-        $cusStateDicts = $dict->getByKey([0, $this->company_id], 'cus_state');
-
-        // 构建客户统计数据数组
-        $customerStat = array();
-        $cusTotalCount = 0;
-        foreach ($cusStateDicts as $kt => $vt) {
-            $count = $cusStat->firstWhere('state', $vt['value'])['count'] ?? 0;
-            $customerStat[$kt] = [
-                'state' => $vt['value'],
-                'count' => $count,
-            ];
-            $cusTotalCount += $count;
-        }
-        // 添加客户总计到客户统计数据数组
-        $customerStat[] = [
-            'state' => '客户总计',
-            'count' => $cusTotalCount
-        ];
-        // return response()->json(DB::getQueryLog());
-
-        $data['stat'] = $customerStat;
+        $data['stat'] = $this->customerService->customerStat($cusStat, $this->company_id);
         return $this->success($data);
     }
 

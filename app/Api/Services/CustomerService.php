@@ -11,6 +11,7 @@ use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\TenantLog;
+use App\Api\Services\Common\DictServices;
 use App\Api\Services\Company\VariableService;
 
 /**
@@ -333,5 +334,66 @@ class CustomerService
       $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;
     }
     return $rooms;
+  }
+
+
+  /**
+   * @Desc: 客户列表格式化客户联系人信息
+   * @Author leezhua
+   * @Date 2024-04-01
+   * @param mixed $list 
+   * @return array 
+   */
+  public function pageDataFormat(array $list): array
+  {
+    if (!$list['result']) {
+      return $list;
+    }
+    foreach ($list['result'] as $k => &$v) {
+      $v['demand_area'] = $v['extra_info']['demand_area'] ?? "";
+      $v['source_type_label'] = getDictName($v['source_type']);
+      $v['contact_user'] = $v['contact_info']['name'] ?? "";
+      $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
+      $v['channel_name'] = $v['channel']['channel_name'] ?? "";
+      $v['channel_type'] = $v['channel']['channel_type'] ?? "";
+      $v['is_first_visit'] = $v['follow_count'] == 1 ? 1 : 0; // 是否首次来访
+      unset($v['channel']);
+      unset($v['contact_info']);
+      unset($v['extra_info']);
+    }
+    return $list;
+  }
+
+
+  /**
+   * @Desc: 客户列表统计数据
+   * @Author leezhua
+   * @Date 2024-04-01
+   * @param mixed $cusStat 
+   * @param mixed $companyId 
+   * @return array 
+   */
+  public function customerStat($cusStat, $companyId)
+  {
+    $dict = new DictServices;
+    $cusStateDicts = $dict->getByKey([0, $companyId], 'cus_state');
+
+    // 构建客户统计数据数组
+    $customerStat = array();
+    $cusTotalCount = 0;
+    foreach ($cusStateDicts as $kt => $vt) {
+      $count = $cusStat->firstWhere('state', $vt['value'])['count'] ?? 0;
+      $customerStat[$kt] = [
+        'state' => $vt['value'],
+        'count' => $count,
+      ];
+      $cusTotalCount += $count;
+    }
+    // 添加客户总计到客户统计数据数组
+    $customerStat[] = [
+      'state' => '客户总计',
+      'count' => $cusTotalCount
+    ];
+    return $customerStat;
   }
 }

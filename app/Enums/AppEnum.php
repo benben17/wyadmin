@@ -95,7 +95,7 @@ abstract class AppEnum extends Enum
   const projType = "办公园区";
 
   // 跟进方式
-  const followVisit = 87;
+  const followVisit = 87; // 来访
 
   // 发票状态
   const invoiceStatusUnOpen = 1;  // 未开
