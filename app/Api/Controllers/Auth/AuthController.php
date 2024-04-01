@@ -15,6 +15,7 @@ class AuthController extends BaseController
 {
     public function __construct()
     {
+        parent::__construct();
     }
 
     /**
@@ -181,7 +182,6 @@ class AuthController extends BaseController
     public function userinfo(Request $request)
     {
         try {
-            $this->authUser();
             $result = \App\Models\User::with('company')->with('role:id,name')->find($this->uid);
             if (!$result) {
                 return $this->error('用户信息查询失败!');

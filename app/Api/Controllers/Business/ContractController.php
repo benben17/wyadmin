@@ -261,6 +261,12 @@ class ContractController extends BaseController
             'fee_bill' => 'array',
             'deposit_bill' => 'array'
         ], [
+            'save_type.required' => '保存类型是必须',
+            'contract_type.required' => '合同类型是必须',
+            'sign_date.required' => '签署日期是必须',
+            'start_date.required' => '合同开始时间是必须',
+            'end_date.required' => '合同截止时间是必须',
+            'tenant_id.required' => '租户ID是必须',
             'bill_rule.array' => '租金规则必须是数组',
             'deposit_rule.array' => '押金规则必须是数组',
             'contract_room.array' => '房间信息必须是数组',
@@ -270,7 +276,6 @@ class ContractController extends BaseController
 
         ]);
         $DA = $request->toArray();
-
         $DA['contract_state'] = $DA['save_type'];
         // $DA['contract_state'] = $DA['save_type'];
         $contractId = 0;
