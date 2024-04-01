@@ -86,10 +86,10 @@ class CustomerController extends BaseController
                 $request->parent_id && $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
 
-                if ($request->visit_times) {
+                if ($request->visit_time) {
                     $q->whereHas('follow', function ($q) {
                         $q->where('follow_type', AppEnum::followVisit);
-                        $q->havingRaw('count(*) >0');
+                        $q->havingRaw('count(*) > 1');
                     });
                 }
                 return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
