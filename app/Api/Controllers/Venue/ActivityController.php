@@ -94,10 +94,6 @@ class ActivityController extends BaseController
 		return $this->success($data);
 	}
 
-
-
-
-
 	/**
 	 * @OA\Post(
 	 *     path="/api/activity/reg/show",

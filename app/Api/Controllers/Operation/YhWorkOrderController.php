@@ -91,11 +91,15 @@ class YhWorkOrderController extends BaseController
     $statusMap =  $this->workService->yhWorkModel()->statusMap();
     $totalCount = 0;
     foreach ($statusMap as $k => $label) {
-      if ($k == '90') {
+      if ($k == '90') { // 转隐患库不统计
         continue;
       }
       $value = $stat[$k] ?? 0;
-      $data['stat'][] = array('label' => $label, 'value' => $value, 'status' => $k);
+      $data['stat'][] = [
+        'label' => $label,
+        'value' => $value,
+        'status' => $k
+      ];
       $totalCount += $value;
     }
     $data['stat'][] = array('label' => "总计", 'value' => $totalCount, 'status' => '');

@@ -3,15 +3,15 @@
 namespace App\Api\Models\Company;
 
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ *  
+ * Desc 字典模型
+ * @package App\Api\Models\Company
+ */
 class CompanyDict extends Model
 {
-	/**
-	 * 关联到模型的数据表
-	 *
-	 * @var string
-	 */
+
 	// use SoftDeletes;
 	protected $table = 'bse_dict';
 
@@ -28,11 +28,8 @@ class CompanyDict extends Model
 	}
 	public function getCUserAttribute()
 	{
-		if (isset($this->attributes['c_uid']) && $this->attributes['c_uid'] > 0) {
-			return getUserByUid($this->attributes['c_uid'])['realname'];
-		} else {
-			return "管理员";
-		}
+		$uid = $this->attributes['c_uid'] ?? 0;
+		return $uid > 0 ? getUserByUid($uid)['realname'] : "admin";
 	}
 	public function extra()
 	{

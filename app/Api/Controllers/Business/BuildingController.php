@@ -3,13 +3,10 @@
 namespace App\Api\Controllers\Business;
 
 use Common;
-//use App\Exceptions\ApiException;
 use JWTAuth;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\BuildingExcel;
 use App\Api\Models\Contract\ContractRoom;
@@ -270,17 +267,15 @@ class BuildingController extends BaseController
                 $data = $this->formatBuild($DA);
                 $data['u_uid'] = $this->uid;
                 // DB::enableQueryLog();
-                $res = BuildingModel::whereId($DA['id'])->update($data);
-
+                BuildingModel::whereId($DA['id'])->update($data);
                 // 编辑楼层
                 if ($DA['floors']) {
                     $floors = $this->formatFloor($DA['floors'], $DA['id'], $DA['proj_id'], 2);
                     foreach ($floors as $k => $v) {
-                        //
-                        if (isset($v['id'])) {
-                            $res = FloorModel::whereId($v['id'])->update($v);
+                        if ($v['id'] && $v['id'] > 0) {
+                            FloorModel::whereId($v['id'])->update($v);
                         } else {
-                            $res = FloorModel::Create($v);
+                            FloorModel::Create($v);
                         }
                     }
                 }
@@ -629,7 +624,6 @@ class BuildingController extends BaseController
     private function formatFloor($data, $buildingId, $projId, $type = 1): array
     {
         foreach ($data as $k => $v) {
-
             if ($type == 1) {
                 $BA[$k]['c_uid'] = $this->uid;
             } else {
@@ -638,7 +632,6 @@ class BuildingController extends BaseController
                 }
                 $BA[$k]['u_uid'] = $this->uid;
             }
-
             $BA[$k]['floor_no'] = $v['floor_no'];
             $BA[$k]['build_id'] = $buildingId;
             $BA[$k]['company_id'] = $this->company_id;

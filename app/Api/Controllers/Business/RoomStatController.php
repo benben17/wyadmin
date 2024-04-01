@@ -153,10 +153,8 @@ class RoomStatController extends BaseController
                 $request->proj_ids &&  $q->whereIn('proj_id', $request->proj_ids);
             })->where('room_type', 2)
             ->first();
-
-        if (!$stationStat['free_count']) {
-            $stationStat['free_rate'] = '0%';
-        } else {
+        $stationStat['free_rate'] = '0%';
+        if ($stationStat['free_count']) {
             $stationStat['free_rate'] = numFormat($stationStat['free_count'] / $stationStat['total_count'] * 100) . '%';
         }
 
