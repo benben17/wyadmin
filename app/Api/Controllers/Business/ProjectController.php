@@ -88,7 +88,7 @@ class ProjectController extends BaseController
                 $request->proj_type &&  $q->where('proj_type', $request->proj_type);
             });
         // 分页数据
-        $result = $this->pageData($subQuery, $request);
+        $data = $this->pageData($subQuery, $request);
 
         //通过项目获取房间信息 并进行数据合并
         $projStat = $subQuery->get()->toArray();
@@ -137,8 +137,8 @@ class ProjectController extends BaseController
 
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;
-        $result['stat'] = $buildingService->getBuildingAllStat($projStat);
-        return $this->success($result);
+        $data['stat'] = $buildingService->getBuildingAllStat($projStat);
+        return $this->success($data);
     }
 
     /**

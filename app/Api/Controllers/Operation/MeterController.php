@@ -2,15 +2,15 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Api\Services\Energy\EnergyService;
+use App\Api\Controllers\BaseController;
 
-use Exception;
+use App\Api\Services\Energy\EnergyService;
 
 /**
  *   能耗管理。水表电表管理
@@ -93,7 +93,7 @@ class MeterController extends BaseController
     }
     DB::enableQueryLog();
     $currentMonth = date('Y-m-01');
-    $data = $this->meterService->meterModel()
+    $query = $this->meterService->meterModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -103,17 +103,14 @@ class MeterController extends BaseController
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
-      }])
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($data);
+      }]);
+    $data = $this->pageData($query, $request);
     foreach ($data['result'] as $k => &$v) {
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value ?? 0;
       $v['last_date'] = $record->record_date ?? "";
-      $DA = $this->meterService->getTenantByRoomId($v['room_id']);
-      $v['tenant_name'] = $DA['tenant_name'];
+      $tenant = $this->meterService->getTenantByRoomId($v['room_id']);
+      $v['tenant_name'] = $tenant['tenant_name'];
     }
     return $this->success($data);
   }

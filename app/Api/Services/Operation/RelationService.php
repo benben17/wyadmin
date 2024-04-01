@@ -2,13 +2,13 @@
 
 namespace App\Api\Services\Operation;
 
-use App\Api\Models\Operation\PubRelations;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-use App\Api\Services\Common\ContactService;
-use App\Enums\AppEnum;
 use Exception;
+use App\Enums\AppEnum;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Operation\PubRelations;
+use App\Api\Services\Common\ContactService;
 
 /**
  *  公共关系管理
@@ -49,7 +49,7 @@ class RelationService
           $contact = new ContactService;
           // 更新供应商的时候删除所有的联系人
           if ($type == 2) {
-            $contact->delete(str2Array($relation->id));
+            $contact->delContact(str2Array($relation->id), AppEnum::Relationship);
           }
           $user['parent_type'] = AppEnum::Relationship;
           $contacts = formatContact($DA['contacts'], $relation->id, $user);

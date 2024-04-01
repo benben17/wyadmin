@@ -84,9 +84,9 @@ class StationController extends BaseController
         $resultQuery = $subQuery
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no');
-        $result = $this->pageData($resultQuery, $request);
+        $data = $this->pageData($resultQuery, $request);
 
-        $data = $subQuery->select(DB::Raw('count(*) total_count,
+        $stat = $subQuery->select(DB::Raw('count(*) total_count,
             sum(case room_state when 1 then 1 else 0 end) free_count'))
             ->where($map)
             ->first();
@@ -99,22 +99,21 @@ class StationController extends BaseController
         if ($data['free_count']) {
             $freeRate = numFormat($data['free_count'] / $data['total_count'] * 100);
         }
-        if ($result['result']) {
-            $result['result'] = $buildService->formatData($result['result']);
+        if ($data['result']) {
+            $data['result'] = $buildService->formatData($data['result']);
         }
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
         // Log::error($avgPrice);
-        $stat = array(
+        $data['stat'] = array(
             ['title' => '空闲工位', 'value' => $data['free_count']],
             ['title' => '总工位', 'value' => $data['total_count']],
             ['title' => '空闲率', 'value' => $freeRate . '%'],
             ['title' => '在租平均单价', 'value' => $avgPrice . '元']
         );
-        $result['stat'] = $stat;
-        return $this->success($result);
+        return $this->success($data);
     }
 
     /**

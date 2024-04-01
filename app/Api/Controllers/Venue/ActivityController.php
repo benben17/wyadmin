@@ -2,15 +2,15 @@
 
 namespace App\Api\Controllers\Venue;
 
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Venue\ActivityReg;
-use App\Api\Services\Pay\WxPayService;
-use App\Api\Services\Venue\ActivityRegService;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Api\Services\Venue\VenueServices;
 use Illuminate\Support\Facades\Log;
+use App\Api\Models\Venue\ActivityReg;
+use App\Api\Services\Pay\WxPayService;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Venue\VenueServices;
+use App\Api\Services\Venue\ActivityRegService;
 
 /**
  *  场馆管理
@@ -59,7 +59,7 @@ class ActivityController extends BaseController
 	 *       )
 	 *     ),
 	 *       example={
-	 *              "venue_id": "","proj_ids":""
+	 *             "venue_id": 1,"activity_id": 1,"venue_name": "","proj_ids":[1,2]
 	 *           }
 	 *       )
 	 *     ),
@@ -71,27 +71,8 @@ class ActivityController extends BaseController
 	 */
 	public function index(Request $request)
 	{
-		$pagesize = $request->input('pagesize');
-		if (!$pagesize || $pagesize < 1) {
-			$pagesize = config('per_size');
-		} elseif ($pagesize == '-1') {
-			$pagesize = config('export_rows');
-		}
+
 		$map = array();
-
-
-		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'created_at';
-		}
-		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$orderByAsc = $request->input('order');
-		} else {
-			$orderByAsc = 'desc';
-		}
 		DB::enableQueryLog();
 		if ($request->venue_id) {
 			$ma['venue_id'] = $request->venue_id;
@@ -102,19 +83,14 @@ class ActivityController extends BaseController
 		if ($request->user_phone) {
 			$ma['user_phone'] = $request->user_phone;
 		}
-		$data = $this->activityRegService->model()->where($map)
+		$query = $this->activityRegService->model()->where($map)
 			->where(function ($q) use ($request) {
 				$request->activity_title && $q->where('activity_title', 'like', '%' . $request->activity_title . '%');
 				$request->venue_name && $q->where('venue_name', 'like', '%' . $request->venue_name . '%');
 				$request->user_name && $q->where('user_name', 'like', '%' . $request->user_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-			})
-			// ->with('project:id,proj_name')
-			->orderBy($orderBy, $orderByAsc)
-			->paginate($pagesize)->toArray();
-		// return response()->json(DB::getQueryLog());
-
-		$data = $this->handleBackData($data);
+			});
+		$data = $this->pageData($query, $request);
 		return $this->success($data);
 	}
 

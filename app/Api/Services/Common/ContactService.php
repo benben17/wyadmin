@@ -57,8 +57,7 @@ class ContactService
     {
         try {
             $contact = new ContactModel;
-            $res = $contact->addAll($contacts);
-            return $res;
+            return $contact->addAll($contacts);
         } catch (Exception $e) {
             Log::error('联系人保存失败' . $e->getMessage());
             return false;
@@ -117,5 +116,19 @@ class ContactService
         $map['parent_type'] = $parentType;
         $contact = $this->contactModel()->where($map)->get();
         return $contact;
+    }
+
+    /**
+     * 删除联系人
+     * @Author   leezhua
+     * @DateTime 2020-05-26
+     * @param    [type]     $parentIds   [父ID]
+     * @param    [type]     $parentType [父类型]
+     * @return   [bool]                 [description]
+     */
+    public function delContact($parentIds, $parentType): bool
+    {
+        $map['parent_type'] = $parentType;
+        return $this->contactModel()->whereIn('parent_id', $parentIds)->where($map)->delete();
     }
 }

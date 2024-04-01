@@ -56,25 +56,12 @@ class EquipmentController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $this->setPagesize($request);
     if (!$request->year) {
       $request->year = date('Y');
     }
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
 
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
     DB::enableQueryLog();
-    $data = $this->equipment->equipmentModel()
+    $subQuery = $this->equipment->equipmentModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->device_name && $q->where('device_name', 'like', columnLike($request->device_name));
@@ -84,12 +71,9 @@ class EquipmentController extends BaseController
       // ->where('year', $request->year)
       ->withCount(['maintainPlan' => function ($q) use ($request) {
         $q->whereYear('plan_date', $request->year);
-      }])
+      }]);
 
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
 
     foreach ($data['result'] as $k => &$v) {
       $planData = $this->equipment->MaintainPlanModel()

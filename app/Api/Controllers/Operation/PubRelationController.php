@@ -2,16 +2,16 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Operation\PubRelations;
 use JWTAuth;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
 
 use App\Api\Services\Common\ContactService;
+use App\Api\Services\Common\BseMaintainService;
 use App\Api\Services\Operation\RelationService;
-use App\Enums\AppEnum;
 
 /**
  *   供应商管理
@@ -19,10 +19,14 @@ use App\Enums\AppEnum;
 class PubRelationController extends BaseController
 {
   private $parentType;
+  private $relationService;
+  private $contactService;
   public function __construct()
   {
     parent::__construct();
     $this->parentType = AppEnum::Relationship;
+    $this->relationService = new RelationService;
+    $this->contactService = new ContactService;
   }
 
 
@@ -41,7 +45,7 @@ class PubRelationController extends BaseController
    *       @OA\Property(property="name",type="int",description="公共关系名称"),
    *       @OA\Property(property="proj_ids",type="int",description="项目IDs")
    *     ),
-   *       example={"proj_ids":"[]","name":""}
+   *       example={"proj_ids":"[]","name":"","pagesize":10,"orderBy":"id","order":"desc"}
    *       )
    *     ),
    *     @OA\Response(
@@ -55,30 +59,16 @@ class PubRelationController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $this->setPagesize($request);
 
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
-    $relation = new RelationService;
-    $data = $relation->model()->where(function ($q) use ($request) {
+
+    $query = $this->relationService->model()->where(function ($q) use ($request) {
       $request->name && $q->where('name', 'like', '%' . $request->name . '%');
-    })
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($data);
-    $contactService = new ContactService;
+    });
+
+    $data = $this->pageData($query, $request);
+
     foreach ($data['result'] as $k => &$v) {
-      $contact = $contactService->getContact($v['id'], $this->parentType);
+      $contact = $this->contactService->getContact($v['id'], $this->parentType);
       $v['contact_name'] = $contact['name'];
       $v['contact_phone'] = $contact['phone'];
     }
@@ -115,20 +105,19 @@ class PubRelationController extends BaseController
   public function store(Request $request)
   {
     $validatedData = $request->validate([
-      'name'     => 'required',
+      'name'     => 'required|string|min:2|max:255',
       'department'     => 'required|String',
       'contacts'      => 'array',
     ]);
     $DA = $request->toArray();
-    $relation = new RelationService;
-    $map['company_id'] = $this->user->company_id;
+    $map['company_id'] = $this->company_id;
     $map['name']       = $DA['name'];
-    $isRepeat = $relation->model()->where($map)->exists();
+    $isRepeat = $this->relationService->model()->where($map)->exists();
     if ($isRepeat) {
       return $this->error('公共关系重复！');
     }
 
-    $res = $relation->save($DA, $this->user);
+    $res = $this->relationService->save($DA, $this->user);
     if (!$res) {
       return $this->error($DA['name'] . '公共关系保存失败！');
     }
@@ -163,20 +152,19 @@ class PubRelationController extends BaseController
   {
     $validatedData = $request->validate([
       'id'          => 'required',
-      'name'        => 'required',
-      'department'  => 'required|String',
+      'name'        => 'required|string|min:2|max:255',
+      'department'  => 'required|string',
       'contacts'    => 'array',
     ]);
     $DA = $request->toArray();
-    $relation = new RelationService;
     $map['company_id'] = $this->user['company_id'];
     $map['name']       = $DA['name'];
-    $isRepeat = $relation->model()->where($map)
+    $isRepeat = $this->relationService->model()->where($map)
       ->where('id', '!=', $DA['id'])->exists();
     if ($isRepeat) {
       return $this->error($DA['name'] . "已存在");
     }
-    $res = $relation->save($DA, $this->user, 2);
+    $res = $this->relationService->save($DA, $this->user, 2);
     if (!$res) {
       return $this->error($DA['name'] . '更新失败！');
     }
@@ -213,13 +201,11 @@ class PubRelationController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $relation = new RelationService;
-    $data = $relation->model()
+    $data = $this->relationService->model()
       ->find($request->id);
 
     if ($data) {
-      $contactService = new ContactService;
-      $data['contacts'] = $contactService->getContacts($request->id, $this->parentType);
+      $data['contacts'] = $this->contactService->getContacts($request->id, $this->parentType);
       $data  = $data->toArray();
     }
 
@@ -256,10 +242,17 @@ class PubRelationController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     $DA = $request->toArray();
-    $res = $this->supplier->supplierModel()->whereIn('id', $request->Ids)->delete();
-    if ($res) {
-      return $this->success("删除成功。");
+    try {
+      DB::transaction(function () use ($DA) {
+        $this->relationService->model()->whereIn('id', $DA['Ids'])->delete();
+        $this->contactService->delContact($DA['Ids'], $this->parentType);
+        $maintainService = new BseMaintainService;
+        $maintainService->delMaintain($DA['Ids'], $this->parentType);
+      }, 2);
+      return $this->success('公共关系删除成功。');
+    } catch (\Exception $e) {
+      Log::error($e->getMessage());
+      return $this->error("公共关系删除失败！");
     }
-    return $this->error('删除失败！');
   }
 }

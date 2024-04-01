@@ -3,16 +3,16 @@
 namespace App\Api\Controllers\Operation;
 
 use JWTAuth;
+use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use Illuminate\Support\Facades\Validator;
 use App\Api\Services\Common\BseRemarkService;
 use App\Api\Services\Operation\YhWorkOrderService;
-use Exception;
-use Illuminate\Support\Facades\Validator;
 
 /**
  *   工单
@@ -59,24 +59,12 @@ class YhWorkOrderController extends BaseController
       'proj_ids' => 'required|array',
       // 'status' => 'array'
     ]);
-    $pagesize = $this->setPagesize($request);
+
     $map = array();
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
     }
 
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
     DB::enableQueryLog();
     $subQuery = $this->workService->yhWorkModel()
       ->where($map)
@@ -92,12 +80,7 @@ class YhWorkOrderController extends BaseController
         $request->process_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
         $request->order_no  && $q->where('order_no', 'like', '%' . $request->order_no . '%');
       });
-    $data = $subQuery->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-
-    // return DB::getQueryLog();
-
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
     // 统计
     $stat = $subQuery->selectRaw('status, COUNT(*) as count')
       ->groupBy('status')

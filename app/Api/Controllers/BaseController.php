@@ -107,11 +107,15 @@ class BaseController extends Controller
      */
     public function pageData($query, $request)
     {
+        // 分页
         $pagesize = $this->setPagesize($request);
+        // 排序
         $order = $request->orderBy ?? 'created_at';
+        // 排序方式
         $sort = $request->order ?? 'desc';
 
         $data = $query->orderBy($order, $sort)->paginate($pagesize)->toArray();
+        // 返回数据并格式化
         return $this->handleBackData($data);
     }
     /**
