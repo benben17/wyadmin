@@ -2,15 +2,10 @@
 
 namespace App\Api\Services\Contract;
 
-use App\Api\Models\Contract\BillRule;
-use App\Api\Models\Contract\ContractFreePeriod;
-use App\Api\Services\Company\FeeTypeService;
-use App\Api\Services\Contract\BillRuleService;
+
+use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Support\Facades\App;
 
 /**
  * 合同账单

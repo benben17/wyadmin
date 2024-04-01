@@ -2,22 +2,21 @@
 
 namespace App\Api\Services\Contract;
 
+use Exception;
+use App\Enums\AppEnum;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use App\Api\Models\Contract\ContractLog as ContractLogModel;
-use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
-use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Tenant\Tenant;
-use App\Api\Services\Common\MessageService;
 use App\Api\Models\Contract\ContractBill;
-use App\Api\Models\Contract\ContractFreePeriod;
-use App\Api\Services\Building\BuildingService;
-use App\Api\Services\Company\FeeTypeService;
+use App\Api\Services\Common\MessageService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Channel\ChannelService;
-use App\Api\Services\Tenant\TenantShareService;
-use App\Enums\AppEnum;
+use App\Api\Services\Company\FeeTypeService;
+use App\Api\Services\Building\BuildingService;
+use App\Api\Models\Contract\ContractFreePeriod;
+use App\Api\Models\Contract\Contract as ContractModel;
+use App\Api\Models\Contract\ContractLog as ContractLogModel;
+use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
 
 /**
  *合同更新 日志处理 合同审核 客户更新为租户

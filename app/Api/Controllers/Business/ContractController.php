@@ -273,12 +273,11 @@ class ContractController extends BaseController
 
         $DA['contract_state'] = $DA['save_type'];
         // $DA['contract_state'] = $DA['save_type'];
-
-        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
-        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
+                $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+                $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
                 $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
@@ -326,7 +325,7 @@ class ContractController extends BaseController
             return $this->success(['id' => $contractId], '创建合同成功！');
         } catch (Exception $e) {
             Log::error("创建合同失败！" . $e->getMessage());
-            return $this->error("创建合同失败！");
+            return $this->error("创建合同失败！" . $e->getMessage());
         }
     }
 
@@ -424,12 +423,10 @@ class ContractController extends BaseController
             return $this->error('正式合同或者作废合同不允许更新');
         }
 
-        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
-        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
-
         try {
-
             DB::transaction(function () use ($DA) {
+                $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+                $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
                 if ($DA['save_type'] == 1) {
@@ -723,7 +720,7 @@ class ContractController extends BaseController
     public function disuseContract(Request $request)
     {
         $validatedData = $request->validate([
-            'id' => 'required|numeric|gt:0', // 1 新签 2 续签
+            'id' => 'required|numeric|gt:0', //
             'remark' => 'required|String', //  备注
         ]);
         $DA = $request->toArray();

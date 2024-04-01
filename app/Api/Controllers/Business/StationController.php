@@ -92,18 +92,18 @@ class StationController extends BaseController
             ->first();
         // return response()->json(DB::getQueryLog());
 
+        if ($request->export) {
+            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
+        }
+
         $contract = new ContractService;
         $buildService  = new BuildingService;
         $freeRate = '0.00';
-        $data['free_count'] = 0;
-        if ($data['free_count']) {
-            $freeRate = numFormat($data['free_count'] / $data['total_count'] * 100);
+        if ($stat['free_count']) {
+            $freeRate = numFormat($stat['free_count'] / $stat['total_count'] * 100);
         }
         if ($data['result']) {
             $data['result'] = $buildService->formatData($data['result']);
-        }
-        if ($request->export) {
-            return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
         // Log::error($avgPrice);
