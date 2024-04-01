@@ -2,26 +2,26 @@
 
 namespace App\Api\Controllers\Common;
 
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\Building as BuildingModel;
-use App\Api\Models\BuildingFloor as FloorModel;
-use App\Api\Models\BuildingRoom as BuildingRoomModel;
-use App\Api\Models\Channel\Channel as channelModel;
-use App\Api\Models\Project as ProjectModel;
-use App\Api\Models\Company\CompanyDict as DictModel;
-use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 use App\Api\Models\Company\BankAccount;
-use App\Api\Models\Contract\ContractRoom;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
-use App\Api\Models\Tenant\Tenant;
-use App\Api\Services\Tenant\ChargeService;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Sys\DepartService;
-use App\Enums\AppEnum;
+use App\Api\Models\Contract\ContractRoom;
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Models\Project as ProjectModel;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Models\Building as BuildingModel;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Models\BuildingFloor as FloorModel;
+use App\Api\Models\Channel\Channel as channelModel;
+use App\Api\Models\Sys\UserGroup as UserGroupModel;
+use App\Api\Models\Company\CompanyDict as DictModel;
+use App\Api\Models\BuildingRoom as BuildingRoomModel;
+use App\Api\Models\Channel\ChannelPolicy as ChannelPolicyModel;
 
 /**
  * parent_type 联系人类型 1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -701,9 +701,12 @@ class PubSelectController extends BaseController
 			->where('is_vaild', 1)
 			->orderBy('id', 'asc')
 			->get()->toArray();
-
 		foreach ($data as &$v) {
-			$bank = BankAccount::where('fee_type_id', $v['id'])->where('proj_id', $request->proj_id)->first();
+			DB::enableQueryLog();
+			$bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$v['id']])
+				->where('proj_id', $request->proj_id)->first();
+			// Log::info(json_decode($bank));
+			// return response()->json(DB::getQueryLog());
 			$v['bank_id'] = $bank ? $bank->id : 0;
 			$v['notice'] = $v['bank_id'] == 0 ? "未绑定银行收款账户" : "已绑定银行收款账户";
 		}
