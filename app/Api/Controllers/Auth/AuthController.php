@@ -89,7 +89,8 @@ class AuthController extends BaseController
         $data['info'] = [
             'name' => $user->realname,
             'uid' => $user->id,
-            'avatar' => getOssUrl($user->avatar),
+            'avatar' => $user->avatar,
+            'avatar_full_path' => getOssUrl($user->avatar),
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
@@ -186,6 +187,7 @@ class AuthController extends BaseController
             if (!$result) {
                 return $this->error('用户信息查询失败!');
             }
+            $result->avatar_full_path = getOssUrl($result->avatar);
             return $this->success($result);
         } catch (Exception $e) {
             return $this->error($e->getMessage());
