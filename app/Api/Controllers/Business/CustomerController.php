@@ -347,7 +347,13 @@ class CustomerController extends BaseController
                 $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $DA['id'];
                 $cusExtra['u_uid'] = $this->uid;
-                ExtraInfo::where('tenant_id', $DA['id'])->update($cusExtra);
+                $isExist = ExtraInfo::where('tenant_id', $DA['id'])->exists();
+                if ($isExist) {
+                    ExtraInfo::where('tenant_id', $DA['id'])->update($cusExtra);
+                } else {
+                    ExtraInfo::create($cusExtra);
+                }
+
                 // 写入联系人 支持多联系人写入
 
                 $contacts = $DA['contacts'];
@@ -491,8 +497,8 @@ class CustomerController extends BaseController
         if ($clue) {
             $data['clue'] = $clue;
         }
-        if (!$data['extraInfo']) {
-            $data['extraInfo'] = (object)[];
+        if (!$data['extra_info']) {
+            $data['extra_info'] = (object)[];
         }
         $data['business_info'] = $business_info;
         $data['channel_name'] = $data['channel']['channel_name'] ?? "";
