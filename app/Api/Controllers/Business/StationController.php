@@ -108,8 +108,8 @@ class StationController extends BaseController
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
         // Log::error($avgPrice);
         $data['stat'] = array(
-            ['title' => '空闲工位', 'value' => $data['free_count']],
-            ['title' => '总工位', 'value' => $data['total_count']],
+            ['title' => '空闲工位', 'value' => $stat['free_count']],
+            ['title' => '总工位', 'value' => $stat['total_count']],
             ['title' => '空闲率', 'value' => $freeRate . '%'],
             ['title' => '在租平均单价', 'value' => $avgPrice . '元']
         );
