@@ -118,11 +118,10 @@ class ChannelController extends BaseController
                     $q->where('state', '成交客户');
                 }
             ]);
-        $data = $this->pageData($subQuery, $request);
+        $data = $this->pageData($data, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], ChannelExcel::class);
         }
-        $data = $this->handleBackData($data);
         // 统计渠道类型的客户数量以及渠道数量
         $data['stat'] = $this->channelService->statChannel($subQuery, $this->uid);
         return $this->success($data);

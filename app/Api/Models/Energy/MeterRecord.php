@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Energy;
 
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
 class MeterRecord extends Model
 {
