@@ -15,7 +15,6 @@ class AuthController extends BaseController
 {
     public function __construct()
     {
-        parent::__construct();
     }
 
     /**
@@ -182,7 +181,8 @@ class AuthController extends BaseController
     public function userinfo(Request $request)
     {
         try {
-            $result = \App\Models\User::with('company')->with('role:id,name')->find($this->uid);
+            $user = auth('api')->user();
+            $result = \App\Models\User::with('company')->with('role:id,name')->find($user->id);
             if (!$result) {
                 return $this->error('用户信息查询失败!');
             }
@@ -223,8 +223,9 @@ class AuthController extends BaseController
     {
         try {
             $this->authUser();
+            $user = auth('api')->user();
             $DA = $request->toArray();
-            $userInfo = \App\Models\User::find($this->uid);
+            $userInfo = \App\Models\User::find($user->id);
             $userInfo->u_uid = $this->uid;
             $userInfo->email = isset($DA['email']) ? $DA['email'] : "";
             $userInfo->phone = isset($DA['phone']) ? $DA['phone'] : "";
@@ -270,9 +271,9 @@ class AuthController extends BaseController
     public function bindWeChat(Request $request)
     {
         $this->authUser();
-
+        $user = auth('api')->user();
         $DA = $request->toArray();
-        $userInfo = \App\Models\User::find($this->uid);
+        $userInfo = \App\Models\User::find($user->id);
         $userInfo->wx_openid = $DA['openid'];
         $result = $userInfo->save();
         if (!$result) {
