@@ -2,10 +2,11 @@
 
 namespace App\Api\Services\Tenant;
 
-use Illuminate\Support\Facades\Log;
-use App\Api\Models\Tenant\BaseInfo;
-use App\Api\Models\Tenant\SkyeyeLog as TenantSkyeyeLog;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Tenant\BusinessInfo;
+use App\Api\Models\Tenant\SkyeyeLog as TenantSkyeyeLog;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  *
@@ -15,8 +16,7 @@ class BaseInfoService
 
   public function model()
   {
-    $model = new BaseInfo;
-    return $model;
+    return new BusinessInfo;
   }
   /**
    * 更新公司工商信息，手工更新
@@ -28,56 +28,44 @@ class BaseInfoService
   {
     // Log::error(json_encode($DA));
     if ($type == 1) {
-      $company = $this->model();
-      $company->skyeye_id = isset($DA['id']) ? $DA['id'] : 0; //天眼查ID
+      $company              = $this->model();
+      $company->skyeye_id   = $DA['id'] ?? 0;
     } else {
-      $company = $this->model()->where('name', $DA['name'])->first();
-      if (!$company) {
-        $company = $this->model();
-      }
-      $company->skyeye_id = isset($DA['skyeye_id']) ? $DA['skyeye_id'] : $DA['id'];
+      $company              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
+      $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'];
     }
-    $company->name = isset($DA['name']) ? $DA['name'] : ""; //公司名
-    $company->regStatus  = isset($DA['regStatus']) ? $DA['regStatus'] : ""; //状态
-    $company->historyNames = isset($DA['historyNames']) ? $DA['historyNames'] : "";
-    $company->companyOrgType = isset($DA['companyOrgType']) ? $DA['companyOrgType'] : "";
-    $company->regCapital = isset($DA['regCapital']) ? $DA['regCapital'] : "";
-    $company->staffNumRange = isset($DA['staffNumRange']) ? $DA['staffNumRange'] : "";
-    $company->industry = isset($DA['industry']) ? $DA['industry'] : "";
-    $company->bondNum = isset($DA['bondNum']) ? $DA['bondNum'] : "";
-    $company->type = isset($DA['type']) ? $DA['type'] : 0;
-    $company->bondName = isset($DA['bondName']) ? $DA['bondName'] : "";
-    $company->legalPersonName  = isset($DA['legalPersonName']) ? $DA['legalPersonName'] : "";
-    $company->revokeReason = isset($DA['revokeReason']) ? $DA['revokeReason'] : "";
-    $company->regNumber = isset($DA['regNumber']) ? $DA['regNumber'] : "";
-    // $company->property3 = isset($DA['property3'];
-    $company->creditCode = isset($DA['creditCode']) ? $DA['creditCode'] : "";
-    //统一社会信用代码
-    if (isset($DA['cancelDate'])) {
-      $company->cancelDate = $DA['cancelDate'];
-    }
-    if (isset($DA['approvedTime'])) {
-      $company->approvedTime = $DA['approvedTime'];
-    }
-    if (isset($DA['fromTime'])) {
-      $company->fromTime = $DA['fromTime'];
-    }
-    if (isset($DA['toTime'])) {
-      $company->toTime = $DA['toTime'];
-    }
-    if (isset($DA['estiblishTime'])) {
-      $company->estiblishTime = $DA['estiblishTime'];
-    }
-    $company->regInstitute = isset($DA['regInstitute']) ? $DA['regInstitute'] : "";
-    $company->businessScope = isset($DA['businessScope']) ? $DA['businessScope'] : "";
-    $company->taxNumber = isset($DA['taxNumber']) ? $DA['taxNumber'] : "";
-    $company->regLocation = isset($DA['regLocation']) ? $DA['regLocation'] : "";
-    $company->tags = isset($DA['tags']) ? $DA['tags'] : "";
-    $company->bondType = isset($DA['bondType']) ? $DA['bondType'] : "";
-    $company->alias = isset($DA['alias']) ? $DA['alias'] : "";
-    $company->isMicroEnt = isset($DA['isMicroEnt']) ? $DA['isMicroEnt'] : 0;
-    $company->base = isset($DA['base']) ? $DA['base'] : "";
+
+    $company->name              = $DA['name'] ?? "";
+    $company->regStatus         = $DA['regStatus'] ?? "";
+    $company->historyNames      = $DA['historyNames'] ?? "";
+    $company->companyOrgType    = $DA['companyOrgType'] ?? "";
+    $company->regCapital        = $DA['regCapital'] ?? "";
+    $company->staffNumRange     = $DA['staffNumRange'] ?? "";
+    $company->industry          = $DA['industry'] ?? "";
+    $company->bondNum           = $DA['bondNum'] ?? "";
+    $company->type              = $DA['type'] ?? 0;
+    $company->bondName          = $DA['bondName'] ?? "";
+    $company->legalPersonName   = $DA['legalPersonName'] ?? "";
+    $company->revokeReason      = $DA['revokeReason'] ?? "";
+    $company->regNumber         = $DA['regNumber'] ?? "";
+    $company->creditCode        = $DA['creditCode'] ?? "";
+    $company->cancelDate        = $DA['cancelDate'] ?? null;
+    $company->approvedTime      = $DA['approvedTime'] ?? null;
+    $company->fromTime          = $DA['fromTime'] ?? null;
+    $company->toTime            = $DA['toTime'] ?? null;
+    $company->estiblishTime     = $DA['estiblishTime'] ?? null;
+    $company->regInstitute      = $DA['regInstitute'] ?? "";
+    $company->businessScope     = $DA['businessScope'] ?? "";
+    $company->taxNumber         = $DA['taxNumber'] ?? "";
+    $company->regLocation       = $DA['regLocation'] ?? "";
+    $company->tags              = $DA['tags'] ?? "";
+    $company->bondType          = $DA['bondType'] ?? "";
+    $company->alias             = $DA['alias'] ?? "";
+    $company->isMicroEnt        = $DA['isMicroEnt'] ?? 0;
+    $company->base              = $DA['base'] ?? "";
+
     $res = $company->save();
+
     if ($res) {
       return $company;
     }
@@ -100,21 +88,36 @@ class BaseInfoService
     if ($companyInfo) {
       return $companyInfo->toArray();
     } else {
-      return "";
+      return (object)[];
     }
   }
-
+  /**
+   * 通过公司名获取工商信息
+   * @Author leezhua
+   * @Date 2024-04-01
+   * @param mixed $companyName 
+   * @return mixed 
+   */
   public function getByName($companyName)
   {
     $companyInfo = $this->model()->where('name', $companyName)->first();
     return $companyInfo;
   }
 
+  /**
+   * 通过公司名获取工商信息,如果没有则通过天眼查获取
+   * @Author leezhua
+   * @Date 2024-04-01
+   * @param mixed $companyName 
+   * @param mixed $user 
+   * @return array|false 
+   * @throws BindingResolutionException 
+   */
   public function getCompanyInfo($companyName, $user)
   {
     $skyeyeLog = TenantSkyeyeLog::where('search_name', $companyName)->first();
     if (!$skyeyeLog) {
-      $companyInfo = $this->searchByskyeye($companyName, $user);
+      $companyInfo = $this->searchBySkyeye($companyName, $user);
     } else {
       $skyeyeLog = $skyeyeLog->toArray();
       $skyeye = json_decode($skyeyeLog['search_result'], true);
@@ -131,7 +134,7 @@ class BaseInfoService
    * @param    [type]     $CompanyName [description]
    * @return   [type]                  [description]
    */
-  public function searchByskyeye($companyName, $user)
+  public function searchBySkyeye($companyName, $user)
   {
     $skyeyeConfig = config('skyeye');
     $header  = array(
@@ -157,9 +160,6 @@ class BaseInfoService
     $data = json_decode($output, true);
 
     if ($data['error_code'] == 0) {
-      //写入本地
-      // $this->add($data['result']);
-      // 记录日志
       $this->saveSkyeyeSearchLog($companyName, $data['result'], $user);
       return $this->formatSkyeyeData($data['result']);
     } else {
@@ -205,23 +205,31 @@ class BaseInfoService
   }
 
   //时间格式转换。毫秒转 Y-m-d H:i:s
-  public function sec2Ymd($msectime)
+  // $msectime 毫秒
+
+  public function sec2Ymd($milliseconds)
   {
-    $msectime = $msectime * 0.001;
-    if (strstr($msectime, '.')) {
-      sprintf("%01.3f", $msectime);
-      list($usec, $sec) = explode(".", $msectime);
+    $seconds = $milliseconds * 0.001;
+    if (strstr($seconds, '.')) {
+      sprintf("%01.3f", $seconds);
+      list($usec, $sec) = explode(".", $seconds);
       $sec = str_pad($sec, 3, "0", STR_PAD_RIGHT);
     } else {
-      $usec = $msectime;
+      $usec = $seconds;
       $sec = "000";
     }
     $date = date("Y-m-d", $usec);
-    return $mescdate = str_replace('x', $sec, $date);
+    return str_replace('x', $sec, $date);
   }
 
 
-
+  /**
+   * 格式化天眼查数据
+   * @Author leezhua
+   * @Date 2024-04-01
+   * @param array $DA 
+   * @return array 
+   */
   private function formatSkyeyeData(array $DA)
   {
 

@@ -2,13 +2,13 @@
 
 namespace App\Api\Controllers\Weixin;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Models\Tenant\Follow;
 use App\Api\Services\CustomerService;
+use App\Api\Controllers\BaseController;
 
 /**
  * 微信招商app 首页统计
@@ -145,30 +145,16 @@ class WxStatController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required',
         ]);
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
+
         $map = array();
 
         if ($request->channel_id && $request->channel_id > 0) {
             $map['channel_id'] = $request->channel_id;
         }
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
+
         $request->type = [1, 3];
         DB::enableQueryLog();
-        $result = $this->customerService->tenantModel()
+        $resultQuery = $this->customerService->tenantModel()
             ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
@@ -184,10 +170,9 @@ class WxStatController extends BaseController
                 $request->demand_area && $q->where('demand_area', $request->demand_area);
             })
             // ->with('customerRoom')
-            ->withCount('follow')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
-        $data = $this->handleBackData($result);
+            ->withCount('follow');
+        $data = $this->pageData($resultQuery, $request);
+
         return $this->success($data);
     }
 
@@ -202,19 +187,14 @@ class WxStatController extends BaseController
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"pagesize"},
-     *       @OA\Property(
-     *          property="pagesize",
-     *          type="int",
-     *          description="每页行数"
-     *       ),
-     *       @OA\Property(
-     *          property="id",
-     *          type="int",
-     *          description="客户ID，不传默认为所有的跟进"
-     *       )
+     *       @OA\Property(property="pagesize",type="int",description="每页行数"),
+     *       @OA\Property(property="follow_type",type="int",description="跟进类型"),
+     *       @OA\Property(property="start_time",type="string",description="开始时间"),
+     *       @OA\Property(property="end_time",type="string",description="结束时间"),
+     *       @OA\Property(property="proj_ids",type="list",description="项目ID"),
      *     ),
      *       example={
-     *          "?pagesize=10"
+     *          "pagesize":10,"proj_ids":"[]","follow_type":1,"start_time":"2020-01-01","end_time":"2020-01-01"
      *           }
      *       )
      *     ),

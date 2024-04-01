@@ -479,13 +479,13 @@ class CustomerController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|min:1',
         ]);
+        DB::enableQueryLog();
         $data = $this->customerService->tenantModel()
             ->with('contacts')
             ->with('extraInfo')
             ->with('tenantRooms')
             ->with('channel')
             ->find($request->id)->toArray();
-
         $info = new BaseInfoService;
 
         $business_info  = $info->getById($data['business_id']);

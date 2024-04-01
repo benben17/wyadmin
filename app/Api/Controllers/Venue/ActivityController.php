@@ -59,7 +59,7 @@ class ActivityController extends BaseController
 	 *       )
 	 *     ),
 	 *       example={
-	 *             "venue_id": 1,"activity_id": 1,"venue_name": "","proj_ids":[1,2]
+	 *             "venue_id": 1,"activity_id": 1,"venue_name": "","proj_ids":"[1,2]"
 	 *           }
 	 *       )
 	 *     ),

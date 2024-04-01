@@ -3584,13 +3584,18 @@
                                 ],
                                 "properties": {
                                     "list_type": {
-                                        "description": "// 1 客户列表 2 在租户 3 退租租户",
+                                        "description": "1 客户列表 2 在租户 3 退租租户",
                                         "type": "int"
                                     }
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "list_type": 1,
+                                "pagesize": 10,
+                                "orderBy": "id",
+                                "order": "desc"
+                            }
                         }
                     }
                 },
@@ -3674,7 +3679,8 @@
                                 "required": [
                                     "channel_id",
                                     "type",
-                                    "name"
+                                    "name",
+                                    "id"
                                 ],
                                 "properties": {
                                     "type": {
@@ -3820,7 +3826,8 @@
                                 "type": "object"
                             },
                             "example": {
-                                "name": "北京玄墨信息科技有限公司"
+                                "name": "公司名字",
+                                "tenant_id": 1
                             }
                         }
                     }
@@ -4219,10 +4226,10 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "projectId"
+                                    "id"
                                 ],
                                 "properties": {
-                                    "projectId": {
+                                    "id": {
                                         "description": "项目Id",
                                         "type": "int"
                                     }
@@ -4230,7 +4237,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "projectId": 11
+                                "id": 11
                             }
                         }
                     }
@@ -4320,10 +4327,50 @@
                 }
             }
         },
+        "/api/business/stat/dashboard": {
+            "post": {
+                "tags": [
+                    "招商统计"
+                ],
+                "summary": "统计面板数据",
+                "operationId": "4d0adceaf4e35b7b2505c2455aad2e48",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "proj_ids"
+                                ],
+                                "properties": {
+                                    "proj_ids": {
+                                        "description": "项目ID",
+                                        "type": "list"
+                                    },
+                                    "year": {
+                                        "description": "年份",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "proj_ids": "[]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/stat/customerstat": {
             "post": {
                 "tags": [
-                    "统计"
+                    "招商统计"
                 ],
                 "summary": "按照时间段、项目ID 统计客户数据",
                 "operationId": "c771aefb45d6809643ea457bf5a86471",
@@ -4366,7 +4413,7 @@
         "/api/business/stat/contract": {
             "post": {
                 "tags": [
-                    "统计"
+                    "招商统计"
                 ],
                 "summary": "按月统计合同数、成交客户数、成交均价",
                 "operationId": "6a18da14a5faaf3251bd113a53f28f16",
@@ -4398,7 +4445,7 @@
         "/api/business/stat/staffkpi": {
             "post": {
                 "tags": [
-                    "统计"
+                    "招商统计"
                 ],
                 "summary": "按月统计招商人员",
                 "operationId": "29526dcf4f8c1784a737b71d5ab73d9b",
@@ -4430,7 +4477,7 @@
         "/api/business/stat/forecast/income": {
             "post": {
                 "tags": [
-                    "统计"
+                    "招商统计"
                 ],
                 "summary": "统计2年的收入预测（只统计租金和管理费不统计押金）",
                 "operationId": "862259d312a7c0ceaa2b41c89fdd044e",
@@ -4466,7 +4513,7 @@
         "/api/business/stat/month/receive": {
             "post": {
                 "tags": [
-                    "统计"
+                    "招商统计"
                 ],
                 "summary": "统计当月应收的各种费用（租金，租金押金管理费押金 管理费）",
                 "operationId": "9e3ee99532453821506b7c75a3ed1b09",
@@ -4933,7 +4980,7 @@
                                         "type": "int"
                                     },
                                     "parent_type": {
-                                        "description": "父类型",
+                                        "description": "1 channel 2 客户 3 供应商 4 政府关系 5 租户",
                                         "type": "int"
                                     },
                                     "proj_ids": {
@@ -9244,6 +9291,42 @@
                 }
             }
         },
+        "/api/operation/meter/record/del": {
+            "post": {
+                "tags": [
+                    "能耗管理"
+                ],
+                "summary": "抄表记录删除",
+                "operationId": "e738241427f470e4944c4458a48ec0d9",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "抄表记录ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "4"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/parking/list": {
             "post": {
                 "tags": [
@@ -9504,7 +9587,10 @@
                             },
                             "example": {
                                 "proj_ids": "[]",
-                                "name": ""
+                                "name": "",
+                                "pagesize": 10,
+                                "orderBy": "id",
+                                "order": "desc"
                             }
                         }
                     }
@@ -12318,8 +12404,10 @@
                                 "type": "object"
                             },
                             "example": {
-                                "venue_id": "",
-                                "proj_ids": ""
+                                "venue_id": 1,
+                                "activity_id": 1,
+                                "venue_name": "",
+                                "proj_ids": "[1,2]"
                             }
                         }
                     }
@@ -12820,8 +12908,10 @@
                                 "type": "object"
                             },
                             "example": {
-                                "venue_province_id": "",
-                                "venue_city_id": ""
+                                "venue_province_id": 1,
+                                "venue_city_id": 1,
+                                "venue_name": "场馆名称",
+                                "proj_id": 1
                             }
                         }
                     }
@@ -13342,16 +13432,32 @@
                                         "description": "每页行数",
                                         "type": "int"
                                     },
-                                    "id": {
-                                        "description": "客户ID，不传默认为所有的跟进",
+                                    "follow_type": {
+                                        "description": "跟进类型",
                                         "type": "int"
+                                    },
+                                    "start_time": {
+                                        "description": "开始时间",
+                                        "type": "string"
+                                    },
+                                    "end_time": {
+                                        "description": "结束时间",
+                                        "type": "string"
+                                    },
+                                    "proj_ids": {
+                                        "description": "项目ID",
+                                        "type": "list"
                                     }
                                 },
                                 "type": "object"
                             },
-                            "example": [
-                                "?pagesize=10"
-                            ]
+                            "example": {
+                                "pagesize": 10,
+                                "proj_ids": "[]",
+                                "follow_type": 1,
+                                "start_time": "2020-01-01",
+                                "end_time": "2020-01-01"
+                            }
                         }
                     }
                 },

@@ -3,8 +3,8 @@
 namespace App\Api\Scopes;
 
 use JWTAuth;
-use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;
 
 class CompanyScope implements Scope
@@ -20,8 +20,9 @@ class CompanyScope implements Scope
     {
         $user = auth('api')->user();
         if ($user) {
+            $tableName = $model->getTable();
             $map = array(
-                'company_id'   =>  $user->company_id
+                $tableName . '.company_id'   =>  $user->company_id
             );
         } else {
             $map = array();

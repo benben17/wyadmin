@@ -35,26 +35,39 @@ class StatController extends BaseController
     }
 
     /**
-     * 招商首页统计信息
-     */
-    /**
-     * [dashboard description]
-     * @Author   leezhua
-     * @DateTime 2020-06-06
-     * @param    Request    $request [description]
-     * @return   [type]              [description]
+     * @OA\Post(
+     *    path="/api/business/stat/dashboard",
+     *   tags={"招商统计"},
+     *  summary="统计面板数据",
+     * @OA\RequestBody(
+     *   @OA\MediaType(
+     *      mediaType="application/json",
+     *   @OA\Schema(
+     *      schema="UserModel",
+     *      required={"proj_ids"},
+     *      @OA\Property(property="proj_ids",type="list",description="项目ID"),
+     *      @OA\Property(property="year",type="int",description="年份"),
+     *  ),
+     *   example={"proj_ids":"[]"}
+     *  )
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *  description=""
+     * )
+     * )
      */
     public function dashboard(Request $request)
     {
         $validatedData = $request->validate([
             'proj_ids' => 'required|array',
+        ], [
+            'proj_ids.required' => '项目ID不允许为空！',
+            'proj_ids.array' => '项目ID必须是数组！'
         ]);
         $DA = $request->toArray();
-        // $projIds = ;
-        if (empty($request->projIds)) {
-            return $this->error('项目ID不允许为空！');
-        }
-        $thisYear = date('Y-01-01');
+
+        $thisYear = $DA['year'] ? $DA['year'] . '-01-01' : date('Y-01-01', time());
         DB::enableQueryLog();
         $data = BuildingModel::select('proj_id')
             ->where(function ($q) use ($DA) {
@@ -82,34 +95,39 @@ class StatController extends BaseController
             }])
             ->get()->toArray();
         // return response()->json(DB::getQueryLog());
-        $room['manager_room_count'] = 0;
-        $room['free_room_count'] = 0;
-        $room['manager_area'] = 0.00;
-        $room['free_area'] = 0.00;
-        foreach ($data as $k => $v) {
+        $room = array(
+            'manager_room_count' => 0,
+            'free_room_count' => 0,
+            'manager_area' => 0.00,
+            'free_area' => 0.00
+        );
+
+        foreach ($data as $v) {
             $room['manager_room_count'] += $v['manager_room_count'];
-            $room['free_room_count']     += $v['free_room_count'];
-            $room['manager_area']     += $v['manager_area'];
-            $room['free_area']         += $v['free_area'];
+            $room['free_room_count'] += $v['free_room_count'];
+            $room['manager_area'] += $v['manager_area'];
+            $room['free_area'] += $v['free_area'];
         }
 
-        $room['rental_rate'] =  sprintf("%01.2f", $room['free_area'] / $room['manager_area'] * 100);
+        $room['rental_rate'] =  numFormat(($room['free_area'] / $room['manager_area']) * 100);
         //统计客户
         DB::enableQueryLog();
-        $customer = $this->customerService->tenantModel()->select('state', DB::Raw('count(*) as cus_count'))
-            ->where(function ($q) use ($request) {
+        $customer = $this->customerService->tenantModel()
+            ->select('state', DB::Raw('count(*) as cus_count'))
+            ->where(function ($q) use ($request, $thisYear) {
                 $q->whereIn('proj_id', $request->proj_ids);
+                $q->where('created_at', '>=', $thisYear);
             })
-            ->where('created_at', '>', $thisYear)
             ->groupBy('state')->get();
 
         // return response()->json(DB::getQueryLog());
-        $channel = $this->customerService->tenantModel()->select('channel_id', 'state', DB::Raw('count(*) as cus_count'))
+        $channel = $this->customerService->tenantModel()
+            ->select('channel_id', 'state', DB::Raw('count(*) as cus_count'))
             ->with('channel:id,channel_type')
-            ->where(function ($q) use ($request) {
+            ->where(function ($q) use ($request, $thisYear) {
                 $q->whereIn('proj_id', $request->proj_ids);
+                $q->where('created_at', '>=', $thisYear);
             })
-            ->where('created_at', '>', $thisYear)
             ->groupBy('channel_id', 'state')->get();
 
 
@@ -123,7 +141,7 @@ class StatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/stat/customerstat",
-     *     tags={"统计"},
+     *     tags={"招商统计"},
      *     summary="按照时间段、项目ID 统计客户数据",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -285,7 +303,7 @@ class StatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/stat/contract",
-     *     tags={"统计"},
+     *     tags={"招商统计"},
      *     summary="按月统计合同数、成交客户数、成交均价",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -358,7 +376,7 @@ class StatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/stat/staffkpi",
-     *     tags={"统计"},
+     *     tags={"招商统计"},
      *     summary="按月统计招商人员",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -457,7 +475,7 @@ class StatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/stat/forecast/income",
-     *     tags={"统计"},
+     *     tags={"招商统计"},
      *     summary="统计2年的收入预测（只统计租金和管理费不统计押金）",
      *    @OA\RequestBody(
      *       @OA\MediaType(
@@ -538,7 +556,7 @@ class StatController extends BaseController
     /**
      * @OA\Post(
      *     path="/api/business/stat/month/receive",
-     *     tags={"统计"},
+     *     tags={"招商统计"},
      *     summary="统计当月应收的各种费用（租金，租金押金管理费押金 管理费）",
      *    @OA\RequestBody(
      *       @OA\MediaType(

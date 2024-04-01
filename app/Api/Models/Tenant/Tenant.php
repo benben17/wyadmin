@@ -2,13 +2,14 @@
 
 namespace App\Api\Models\Tenant;
 
+use App\Enums\AppEnum;
+use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Channel\Channel;
-use App\Api\Models\Channel\ChannelBrokerage;
 use App\Api\Models\Common\Maintain;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Tenant\BusinessInfo;
 use Illuminate\Database\Eloquent\Model;
-use App\Api\Scopes\CompanyScope;
-use App\Enums\AppEnum;
+use App\Api\Models\Channel\ChannelBrokerage;
 
 /**
  *
@@ -89,7 +90,7 @@ class Tenant extends Model
 
   public function business_info()
   {
-    return $this->hasOne(BaseInfo::class, 'id', 'business_id');
+    return $this->hasOne(BusinessInfo::class, 'id', 'business_id');
   }
   // 合同信息
   public function contract()

@@ -23,7 +23,6 @@ class TenantRoom extends Model
 
   public function addAll(array $data)
   {
-    $res = DB::table($this->getTable())->insert($data);
-    return $res;
+    return DB::table($this->getTable())->insert($data);
   }
 }

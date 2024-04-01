@@ -4,18 +4,15 @@ namespace App\Api\Controllers\Operation;
 
 use JWTAuth;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Bill\TenantShareFee;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Tenant\TenantShareService;
-use App\Api\Services\Tenant\TenantService;
-use App\Enums\AppEnum;
-use Encore\Admin\Grid\Filter\Where;
 
 /**
  *  租户分摊

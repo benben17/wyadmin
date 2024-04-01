@@ -275,10 +275,10 @@ class TenantController extends BaseController
                     $businessInfo = $DA['business_info'];
                     $businessInfo['business_id'] = $DA['business_id'];
                     $businessInfo['name'] = $DA['name'];
-                    $info = new BaseInfoService;
-                    $res = $info->model()->where('name', $DA['name'])->first();
+                    $baseInfoService = new BaseInfoService;
+                    $res = $baseInfoService->model()->where('name', $DA['name'])->first();
                     if (!$res) {
-                        $info->save($businessInfo, 2);
+                        $baseInfoService->save($businessInfo, 2); // 更新工商信息
                     }
                 }
                 $log['tenant_id'] = $DA['id'];

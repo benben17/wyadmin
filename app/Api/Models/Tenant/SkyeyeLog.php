@@ -3,9 +3,7 @@
 namespace App\Api\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
+
 
 /**
  *  天眼查，查询日志
