@@ -5,6 +5,7 @@ namespace App\Api\Controllers;
 use Illuminate\Http\Request;
 use App\Api\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * @OA\Info(
@@ -20,12 +21,12 @@ class BaseController extends Controller
     protected $user;
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
+        $this->user = auth('api')->user();
+        $this->uid  = $this->user->id;
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
         $this->company_id = getCompanyId($this->uid);
-        $this->user = auth('api')->user();
     }
 
 
@@ -77,6 +78,9 @@ class BaseController extends Controller
 
     public function handleBackData($data)
     {
+        if (is_object($data)) {
+            $data = $data->toArray();
+        }
         $backData['result'] = $data['data'];
         $backData['pageInfo'] =  [
             'currentPage'   => $data['current_page'],
@@ -93,7 +97,27 @@ class BaseController extends Controller
         }, $data);
     }
 
+    /**
+     * 分页数据
+     * @Author leezhua
+     * @Date 2024-04-01
+     * @param mixed $query 
+     * @param mixed $request 
+     * @return array  
+     */
+    public function pageData($query, $request)
+    {
+        // 分页
+        $pagesize = $this->setPagesize($request);
+        // 排序
+        $order = $request->orderBy ?? 'created_at';
+        // 排序方式
+        $sort = $request->order ?? 'desc';
 
+        $data = $query->orderBy($order, $sort)->paginate($pagesize)->toArray();
+        // 返回数据并格式化
+        return $this->handleBackData($data);
+    }
     /**
      * 设置分页 默认每页20条
      *

@@ -2,14 +2,14 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
+use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Operation\InspectionService;
-use PhpParser\Node\Stmt\TryCatch;
 
 /**
  *   巡检
@@ -199,6 +199,7 @@ class InspectionController extends BaseController
     $DA = $request->toArray();
     $data = $this->inspection->inspectionModel()
       ->find($DA['id'])->toArray();
+    $this->inspection->createQr($data['id'], $data['name'], $this->company_id);
     return $this->success($data);
   }
 

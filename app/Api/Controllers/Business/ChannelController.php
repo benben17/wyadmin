@@ -3,21 +3,21 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
+use Exception;
+use App\Enums\AppEnum;
+use App\Api\Models\Project;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
-use App\Api\Models\Channel\Channel as ChannelModel;
-use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Excel\Business\ChannelExcel;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
+use App\Api\Models\Common\Contact as ContactModel;
+use App\Api\Models\Channel\Channel as ChannelModel;
 use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
-use App\Api\Models\Project;
-use App\Api\Models\Tenant\Tenant;
-use App\Api\Excel\Business\ChannelExcel;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  * 渠道管理
@@ -117,15 +117,11 @@ class ChannelController extends BaseController
                 'customer as cus_deal_count' => function ($q) {
                     $q->where('state', '成交客户');
                 }
-            ])
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)
-            ->toArray();
-
+            ]);
+        $data = $this->pageData($data, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], ChannelExcel::class);
         }
-        $data = $this->handleBackData($data);
         // 统计渠道类型的客户数量以及渠道数量
         $data['stat'] = $this->channelService->statChannel($subQuery, $this->uid);
         return $this->success($data);

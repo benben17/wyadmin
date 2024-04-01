@@ -87,7 +87,7 @@ class BuildingRoomController extends BaseController
             $order = 'desc';
         }
         DB::enableQueryLog();
-        $data = $this->buildRoomService->model()->where($map)
+        $subQuery = $this->buildRoomService->model()->where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', columnLike($request->room_no));
             })
@@ -96,14 +96,13 @@ class BuildingRoomController extends BaseController
                 $request->build_no && $q->where('build_no', 'like', columnLike($request->build_no));
             })
             ->with('building:id,proj_name,build_no,proj_id')
-            ->with('floor:id,floor_no')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            ->with('floor:id,floor_no');
 
+        $data = $this->pageData($subQuery, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
-        $data = $this->handleBackData($data);
+
         $buildService  = new BuildingService;
 
         if ($data['result']) {

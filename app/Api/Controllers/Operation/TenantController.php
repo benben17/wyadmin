@@ -4,16 +4,16 @@ namespace App\Api\Controllers\Operation;
 
 use JWTAuth;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
+use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Tenant\Invoice;
-use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\BaseInfoService;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Tenant\TenantService;
-use App\Enums\AppEnum;
+use App\Api\Services\Tenant\BaseInfoService;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Models\Common\Contact as ContactModel;
 
 /**
  *  租户管理
@@ -56,29 +56,12 @@ class TenantController extends BaseController
      */
     public function list(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
+
         $map = array();
         // $map['parent_id'] = 0;
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
+
         DB::enableQueryLog();
-        $result = $this->tenantService->tenantModel()
+        $query = $this->tenantService->tenantModel()
             ->where($map)
             ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
@@ -89,13 +72,10 @@ class TenantController extends BaseController
                 $q->where('parent_id', 0);
             })
             ->withCount('maintain')
-            ->withCount('contract')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
-
+            ->withCount('contract');
         // return $result;
         // return DB::getQueryLog();
-        $data = $this->handleBackData($result);
+        $data = $this->pageData($query, $request);
         foreach ($data['result'] as $k => &$tenant) {
             $contractService = new ContractService;
             $signArea = $contractService->model()->where('tenant_id', $tenant['id'])->where('contract_state', AppEnum::contractExecute)->sum('sign_area');

@@ -2,20 +2,20 @@
 
 namespace App\Api\Services\Energy;
 
-use App\Api\Models\Contract\Contract;
-use App\Api\Models\Contract\ContractRoom;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use App\Api\Models\Contract\Contract;
 
-use App\Api\Models\Energy\Meter as MeterModel;
-use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
-use App\Api\Models\Energy\MeterLog as MeterLogModel;
+use App\Api\Models\Contract\ContractRoom;
+use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Common\QrcodeService;
+use App\Api\Models\Energy\Meter as MeterModel;
 use App\Api\Services\Contract\ContractService;
-use App\Enums\AppEnum;
+use App\Api\Models\Energy\MeterLog as MeterLogModel;
+use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
 
 /**
  *能耗服务
@@ -354,24 +354,21 @@ class EnergyService
     try {
       DB::transaction(function () use ($Ids, $user) {
         $billService = new TenantBillService;
-        $data['audit_user'] = $user['realname'];
-        $data['audit_status'] = 1;
+        $unAuditStatus = AppEnum::statusUnAudit;
         $BA = array();
         foreach ($Ids as $k => $id) {
-          $record = MeterRecordModel::whereId($id)->where('audit_status', 0)->first();
+          $record = MeterRecordModel::whereId($id)->where('audit_status', $unAuditStatus)->first();
           if (!$record) {
             Log::error("未查询到数据.meter_id:" . $id);
             continue;
           }
-          $meter = MeterModel::find($record['meter_id']);
+          $meter = $this->meterModel()->find($record['meter_id']);
           $BA['proj_id']      = $meter['proj_id'];
           $BA['tenant_id']    = $meter['tenant_id'];
           $BA['tenant_name']  = $record['tenant_name'];
-          if ($meter['type'] == 1) {
-            $BA['fee_type'] = AppEnum::waterFeeType;
-          } else {
-            $BA['fee_type'] = AppEnum::electricFeeType;
-          }
+          // 1 水费 2 电费
+          $BA['fee_type'] = $meter['type'] == 1 ? AppEnum::waterFeeType : AppEnum::electricFeeType;
+
           $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
           $BA['charge_date']  = date('Y-m-01', strtotime(getNextYmd($record['record_date'], 1)));
@@ -387,9 +384,11 @@ class EnergyService
             $BA['bank_id'] = getBankIdByFeeType($BA['fee_type'], $BA['proj_id']);
             $billService->saveBillDetail($BA, $user);
           }
+          // 更新状态
+          $record->audit_status = AppEnum::statusAudit;
+          $record->audit_user = $user['realname'];
+          $record->save();
         }
-        // 更新状态
-        $this->meterRecordModel()->whereIn('id', $Ids)->where('audit_status', 0)->update($data);
       }, 3);
       return true;
     } catch (Exception $th) {

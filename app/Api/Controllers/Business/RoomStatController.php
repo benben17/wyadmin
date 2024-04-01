@@ -2,11 +2,11 @@
 
 namespace App\Api\Controllers\Business;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
 
 
 use App\Api\Models\BuildingRoom  as RoomModel;
@@ -22,10 +22,7 @@ class RoomStatController extends BaseController
 
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
-        if (!$this->uid) {
-            return $this->error('用户信息错误');
-        }
+        parent::__construct();
     }
 
     /**

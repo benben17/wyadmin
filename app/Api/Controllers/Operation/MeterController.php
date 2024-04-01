@@ -2,15 +2,16 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Log;
 
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Energy\EnergyService;
-
-use Exception;
 
 /**
  *   能耗管理。水表电表管理
@@ -93,7 +94,7 @@ class MeterController extends BaseController
     }
     DB::enableQueryLog();
     $currentMonth = date('Y-m-01');
-    $data = $this->meterService->meterModel()
+    $query = $this->meterService->meterModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -103,17 +104,14 @@ class MeterController extends BaseController
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
-      }])
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($data);
+      }]);
+    $data = $this->pageData($query, $request);
     foreach ($data['result'] as $k => &$v) {
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value ?? 0;
       $v['last_date'] = $record->record_date ?? "";
-      $DA = $this->meterService->getTenantByRoomId($v['room_id']);
-      $v['tenant_name'] = $DA['tenant_name'];
+      $tenant = $this->meterService->getTenantByRoomId($v['room_id']);
+      $v['tenant_name'] = $tenant['tenant_name'];
     }
     return $this->success($data);
   }
@@ -499,7 +497,7 @@ class MeterController extends BaseController
     $validatedData = $request->validate([
       'type' => 'required|numeric|in:1,2',   // "1水表 2 电表"
     ]);
-    $pagesize = $this->setPagesize($request);
+
     $map = array();
     if (isset($request->audit_status) && !$request->audit_status) {
       $map['audit_status'] = $request->audit_status;
@@ -510,21 +508,10 @@ class MeterController extends BaseController
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
     }
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
+
     $DA = $request->toArray();
     DB::enableQueryLog();
-    $data = $this->meterService->meterRecordModel()
+    $query = $this->meterService->meterRecordModel()
       ->where($map)
       ->whereHas('meter', function ($q) use ($request) {
         $q->where('type', $request->type);
@@ -532,10 +519,9 @@ class MeterController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $q->where('status', 0); // 过滤掉初始化记录
       })
-      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id')
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($data);
+      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id');
+    $data = $this->pageData($query, $request);
+
     foreach ($data['result'] as $k => &$v) {
       $v['meter_no'] = $v['meter']['meter_no'];
       $v['proj_name'] = $v['meter']['proj_name'];
@@ -545,11 +531,7 @@ class MeterController extends BaseController
       $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
         $used = abs($v['used_value'] - $v['pre_used_value']) / $v['pre_used_value'] * 100;
-        if ($used >= 50) {
-          $v['unusual'] = 0;
-        } else {
-          $v['unusual'] = 1;
-        }
+        $v['unusual'] = $used >= 50 ? 0 : 1;
       } else {
         $v['unusual'] = 1;
       }
@@ -557,5 +539,40 @@ class MeterController extends BaseController
     }
     // return response()->json(DB::getQueryLog());
     return $this->success($data);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/meter/record/del",
+   *     tags={"能耗管理"},
+   *     summary="抄表记录删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="抄表记录ID")
+   *     ),
+   *       example={"id":"4"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function delMeterRecord(Request $request)
+  {
+    $validator = \Validator::make($request->all(), [
+      'id' => 'required|numeric|gt:0',
+    ]);
+    $DA = $request->toArray();
+    $res = $this->meterService->meterRecordModel()->whereId($request->id)
+      ->where('audit_status', AppEnum::statusUnAudit)
+      ->delete();
+
+    return $res ? $this->success('删除成功.') : $this->error('删除失败！');
   }
 }

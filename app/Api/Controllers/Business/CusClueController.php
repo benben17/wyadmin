@@ -4,16 +4,16 @@ namespace App\Api\Controllers\Business;
 
 use JWTAuth;
 //use App\Exceptions\ApiException;
+use Exception;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Business\CusClueService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\CusClueExcel;
 use App\Api\Excel\Business\CusClueImport;
-use Exception;
+use App\Api\Services\Business\CusClueService;
 
 
 class CusClueController extends BaseController
@@ -72,17 +72,16 @@ class CusClueController extends BaseController
     }
 
     // DB::enableQueryLog();
-    $result = $this->clueService->model()->where($map)
+    $query = $this->clueService->model()->where($map)
       ->where(function ($q) use ($request) {
         $request->start_date && $q->where('clue_time', '>=', $request->start_date);
         $request->end_date && $q->where('clue_time', '<=', $request->end_date);
         $request->clue_type && $q->where('clue_type', $request->clue_type);
         $request->status && $q->where('status', $request->status);
         $request->phone && $q->where('phone', 'like', $request->end_date . "%");
-      })
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($result);
+      });
+
+    $data = $this->pageData($query, $request);
     if ($request->export) {
       return $this->exportToExcel($data['result'], CusClueExcel::class);
     }

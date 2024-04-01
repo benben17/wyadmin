@@ -2,16 +2,16 @@
 
 namespace App\Admin\Controllers;
 
-use App\Models\Company;
-use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use App\Models\Company;
 use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
+// use Illuminate\Support\Facades\Storage;
 use App\Api\Services\Company\VariableService;
+
+use Encore\Admin\Controllers\AdminController;
 
 class CompanyController extends AdminController
 {
@@ -199,8 +199,8 @@ class CompanyController extends AdminController
 
         //初始化公司变量
         $form->saved(function (Form $form) {
-            $variableservice = new VariableService;
-            $variableservice->initCompanyVariable($form->model()->id, $form->model()->name);
+            $variableService = new VariableService;
+            $variableService->initCompanyVariable($form->model()->id, $form->model()->name);
         });
         return $form;
     }

@@ -2,14 +2,12 @@
 
 namespace App\Api\Services\Operation;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use App\Api\Services\Common\QrcodeService;
+use App\Api\Services\Operation\WorkOrderService;
 use App\Api\Models\Equipment\Inspection as InspectionModel;
 use App\Api\Models\Equipment\InspectionRecord as InspectionRecordModel;
-use App\Api\Services\Common\MessageService;
-use App\Api\Services\Operation\WorkOrderService;
-use App\Api\Services\Common\QrcodeService;
 
 /**
  * 巡检服务
@@ -113,15 +111,15 @@ class InspectionService
    * @Author   leezhua
    * @DateTime 2021-05-27
    * @param    [type]     $inspection_id [description]
-   * @param    [type]     $info          [description]
+   * @param    [type]     $content          [description]
    * @param    [type]     $company_id    [description]
    * @return   [type]                    [description]
    */
-  public function createQr($inspection_id, $info, $company_id)
+  public function createQr($inspection_id, $content, $company_id)
   {
     $qrcodeService = new QrcodeService;
     $data = $this->inspectionModel()->find($inspection_id);
-    $qrcode = $qrcodeService->createQr($info, $company_id);
+    $qrcode = $qrcodeService->createQr($content, $company_id);
     if ($qrcode) {
       $data->qr_code      = $qrcode;
       return $data->save();

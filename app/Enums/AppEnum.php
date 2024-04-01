@@ -107,4 +107,7 @@ abstract class AppEnum extends Enum
   const feeStatusReceived = 1;  // 已经清
   const feeStatusPartRefund = 2;  // 部分退款
   const feeStatusRefund = 3;  // 已退款
+
+  const statusUnAudit = 0;  // 未审核
+  const statusAudit = 1;  // 已审核
 }

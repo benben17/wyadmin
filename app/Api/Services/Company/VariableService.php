@@ -2,15 +2,16 @@
 
 namespace App\Api\Services\Company;
 
+use Exception;
+use LogicException;
+use App\Enums\AppEnum;
+
+use App\Models\Depart;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-
+use App\Api\Services\Sys\DepartService;
 use App\Api\Models\Company\CompanyVariable;
 use App\Api\Models\Project as ProjectModel;
-use App\Api\Services\Sys\DepartService;
-use App\Enums\AppEnum;
-use App\Models\Depart;
 
 /**
  *
@@ -112,26 +113,30 @@ class VariableService
   public function initCompanyVariable($companyId, $companyName)
   {
     try {
-      $row = CompanyVariable::find($companyId);
-      if ($row) return false;
+      DB::transaction(function () use ($companyId, $companyName) {
+        $company = CompanyVariable::find($companyId);
+        // 如果没有公司变量信息则初始化
+        if (!$company) {
+          // 公司变量初始化
+          $variable = $this->variableModel();
+          $variable->company_id = $companyId;
+          $variable->tenant_prefix = 'CUS';
+          $variable->save();
+          // 项目初始化
+          $project = new ProjectModel;
+          $project->proj_type = AppEnum::projType;
+          $project->proj_name = '默认项目';
+          $project->company_id = $companyId;
+          $project->is_valid = 1;
+          $project->save();
 
-      $variable = $this->variableModel();
-      $variable->company_id = $companyId;
-      $variable->tenant_prefix = 'CUS';
-      $res = $variable->save();
-      // 项目初始化
-      $project = new ProjectModel;
-      $project->proj_type = AppEnum::projType;
-      $project->proj_name = '默认项目';
-      $project->company_id = $companyId;
-      $project->is_valid = 1;
-      $project->save();
-
-      $depart = new Depart;
-      $depart->name = $companyName;
-      $depart->company_id = $companyId;
-      $depart->parent_id = 0;
-      $depart->save();
+          $depart = new Depart;
+          $depart->name = $companyName;
+          $depart->company_id = $companyId;
+          $depart->parent_id = 0;
+          $depart->save();
+        }
+      }, 2);
     } catch (Exception $e) {
       Log::error("初始化公司失败" . $e->getMessage());
       throw new Exception("初始化公司失败!");
@@ -143,19 +148,23 @@ class VariableService
   public function editVariable($DA, $user)
   {
     $variable = $this->variableModel()->find($user['company_id']);
-    $variable->cus_prefix           = $DA['cus_prefix'];
-    $variable->tenant_prefix        = $DA['tenant_prefix'];
-    $variable->contract_due_remind  = $DA['contract_due_remind'];
-    $variable->msg_revoke_time      = $DA['msg_revoke_time'];
-    $variable->contract_prefix      = $DA['contract_prefix'];
-    $variable->year_days            = isset($DA['year_days']) ? $DA['year_days'] : 365;
-    $variable->u_uid                = $user['id'];
-    $res = $variable->save();
-    return $res;
+    $variable->cus_prefix          = $DA['cus_prefix'];
+    $variable->tenant_prefix       = $DA['tenant_prefix'];
+    $variable->contract_due_remind = $DA['contract_due_remind'];
+    $variable->msg_revoke_time     = $DA['msg_revoke_time'];
+    $variable->contract_prefix     = $DA['contract_prefix'];
+    $variable->year_days           = isset($DA['year_days']) ? $DA['year_days'] : 365;
+    $variable->u_uid               = $user['id'];
+    return $variable->save();
   }
 
-  /** 得到租户编号 */
-  public function getTenantNo($companyId)
+  /**
+   * 获取租户编号
+   * @param mixed $companyId 
+   * @return string 
+   * @throws LogicException 
+   */
+  public function getTenantNo($companyId): string
   {
     $res  = CompanyVariable::find($companyId);
     if (!$res) {

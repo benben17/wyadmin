@@ -2,15 +2,16 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-use App\Api\Services\Operation\SupplierService;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\ContactService;
-use App\Enums\AppEnum;
+use App\Api\Services\Common\BseMaintainService;
+use App\Api\Services\Operation\SupplierService;
 
 /**
  *   供应商管理
@@ -58,29 +59,15 @@ class SupplierController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $this->setPagesize($request);
 
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
-    $data = $this->supplier->supplierModel()
+    $query = $this->supplier->supplierModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->supplier_type && $q->where('supplier_type', 'like', '%' . $request->supplier_type . '%');
         $request->name && $q->where('name', 'like', '%' . $request->name . '%');
-      })
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($data);
+      });
+
+    $data = $this->pageData($query, $request);
     $contactService = new ContactService;
 
     foreach ($data['result'] as $k => &$v) {
@@ -263,10 +250,19 @@ class SupplierController extends BaseController
       'id' => 'required|numeric|gt:0',
     ]);
     $DA = $request->toArray();
-    $res = $this->supplier->supplierModel()->whereIn('id', $request->Ids)->delete();
-    if ($res) {
-      return $this->success("删除成功。");
+    try {
+      DB::transaction(function () use ($DA) {
+        $this->supplier->supplierModel()->whereIn('id', $DA['Ids'])->delete();
+        $contactService = new ContactService;
+        $contactService->delContact($DA['Ids'], $this->parentType);
+
+        $commonMaintain = new BseMaintainService;
+        $commonMaintain->delMaintain($DA['Ids'], $this->parentType);
+      });
+      return $this->success('删除成功！');
+    } catch (\Exception $e) {
+      Log::error('删除失败：' . $e->getMessage());
+      return $this->error('删除失败！' . $e->getMessage());
     }
-    return $this->error('删除失败！');
   }
 }

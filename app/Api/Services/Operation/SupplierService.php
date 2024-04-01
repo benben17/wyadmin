@@ -2,14 +2,14 @@
 
 namespace App\Api\Services\Operation;
 
+use Exception;
+use App\Enums\AppEnum;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-use App\Api\Models\Operation\Supplier as SupplierModel;
-use App\Api\Services\Common\MessageService;
 use App\Api\Services\Common\ContactService;
-use App\Enums\AppEnum;
-use Exception;
+use App\Api\Services\Common\MessageService;
+use App\Api\Models\Operation\Supplier as SupplierModel;
 
 /**
  *  供应商管理
@@ -60,17 +60,16 @@ class SupplierService
           $contact = new ContactService;
           // 更新供应商的时候删除所有的联系人
           if ($type == 2) {
-            $contact->delete(str2Array($supplier->id));
+            $contact->delContact(str2Array($supplier->id), AppEnum::Supplier);
           }
           $user['parent_type'] = AppEnum::Supplier;
           $contacts = formatContact($DA['contacts'], $supplier->id, $user);
 
           if ($contacts) {
-
             $contact->saveAll($contacts);
           }
         }
-      });
+      }, 2);
       return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());

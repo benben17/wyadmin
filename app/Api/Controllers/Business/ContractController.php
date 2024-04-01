@@ -3,21 +3,21 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
-use Illuminate\Http\Request;
 use Exception;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use App\Enums\AppEnum;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Contract\BillRuleService;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Services\Template\TemplateService;
+use App\Api\Services\Tenant\TenantShareService;
+use App\Api\Services\Contract\ContractBillService;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
-use App\Api\Services\Contract\BillRuleService;
-use App\Api\Services\Template\TemplateService;
-use App\Api\Services\Contract\ContractBillService;
-use App\Api\Services\Contract\ContractService;
-use App\Api\Services\Tenant\TenantShareService;
-use App\Enums\AppEnum;
-use Illuminate\Support\Facades\App;
 
 /**
  * 合同管理
@@ -97,8 +97,6 @@ class ContractController extends BaseController
 
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
-
         $map = array();
         if ($request->tenant_id && $request->tenant_id > 0) {
             $map['tenant_id'] = $request->tenant_id;
@@ -106,20 +104,9 @@ class ContractController extends BaseController
         if ($request->contract_type) {
             $map['contract_type'] = $request->contract_type;
         }
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
+
         DB::enableQueryLog();
-        $data =  $this->contractService->model()->where($map)
+        $subQuery =  $this->contractService->model()->where($map)
             // ->with('contractRoom')
             // ->with('freeList')
             ->where(function ($q) use ($request) {
@@ -129,11 +116,9 @@ class ContractController extends BaseController
                 $request->contract_state && $q->whereIn('contract_state', $request->contract_state);
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
-            })->withCount('contractRoom')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            })->withCount('contractRoom');
 
-        $data = $this->handleBackData($data);
+        $data = $this->pageData($subQuery, $request);
         foreach ($data['result'] as $k => &$v) {
             $v['room'] = $this->contractService->getContractRoom($v['id']);
             $v['is_share'] = $this->tenantShareService->isShare($v['id']);
@@ -288,12 +273,11 @@ class ContractController extends BaseController
 
         $DA['contract_state'] = $DA['save_type'];
         // $DA['contract_state'] = $DA['save_type'];
-
-        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
-        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
+                $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+                $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
                 $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
@@ -341,7 +325,7 @@ class ContractController extends BaseController
             return $this->success(['id' => $contractId], '创建合同成功！');
         } catch (Exception $e) {
             Log::error("创建合同失败！" . $e->getMessage());
-            return $this->error("创建合同失败！");
+            return $this->error("创建合同失败！" . $e->getMessage());
         }
     }
 
@@ -439,12 +423,10 @@ class ContractController extends BaseController
             return $this->error('正式合同或者作废合同不允许更新');
         }
 
-        $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
-        $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
-
         try {
-
             DB::transaction(function () use ($DA) {
+                $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
+                $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
                 if ($DA['save_type'] == 1) {
@@ -738,7 +720,7 @@ class ContractController extends BaseController
     public function disuseContract(Request $request)
     {
         $validatedData = $request->validate([
-            'id' => 'required|numeric|gt:0', // 1 新签 2 续签
+            'id' => 'required|numeric|gt:0', //
             'remark' => 'required|String', //  备注
         ]);
         $DA = $request->toArray();

@@ -3,14 +3,14 @@
 namespace App\Api\Services\Common;
 
 use Exception;
-use Illuminate\Support\Facades\Log;
+use App\Enums\AppEnum;
 
-use App\Api\Models\Common\Maintain as MaintainModel;
-use App\Api\Models\Channel\Channel as  ChannelModel;
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\Tenant as TenantModel;
+use App\Api\Models\Channel\Channel as  ChannelModel;
+use App\Api\Models\Common\Maintain as MaintainModel;
 use App\Api\Models\Operation\Supplier as SupplierModel;
 use App\Api\Models\Operation\PubRelations as RelationsModel;
-use App\Enums\AppEnum;
 
 /**
  *  维护。type  1 channel 2 客户 3 供应商 4 政府关系 5 租户
@@ -169,5 +169,19 @@ class BseMaintainService
         } else {
             return "{}";
         }
+    }
+
+    /**
+     * 删除维护记录
+     * @Author   leezhua
+     * @DateTime 2020-07-04
+     * @param    array      $parentIds  [description]
+     * @param    int        $parentType [description]
+     * @return   [type]                 [description]
+     */
+    public function delMaintain(array $parentIds, int $parentType): bool
+    {
+        return $this->maintainModel()->whereIn('parent_id', $parentIds)
+            ->where('parent_type', $parentType)->delete();
     }
 }

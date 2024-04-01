@@ -3,14 +3,14 @@
 namespace App\Api\Controllers\Stat;
 
 use JWTAuth;
-use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Tenant\ChargeService;
 use App\Enums\AppEnum;
-use Hamcrest\Text\StringStartsWith;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Hamcrest\Text\StringStartsWith;
 use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\TenantBillService;
 
 class BillStatController extends BaseController
 {
@@ -106,12 +106,12 @@ class BillStatController extends BaseController
       'otherAmt' => $otherStat['receiveAmt']
     );
     $unReceived = array(
-      'totalAmt' => numFormat($totalStat['amt'] - $totalStat['receiveAmt']),
-      'rentalAmt' => numFormat($rentalStat['amt'] - $rentalStat['receiveAmt']),
-      'managerAmt' => numFormat($managerStat['amt'] - $managerStat['receiveAmt']),
-      'otherAmt' => numFormat($otherStat['amt'] - $otherStat['receiveAmt'])
+      'totalAmt' => $totalStat['amt'] - $totalStat['receiveAmt'],
+      'rentalAmt' => $rentalStat['amt'] - $rentalStat['receiveAmt'],
+      'managerAmt' => $managerStat['amt'] - $managerStat['receiveAmt'],
+      'otherAmt' => $otherStat['amt'] - $otherStat['receiveAmt']
     );
-    $yuqiStat['otherAmt'] = numFormat($yuqiOtherStat['otherAmt']);
+    $yuqiStat['otherAmt'] = $yuqiOtherStat['otherAmt'];
     $data = array(
       'reAmt' => $reAmt,
       'received' => $received,

@@ -2,15 +2,15 @@
 
 namespace App\Api\Controllers\Operation;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Log;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Operation\WorkOrderService;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  *   工单
@@ -55,25 +55,12 @@ class WorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'proj_ids' => 'required|array',
-      // 'status' => 'array',
+      'status' => 'array',
     ]);
-    $pagesize = $this->setPagesize($request);
+
     $map = array();
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
-    }
-
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
     }
 
     DB::enableQueryLog();
@@ -96,14 +83,8 @@ class WorkOrderController extends BaseController
         }
         $request->maintain_person  && $q->where('maintain_person', 'like', '%' . $request->maintain_person . '%');
       });
-    $data = $subQuery->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-
-    // return DB::getQueryLog();
-
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
     // 统计
-
     if (in_array(4, $request->status) && count($request->status) == 1) {
       $stat = $subQuery->selectRaw(
         'count(*) count,

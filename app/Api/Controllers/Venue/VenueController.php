@@ -2,10 +2,10 @@
 
 namespace App\Api\Controllers\Venue;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Venue\VenueServices;
 
 /**
@@ -53,7 +53,7 @@ class VenueController extends BaseController
 	 *       )
 	 *     ),
 	 *       example={
-	 *              "venue_province_id": "","venue_city_id":""
+	 *             "venue_province_id": 1,"venue_city_id": 1,"venue_name":"场馆名称","proj_id":1
 	 *           }
 	 *       )
 	 *     ),
@@ -65,32 +65,16 @@ class VenueController extends BaseController
 	 */
 	public function index(Request $request)
 	{
-		$pagesize = $request->input('pagesize');
-		if (!$pagesize || $pagesize < 1) {
-			$pagesize = config('per_size');
-		} elseif ($pagesize == '-1') {
-			$pagesize = config('export_rows');
-		}
+
 		$map = array();
 
 		if ($request->input('proj_id')) {
 			$map['proj_id'] = $request->input('proj_id');
 		}
-		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'created_at';
-		}
-		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$orderByAsc = $request->input('order');
-		} else {
-			$orderByAsc = 'desc';
-		}
+
 		DB::enableQueryLog();
 
-		$data = $this->venueServices->VenueModel()
+		$query = $this->venueServices->VenueModel()
 			->where($map)
 			->where(function ($q) use ($request) {
 				$request->venue_name && $q->where('venue_name', 'like', '%' . $request->venue_name . '%');
@@ -100,12 +84,8 @@ class VenueController extends BaseController
 			->withCount('venueBook')
 			->withCount(['venueSettle as settle_amount' => function ($q) {
 				$q->select(DB::Raw('ifnull(sum(amount),"0.00")'));
-			}])
-			->orderBy($orderBy, $orderByAsc)
-			->paginate($pagesize)->toArray();
-		// return response()->json(DB::getQueryLog());
-
-		$data = $this->handleBackData($data);
+			}]);
+		$data = $this->pageData($query, $request);
 		return $this->success($data);
 	}
 

@@ -2,14 +2,14 @@
 
 namespace App\Api\Controllers\Common;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Services\Common\BseMaintainService as maintainService;
-use App\Enums\AppEnum;
+use App\Api\Controllers\BaseController;
 use App\Api\Excel\Common\MaintainExcel;
+use App\Api\Services\Common\BseMaintainService as maintainService;
 
 
 /**
@@ -36,7 +36,7 @@ class MaintainController extends BaseController
      *             @OA\Schema(
      *                 required={"parent_id", "parent_type", "proj_ids", "maintain_types"},
      *                 @OA\Property(property="parent_id", type="int", description="父亲ID"),
-     *                 @OA\Property(property="parent_type", type="int", description="父类型"),
+     *                 @OA\Property(property="parent_type", type="int", description="1 channel 2 客户 3 供应商 4 政府关系 5 租户"),
      *                 @OA\Property(property="proj_ids", type="string", description="项目id 多个ID（,）逗号隔开"),
      *                 @OA\Property(property="maintain_types", type="string", description="维护类型中文数组"),
      *                 @OA\Property(property="start_time", type="string", format="date", description="开始时间"),
@@ -68,14 +68,11 @@ class MaintainController extends BaseController
     public function list(Request $request)
     {
         $validatedData = $request->validate([
+            // 1 channel 2 客户 3 供应商 4 政府关系 5 租户
             'parent_type' => 'required|numeric|in:1,2,3,4,5',
-
         ]);
 
         $pagesize = $this->setPagesize($request);
-
-
-        // $map['parent_type'] = $request->parent_type;
         $map = array();
         if (isset($request->parent_id)) {
             $map['parent_id'] = $request->parent_id;
@@ -95,11 +92,10 @@ class MaintainController extends BaseController
 
         // Log::error($this->user);
         DB::enableQueryLog();
-        $parentType = $request->parent_type;
         $maintainService  = new maintainService;
         $maintain = $maintainService->maintainModel()->where($map)
             ->with('createUser:id,realname')
-            ->where(function ($q) use ($request, $parentType) {
+            ->where(function ($q) use ($request) {
                 $request->parent_type && $q->where('parent_type', $request->parent_type);
                 $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
                 $request->create_person && $q->where('c_username', 'like', '%' . $request->create_person . '%');
@@ -125,7 +121,7 @@ class MaintainController extends BaseController
         // 获取主表名称
         foreach ($maintain['data'] as $k => &$v) {
             $v['name'] = $maintainService->getParentName($v['parent_id'], $request->parent_type);
-            // $v['maintain_type_label'] = getDictName($v['maintain_type']);
+            $v['maintain_type_label'] = getDictName($v['maintain_type']);
         }
 
         $data = $this->handleBackData($maintain);
