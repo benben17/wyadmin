@@ -487,7 +487,7 @@ class CustomerController extends BaseController
             ->find($request->id)->toArray();
 
         $info = new BaseInfoService;
-        $data['source_type_label'] = getDictName($data['source_type']);
+
         $business_info  = $info->getById($data['business_id']);
         if (empty($business_info)) {
             $business_info = (object)[];
@@ -501,6 +501,7 @@ class CustomerController extends BaseController
             $data['extra_info'] = (object)[];
         }
         $data['business_info'] = $business_info;
+        $data['source_type_label'] = getDictName($data['source_type']);
         $data['channel_name'] = $data['channel']['channel_name'] ?? "";
         $data['channel_type'] = $data['channel']['channel_type'] ?? "";
         return $this->success($data);
