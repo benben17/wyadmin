@@ -4,9 +4,9 @@ namespace App\Api\Controllers\Company;
 
 use JWTAuth;
 // use App\Exceptions\ApiException;
-use App\Api\Controllers\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\CompanyDict as DictModel;
 use App\Api\Models\Company\CompanyDictType as DictTypeModel;
 
@@ -63,7 +63,7 @@ class DictController extends BaseController
         // $DA[$v] = $data;
         // return response()->json(DB::getQueryLog());
         foreach ($data as $k => &$v) {
-            $v['key'] = $v['dict_key'];
+            $v['key']   = $v['dict_key'];
             $v['value'] = $v['dict_value'];
         }
         return $this->success($data);
@@ -79,7 +79,7 @@ class DictController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={""}
+     *          required={"is_edit"}
      *
      *     ),
      *       example={

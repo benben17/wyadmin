@@ -4,7 +4,6 @@ namespace App\Enums;
 
 use MyCLabs\Enum\Enum;
 
-
 /**
  * 应用变量信息
  *
@@ -80,6 +79,7 @@ abstract class AppEnum extends Enum
 
   const chargeVerify   = 1;  //  已核销
   const chargeUnVerify = 0;  // 未核销
+
 
 
   // 单位

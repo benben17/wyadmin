@@ -23,6 +23,15 @@ class ChannelService
     return new ChannelModel;
   }
 
+  public function policyModel()
+  {
+    return new PolicyModel;
+  }
+  public function brokerageModel()
+  {
+    return new BrokerageModel;
+  }
+
   /** 保存渠道 */
   public function savePolicy($DA, $user)
   {
@@ -65,12 +74,6 @@ class ChannelService
     } else {
       return false;
     }
-  }
-
-  public function policyModel()
-  {
-    $policy =  new PolicyModel;
-    return $policy;
   }
 
   /** 渠道租金更新 */
@@ -206,5 +209,39 @@ class ChannelService
     }
     $statData[] = $channelCount;
     return $statData;
+  }
+
+
+  public function formatChannel($DA, $user, $type = 1)
+  {
+    if ($type == 1) {
+      $BA['company_id'] = $user['company_id'];
+      $BA['c_uid'] = $user['id'];
+      $BA['is_valid'] = $DA['is_vaild'];
+      $BA['created_at'] = nowTime();
+    } else {
+      $BA['u_uid'] = $user['id'];
+      $BA['id'] = $DA['id'];
+    }
+    $BA['channel_name'] = $DA['channel_name'];
+    if (isset($DA['channel_addr'])) {
+      $BA['channel_addr'] = $DA['channel_addr'];
+    }
+    if (isset($DA['channel_type'])) {
+      $BA['channel_type'] = $DA['channel_type'];
+    }
+    if (isset($DA['policy_id'])) {
+      $BA['policy_id'] = $DA['policy_id'];
+    }
+    if (isset($DA['brokerage_amount'])) {
+      $BA['brokerage_amount'] = $DA['brokerage_amount'];
+    }
+
+    if (isset($DA['remark'])) {
+      $BA['remark'] = $DA['remark'];
+    }
+    $BA['proj_ids'] = isset($DA['proj_ids']) ? $DA['proj_ids'] : "";
+
+    return $BA;
   }
 }

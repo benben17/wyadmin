@@ -2,7 +2,6 @@
 
 namespace App\Api\Controllers\Business;
 
-use JWTAuth;
 use Exception;
 use App\Enums\AppEnum;
 use App\Api\Models\Project;
@@ -16,8 +15,7 @@ use App\Api\Excel\Business\ChannelExcel;
 use App\Api\Services\Common\DictServices;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Common\Contact as ContactModel;
-use App\Api\Models\Channel\Channel as ChannelModel;
-use App\Api\Models\Channel\ChannelBrokerage as BrokerageModel;
+
 
 /**
  * 渠道管理
@@ -228,10 +226,8 @@ class ChannelController extends BaseController
         ]);
         try {
             DB::transaction(function () use ($request) {
-                $userInfo = auth('api')->user();
-                $channel = $request->toArray();
-                $channel = $this->formatChannel($channel); // 格式化数据
-                $result = channelModel::Create($channel);
+                $channel = $this->channelService->formatChannel($request->toArray(), $this->user); // 格式化数据
+                $result = $this->channelService->model()->Create($channel);
                 if ($result &&  $request->channel_contact) {
                     $channel_id = $result->id;
                     $userInfo['parent_type'] = AppEnum::Channel;
@@ -282,20 +278,22 @@ class ChannelController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|gt:0',
         ]);
-        $data = channelModel::with('channelContact')
+        $data = $this->channelService->model()->with('channelContact')
             ->with('channelPolicy:id,name')
             ->with('channelMaintain')
-            ->with('createUser:id,name')
+            ->with('createUser:id,name,realname')
             ->find($request->input('id'));
         DB::enableQueryLog();
-        if ($data) {
-            if ($data['proj_ids']  == '') {
-                $data['proj_label'] = "全部项目";
-            } else {
-                $res = Project::selectRaw("group_concat(proj_name) as proj_name")
-                    ->whereIn("id", str2Array($data['proj_ids']))->first();
-                $data['proj_label'] =  $res->proj_name;
-            }
+        if (!$data) {
+            return $this->success($data);
+        }
+        $projIds = $data->proj_ids ?? false;
+        if (!$projIds) {
+            $data['proj_label'] = "全部项目";
+        } else {
+            $res = Project::selectRaw("group_concat(proj_name) as proj_name")
+                ->whereIn("id", str2Array($projIds))->first();
+            $data['proj_label'] =  $res->proj_name;
         }
         // return response()->json(DB::getQueryLog());
         return $this->success($data);
@@ -345,7 +343,7 @@ class ChannelController extends BaseController
             $order = 'desc';
         }
 
-        $data = BrokerageModel::where($map)
+        $data = $this->channelService->brokerageModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
             })
@@ -419,8 +417,7 @@ class ChannelController extends BaseController
         ];
         $validator = \Validator::make($request->all(), [
             'id' => 'required|numeric|gt:0',
-            'channel_name' => 'required',
-            'channel_name' => Rule::unique('bse_channel')->ignore($request->input('id')),
+            'channel_name' =>  ['required', Rule::unique('bse_channel')->ignore($request->input('id'))],
             'channel_contact' => 'required|array',
         ], $messages);
 
@@ -428,22 +425,21 @@ class ChannelController extends BaseController
         if ($error) {
             return $this->error($error);
         }
-        $checkChannel = channelModel::findOrFail($request->id);
+        $checkChannel = $this->channelService->model()->findOrFail($request->id);
         if (!$checkChannel) {
             return $this->error('渠道不存在');
         }
         try {
             DB::transaction(function () use ($request) {
-                $data = $request->toArray();
-                $userinfo = auth('api')->user();
+                $channelData = $request->toArray();
                 $userinfo['parent_type'] = AppEnum::Channel;
-                $channel = $this->formatChannel($data, 2); //编辑传入值
+                $channel = $this->channelService->formatChannel($channelData, $this->user, 2); //编辑传入值
                 //更新渠道
                 DB::enableQueryLog();
-                $res = channelModel::whereId($request->id)->update($channel);
+                $this->channelService->model()->whereId($request->id)->update($channel);
                 //更新或者新增渠道联系人
-                if ($data['channel_contact']) {
-                    $contacts = formatContact($data['channel_contact'], $request->id, $userinfo, 2);
+                if ($channelData['channel_contact']) {
+                    $contacts = formatContact($channelData['channel_contact'], $request->id, $userinfo, 2);
                     ContactModel::where('parent_id', $request->id)->where('parent_type', $this->parent_type)->delete();
                     $contact = new ContactModel;
                     $contact->addAll($contacts);
@@ -495,7 +491,7 @@ class ChannelController extends BaseController
         DB::enableQueryLog();
 
 
-        $res = channelModel::whereIn('id', $request['Ids'])->update($data);
+        $res = $this->channelService->model()->whereIn('id', $request['Ids'])->update($data);
         // return response()->json(DB::getQueryLog());
         if ($res) {
             return $this->success("渠道更新成功.");
@@ -662,36 +658,5 @@ class ChannelController extends BaseController
     }
     // return response()->json(DB::getQueryLog());
 
-    private function formatChannel($DA, $type = 1)
-    {
-        if ($type == 1) {
-            $BA['company_id'] = $this->company_id;
-            $BA['c_uid'] = $this->uid;
-            $BA['is_valid'] = $DA['is_vaild'];
-            $BA['created_at'] = nowTime();
-        } else {
-            $BA['u_uid'] = $this->uid;
-            $BA['id'] = $DA['id'];
-        }
-        $BA['channel_name'] = $DA['channel_name'];
-        if (isset($DA['channel_addr'])) {
-            $BA['channel_addr'] = $DA['channel_addr'];
-        }
-        if (isset($DA['channel_type'])) {
-            $BA['channel_type'] = $DA['channel_type'];
-        }
-        if (isset($DA['policy_id'])) {
-            $BA['policy_id'] = $DA['policy_id'];
-        }
-        if (isset($DA['brokerage_amount'])) {
-            $BA['brokerage_amount'] = $DA['brokerage_amount'];
-        }
 
-        if (isset($DA['remark'])) {
-            $BA['remark'] = $DA['remark'];
-        }
-        $BA['proj_ids'] = isset($DA['proj_ids']) ? $DA['proj_ids'] : "";
-
-        return $BA;
-    }
 }

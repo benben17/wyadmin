@@ -5,8 +5,8 @@ namespace App\Api\Excel\Business;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 
 class ChannelExcel implements FromArray, WithHeadings, WithMapping
@@ -43,14 +43,14 @@ class ChannelExcel implements FromArray, WithHeadings, WithMapping
   public function headings(): array
   {
     return [
-      '#',
+      '#NO',
       "渠道名称",
       "渠道类型",
       "常用联系人",
       "联系电话",
       "政策",
       "佣金",
-      "	总客户数",
+      "总客户数",
       "成交客户数",
       "录入人",
       "添加时间"

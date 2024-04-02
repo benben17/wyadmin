@@ -2,14 +2,13 @@
 
 namespace App\Api\Controllers\Auth;
 
-use JWTAuth;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
+
 
 class AuthController extends BaseController
 {
@@ -64,10 +63,10 @@ class AuthController extends BaseController
         $nickname = "";
         if ($user->unionid) {
             $wxInfo = \App\Api\Models\Weixin\WxInfo::where('unionid', $user['unionid'])->first();
-            $isbind = 1;
+            $isBind = 1;
             $nickname = $wxInfo->nickname;
         } else {
-            $isbind = 0;
+            $isBind = 0;
         }
         $data = [
             'token' => $token,
@@ -75,7 +74,7 @@ class AuthController extends BaseController
             'username' => $user->name,
             'is_admin' => $user->is_admin,
             'phone' => $user->phone,
-            'is_bind' => $isbind,
+            'is_bind' => $isBind,
 
         ];
         if ($user->depart_id == 0) {
@@ -90,7 +89,7 @@ class AuthController extends BaseController
             'name' => $user->realname,
             'uid' => $user->id,
             'avatar' => $user->avatar,
-            'avatar_full_path' => getOssUrl($user->avatar),
+            'avatar_full' => getOssUrl($user->avatar),
             'access' => ['admin'],
             'company_name' => $result->name,
             'company_access' => [$result->product->en_name],
@@ -146,7 +145,8 @@ class AuthController extends BaseController
         ]);
         $oldpassword = $request->input('oldpassword');
         $password = Hash::make($request->input('password'));
-        $uid  = auth()->payload()->get('sub');
+        $this->authUser(); // 用户认证
+        $uid = auth('api')->user()->id;
         $user = \App\Models\User::find($uid);
         if (!Hash::check($oldpassword, $user->password)) {
             return $this->error('旧密码不正确!');
@@ -182,12 +182,13 @@ class AuthController extends BaseController
     public function userinfo(Request $request)
     {
         try {
-            $user = auth('api')->user();
-            $result = \App\Models\User::with('company')->with('role:id,name')->find($user->id);
+            $this->authUser();
+            $uid = auth('api')->user()->id;
+            $result = \App\Models\User::with('company')->with('role:id,name')->find($uid);
             if (!$result) {
                 return $this->error('用户信息查询失败!');
             }
-            $result->avatar_full_path = getOssUrl($result->avatar);
+            $result->avatar_full = getOssUrl($result->avatar);
             return $this->success($result);
         } catch (Exception $e) {
             return $this->error($e->getMessage());
@@ -225,12 +226,12 @@ class AuthController extends BaseController
     {
         try {
             $this->authUser();
-            $user = auth('api')->user();
+            $uid = auth('api')->user()->id;
             $DA = $request->toArray();
-            $userInfo = \App\Models\User::find($user->id);
-            $userInfo->u_uid = $this->uid;
-            $userInfo->email = isset($DA['email']) ? $DA['email'] : "";
-            $userInfo->phone = isset($DA['phone']) ? $DA['phone'] : "";
+            $userInfo = \App\Models\User::find($uid);
+            $userInfo->u_uid  = $uid;
+            $userInfo->email  = isset($DA['email']) ? $DA['email'] : "";
+            $userInfo->phone  = isset($DA['phone']) ? $DA['phone'] : "";
             $userInfo->remark = isset($DA['remark']) ? $DA['remark'] : "";
             $userInfo->avatar = isset($DA['avatar']) ? $DA['avatar'] : "";
             $result = $userInfo->save();
@@ -273,9 +274,9 @@ class AuthController extends BaseController
     public function bindWeChat(Request $request)
     {
         $this->authUser();
-        $user = auth('api')->user();
         $DA = $request->toArray();
-        $userInfo = \App\Models\User::find($user->id);
+        $uid = auth('api')->user()->id;
+        $userInfo = \App\Models\User::find($uid);
         $userInfo->wx_openid = $DA['openid'];
         $result = $userInfo->save();
         if (!$result) {

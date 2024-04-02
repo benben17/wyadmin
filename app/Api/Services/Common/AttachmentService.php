@@ -5,7 +5,7 @@ namespace App\Api\Services\Common;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
-use App\Api\Models\Common\Attachment as AttachmentModel;
+use App\Api\Models\Common\Attachment;
 
 /**
  * 附件服务
@@ -13,9 +13,14 @@ use App\Api\Models\Common\Attachment as AttachmentModel;
 class AttachmentService
 {
 
+  public function model()
+  {
+    return new Attachment;
+  }
+
   public function save($DA, $user)
   {
-    $attachment = new AttachmentModel;
+    $attachment = $this->model();
     $attachment->company_id  = $user['company_id'];
     $attachment->parent_id   = $DA['parent_id'];
     $attachment->parent_type = $DA['parent_type'];
@@ -41,11 +46,11 @@ class AttachmentService
     $map['parent_id'] = $parent_id;
     $map['parent_type'] = $parent_type;
     DB::enableQueryLog();
-    $data = AttachmentModel::where($map)->get();
+    $data = $this->model()->where($map)->get();
     if ($data) {
       $data = $data->toArray();
       foreach ($data as $k => &$v) {
-        $v['full_path'] = getOssUrl($v['file_path']);
+        $v['file_path_full'] = getOssUrl($v['file_path']);
       }
     }
     return $data;
@@ -60,21 +65,21 @@ class AttachmentService
    */
   public function delete($Ids)
   {
-    return AttachmentModel::whereIn('id', $Ids)->delete();
+    return $this->model()->whereIn('id', $Ids)->delete();
   }
 
   /** 通过附件ID集合获取所有的附件路径信息 */
   public function getFilePath($ids)
   {
     $ids = str2Array($ids);
-    $res  = AttachmentModel::whereIn($ids)
+    $files  = $this->model()->whereIn($ids)
       ->select(DB::Raw('group_concat(file_path) file_path'))->first();
-    if ($res) {
-      $filePath = str2Array($res['file_path']);
+    if ($files) {
+      $filePath = str2Array($files['file_path']);
       foreach ($filePath as $k => &$v) {
         $v = getOssUrl($v);
       }
-      return $res;
+      return $files;
     } else {
       return false;
     }

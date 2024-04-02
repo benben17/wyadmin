@@ -3,6 +3,7 @@
 namespace App\Api\Services\Common;
 
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Company\CompanyDictType;
 use App\Api\Models\Company\CompanyDict as DictModel;
 
 /**
@@ -14,6 +15,11 @@ class DictServices
   public function dictModel()
   {
     return new DictModel();
+  }
+
+  public function dictTypeModel()
+  {
+    return new CompanyDictType();
   }
 
   public function getByKey(array $companyIds, $dictKey)
