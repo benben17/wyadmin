@@ -2,13 +2,9 @@
 
 namespace App\Api\Services\Venue;
 
-use App\Api\Models\Venue\ActivityReg;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Api\Models\Venue\Venue as VenueModel;
-use App\Api\Models\Venue\VenueBook as VenueBookModel;
-use App\Api\Models\Venue\VenueSettle as VenueSettleModel;
 use Exception;
+
+use App\Api\Models\Venue\ActivityReg;
 
 /**
  *

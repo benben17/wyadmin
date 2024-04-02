@@ -12,21 +12,23 @@ use App\Api\Services\Venue\ActivityService;
 use App\Api\Services\Venue\ActivityRegService;
 
 /**
- *  活动
+ *  活动报名
  */
-class ActivityController extends BaseController
+class ActivityRegController extends BaseController
 {
 
-	private $activityService;
+	private $wxPayService;
+	private $activityRegService;
 	public function __construct()
 	{
 		parent::__construct();
-		$this->activityService = new ActivityService;
+		$this->wxPayService = new WxPayService;
+		$this->activityRegService = new ActivityRegService;
 	}
 	/**
 	 * @OA\Post(
 	 *     path="/api/activity/reg/list",
-	 *     tags={"活动"},
+	 *     tags={"活动报名"},
 	 *     summary="活动报名列表",
 	 *    @OA\RequestBody(
 	 *       @OA\MediaType(
@@ -34,6 +36,11 @@ class ActivityController extends BaseController
 	 *       @OA\Schema(
 	 *          schema="UserModel",
 	 *          required={},
+	 *       @OA\Property(
+	 *          property="venue_id",
+	 *          type="int",
+	 *          description="场馆ID"
+	 *       ),
 	 *       @OA\Property(
 	 *          property="activity_id",
 	 *          type="int",
@@ -51,7 +58,7 @@ class ActivityController extends BaseController
 	 *       )
 	 *     ),
 	 *       example={
-	 *             "venue_id": 1,"venue_name": "","proj_ids":"[1,2]"
+	 *             "venue_id": 1,"activity_id": 1,"venue_name": "","proj_ids":"[1,2]"
 	 *           }
 	 *       )
 	 *     ),
@@ -75,10 +82,11 @@ class ActivityController extends BaseController
 		if ($request->user_phone) {
 			$ma['user_phone'] = $request->user_phone;
 		}
-		$query = $this->activityService->model()->where($map)
+		$query = $this->activityRegService->model()->where($map)
 			->where(function ($q) use ($request) {
 				$request->activity_title && $q->where('activity_title', 'like', '%' . $request->activity_title . '%');
 				$request->venue_name && $q->where('venue_name', 'like', '%' . $request->venue_name . '%');
+				$request->user_name && $q->where('user_name', 'like', '%' . $request->user_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 			});
 		$data = $this->pageData($query, $request);
@@ -87,7 +95,7 @@ class ActivityController extends BaseController
 
 	/**
 	 * @OA\Post(
-	 *     path="/api/activity/show",
+	 *     path="/api/activity/reg/show",
 	 *     tags={"活动报名"},
 	 *     summary="根据场馆id获取信息",
 	 *    @OA\RequestBody(
@@ -119,7 +127,7 @@ class ActivityController extends BaseController
 			'id' => 'required|int|gt:0',
 		]);
 		DB::enableQueryLog();
-		$data = $this->activityService->model()->find($request->id);
+		$data = $this->activityRegService->model()->find($request->id);
 
 		// $data['venue_book'] = $this->venueServices->getVenueBook($request->id);
 		// return response()->json(DB::getQueryLog());
@@ -127,18 +135,19 @@ class ActivityController extends BaseController
 		return $this->success($data);
 	}
 
+
 	/**
 	 * @OA\Post(
-	 *     path="/api/activity/save",
-	 *     tags={"活动"},
-	 *     summary="活动添加/编辑",
+	 *     path="/api/activity/reg/pay",
+	 *     tags={"活动报名"},
+	 *     summary="活动报名支付",
 	 *    @OA\RequestBody(
 	 *       @OA\MediaType(mediaType="application/json",
 	 *       @OA\Schema(
 	 *          schema="UserModel",required={"activityId"},
-	 *      @OA\Property(property="id",type="int",description="活动报名id")
+	 *      @OA\Property(property="activityId",type="int",description="活动报名id")
 	 *     ),
-	 *       example={"id": ""}
+	 *       example={"activityId": ""}
 	 *       )
 	 *     ),
 	 *     @OA\Response(
@@ -147,36 +156,37 @@ class ActivityController extends BaseController
 	 *     )
 	 * )
 	 */
-	public function save(Request $request)
+	public function regPay(Request $request)
 	{
 
 		$validatedData = $request->validate([
-			'proj_id' => 'required|min:1',
-			'venue_id' => 'required|min:1',
-			'venue_name' => 'required',
-			'activity_title' => 'required',
-			'activity_desc' => 'required',
-			'activity_type' => 'required',
-			'start_date' => 'required',
-			'end_date' => 'required',
-		]);
 
-		$res = $this->activityService->saveActivity($request->toArray(), $this->user);
-		return $res ? $this->success("添加成功") : $this->error("添加失败");
+			// 'venue_addr' => 'required|String',
+			// 'proj_id' => 'required|min:1',
+		]);
+		$param = $request->toArray();
+		$trade_no = date("ymdHis") . mt_rand(1000, 9999);
+		$param['out_trade_no'] = $trade_no;
+		$param['amount'] = '1';
+		$param['description'] = '测试活动报名';
+		$param['openid'] = "o2Hy06_8zLxwGDsYpfmfYmhhM6CI";
+		$res = $this->wxPayService->wxJsApiPay($param, $param['openid']);
+
+		return $this->success($res);
 	}
 
 	/**
 	 * @OA\Post(
-	 *     path="/api/activity/delete",
-	 *     tags={"活动"},
-	 *     summary="活动删除",
+	 *     path="/api/activity/reg/refund",
+	 *     tags={"活动报名"},
+	 *     summary="活动报名退款",
 	 *    @OA\RequestBody(
 	 *       @OA\MediaType(mediaType="application/json",
 	 *       @OA\Schema(
-	 *          schema="UserModel",required={"id"},
-	 *      @OA\Property(property="id",type="int",description="活动id")
+	 *          schema="UserModel",required={"activityId"},
+	 *      @OA\Property(property="activityId",type="int",description="活动报名id")
 	 *     ),
-	 *       example={"id": ""}
+	 *       example={"activityId": ""}
 	 *       )
 	 *     ),
 	 *     @OA\Response(
@@ -185,20 +195,22 @@ class ActivityController extends BaseController
 	 *     )
 	 * )
 	 */
-	public function delete(Request $request)
+	public function regRefund(Request $request)
 	{
+
 		$validatedData = $request->validate([
-			'id' => 'required|int|gt:0',
+
+			// 'venue_addr' => 'required|String',
+			// 'proj_id' => 'required|min:1',
 		]);
-		$activity = $this->activityService->model()->find($request->id);
-		if (!$activity) {
-			return $this->error("活动不存在");
-		}
-		if ($activity->start_date < date('Y-m-d H:i:s') && $activity->end_date > date('Y-m-d H:i:s')) {
-			return $this->error("活动已开始，不能删除");
-		}
-		$res = $this->activityService->model()->where('id', $request->id)->delete();
-		return $res ? $this->success("【" . $activity->activity_title . "】删除成功")
-			: $this->error("删除失败");
+		$param = $request->toArray();
+		$trade_no = date("ymdHis") . mt_rand(1000, 9999);
+		$param['out_trade_no'] = $trade_no;
+		$param['amount'] = '1';
+		$param['description'] = '测试活动报名';
+		$param['openid'] = "o2Hy06_8zLxwGDsYpfmfYmhhM6CI";
+		$res = $this->wxPayService->wxJsApiPay($param, $param['openid']);
+
+		return $this->success($res);
 	}
 }

@@ -2,15 +2,15 @@
 
 namespace App\Api\Services\Pay;
 
-use App\Enums\ConfEnum;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use Exception;
 use WeChatPay\Builder;
+use App\Enums\ConfEnum;
+use WeChatPay\Formatter;
 use WeChatPay\Crypto\Rsa;
 use WeChatPay\Util\PemUtil;
 use WeChatPay\Crypto\AesGcm;
-use WeChatPay\Formatter;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Api\Services\Weixin\WxConfService;
 
 class WxPayService
@@ -32,15 +32,15 @@ class WxPayService
 
     $this->companyId = $user->company_id;
     $this->confService = new WxConfService;
-
     $conf = $this->confService->getWechatPayConf();
-    $this->appid = Cache::get(ConfEnum::XCX_APPID . $this->companyId) ?? $conf['app_id'];
-    $this->merchantId = Cache::get(ConfEnum::MERCHANT_ID . $this->companyId) ?? $conf['mch_id'];
-    $this->notifyUrl = Cache::get(ConfEnum::NOTIFY_URL . $this->companyId) ?? $conf['notify_url'];
-    $this->platformCert = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $this->companyId) ?? $conf['platform_cert'];
-    $this->mchPrivateKey = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $this->companyId) ?? $conf['mch_key'];
-    $this->apiv3Key = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $this->companyId) ?? $conf['api_key'];
-    $this->mchPrivateCertSerial = Cache::get(ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $this->companyId) ?? $conf['mch_key_serial'];
+    $companyId = $this->companyId;
+    $this->appid = Cache::get(ConfEnum::XCX_APPID . $companyId) ?? $conf['app_id'];
+    $this->merchantId = Cache::get(ConfEnum::MERCHANT_ID . $companyId) ?? $conf['mch_id'];
+    $this->notifyUrl = Cache::get(ConfEnum::NOTIFY_URL . $companyId) ?? $conf['notify_url'];
+    $this->platformCert = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $companyId) ?? $conf['platform_cert'];
+    $this->mchPrivateKey = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $companyId) ?? $conf['mch_key'];
+    $this->apiv3Key = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $companyId) ?? $conf['api_key'];
+    $this->mchPrivateCertSerial = Cache::get(ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $companyId) ?? $conf['mch_key_serial'];
   }
 
 
@@ -77,7 +77,7 @@ class WxPayService
    *
    * @return void
    */
-  function wxJsapiPay(array $order, $openid): array
+  function wxJsApiPay(array $order, $openid): array
   {
     try {
       $resp = $this->instance()
@@ -123,18 +123,18 @@ class WxPayService
    *
    * @return boolean
    */
-  function wxRefund(array $pay): bool
+  function wxRefund(array $order): bool
   {
     try {
       $resp = $this->instance()
         ->chain('v3/refund/domestic/refunds')
         ->post(['json' => [
-          'transaction_id'  => $pay['transaction_id'],
-          'out_refund_no'   => $pay['out_trade_no'],
-          'reason'          => $pay['description'],
+          'transaction_id'  => $order['transaction_id'],
+          'out_refund_no'   => $order['out_trade_no'],
+          'reason'          => $order['description'],
           'amount'          => [
-            'refund'        => $pay['refundAmt'],
-            'total'         => $pay['total'],
+            'refund'        => $order['refund_amt'],
+            'total'         => $order['total'],
             'currency'      => 'CNY',
           ]
         ]]);
@@ -172,31 +172,36 @@ class WxPayService
    */
   function wxPayNotify($wxSignature, $wxTimestamp, $wxpayNonce, $wxBody)
   {
-    $platformPublicKeyInstance = Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC);
-    // // 检查通知时间偏移量，允许5分钟之内的偏移
-    $timeOffsetStatus = 300 >= abs(Formatter::timestamp() - (int)$wxTimestamp);
-    //   // 构造验签名串
-    $verifiedStatus = Rsa::verify(
-      Formatter::joinedByLineFeed($wxTimestamp, $wxpayNonce, $wxBody),
-      $wxSignature,
-      $platformPublicKeyInstance
-    );
-    if ($timeOffsetStatus && $verifiedStatus) {
-      // 转换通知的JSON文本消息为PHP Array数组
-      $inBodyArray = (array)json_decode($wxBody, true);
-      // 使用PHP7的数据解构语法，从Array中解构并赋值变量
-      ['resource' => [
-        'ciphertext'      => $ciphertext,
-        'nonce'           => $nonce,
-        'associated_data' => $aad
-      ]] = $inBodyArray;
-      // 加密文本消息解密
-      $inBodyResource = AesGcm::decrypt($ciphertext, $this->apiv3Key, $nonce, $aad);
-      // 把解密后的文本转换为PHP Array数组
-      $inBodyResourceArray = (array)json_decode($inBodyResource, true);
-      // print_r($inBodyResourceArray);// 打印解密后的结果
-      Log::error($inBodyResourceArray);
-      return $inBodyResourceArray;
+    try {
+      $platformPublicKeyInstance = Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC);
+      // // 检查通知时间偏移量，允许5分钟之内的偏移
+      $timeOffsetStatus = 300 >= abs(Formatter::timestamp() - (int)$wxTimestamp);
+      //   // 构造验签名串
+      $verifiedStatus = Rsa::verify(
+        Formatter::joinedByLineFeed($wxTimestamp, $wxpayNonce, $wxBody),
+        $wxSignature,
+        $platformPublicKeyInstance
+      );
+      if ($timeOffsetStatus && $verifiedStatus) {
+        // 转换通知的JSON文本消息为PHP Array数组
+        $inBodyArray = (array)json_decode($wxBody, true);
+        // 使用PHP7的数据解构语法，从Array中解构并赋值变量
+        ['resource' => [
+          'ciphertext'      => $ciphertext,
+          'nonce'           => $nonce,
+          'associated_data' => $aad
+        ]] = $inBodyArray;
+        // 加密文本消息解密
+        $inBodyResource = AesGcm::decrypt($ciphertext, $this->apiv3Key, $nonce, $aad);
+        // 把解密后的文本转换为PHP Array数组
+        $inBodyResourceArray = (array)json_decode($inBodyResource, true);
+        // print_r($inBodyResourceArray);// 打印解密后的结果
+        Log::error($inBodyResourceArray);
+        return $inBodyResourceArray;
+      }
+    } catch (Exception $e) {
+      throw new Exception($e);
+      Log::error($e->getMessage());
     }
     Log::error($wxBody);
   }
