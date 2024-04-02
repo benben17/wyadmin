@@ -356,7 +356,7 @@ class CustomerService
       $v['contact_phone'] = $v['contact_info']['phone'] ?? "";
       $v['channel_name'] = $v['channel']['channel_name'] ?? "";
       $v['channel_type'] = $v['channel']['channel_type'] ?? "";
-      $v['is_first_visit'] = $v['follow_count'] == 1 ? 1 : 0; // 是否首次来访
+      $v['is_first_visit'] = $v['follow_count'] == 1 ? '是' : '否'; // 是否首次来访
       unset($v['channel']);
       unset($v['contact_info']);
       unset($v['extra_info']);

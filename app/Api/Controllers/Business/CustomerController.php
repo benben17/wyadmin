@@ -85,11 +85,16 @@ class CustomerController extends BaseController
                 $request->industry && $q->where('industry', $request->industry);
                 $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
-
-                if ($request->visit_time) {
+                $visitTime = $request->visit_time ? $request->visit_time : 0;
+                if ($visitTime == 1) {
                     $q->whereHas('follow', function ($q) {
                         $q->where('follow_type', AppEnum::followVisit);
                         $q->havingRaw('count(*) > 1');
+                    });
+                } elseif ($visitTime == 0) {
+                    $q->whereHas('follow', function ($q) {
+                        $q->where('follow_type', AppEnum::followVisit);
+                        $q->havingRaw('count(*) <= 1');
                     });
                 }
                 return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
