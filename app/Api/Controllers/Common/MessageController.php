@@ -3,12 +3,12 @@
 namespace App\Api\Controllers\Common;
 
 use JWTAuth;
+use Exception;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Services\Common\MessageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Common\MessageService;
 
 /**
  *
@@ -37,7 +37,7 @@ class MessageController extends BaseController
      *       @OA\Property(property="is_read",type="int",description="1 所有 2未读 3 已读")
      *     ),
      *       example={
-     *              "type":"1","is_read":"0"
+     *              "type":"1","is_read":"1"
      *           }
      *       )
      *     ),
@@ -50,46 +50,33 @@ class MessageController extends BaseController
     public function list(Request $request)
     {
         $validatedData = $request->validate([
-            'is_read' => 'required|int|in:1,2,3',
+            'is_read' => 'required|int|in:1,2,3', // 1 所有 2未读 3 已读
         ]);
         $DA = $request->toArray();
-        $pagesize = $this->setPagesize($request);
         $map = array();
         // 消息类型
         if ($request->input('type')) {
             $map['type'] = $request->input('type');
         }
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'id';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
         $companyId = array(0, $this->company_id);
         // return $this->uid;
         DB::enableQueryLog();
-        $data = $this->msgService->msgModel()->where($map)
+        $subQuery = $this->msgService->msgModel()->where($map)
             ->whereIn('company_id', $companyId)
             ->where(function ($q) {
                 $q->whereRaw('FIND_IN_SET(' . $this->uid . ',receive_uid)');
                 $q->orWhere('receive_uid', -1);
             })
             ->when($DA['is_read'], function ($query) use ($DA) {
-                if ($DA['is_read'] == 2) {
+                if ($DA['is_read'] == 2) { // 未读
                     return $query->whereDoesntHave('messageRead', function ($q) use ($DA) {
                         return $q->where('uid', $this->uid);
                     });
-                } else if ($DA['is_read'] == 3) {
+                } else if ($DA['is_read'] == 3) { // 已读
                     return $query->whereHas('messageRead', function ($q) use ($DA) {
                         return $q->where('uid', $this->uid)->where('is_delete', 0);
                     });
-                } else {
+                } else { // 所有
                     return $query->whereDoesntHave('messageRead', function ($q) use ($DA) {
                         return $q->where('is_delete', 1)->where('uid', $this->uid);
                     });
@@ -97,12 +84,12 @@ class MessageController extends BaseController
             })
             ->with(['messageRead' => function ($q) {
                 $q->where('uid', $this->uid);
-            }])
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            }]);
+
+
         // return response()->json(DB::getQueryLog());
 
-        $data = $this->handleBackData($data);
+        $data = $this->pageData($subQuery, $request);
         return $this->success($data);
     }
 
@@ -138,8 +125,6 @@ class MessageController extends BaseController
         $validatedData = $request->validate([
             'msgIds' => 'required|array',
         ]);
-
-
         $res = $this->msgService->setRead($request->msgIds, $this->uid);
         if ($res) {
             return $this->success('success');
@@ -265,7 +250,7 @@ class MessageController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|int|gt:0',
         ]);
-        $msg = $this->msgService->whereId($request->id)
+        $msg = $this->msgService->msgModel()->whereId($request->id)
             ->where('sender_uid', $this->uid)->first();
         $revokeTime = getVariable($this->company_id, 'msg_revoke_time');
         if (strtotime($msg['created_at']) + $revokeTime * 60 <= time()) {
@@ -278,7 +263,7 @@ class MessageController extends BaseController
             });
             return $this->success('消息撤回成功。');
         } catch (Exception $e) {
-            Log::error($e . getMessage());
+            Log::error($e->getMessage());
             return $this->success('消息撤回失败！');
         }
     }
@@ -307,31 +292,16 @@ class MessageController extends BaseController
      */
     public function sendList(Request $request)
     {
-        $DA = $request->toArray();
-        $pagesize = $this->setPagesize($request);
+
         $map = array();
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'id';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
+
         $map['sender_uid'] = $this->uid;
         $map['company_id'] = $this->company_id;
         DB::enableQueryLog();
         $data = $this->msgService->msgModel()
             ->where($map)
-            ->withCount('messageRead')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
-        // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($data);
+            ->withCount('messageRead');
+        $data = $this->pageData($data, $request);
         $revokeTime = getVariable($this->company_id, 'msg_revoke_time');
         foreach ($data['result'] as $k => &$v) {
             if (strtotime($v['created_at']) + $revokeTime * 60 <= time()) {

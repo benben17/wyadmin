@@ -66,9 +66,8 @@ class UserServices
       if ($res) {
         return  str2Array($res['menu_list']);
       }
-    } else {
-      return [];
     }
+    return [];
   }
 
   /**
@@ -76,20 +75,13 @@ class UserServices
    */
   public function saveUserProfile(array $DA, $uid)
   {
-    $profile = UserProfileModel::find($uid);
-    if (!$profile) {
-      $profile = new UserProfileModel;
-    }
-    $profile->user_id = $uid;
-    if (isset($DA['default_proj_id']) && $DA['default_proj_id'] > 0) {
-      $profile->default_proj_id = $DA['default_proj_id'];
-    }
-    if (isset($DA['page_rows']) && $DA['page_rows'] > 0) {
-      $profile->page_rows     = $DA['page_rows'];
-    }
-    $res = $profile->save();
-    return $res;
+    $data = ['user_id' => $uid];
+    $data['default_proj_id'] = $DA['default_proj_id'] ?? 0;
+    $data['page_rows'] = $DA['page_rows'] ?? 15;
+    $profile = UserProfileModel::updateOrCreate(['user_id' => $uid], $data);
+    return $profile->wasRecentlyCreated || $profile->wasChanged();
   }
+
 
   /** 获取用户基本信息 */
   public function getLoginUser($uid)

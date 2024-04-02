@@ -20,7 +20,7 @@ class BseMaintainService
 
     public function maintainModel(): MaintainModel
     {
-        return  new MaintainModel;
+        return new MaintainModel;
     }
 
     /**

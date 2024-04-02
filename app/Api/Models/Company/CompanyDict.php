@@ -31,8 +31,4 @@ class CompanyDict extends Model
 		$uid = $this->attributes['c_uid'] ?? 0;
 		return $uid > 0 ? getUserByUid($uid)['realname'] : "admin";
 	}
-	public function extra()
-	{
-		return $this->hasMany('App\Api\Models\Channel\Channel', 'channel_type', 'dict_value');
-	}
 }

@@ -277,7 +277,7 @@ class MaintainController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"id","prent_type"},
+     *          required={"id","parent_type"},
      *       @OA\Property(
      *          property="id",
      *          type="int",

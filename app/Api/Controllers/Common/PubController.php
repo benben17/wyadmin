@@ -3,11 +3,9 @@
 namespace App\Api\Controllers\Common;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Models\Role as RoleModel;
 use App\Models\Area as AreaModel;
+use App\Api\Controllers\BaseController;
 
 class PubController extends BaseController
 {

@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * 公司约束
+ * @Date 2021-06-01
+ * @Author leezhua
+ */
 class CompanyScope implements Scope
 {
     /**
