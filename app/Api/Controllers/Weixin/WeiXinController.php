@@ -33,7 +33,9 @@ class WeiXinController extends BaseController
    */
   public function redirectToProvider(Request $request)
   {
-    return Socialite::with('weixinweb')->redirect();
+    $res =  Socialite::with('weixinweb')->redirect();
+    Log::error(json_encode($res));
+    return $res;
   }
   /**
    * 微信接口回调
@@ -45,12 +47,12 @@ class WeiXinController extends BaseController
   public function handleProviderCallback(Request $request)
   {
     try {
-      $user_data = Socialite::with('weixinweb')->stateless()->user();
-      if ($user_data) {
+      $wx_data = Socialite::with('weixinweb')->stateless()->user();
+      if ($wx_data) {
         // Log::error("11111");
         $uid = base64_decode($request->state);
         Log::error($uid . "------" . $request->state);
-        $wx_user = $user_data->user;
+        $wx_user = $wx_data->user;
 
         $wxService = new WeiXinServices;
         DB::enableQueryLog();
@@ -103,7 +105,7 @@ class WeiXinController extends BaseController
     }
     $wxService = new WeiXinServices;
     $result = $wxService->wxKey($request->code);
-
+    Log::error(json_encode($result));
     if (isset($result['errcode']) || !isset($result['unionid'])) {
       return $this->error($result['errmsg']);
     }

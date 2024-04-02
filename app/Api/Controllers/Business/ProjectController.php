@@ -206,6 +206,7 @@ class ProjectController extends BaseController
             return $this->error($data['proj_name'] . '项目添加失败！');
         }
     }
+
     /**
      * @OA\Post(
      *     path="/api/business/project/edit",
@@ -269,6 +270,53 @@ class ProjectController extends BaseController
         }
     }
 
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/project/set",
+     *     tags={"项目"},
+     *     summary="项目账单内容编辑",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id","proj_name"},
+     *       @OA\Property(
+     *          property="id",
+     *          type="int",
+     *          description="项目ID"
+     *       ),
+     *       @OA\Property(
+     *          property="proj_name",
+     *          type="String",
+     *          description="项目名称"
+     *       )
+     *     ),
+     *       example={"id": "","proj_name":""}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+
+    public function billProjEdit(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id'    => 'required|min:1',
+        ]);
+        $billProjData = [
+            'water_price' => $request->water_price ?? 0.00,
+            'electric_price' => $request->electric_price ?? 0.00,
+            'bill_instruction' => $request->bill_instruction ?? "",
+            'operate_entity' => $request->operate_entity ?? "",
+        ];
+        $res = ProjectModel::find($request->id)->update($billProjData);
+        return $res ? $this->success('项目账单内容更新成功！') : $this->error('项目账单内容更新失败！');
+    }
 
     /**
      * @OA\Post(
@@ -346,7 +394,6 @@ class ProjectController extends BaseController
      */
     public function show(Request $request)
     {
-
         $validatedData = $request->validate([
             'id' => 'required|min:1',
         ]);

@@ -39,4 +39,4 @@
 
 [Excel文档](https://docs.laravel-excel.com/3.1/getting-started/upgrade.html)
 
-<https://open.weixin.qq.com/connect/qrconnect?appid=wxcea7671633cc6ac2&redirect_uri=https%3A%2F%2Fapi.stararea.cn%2Fapi%2Fwx%2Fcallback&response_type=code&scope=snsapi_login&state=3d6be0a4035d839573b04816624a415e#wechat_redirect>
+<https://open.weixin.qq.com/connect/qrconnect?appid=wxcea7671633cc6ac2&redirect_uri=https%3A%2F%2Fapi.scly.vip%2Fapi%2Fwx%2Fcallback&response_type=code&scope=snsapi_login&state=3d6be0a4035d839573b04816624a415e#wechat_redirect>

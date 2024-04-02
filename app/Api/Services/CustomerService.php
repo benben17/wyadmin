@@ -358,8 +358,6 @@ class CustomerService
       $v['channel_type'] = $v['channel']['channel_type'] ?? "";
       // 0 未访 1 首访 2 复访
       $v['is_first_visit'] = $v['follow_count'] == 0 ? '未访' : ($v['follow_count'] == 1 ? '首访' : '复访');
-
-
       unset($v['channel']);
       unset($v['contact_info']);
       unset($v['extra_info']);

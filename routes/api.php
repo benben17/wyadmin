@@ -140,6 +140,7 @@ Route::group(['prefix' => 'business/project'], function () {
     Route::post('del', '\App\Api\Controllers\Business\ProjectController@delete');
     Route::post('show', '\App\Api\Controllers\Business\ProjectController@show');
     Route::post('enable', '\App\Api\Controllers\Business\ProjectController@enable');
+    Route::post('set', '\App\Api\Controllers\Business\ProjectController@billProjEdit');
 });
 //公司所使用的字典
 Route::group(['prefix' => 'company/dict'], function () {

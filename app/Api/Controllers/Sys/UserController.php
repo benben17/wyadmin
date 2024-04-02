@@ -6,12 +6,12 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Models\User as UserModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
-use App\Models\User as UserModel;
-use App\Api\Services\Sys\UserServices;
 
 
 class UserController extends BaseController
@@ -51,13 +51,7 @@ class UserController extends BaseController
 
     public function index(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('app.pagesize');
-        }
-        if ($pagesize == -1) {
-            $pagesize = config('export_rows');
-        }
+        $pagesize = $this->setPagesize($request);
 
         $user = auth('api')->user();
         // $result = UserModel::with("role:id,name")->where('company_id',$user->company_id)->paginate($pagesize);
@@ -69,7 +63,7 @@ class UserController extends BaseController
             $user->is_admin || $query->where('is_admin', 0);
         })
             ->with('depart:id,name')
-            ->paginate($pagesize)->toArray();
+            ->paginate($pagesize);
         // return response()->json(DB::getQueryLog());
         if (!$result) {
             return $this->error('查询失败!');
@@ -170,7 +164,7 @@ class UserController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"name", "realnme","password","phone","role_id"},
+     *          required={"name", "realname","password","phone","role_id"},
      *       @OA\Property(
      *          property="name",
      *          type="string",
