@@ -46,6 +46,12 @@ class YhWorkOrder extends Model
     return picFullPath($pic);
   }
 
+  /**
+   * 工单状态
+   * @Author leezhua
+   * @Date 2024-04-02
+   * @return string[] 
+   */
   public function statusMap()
   {
     return [

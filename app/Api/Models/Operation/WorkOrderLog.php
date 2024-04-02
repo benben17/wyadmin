@@ -26,15 +26,14 @@ class WorkOrderLog extends Model
 
   public function getStatusAttribute($status)
   {
-    if ($status == 1)
-      return '待接单';
-    else if ($status == 2)
-      return '处理中';
-    else if ($status == 3)
-      return '处理完成';
-    else if ($status == 4)
-      return '关闭';
-    else if ($status == 99)
-      return '已取消';
+    $statusMap = [
+      1 => '待接单',
+      2 => '处理中',
+      3 => '处理完成',
+      4 => '关闭',
+      99 => '已取消',
+    ];
+
+    return $statusMap[$status] ?? '未知状态';
   }
 }

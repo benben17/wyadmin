@@ -509,23 +509,19 @@ function getProjIdByName($projName)
  * @Author leezhua
  * @DateTime 2021-08-21
  * @param [type] $parentIds
- * @param array $arr
+ * @param array $idArr
  *
  * @return array
  */
-function getDepartIds($parentIds, $arr): array
+function getDepartIds($parentIds, $idArr): array
 {
-    $departs = \App\Models\Depart::selectRaw("GROUP_CONCAT(id) ids")
-        ->wherein('parent_id', $parentIds)->first();
-    if (empty($departs['ids'])) {
-        return $arr;
+    $departs = \App\Models\Depart::whereIn('parent_id', $parentIds)->pluck('id')->toArray();
+    if (empty($departs)) {
+        return $idArr;
     }
 
-    $depart_ids = str2Array($departs['ids']);
-    foreach ($depart_ids as $k => $v) {
-        array_push($arr, (int) $v);
-    }
-    return getDepartIds($depart_ids, $arr);
+    $idArr = array_merge($idArr, $departs);
+    return getDepartIds($departs, $idArr);
 }
 
 /**
@@ -564,7 +560,7 @@ function getMonthRange($yearMonth): array
  * @param mixed $pic 
  * @return string[] 
  */
-function picFullPath($pic)
+function picFullPath($pic): array
 {
     $picFull = [];
     $picList = str2Array($pic);
