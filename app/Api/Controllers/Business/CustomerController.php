@@ -86,7 +86,8 @@ class CustomerController extends BaseController
                 $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
                 $visitTimes = $request->visit_time;
-                if ($visitTimes) {
+                if ($visitTimes) { // 1: 2次以上 复访 2: 2次一下
+                    // 是否复访
                     $q->whereHas('follow', function ($q) use ($visitTimes) {
                         $q->where('follow_type', AppEnum::followVisit);
                         $visitTimes == 1 && $q->havingRaw('count(*) > 1');
