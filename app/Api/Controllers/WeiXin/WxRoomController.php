@@ -10,10 +10,8 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 
 use App\Api\Models\Project as ProjectModel;
-use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
-use App\Api\Services\Contract\ContractService;
 
 /**
  * 项目房源信息
@@ -46,6 +44,7 @@ class WxRoomController extends BaseController
      *          required={"pagesize","proj_id","build_id","orderBy","order"},
      *     ),
      *       example={
+     *          "pagesize":"10","proj_id":"1","build_id":"1","orderBy":"id","order":"desc"
      *           }
      *       )
      *     ),
