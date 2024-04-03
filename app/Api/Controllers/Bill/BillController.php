@@ -2,22 +2,18 @@
 
 namespace App\Api\Controllers\Bill;
 
-use JWTAuth;
-use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
-use App\Api\Models\Bill\TenantBill;
-use App\Api\Models\Energy\MeterRecord;
-use App\Api\Models\Tenant\Tenant;
-use App\Api\Services\Contract\ContractService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
-use App\Api\Services\Bill\TenantBillService;
-use App\Exports\UserExport;
-use App\Api\Services\Template\TemplateService;
-use App\Enums\AppEnum;
-use Exception;
 use Excel;
+use JWTAuth;
+use Exception;
+use App\Enums\AppEnum;
+use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Energy\MeterRecord;
+use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Template\TemplateService;
 
 
 /**

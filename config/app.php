@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://wyadmin.xwweb.com/'),
+    'url' => env('APP_URL', 'https://app.stararea.cn/'),
 
     'asset_url' => env('ASSET_URL', null),
 

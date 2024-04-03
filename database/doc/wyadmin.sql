@@ -11,16 +11,16 @@
  Target Server Version : 50730
  File Encoding         : 65001
 
- Date: 11/06/2023 10:32:46
+ Date: 11/06/2023 10:32:46 
 */
 
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+SET FOREIGN_KEY_CHECKS = 0; 
 
 -- ----------------------------
 -- Table structure for wy_admin_config
 -- ----------------------------
-DROP TABLE IF EXISTS `wy_admin_config`;
+DROP TABLE IF EXISTS `wy_admin_config`; 
 CREATE TABLE `wy_admin_config` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,

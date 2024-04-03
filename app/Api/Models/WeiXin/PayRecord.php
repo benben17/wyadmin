@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Api\Models\Venue;
+namespace App\Api\Models\Weixin;
 
 
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
 /**
  * 支付记录
@@ -25,7 +25,7 @@ class PayRecord extends Model
 
     public function activity()
     {
-        return $this->hasOne('App\Api\Models\Venue\ActivityReg', 'id', 'activity_reg_id');
+        return $this->hasOne(ActivityReg::class, 'id', 'activity_reg_id');
     }
     // public function venueBook()
     // {

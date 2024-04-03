@@ -10,6 +10,8 @@ use MyCLabs\Enum\Enum;
  * @Author leezhua
  * @DateTime 2024-03-25
  */
+
+
 abstract class AppEnum extends Enum
 {
   const Channel      = 1;  //  渠道

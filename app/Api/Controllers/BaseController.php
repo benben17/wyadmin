@@ -11,8 +11,20 @@ use Illuminate\Contracts\Container\BindingResolutionException;
  * @OA\Info(
  *     version="v1.0.0",
  *     title="物业管理系统 OpenApi"
+ * ),
+ * @OA\Server(
+ *     url="http://localhost:8080",
+ *     description="API Server"
+ * ),
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="apiKey",
+ *     in="header",
+ *     name="Authorization",
+ *     description="Bearer Token"
  * )
  */
+
 class BaseController extends Controller
 {
 

@@ -4,6 +4,12 @@
         "title": "物业管理系统 OpenApi",
         "version": "v1.0.0"
     },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "API Server"
+        }
+    ],
     "paths": {
         "/api/auth/login": {
             "post": {
@@ -13718,6 +13724,16 @@
                         "description": ""
                     }
                 }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "apiKey",
+                "description": "Bearer Token",
+                "name": "Authorization",
+                "in": "header"
             }
         }
     }
