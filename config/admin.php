@@ -154,7 +154,7 @@ return [
     'upload' => [
 
         // Disk in `config/filesystem.php`.
-        'disk' => 'oss',
+        'disk' => 'local',
 
         // Image and file upload path under the disk above.
         'directory' => [
@@ -349,9 +349,7 @@ return [
     'minify_assets' => [
 
         // Assets will not be minified.
-        'excepts' => [
-
-        ],
+        'excepts' => [],
 
     ],
 
@@ -396,24 +394,22 @@ return [
     |
     */
     'extensions' => [
-             'china-distpicker' => [
-                        // 如果要关掉这个扩展，设置为false
-                        'enable' => true,
-                    ],
-			 'wang-editor' => [
+        'china-distpicker' => [
+            // 如果要关掉这个扩展，设置为false
+            'enable' => true,
+        ],
+        'wang-editor' => [
 
-						// 如果要关掉这个扩展，设置为false
-						'enable' => true,
+            // 如果要关掉这个扩展，设置为false
+            'enable' => true,
 
-						// 编辑器的配置
-						'config' => [
-
-						]
-					],
-            'light-box' => [
-                     // Set to `false` if you want to disable this extension
-                     'enable' => true,
-                 ],
+            // 编辑器的配置
+            'config' => []
+        ],
+        'light-box' => [
+            // Set to `false` if you want to disable this extension
+            'enable' => true,
+        ],
 
     ],
 ];

@@ -7,10 +7,11 @@ use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use App\Models\Company;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\Storage;
-use App\Api\Services\Company\VariableService;
+use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Log;
+use App\Api\Services\Company\VariableService;
 use Encore\Admin\Controllers\AdminController;
 
 class CompanyController extends AdminController
@@ -58,8 +59,7 @@ class CompanyController extends AdminController
         $grid->id('ID');
         $grid->column('name', '客户名称');
         $grid->column('user', '用户数')->display(function ($user) {
-            $count = count($user);
-            return "{$count}";
+            return count($user);
         });
         $grid->column('product.name', '产品名称');
         $grid->column('proj_count', '项目数');
@@ -98,57 +98,56 @@ class CompanyController extends AdminController
      */
     protected function detail($id)
     {
-        $show = new Show(Company::findOrFail($id));
+        $company = Company::findOrFail($id);
+
+        $show = new Show($company);
         $show->field('name', '客户名称')->setWidth(8, 2, 6);
         $show->field('credit_code', '营业执照号')->setWidth(8, 2, 6);
         $show->field('proj_count', '项目数')->setWidth(8, 2, 6);
         $show->field('contact_per', '联系人')->setWidth(8, 2, 6);
         $show->field('tel', '联系电话')->setWidth(8, 2, 6);
-        $show->field('province', '所在地区')->as(function () {
-            return $this->province->name . $this->city->name . $this->district->name;
+        $show->field('province', '所在地区')->as(function () use ($company) {
+            return $company->province->name . $company->city->name . $company->district->name;
         })->setWidth(8, 2, 6);
         $show->field('address', '联系地址')->setWidth(8, 2, 6);
         $show->field('remark', '备注')->setWidth(8, 2, 6);
         $show->field('logo', '企业logo')->image()->setWidth(8, 2, 6);
-        $show->field('config', '配置信息')->json()->setWidth(4, 1, 12);
+        // $show->field('config', '配置信息')->json()->setWidth(4, 1, 12);
 
-        // $show->module('模块', function ($module) {
-        //     $module->id();
-        //     $module->title('模块名称');
-        //     $module->name('模块名');
-        //     $module->created_at("添加时间");
-        //     $module->updated_at("更新时间");
-        //     $module->disableCreateButton();
-        //     $module->disablePagination();
-        //     $module->disableExport();
-        //     $module->disableRowSelector();
-        //     $module->disableActions();
-        //     $module->disableColumnSelector();
-        //     $module->disableFilter();
-        // });
         $show->order('订单', function ($order) {
+            // $order->resource('/admin/orders');
             $order->order_no('订单号');
             $order->column('status', '状态')->display(function ($value) {
                 $status = config('paystatus')[$value];
                 return "<span style='color:blue'>$status</span>";
             });
-            $order->column('product.name', '产品名称');
-            $order->month('时长');
-            $order->price('单价');
-            $order->amount('金额');
-            $order->paytime("付款时间");
-            $order->created_at("下单时间");
+            $order->column('company_id', '客户名称')->display(function ($value) {
+                return Company::find($value)->name;
+            });
+            // $order->column('product_id', '产品名称')->display(function ($value) {
+            //     return \App\Models\Product::where('id', $value)->first()->en_name;
+            //     Log::error($value);
+            // });
+            $order->column('name', '产品名称');
+            $order->column('month', '时长');
+            $order->column('price', '单价');
+            $order->amount('总金额');
+            $order->created_at('下单时间');
             $order->disableCreateButton();
             $order->disablePagination();
             $order->disableExport();
             $order->disableRowSelector();
             $order->disableActions();
-            $order->disableColumnSelector();
             $order->disableFilter();
         });
+
+
+
         $show->panel()->tools(function ($tools) {
             $tools->disableDelete();
         });
+
+
         return $show;
     }
 
@@ -208,5 +207,29 @@ class CompanyController extends AdminController
     {
         $data = Company::select('id', 'name as text')->get();
         return $data;
+    }
+
+    protected function orderGrid($orders)
+    {
+        $grid = new Grid($orders);
+
+        $grid->order_no('订单号');
+        $grid->column('status', '状态')->display(function ($value) {
+            $status = config('paystatus')[$value] ?? '未知状态';
+            return "<span style='color:blue'>$status</span>";
+        });
+        $grid->column('name', '产品名称');
+        $grid->column('month', '时长');
+        $grid->column('price', '单价');
+
+        $grid->disableCreateButton();
+        $grid->disablePagination();
+        $grid->disableExport();
+        $grid->disableRowSelector();
+        $grid->disableActions();
+        $grid->disableColumnSelector();
+        $grid->disableFilter();
+
+        return $grid;
     }
 }

@@ -94,15 +94,7 @@ class WxRoomController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $request->input('pagesize');
-        if (!$pagesize || $pagesize < 1) {
-            $pagesize = config('per_size');
-        }
-        if ($pagesize == '-1') {
-            $pagesize = config('export_rows');
-        }
         $map = array();
-
         if ($request->build_id) {
             $map['build_id'] = $request->build_id;
             if ($request->build_floor_id) {
@@ -121,20 +113,8 @@ class WxRoomController extends BaseController
             $map['room_type'] = 1;
         }
 
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
         DB::enableQueryLog();
-        $data = RoomModel::where($map)
+        $subQuery = RoomModel::where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', '%' . $request->room_no . '%');
                 $request->is_valid && $q->where('is_valid', $request->is_valid);
@@ -147,12 +127,11 @@ class WxRoomController extends BaseController
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
             })
             ->with('building:id,proj_name,build_no,proj_id')
-            ->with('floor:id,floor_no')
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            ->with('floor:id,floor_no');
+
 
         // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($data);
+        $data = $this->pageData($subQuery, $request);
         $buildService  = new BuildingService;
 
         if ($data['result']) {

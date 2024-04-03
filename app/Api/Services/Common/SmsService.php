@@ -3,10 +3,10 @@
 namespace App\Api\Services\Common;
 
 use Exception;
-use Illuminate\Support\Facades\Log;
+
 use Illuminate\Support\Facades\DB;
 
-use Cisco\Aliyunsms\Facades\Aliyunsms;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 短信服务

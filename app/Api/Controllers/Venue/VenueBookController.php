@@ -2,10 +2,10 @@
 
 namespace App\Api\Controllers\Venue;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Venue\VenueServices;
 
 
@@ -64,32 +64,16 @@ class VenueBookController extends BaseController
 		$validatedData = $request->validate([
 			'book_state' => 'required|int|in:0,1,2,99',
 		]);
-		$pagesize = $request->input('pagesize');
-		if (!$pagesize || $pagesize < 1) {
-			$pagesize = config('per_size');
-		} elseif ($pagesize == '-1') {
-			$pagesize = config('export_rows');
-		}
+
 		$map = array();
 
-		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'id';
-		}
-		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$orderByAsc = $request->input('order');
-		} else {
-			$orderByAsc = 'desc';
-		}
+
 		if ($request->activity_type) {
 			$map['activity_type'] = $request->activity_type;
 		}
 
 		DB::enableQueryLog();
-		$data = $this->venueServices->venueBookModel()->where($map)
+		$subQuery = $this->venueServices->venueBookModel()->where($map)
 			->where(function ($q) use ($request) {
 				if ($request->book_ym) {
 					$s_date = dateFormat('Y-m-01', $request->book_ym);
@@ -110,11 +94,9 @@ class VenueBookController extends BaseController
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 			})
 
-			->with('venue:id,venue_name')
-			->orderBy($orderBy, $orderByAsc)
-			->paginate($pagesize)->toArray();
+			->with('venue:id,venue_name');
 		// return response()->json(DB::getQueryLog());
-		$data = $this->handleBackData($data);
+		$data = $this->pageData($subQuery, $request);
 		foreach ($data['result'] as $k => &$v) {
 			$v['book_state'] = $this->venueServices->bookState($v['state']);
 			$v['venue_name'] = $v['venue']['venue_name'];
