@@ -31,7 +31,7 @@
 - PHP extension php_gd2 enabled
 - PHP extension php_zip enabled.   phpoffice
 
-[更新日志](changelog.md)
+[更新日志](/doc/changelog.md)
 
 ### 刷新 api文档
 
