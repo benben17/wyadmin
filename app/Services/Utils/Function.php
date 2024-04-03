@@ -536,7 +536,7 @@ function getDepartIds($parentIds, $idArr): array
  */
 function compareTime(string $dateString1, string $dateString2): bool
 {
-    return strtotime($dateString1) < strtotime($dateString2);
+    return strtotime($dateString1) > strtotime($dateString2);
 }
 
 // 根据月份获取当前月份的开始日期和结束日期返回数组
