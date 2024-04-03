@@ -6,9 +6,8 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Api\Services\CustomerService;
 use App\Api\Controllers\BaseController;
+use App\Api\Business\Services\CustomerService;
 
 /**
  * 微信招商app 首页统计

@@ -33,13 +33,14 @@ class WxPayService
     $this->companyId = $user->company_id;
     $this->confService = new WxConfService;
     $conf = $this->confService->getWechatPayConf();
-    $companyId = $this->companyId;
-    $this->appid = Cache::get(ConfEnum::XCX_APPID . $companyId) ?? $conf['app_id'];
-    $this->merchantId = Cache::get(ConfEnum::MERCHANT_ID . $companyId) ?? $conf['mch_id'];
-    $this->notifyUrl = Cache::get(ConfEnum::NOTIFY_URL . $companyId) ?? $conf['notify_url'];
-    $this->platformCert = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $companyId) ?? $conf['platform_cert'];
-    $this->mchPrivateKey = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $companyId) ?? $conf['mch_key'];
-    $this->apiv3Key = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $companyId) ?? $conf['api_key'];
+    $companyId                  = $this->companyId;
+    ConfEnum::keys();
+    $this->appid                = Cache::get(ConfEnum::XCX_APPID . $companyId) ?? $conf['app_id'];
+    $this->merchantId           = Cache::get(ConfEnum::MERCHANT_ID . $companyId) ?? $conf['mch_id'];
+    $this->notifyUrl            = Cache::get(ConfEnum::NOTIFY_URL . $companyId) ?? $conf['notify_url'];
+    $this->platformCert         = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $companyId) ?? $conf['platform_cert'];
+    $this->mchPrivateKey        = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $companyId) ?? $conf['mch_key'];
+    $this->apiv3Key             = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $companyId) ?? $conf['api_key'];
     $this->mchPrivateCertSerial = Cache::get(ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $companyId) ?? $conf['mch_key_serial'];
   }
 

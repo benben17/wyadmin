@@ -5,13 +5,13 @@ namespace App\Api\Controllers\Business;
 use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
-use App\Api\Controllers\BaseController;
 use App\Api\Models\Tenant\Follow;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 
-use App\Api\Models\Tenant\Tenant;
+use App\Api\Controllers\BaseController;
+use App\Api\Business\Services\CustomerService;
 use App\Api\Models\Tenant\Remind as RemindModel;
-use App\Api\Services\CustomerService;
 
 /**
  * 项目管理

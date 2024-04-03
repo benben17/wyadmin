@@ -47,7 +47,7 @@ class BillStatController extends BaseController
       $endYmd = date('Y-m-01');
       $endYmd = date('Y-m-t');
     }
-    Log::error("startYmd" . $startYmd . $endYmd);
+    // Log::error("startYmd" . $startYmd . $endYmd);
     $billService  = new TenantBillService;
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
     ifnull(sum(discount_amount),0.00) discountAmt,

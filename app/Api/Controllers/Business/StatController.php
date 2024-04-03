@@ -3,21 +3,17 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
-use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
 
-use Illuminate\Support\Facades\Log;
 use App\Api\Models\Business\CusClue;
-use App\Api\Services\CustomerService;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\DictServices;
 use App\Api\Models\Building as BuildingModel;
+use App\Api\Business\Services\CustomerService;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
-use App\Api\Models\Contract\ContractBill as ContractBillModel;
 
 /**
  *

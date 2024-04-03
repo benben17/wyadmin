@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Api\Services;
+namespace App\Api\Business\Services;
 
 use Exception;
 use App\Enums\AppEnum;
-use Illuminate\Support\Arr;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Remind;
 use App\Api\Models\Tenant\Tenant;
@@ -190,12 +189,12 @@ class CustomerService
       })->first();
 
     return array(
-      ['lable' => '成交平均来访', 'value' => numFormat($laifang['avg'])],
-      ['lable' => '平均跟进次数', 'value' => round($avg_follow['count'])],
-      ['lable' => '最大跟进次数', 'value' => $max_follow['count']],
-      ['lable' => '来访大于2次', 'value' => sizeof($laifang_cus)],
-      ['lable' => '总计跟进', 'value' => $avg_follow['total']],
-      ['lable' => '跟进中客户', 'value' => $following_cus['total']]
+      ['label' => '成交平均来访', 'value' => numFormat($laifang['avg'])],
+      ['label' => '平均跟进次数', 'value' => round($avg_follow['count'])],
+      ['label' => '最大跟进次数', 'value' => $max_follow['count']],
+      ['label' => '来访大于2次', 'value' => sizeof($laifang_cus)],
+      ['label' => '总计跟进', 'value' => $avg_follow['total']],
+      ['label' => '跟进中客户', 'value' => $following_cus['total']]
     );
   }
 

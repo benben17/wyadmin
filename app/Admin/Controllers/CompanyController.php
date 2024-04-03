@@ -99,7 +99,6 @@ class CompanyController extends AdminController
     protected function detail($id)
     {
         $company = Company::findOrFail($id);
-
         $show = new Show($company);
         $show->field('name', '客户名称')->setWidth(8, 2, 6);
         $show->field('credit_code', '营业执照号')->setWidth(8, 2, 6);
@@ -107,7 +106,7 @@ class CompanyController extends AdminController
         $show->field('contact_per', '联系人')->setWidth(8, 2, 6);
         $show->field('tel', '联系电话')->setWidth(8, 2, 6);
         $show->field('province', '所在地区')->as(function () use ($company) {
-            return $company->province->name . $company->city->name . $company->district->name;
+            return $company->province->name . "-" . $company->city->name . "-" . $company->district->name;
         })->setWidth(8, 2, 6);
         $show->field('address', '联系地址')->setWidth(8, 2, 6);
         $show->field('remark', '备注')->setWidth(8, 2, 6);
@@ -124,11 +123,7 @@ class CompanyController extends AdminController
             $order->column('company_id', '客户名称')->display(function ($value) {
                 return Company::find($value)->name;
             });
-            // $order->column('product_id', '产品名称')->display(function ($value) {
-            //     return \App\Models\Product::where('id', $value)->first()->en_name;
-            //     Log::error($value);
-            // });
-            $order->column('name', '产品名称');
+            $order->product_name('产品名称');
             $order->column('month', '时长');
             $order->column('price', '单价');
             $order->amount('总金额');
@@ -207,29 +202,5 @@ class CompanyController extends AdminController
     {
         $data = Company::select('id', 'name as text')->get();
         return $data;
-    }
-
-    protected function orderGrid($orders)
-    {
-        $grid = new Grid($orders);
-
-        $grid->order_no('订单号');
-        $grid->column('status', '状态')->display(function ($value) {
-            $status = config('paystatus')[$value] ?? '未知状态';
-            return "<span style='color:blue'>$status</span>";
-        });
-        $grid->column('name', '产品名称');
-        $grid->column('month', '时长');
-        $grid->column('price', '单价');
-
-        $grid->disableCreateButton();
-        $grid->disablePagination();
-        $grid->disableExport();
-        $grid->disableRowSelector();
-        $grid->disableActions();
-        $grid->disableColumnSelector();
-        $grid->disableFilter();
-
-        return $grid;
     }
 }
