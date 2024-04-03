@@ -14,7 +14,7 @@ use App\Api\Services\Common\DictServices;
 use App\Api\Services\Company\VariableService;
 
 /**
- *
+ * 客户业务逻辑服务
  */
 class CustomerService
 {

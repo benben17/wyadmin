@@ -2,11 +2,11 @@
 
 namespace App\Api\Models;
 
+use App\Enums\AppEnum;
+use App\Api\Scopes\CompanyScope;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
-use App\Enums\AppEnum;
-use Illuminate\Support\Facades\DB;
 
 /**
  * 房间model
@@ -20,7 +20,7 @@ class BuildingRoom extends Model
 	protected $table = 'bse_building_room';
 	protected $fillable = ['company_id', 'proj_id', 'build_id', 'floor_id', 'room_no', 'room_state', 'room_measure_area', 'room_trim_state', 'room_price', 'room_type', 'room_tags', 'channel_state', 'rentable_date', 'room_area', 'remark', 'is_vaild', 'c_uid', 'u_uid'];
 	protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid', 'created_at', 'updated_at'];
-	protected $appends = ['price_label', 'pic_list'];
+	protected $appends = ['price_label', 'pic_full'];
 
 	public function project()
 	{
@@ -47,10 +47,15 @@ class BuildingRoom extends Model
 			}
 		};
 	}
-	public function getPicListAttribute()
+	public function getPicFullAttribute()
 	{
 		if (isset($this->attributes['pics'])) {
-			return str2Array($this->attributes['pics']);
+			$pics = str2Array($this->attributes['pics']);
+			return array_map(function ($pic) {
+				return getOssUrl($pic);
+			}, $pics);
+		} else {
+			return [];
 		}
 	}
 	public function addAll(array $data)
