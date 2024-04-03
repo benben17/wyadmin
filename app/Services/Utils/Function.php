@@ -525,7 +525,7 @@ function getDepartIds($parentIds, $idArr): array
 }
 
 /**
- * 日期对比
+ * 日期对比 第一个日期是否小于第二个日期
  *
  * @Author leezhua
  * @DateTime 2024-03-23
@@ -536,10 +536,7 @@ function getDepartIds($parentIds, $idArr): array
  */
 function compareTime(string $dateString1, string $dateString2): bool
 {
-    $date1 = new DateTime($dateString1);
-    $date2 = new DateTime($dateString2);
-
-    return $date1 > $date2;
+    return strtotime($dateString1) < strtotime($dateString2);
 }
 
 // 根据月份获取当前月份的开始日期和结束日期返回数组

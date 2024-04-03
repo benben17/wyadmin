@@ -205,7 +205,7 @@ class AuthController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={},
+     *          required={"email"},
      *       @OA\Property(
      *          property="email",
      *          type="String",
@@ -213,7 +213,6 @@ class AuthController extends BaseController
      *       )
      *     ),
      *       example={"email": "", "phone": "", "remark": "", "avatar": ""}
-     *           }
      *       )
      *     ),
      *     @OA\Response(

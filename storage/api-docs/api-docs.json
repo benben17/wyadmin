@@ -126,7 +126,9 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": [],
+                                "required": [
+                                    "email"
+                                ],
                                 "properties": {
                                     "email": {
                                         "description": "邮箱",
@@ -135,7 +137,12 @@
                                 },
                                 "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "email": "",
+                                "phone": "",
+                                "remark": "",
+                                "avatar": ""
+                            }
                         }
                     }
                 },
@@ -4177,6 +4184,48 @@
                 }
             }
         },
+        "/api/business/project/set": {
+            "post": {
+                "tags": [
+                    "项目"
+                ],
+                "summary": "项目账单内容编辑",
+                "operationId": "d2286bd53db63383cfb6dac9cb37b61d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "proj_name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "项目ID",
+                                        "type": "int"
+                                    },
+                                    "proj_name": {
+                                        "description": "项目名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "",
+                                "proj_name": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/project/del": {
             "post": {
                 "tags": [
@@ -5152,7 +5201,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "id",
-                                    "prent_type"
+                                    "parent_type"
                                 ],
                                 "properties": {
                                     "id": {
@@ -5208,7 +5257,7 @@
                             },
                             "example": {
                                 "type": "1",
-                                "is_read": "0"
+                                "is_read": "1"
                             }
                         }
                     }
@@ -6849,10 +6898,25 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    ""
-                                ]
+                                    "is_edit",
+                                    "model"
+                                ],
+                                "properties": {
+                                    "is_edit": {
+                                        "description": "是否可编辑 1:可编辑 0:不可编辑",
+                                        "type": "int"
+                                    },
+                                    "model": {
+                                        "description": "模块名称",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
                             },
-                            "example": []
+                            "example": {
+                                "is_edit": 1,
+                                "model": "channel_type"
+                            }
                         }
                     }
                 },
@@ -11894,7 +11958,7 @@
                                 "schema": "UserModel",
                                 "required": [
                                     "name",
-                                    "realnme",
+                                    "realname",
                                     "password",
                                     "phone",
                                     "role_id"
@@ -12370,13 +12434,165 @@
                 }
             }
         },
+        "/api/activity/list": {
+            "post": {
+                "tags": [
+                    "活动"
+                ],
+                "summary": "活动报名列表",
+                "operationId": "f178ef5705a754ec27b87f1e45ff78c4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [],
+                                "properties": {
+                                    "activity_id": {
+                                        "description": "活动id",
+                                        "type": "int"
+                                    },
+                                    "venue_name": {
+                                        "description": "场馆名称",
+                                        "type": "String"
+                                    },
+                                    "proj_ids": {
+                                        "description": "项目ID",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "venue_id": 1,
+                                "venue_name": "",
+                                "proj_ids": "[1,2]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/activity/show": {
+            "post": {
+                "tags": [
+                    "活动报名"
+                ],
+                "summary": "根据场馆id获取信息",
+                "operationId": "81baad541b649d4b496966fda2c55b8b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "场馆Id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/activity/save": {
+            "post": {
+                "tags": [
+                    "活动"
+                ],
+                "summary": "活动添加/编辑",
+                "operationId": "2654b26fe5c63bfbc166b9e1c78e6b2f",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "activityId"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "活动报名id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/activity/delete": {
+            "post": {
+                "tags": [
+                    "活动"
+                ],
+                "summary": "活动删除",
+                "operationId": "96092a9c161cd337d7848ea63b7d983b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "活动id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/activity/reg/list": {
             "post": {
                 "tags": [
                     "活动报名"
                 ],
                 "summary": "活动报名列表",
-                "operationId": "eb44635ab4a3a617611e233dca7ad414",
+                "operationId": "b8ec059453ddc5c80ab88007b6d78598",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12425,43 +12641,7 @@
                     "活动报名"
                 ],
                 "summary": "根据场馆id获取信息",
-                "operationId": "a686e40d45da4e30b9290f95804316b5",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "场馆Id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": 11
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/wx/pay/notify_url": {
-            "post": {
-                "tags": [
-                    "微信支付回调"
-                ],
-                "summary": "微信支付回调",
-                "operationId": "2124550f01fe1c702f6a6320d5449c0b",
+                "operationId": "7e4ba659d748052a5a09361252cdccf3",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12494,10 +12674,46 @@
         "/api/activity/reg/pay": {
             "post": {
                 "tags": [
-                    "活动报名支付"
+                    "活动报名"
                 ],
                 "summary": "活动报名支付",
-                "operationId": "3656151b3149c808e8cf730d6e03a2bc",
+                "operationId": "7a8803fda0ecf4fc3264f121c617fffe",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "activityId"
+                                ],
+                                "properties": {
+                                    "activityId": {
+                                        "description": "活动报名id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "activityId": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/activity/reg/refund": {
+            "post": {
+                "tags": [
+                    "活动报名"
+                ],
+                "summary": "活动报名退款",
+                "operationId": "4b6f8ec62647b5e6171e9d2215645d7f",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13183,6 +13399,42 @@
                             },
                             "example": {
                                 "code": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/wx/pay/notify_url": {
+            "post": {
+                "tags": [
+                    "微信支付回调"
+                ],
+                "summary": "微信支付回调",
+                "operationId": "cb9a5c62a8140932c977b159a96a7d50",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "场馆Id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
                             }
                         }
                     }

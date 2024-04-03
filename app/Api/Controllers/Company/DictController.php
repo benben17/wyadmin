@@ -54,6 +54,7 @@ class DictController extends BaseController
 
         DB::enableQueryLog();
         $data = DictModel::where($map)
+            ->select('id', 'dict_key  as key', 'dict_value as value', 'is_vaild')
             ->where(function ($q) use ($request) {
                 $request->dict_key && $q->where('dict_key', $request->dict_key);
             })
@@ -62,10 +63,7 @@ class DictController extends BaseController
             ->get()->toArray();
         // $DA[$v] = $data;
         // return response()->json(DB::getQueryLog());
-        foreach ($data as $k => &$v) {
-            $v['key']   = $v['dict_key'];
-            $v['value'] = $v['dict_value'];
-        }
+
         return $this->success($data);
     }
 
@@ -79,12 +77,11 @@ class DictController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"is_edit"}
-     *
+     *          required={"is_edit","model"},
+     *      @OA\Property(property="is_edit",type="int",description="是否可编辑 1:可编辑 0:不可编辑"),
+     *      @OA\Property(property="model",type="String",description="模块名称")
      *     ),
-     *       example={
-     *
-     *           }
+     *       example={"is_edit":1,"model":"channel_type"}
      *       )
      *     ),
      *     @OA\Response(
@@ -97,15 +94,13 @@ class DictController extends BaseController
     {
         // return $companyIds;
         DB::enableQueryLog();
-        $data = DictTypeModel::where(function ($q) use ($request) {
-            $request->is_edit && $q->where('is_edit', $request->is_edit);
-        })->get()->toArray();
+        $data = DictTypeModel::select('id', 'dict_type as key', 'dict_value as value', 'is_edit', 'model')
+            ->where(function ($q) use ($request) {
+                $request->is_edit && $q->where('is_edit', $request->is_edit);
+                $request->model && $q->where('model', $request->model);
+            })->get();
         // return response()->json(DB::getQueryLog());
         if ($data) {
-            foreach ($data as $k => &$v) {
-                $v['key'] = $v['dict_type'];
-                $v['value'] = $v['dict_type'];
-            }
             return $this->success($data);
         }
         return $this->error('获取数据失败');

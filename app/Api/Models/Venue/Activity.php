@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Api\Models\Venue;
 
 use Carbon\Carbon;

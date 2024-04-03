@@ -25,6 +25,7 @@ class ActivityRegController extends BaseController
 		$this->wxPayService = new WxPayService;
 		$this->activityRegService = new ActivityRegService;
 	}
+
 	/**
 	 * @OA\Post(
 	 *     path="/api/activity/reg/list",
@@ -209,7 +210,7 @@ class ActivityRegController extends BaseController
 		$param['amount'] = '1';
 		$param['description'] = '测试活动报名';
 		$param['openid'] = "o2Hy06_8zLxwGDsYpfmfYmhhM6CI";
-		$res = $this->wxPayService->wxJsApiPay($param, $param['openid']);
+		$res = $this->wxPayService->wxRefund($param, $param['openid']);
 
 		return $this->success($res);
 	}

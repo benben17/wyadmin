@@ -3,6 +3,7 @@
 namespace App\Api\Controllers\Venue;
 
 use JWTAuth;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class ActivityController extends BaseController
 	}
 	/**
 	 * @OA\Post(
-	 *     path="/api/activity/reg/list",
+	 *     path="/api/activity/list",
 	 *     tags={"活动"},
 	 *     summary="活动报名列表",
 	 *    @OA\RequestBody(
@@ -194,10 +195,15 @@ class ActivityController extends BaseController
 		if (!$activity) {
 			return $this->error("活动不存在");
 		}
-		if ($activity->start_date < date('Y-m-d H:i:s') && $activity->end_date > date('Y-m-d H:i:s')) {
+		$startDate   = new DateTime($activity->start_date);
+		$endDate     = new DateTime($activity->end_date);
+		$currentDate = new DateTime();
+
+		if ($startDate < $currentDate && $endDate > $currentDate) {
 			return $this->error("活动已开始，不能删除");
 		}
-		$res = $this->activityService->model()->where('id', $request->id)->delete();
+
+		$res = $activity->delete();
 		return $res ? $this->success("【" . $activity->activity_title . "】删除成功")
 			: $this->error("删除失败");
 	}
