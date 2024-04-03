@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Business\Services;
+namespace App\Api\Services\Business;
 
 use Exception;
 use App\Enums\AppEnum;

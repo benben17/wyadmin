@@ -10,7 +10,7 @@ use App\Api\Models\Business\CusClue;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\DictServices;
 use App\Api\Models\Building as BuildingModel;
-use App\Api\Business\Services\CustomerService;
+use App\Api\Services\Business\CustomerService;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;

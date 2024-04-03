@@ -10,7 +10,7 @@ use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 
 use App\Api\Controllers\BaseController;
-use App\Api\Business\Services\CustomerService;
+use App\Api\Services\Business\CustomerService;
 use App\Api\Models\Tenant\Remind as RemindModel;
 
 /**

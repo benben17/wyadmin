@@ -16,7 +16,7 @@ use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Business\CusClueService;
-use App\Api\Business\Services\CustomerService;
+use App\Api\Services\Business\CustomerService;
 use App\Api\Models\Common\Contact as ContactModel;
 
 /**
