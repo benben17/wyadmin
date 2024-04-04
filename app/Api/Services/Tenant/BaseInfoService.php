@@ -31,43 +31,43 @@ class BaseInfoService
     //   $company              = $this->model();
     //   $company->skyeye_id   = $DA['id'] ?? 0;
     // } else {
-    $company              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
-    $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'] ?? 0;
+    $baseInfo              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
+    $baseInfo->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'] ?? 0;
     // }
 
-    $company->name              = $DA['name'] ?? "";
-    $company->regStatus         = $DA['regStatus'] ?? "";
-    $company->historyNames      = $DA['historyNames'] ?? "";
-    $company->companyOrgType    = $DA['companyOrgType'] ?? "";
-    $company->regCapital        = $DA['regCapital'] ?? "";
-    $company->staffNumRange     = $DA['staffNumRange'] ?? "";
-    $company->industry          = $DA['industry'] ?? "";
-    $company->bondNum           = $DA['bondNum'] ?? "";
-    $company->type              = $DA['type'] ?? 0;
-    $company->bondName          = $DA['bondName'] ?? "";
-    $company->legalPersonName   = $DA['legalPersonName'] ?? "";
-    $company->revokeReason      = $DA['revokeReason'] ?? "";
-    $company->regNumber         = $DA['regNumber'] ?? "";
-    $company->creditCode        = $DA['creditCode'] ?? "";
-    $company->cancelDate        = $DA['cancelDate'] ?? null;
-    $company->approvedTime      = $DA['approvedTime'] ?? null;
-    $company->fromTime          = $DA['fromTime'] ?? null;
-    $company->toTime            = $DA['toTime'] ?? null;
-    $company->estiblishTime     = $DA['estiblishTime'] ?? null;
-    $company->regInstitute      = $DA['regInstitute'] ?? "";
-    $company->businessScope     = $DA['businessScope'] ?? "";
-    $company->taxNumber         = $DA['taxNumber'] ?? "";
-    $company->regLocation       = $DA['regLocation'] ?? "";
-    $company->tags              = $DA['tags'] ?? "";
-    $company->bondType          = $DA['bondType'] ?? "";
-    $company->alias             = $DA['alias'] ?? "";
-    $company->isMicroEnt        = $DA['isMicroEnt'] ?? 0;
-    $company->base              = $DA['base'] ?? "";
+    $baseInfo->name              = $DA['name'] ?? "";
+    $baseInfo->regStatus         = $DA['regStatus'] ?? "";
+    $baseInfo->historyNames      = $DA['historyNames'] ?? "";
+    $baseInfo->companyOrgType    = $DA['companyOrgType'] ?? "";
+    $baseInfo->regCapital        = $DA['regCapital'] ?? "";
+    $baseInfo->staffNumRange     = $DA['staffNumRange'] ?? "";
+    $baseInfo->industry          = $DA['industry'] ?? "";
+    $baseInfo->bondNum           = $DA['bondNum'] ?? "";
+    $baseInfo->type              = $DA['type'] ?? 0;
+    $baseInfo->bondName          = $DA['bondName'] ?? "";
+    $baseInfo->legalPersonName   = $DA['legalPersonName'] ?? "";
+    $baseInfo->revokeReason      = $DA['revokeReason'] ?? "";
+    $baseInfo->regNumber         = $DA['regNumber'] ?? "";
+    $baseInfo->creditCode        = $DA['creditCode'] ?? "";
+    $baseInfo->cancelDate        = $DA['cancelDate'] ?? null;
+    $baseInfo->approvedTime      = $DA['approvedTime'] ?? null;
+    $baseInfo->fromTime          = $DA['fromTime'] ?? null;
+    $baseInfo->toTime            = $DA['toTime'] ?? null;
+    $baseInfo->estiblishTime     = $DA['estiblishTime'] ?? null;
+    $baseInfo->regInstitute      = $DA['regInstitute'] ?? "";
+    $baseInfo->businessScope     = $DA['businessScope'] ?? "";
+    $baseInfo->taxNumber         = $DA['taxNumber'] ?? "";
+    $baseInfo->regLocation       = $DA['regLocation'] ?? "";
+    $baseInfo->tags              = $DA['tags'] ?? "";
+    $baseInfo->bondType          = $DA['bondType'] ?? "";
+    $baseInfo->alias             = $DA['alias'] ?? "";
+    $baseInfo->isMicroEnt        = $DA['isMicroEnt'] ?? 0;
+    $baseInfo->base              = $DA['base'] ?? "";
 
-    $res = $company->save();
+    $res = $baseInfo->save();
 
     if ($res) {
-      return $company;
+      return $baseInfo;
     }
     return $res;
   }
@@ -140,11 +140,32 @@ class BaseInfoService
     $header  = array(
       'Authorization:' . $skyeyeConfig['token'],
     );
-    $name = urlencode($companyName);
-    $url = $skyeyeConfig['apiUrl'] . $name;
+    $url = $skyeyeConfig['apiUrl'] . urlencode($companyName);
+    $output =  $this->curl_http_request($url, $header);
+    $data = json_decode($output, true);
+
+    if ($data['error_code'] == 0) {
+      $this->saveSkyeyeSearchLog($companyName, $data['result'], $user);
+      return $this->formatSkyeyeData($data['result']);
+    } else {
+
+      throw new Exception($data['reason']);
+      return false;
+    }
+  }
+  /**
+   * curl http请求
+   * @Author leezhua
+   * @Date 2024-04-04
+   * @param mixed $url 
+   * @param array $headers 
+   * @return string|bool 
+   */
+  function curl_http_request($url, $headers = [])
+  {
     $curl = curl_init();
-    if (!empty($header)) {
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+    if (!empty($headers)) {
+      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
       curl_setopt($curl, CURLOPT_HEADER, 0); //返回response头部信息
     }
     curl_setopt($curl, CURLOPT_URL, $url);
@@ -155,17 +176,11 @@ class BaseInfoService
       curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
     }
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    $output = curl_exec($curl);
+    $result =  curl_exec($curl);
     curl_close($curl);
-    $data = json_decode($output, true);
-
-    if ($data['error_code'] == 0) {
-      $this->saveSkyeyeSearchLog($companyName, $data['result'], $user);
-      return $this->formatSkyeyeData($data['result']);
-    } else {
-      return false;
-    }
+    return $result;
   }
+
 
   /**
    * 根据公司统计公司调用skyeye查询次数

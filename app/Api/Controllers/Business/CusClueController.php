@@ -55,21 +55,7 @@ class CusClueController extends BaseController
     // $validatedData = $request->validate([
     //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
     // ]);
-    $pagesize = $this->setPagesize($request);
     $map = array();
-
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
 
     // DB::enableQueryLog();
     $query = $this->clueService->model()->where($map)

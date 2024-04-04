@@ -2,18 +2,21 @@
 
 namespace App\Api\Services\Business;
 
-use App\Api\Models\Business\CusClue;
-use App\Enums\AppEnum;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\Log;
+use App\Api\Models\Business\CusClue;
 
 /**
  * 客户线索管理
  */
-class CusClueService {
-	public function model() {
+class CusClueService
+{
+	public function model()
+	{
 		return new CusClue;
 	}
+
 
 	/**
 	 * 保存
@@ -25,7 +28,8 @@ class CusClueService {
 	 *
 	 * @return void
 	 */
-	public function save($DA, $user) {
+	public function save($DA, $user)
+	{
 		if (isset($DA['id']) && $DA['id'] > 0) {
 			$cusClue = $this->model()->find($DA['id']);
 			$cusClue->u_uid = $user->id;
@@ -58,7 +62,8 @@ class CusClueService {
 	 *
 	 * @return void
 	 */
-	public function changeStatus($clueId, $status = 0, $tenantId = 0) {
+	public function changeStatus($clueId, $status = 0, $tenantId = 0)
+	{
 		try {
 
 			if ($tenantId > 0) {
@@ -88,7 +93,8 @@ class CusClueService {
 	 *
 	 * @return void
 	 */
-	public function clueStat($request, $map) {
+	public function clueStat($request, $map)
+	{
 
 		$stat = $this->model()->where($map)
 			->selectRaw('count(*) clue_total,

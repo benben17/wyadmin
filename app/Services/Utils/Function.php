@@ -431,11 +431,14 @@ function getDictName($dictId)
 {
     $dictKey = 'dict_value' . $dictId;
     $dictValue = Cache::get($dictKey);
-    if (!$dictValue) {
-        return "";
+    if ($dictValue) {
+        return $dictValue;
     }
     $dictValue = \App\Api\Models\Company\CompanyDict::where('id', $dictId)->value('dict_value');
-    Cache::set($dictKey, $dictValue);
+    // Log::warning($dictValue);
+    if ($dictValue) {
+        Cache::set($dictKey, $dictValue);
+    }
     return $dictValue ?? "";
 }
 
