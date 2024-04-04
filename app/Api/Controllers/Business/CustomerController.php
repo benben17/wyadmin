@@ -33,11 +33,13 @@ class CustomerController extends BaseController
 {
     private $customerService;
     private $parent_type;
+    private $baseInfoService;
     public function __construct()
     {
         parent::__construct();
         $this->parent_type = AppEnum::Tenant;
         $this->customerService = new CustomerService;
+        $this->baseInfoService = new BaseInfoService;
     }
 
     /**
@@ -221,14 +223,14 @@ class CustomerController extends BaseController
                 $businessInfo = $DA['business_info'];
                 if ($businessInfo) {
                     $businessInfo['name'] = $DA['name'];
-                    $info = new BaseInfoService;
-                    $baseInfo = $info->model()->where('name', $businessInfo['name'])->first();
-                    if ($baseInfo) {
-                        $businessInfo['id'] = $baseInfo->id;
-                        $business = $info->save($businessInfo, 2);   // 1 新增
-                    } else {
-                        $business = $info->save($businessInfo, 1);   // 1 新增
-                    }
+
+                    $baseInfo = $this->baseInfoService->model()->where('name', $businessInfo['name'])->first();
+                    // if ($baseInfo) {
+                    //     $businessInfo['id'] = $baseInfo->id;
+                    //     $business = $this->baseInfoService->save($businessInfo, 2);   // 1 新增
+                    // } else {
+                    $business = $this->baseInfoService->save($businessInfo, 1);   // 1 新增
+                    // }
                     if ($business) {
                         $businessData['business_id'] = $business->id;
                         $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
@@ -356,16 +358,15 @@ class CustomerController extends BaseController
                 if ($businessInfo) {
                     $businessInfo['business_info_id'] = $DA['business_id'];
                     $businessInfo['name'] = $DA['name'];
-                    $info = new BaseInfoService;
-                    $res = $info->model()->where('name', $DA['name'])->first();
+
+                    $res = $this->baseInfoService->model()->where('name', $DA['name'])->first();
                     if ($res) {
                         $businessData['business_id'] = $res->id;
                         $this->customerService->tenantModel()::whereId($DA['id'])->update($businessData);
                         $businessInfo['id'] = $res->id;
-                        $info->save($businessInfo, 2);
-                    } else {
-                        $info->save($businessInfo, 2);
                     }
+                    // 客户工商信息更新
+                    $this->baseInfoService->save($businessInfo, 2);
                 }
                 $cusLog['content'] = '编辑客户【' . $DA['name'] . '】';
                 $cusLog['tenant_id'] = $DA['id'];
@@ -464,11 +465,10 @@ class CustomerController extends BaseController
             ->with('tenantRooms')
             ->with('channel')
             ->find($request->id)->toArray();
-        $info = new BaseInfoService;
 
-        $business_info  = $info->getById($data['business_id']);
-        if (empty($business_info)) {
-            $business_info = (object)[];
+        $businessInfo  = $this->baseInfoService->getById($data['business_id']);
+        if (empty($businessInfo)) {
+            $businessInfo = (object)[];
         }
         $clue = CusClue::where('tenant_id', $request->id)->first();
         $data['clue'] = (object)[];
@@ -478,7 +478,7 @@ class CustomerController extends BaseController
         if (!$data['extra_info']) {
             $data['extra_info'] = (object)[];
         }
-        $data['business_info'] = $business_info;
+        $data['business_info'] = $businessInfo;
         $data['source_type_label'] = getDictName($data['source_type']);
         $data['channel_name'] = $data['channel']['channel_name'] ?? "";
         $data['channel_type'] = $data['channel']['channel_type'] ?? "";
@@ -524,8 +524,8 @@ class CustomerController extends BaseController
             return $this->error('客户名称必须传！');
         }
         $user = auth('api')->user();
-        $skyeyeService = new BaseInfoService;
-        $data = $skyeyeService->getCompanyInfo($request->name, $user);
+
+        $data = $this->baseInfoService->getCompanyInfo($request->name, $user);
         return $this->success($data);
     }
 
@@ -563,9 +563,8 @@ class CustomerController extends BaseController
             'id' => 'required|numeric|gt:0',
         ]);
         $DA = $request->toArray();
-        $info = new BaseInfoService;
-        $res = $info->save($DA, 2);
 
+        $res = $this->baseInfoService->save($DA, 2);
         if ($res) {
             return $this->success('公司工商信息编辑成功。');
         }

@@ -27,13 +27,13 @@ class BaseInfoService
   public function save($DA, $type = 1)
   {
     // Log::error(json_encode($DA));
-    if ($type == 1) {
-      $company              = $this->model();
-      $company->skyeye_id   = $DA['id'] ?? 0;
-    } else {
-      $company              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
-      $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'];
-    }
+    // if ($type == 1) {
+    //   $company              = $this->model();
+    //   $company->skyeye_id   = $DA['id'] ?? 0;
+    // } else {
+    $company              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
+    $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'];
+    // }
 
     $company->name              = $DA['name'] ?? "";
     $company->regStatus         = $DA['regStatus'] ?? "";
