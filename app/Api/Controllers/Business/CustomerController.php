@@ -526,6 +526,10 @@ class CustomerController extends BaseController
         $user = auth('api')->user();
 
         $data = $this->baseInfoService->getCompanyInfo($request->name, $user);
+        if (!$data) {
+            return $this->error('未查询到公司工商信息！');
+            // $data = $this->baseInfoService->getByName($request->name);
+        }
         return $this->success($data);
     }
 
