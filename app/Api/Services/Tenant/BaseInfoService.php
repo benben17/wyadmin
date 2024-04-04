@@ -32,7 +32,7 @@ class BaseInfoService
     //   $company->skyeye_id   = $DA['id'] ?? 0;
     // } else {
     $company              = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
-    $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'];
+    $company->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'] ?? 0;
     // }
 
     $company->name              = $DA['name'] ?? "";
