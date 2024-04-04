@@ -15,7 +15,10 @@ use App\Api\Models\Tenant\Tenant as TenantModel;
 use App\Api\Services\Building\BuildingRoomService;
 
 /**
- * 项目房源信息
+ * @OA\Tag(
+ *     name="房源",
+ *     description="房源管理"
+ * )
  */
 class BuildingRoomController extends BaseController
 {

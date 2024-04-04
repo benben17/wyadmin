@@ -13472,7 +13472,13 @@
                                     "order"
                                 ]
                             },
-                            "example": []
+                            "example": {
+                                "pagesize": "10",
+                                "proj_id": "1",
+                                "build_id": "1",
+                                "orderBy": "id",
+                                "order": "desc"
+                            }
                         }
                     }
                 },
@@ -13623,7 +13629,8 @@
                             },
                             "example": {
                                 "start_date": "",
-                                "end_date": ""
+                                "end_date": "",
+                                "proj_id": 1
                             }
                         }
                     }
@@ -13736,5 +13743,87 @@
                 "in": "header"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "auth认证",
+            "description": "用户登录、退出、修改密码、用户信息等"
+        },
+        {
+            "name": "账单",
+            "description": "账单管理"
+        },
+        {
+            "name": "应收",
+            "description": "应收，以及账单明细"
+        },
+        {
+            "name": "押金管理",
+            "description": "押金管理"
+        },
+        {
+            "name": "发票",
+            "description": "发票管理"
+        },
+        {
+            "name": "楼宇管理",
+            "description": "楼宇管理"
+        },
+        {
+            "name": "房源",
+            "description": "房源管理"
+        },
+        {
+            "name": "渠道",
+            "description": "渠道管理/渠道政策"
+        },
+        {
+            "name": "合同",
+            "description": "合同管理"
+        },
+        {
+            "name": "客户线索",
+            "description": "客户线索管理"
+        },
+        {
+            "name": "客户跟进",
+            "description": "客户跟进管理"
+        },
+        {
+            "name": "客户",
+            "description": "客户管理"
+        },
+        {
+            "name": "客户跟进提醒",
+            "description": "客户跟进提醒管理"
+        },
+        {
+            "name": "项目",
+            "description": "项目管理"
+        },
+        {
+            "name": "统计",
+            "description": "房源统计"
+        },
+        {
+            "name": "招商统计",
+            "description": "招商统计管理"
+        },
+        {
+            "name": "公共方法",
+            "description": "附件管理"
+        },
+        {
+            "name": "联系人",
+            "description": "联系人管理"
+        },
+        {
+            "name": "维护",
+            "description": "维护管理 parent_type 1 channel 2 客户 3 供应商 4 政府关系 5 租户"
+        },
+        {
+            "name": "公共",
+            "description": "公共方法"
+        }
+    ]
 }

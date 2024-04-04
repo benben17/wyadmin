@@ -18,7 +18,10 @@ use App\Api\Services\Building\BuildingService;
 /**
  * 
  * Description 项目（园区）管理
- * @package App\Api\Controllers\Business
+ * @OA\Tag(
+ *     name="项目",
+ *     description="项目管理"
+ * )
  */
 class ProjectController extends BaseController
 {

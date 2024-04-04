@@ -13,8 +13,10 @@ use App\Api\Services\Common\BseMaintainService as maintainService;
 
 
 /**
- *  parent_type  1 channel 2 客户 3 供应商 4 政府关系 5 租户
- *
+ * @OA\Tag(
+ *     name="维护",
+ *     description="维护管理 parent_type 1 channel 2 客户 3 供应商 4 政府关系 5 租户"
+ * )
  */
 class MaintainController extends BaseController
 {

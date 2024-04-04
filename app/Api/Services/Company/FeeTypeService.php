@@ -4,8 +4,8 @@ namespace App\Api\Services\Company;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Api\Models\Company\FeeType;
+use Illuminate\Support\Facades\Log;
 
 
 /**
@@ -58,14 +58,12 @@ class FeeTypeService
    * @param [type] $uid
    * @return bool
    */
-  public function enable($feeTypeIds, $isValid, $uid): bool
+  public function enable($feeTypeIds, $isValid, $user): bool
   {
-    $where['company_id']  = getCompanyId($uid);
+    $where['company_id']  = $user['company_id'];
     $data['is_valid'] = $isValid;
-    // DB::enableQueryLog();
+    $data['u_uid'] = $user['id'];
     return $this->model()->where($where)->whereIn('id', $feeTypeIds)->update($data);
-    // return response()->json(DB::getQueryLog());
-    // return $res;
   }
 
   /**

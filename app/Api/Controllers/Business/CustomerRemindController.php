@@ -14,7 +14,10 @@ use App\Api\Services\Business\CustomerService;
 use App\Api\Models\Tenant\Remind as RemindModel;
 
 /**
- * 项目管理
+ * @OA\Tag(
+ *     name="客户跟进提醒",
+ *     description="客户跟进提醒管理"
+ * )
  */
 class CustomerRemindController extends BaseController
 {

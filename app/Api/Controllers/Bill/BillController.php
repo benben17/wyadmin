@@ -17,9 +17,11 @@ use App\Api\Services\Template\TemplateService;
 
 
 /**
- * 租户账单
+ * @OA\Tag(
+ *     name="账单",
+ *     description="账单管理"
+ * )
  */
-
 class BillController extends BaseController
 {
   private $parent_type;
@@ -148,6 +150,8 @@ class BillController extends BaseController
     }
 
     $billDate = getMonthRange($DA['bill_month']);
+    # 通过年月获取此月开始日期和结束日期
+
     $meterCount = MeterRecord::whereBetween('record_date', $billDate)->where('audit_status', 0)->where('status', 0)->count();
     if ($meterCount > 0) {
       return $this->error($DA['bill_month'] . "有未审核的水费电费信息，请先审核后生成账单！");

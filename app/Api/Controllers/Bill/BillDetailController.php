@@ -12,7 +12,10 @@ use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
 
 /**
- * 租户账单
+ * @OA\Tag(
+ *     name="应收",
+ *     description="应收，以及账单明细"
+ * )
  */
 
 class BillDetailController extends BaseController

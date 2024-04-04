@@ -23,6 +23,12 @@ use App\Api\Models\Common\Contact as ContactModel;
  *  客户
  *  客户联系人   parent_type 2
  */
+/**
+ * @OA\Tag(
+ *     name="客户",
+ *     description="客户管理"
+ * )
+ */
 class CustomerController extends BaseController
 {
     private $customerService;

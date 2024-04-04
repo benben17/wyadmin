@@ -1,11 +1,8 @@
 <?php
 
 use App\Enums\AppEnum;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Company\BankAccount;
-use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * 公用方法 获取用户公司ID
@@ -17,10 +14,12 @@ function getCompanyId($uid): int
         $result = \App\Models\User::select('company_id')->find($uid);
         // Log::error($uid . $result);
         return $result->company_id;
+    } else {
+        return 0;
     }
 }
 /**
- * @Desc: 获取用户公司ID和公共id0 集合
+ * 获取用户公司ID和公共id0 集合
  * @Author leezhua
  * @Date 2024-03-30
  * @param [type] $uid
@@ -296,7 +295,6 @@ function getNextMonth(String $ymd, $months)
         return "";
     }
     $months = intval($months);
-
     return date('Y-m', strtotime("+" . $months . "months", strtotime($ymd)));
 }
 
@@ -325,7 +323,6 @@ function isDate($dateString)
  */
 function dateFormat($style, $date)
 {
-
     $date = new DateTime($date);
     return $date->format($style);
 }
@@ -432,7 +429,13 @@ function getChargeVerifyNo()
 /** 通过id获取值 */
 function getDictName($dictId)
 {
+    $dictKey = 'dict_value' . $dictId;
+    $dictValue = Cache::get($dictKey);
+    if (!$dictValue) {
+        return "";
+    }
     $dictValue = \App\Api\Models\Company\CompanyDict::where('id', $dictId)->value('dict_value');
+    Cache::set($dictKey, $dictValue);
     return $dictValue ?? "";
 }
 
@@ -500,7 +503,7 @@ function getDepartById($departId)
 function getProjIdByName($projName)
 {
     $project = App\Api\Models\Project::select('id')->where('name', $projName)->first();
-    return $project ? $project['id'] : "";
+    return $project['id'] ?? 0;
 }
 
 /**
@@ -516,10 +519,10 @@ function getProjIdByName($projName)
 function getDepartIds($parentIds, $idArr): array
 {
     $departs = \App\Models\Depart::whereIn('parent_id', $parentIds)->pluck('id')->toArray();
+
     if (empty($departs)) {
         return $idArr;
     }
-
     $idArr = array_merge($idArr, $departs);
     return getDepartIds($departs, $idArr);
 }

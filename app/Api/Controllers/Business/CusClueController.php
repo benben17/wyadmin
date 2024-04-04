@@ -2,20 +2,20 @@
 
 namespace App\Api\Controllers\Business;
 
-use JWTAuth;
-//use App\Exceptions\ApiException;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\CusClueExcel;
 use App\Api\Excel\Business\CusClueImport;
 use App\Api\Services\Business\CusClueService;
 
-
+/**
+ * @OA\Tag(
+ *     name="客户线索",
+ *     description="客户线索管理"
+ * )
+ */
 class CusClueController extends BaseController
 {
 

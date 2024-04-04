@@ -12,6 +12,15 @@ use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * 
+ */
+/** 
+ * @OA/Tag(
+ * 	 name="收支管理",
+ * 	 description="收支管理,以及核销"
+ * )
+ */
 class ChargeController extends BaseController
 {
 	private $chargeService;

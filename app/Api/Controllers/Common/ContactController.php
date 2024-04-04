@@ -6,6 +6,12 @@ use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\ContactService;
 
+/**
+ * @OA\Tag(
+ *     name="联系人",
+ *     description="联系人管理"
+ * )
+ */
 class ContactController extends BaseController
 {
   public function __construct()

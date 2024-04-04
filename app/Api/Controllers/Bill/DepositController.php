@@ -13,10 +13,10 @@ use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
 
 /**
- * 租户押金管理
- *
- * @Author leezhua
- * @DateTime 2024-03-07
+ * @OA\Tag(
+ * 	 name="押金管理",
+ *  description="押金管理"
+ * )
  */
 class DepositController extends BaseController
 {

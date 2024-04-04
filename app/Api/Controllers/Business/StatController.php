@@ -16,7 +16,10 @@ use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Tenant\ExtraInfo as TenantExtraInfo;
 
 /**
- *
+ * @OA\Tag(
+ *     name="招商统计",
+ *     description="招商统计管理"
+ * )
  */
 class StatController extends BaseController
 {

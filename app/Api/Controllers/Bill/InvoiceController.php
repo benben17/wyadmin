@@ -11,11 +11,10 @@ use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Bill\TenantBillService;
 
 /**
- * 发票管理
- *
- * @Desc:
- * @Author leezhua
- * @Date 2024-03-31
+ * @OA\Tag(
+ * 	 name="发票",
+ *  description="发票管理"
+ * )
  */
 class InvoiceController extends BaseController
 {

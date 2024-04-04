@@ -20,10 +20,11 @@ use App\Api\Models\Contract\Contract as ContractModel;
 use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
 
 /**
- * 合同管理
- *
+ * @OA\Tag(
+ *     name="合同",
+ *     description="合同管理"
+ * )
  */
-
 class ContractController extends BaseController
 {
 

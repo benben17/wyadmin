@@ -12,8 +12,10 @@ use App\Api\Services\Common\AttachmentService;
 
 
 /**
- *
- * 附件管理
+ * @OA\Tag(
+ *     name="公共方法",
+ *     description="附件管理"
+ * )
  */
 class AttachmentController extends BaseController
 {

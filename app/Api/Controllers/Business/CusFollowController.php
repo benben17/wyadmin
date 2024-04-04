@@ -14,7 +14,10 @@ use App\Api\Services\Business\CustomerService;
 
 
 /**
- *
+ * @OA\Tag(
+ *     name="客户跟进",
+ *     description="客户跟进管理"
+ * )
  */
 class CusFollowController extends BaseController
 {

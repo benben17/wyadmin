@@ -14,7 +14,10 @@ use App\Api\Models\BuildingRoom  as RoomModel;
 
 
 /**
- * 房源统计分析
+ * @OA\Tag(
+ *     name="统计",
+ *     description="房源统计"
+ * )
  */
 class RoomStatController extends BaseController
 {

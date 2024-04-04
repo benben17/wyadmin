@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\Area as AreaModel;
 use App\Api\Controllers\BaseController;
 
+/**
+ * @OA\Tag(
+ *     name="公共",
+ *     description="公共方法"
+ * )
+ */
 class PubController extends BaseController
 {
    /**

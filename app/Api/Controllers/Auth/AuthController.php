@@ -10,6 +10,12 @@ use App\Api\Controllers\BaseController;
 use App\Models\Company as CompanyModel;
 
 
+/**
+ * @OA\Tag(
+ *     name="auth认证",
+ *     description="用户登录、退出、修改密码、用户信息等"
+ * )
+ */
 class AuthController extends BaseController
 {
     public function __construct()

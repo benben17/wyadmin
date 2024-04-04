@@ -16,8 +16,12 @@ use App\Api\Services\Building\BuildingService;
 use App\Api\Models\BuildingFloor as FloorModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
+
 /**
- * 房源管理
+ * @OA\Tag(
+ *     name="楼宇管理",
+ *     description="楼宇管理"
+ * )
  */
 class BuildingController extends BaseController
 {

@@ -21,7 +21,12 @@ use App\Api\Models\Common\Contact as ContactModel;
  * 渠道管理
  * 类型 1 渠道 2 客户 3 租户 4供应商 5 公共关系
  */
-
+/**
+ * @OA\Tag(
+ *     name="渠道",
+ *     description="渠道管理/渠道政策"
+ * )
+ */
 class ChannelController extends BaseController
 {
     private $parent_type;

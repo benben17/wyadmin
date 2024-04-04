@@ -4,9 +4,9 @@ namespace App\Api\Controllers\Company;
 
 use JWTAuth;
 // use App\Exceptions\ApiException;
-use App\Api\Controllers\BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Company\FeeTypeService;
 
 class FeeTypeController extends BaseController
@@ -142,7 +142,7 @@ class FeeTypeController extends BaseController
       'is_valid' => 'required|numeric|in:0,1'
     ]);
 
-    $res = $this->feeService->enable($request->ids, $request->is_valid, $this->uid);
+    $res = $this->feeService->enable($request->ids, $request->is_valid, $this->user);
     if ($res) {
       return $this->success('数据更新成功。');
     } else {
