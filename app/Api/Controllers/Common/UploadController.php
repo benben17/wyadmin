@@ -15,15 +15,53 @@ use Illuminate\Support\Facades\Storage;
 class UploadController extends BaseController
 {
 
+    protected $saveFolder;
     public function __construct()
     {
         parent::__construct();
+        $this->$saveFolder = $this->company_id . '/business/' . date('Ym');
     }
     private $error_msg = '';
 
 
-
-
+    /**
+     * @OA\Post(
+     *     path="/api/common/upload/imgs",
+     *     tags={"公共"},
+     *     summary="上传多张图片",
+     *     description="",
+     *     @OA\Parameter(
+     *         name="Authorization",
+     *         description="Bearer {token}",
+     *         required=false,
+     *         in="header",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"file"},
+     *       @OA\Property(
+     *          property="file",
+     *          type="file",
+     *          description="文件"
+     *       )
+     *     ),
+     *       example={
+     *              "file":""
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="The result"
+     *     )
+     * )
+     */
     public function uploadImgs(Request $request)
     {
         // $validator = \Validator::make($request->all(), [
@@ -42,10 +80,8 @@ class UploadController extends BaseController
             if (!$this->checkImg($file)) {
                 return $this->error($this->getError());
             }
-            $company_id = $this->company_id;
-            $saveFolder = $company_id . '/business/' . date('Ymd');
             // 上传文件操作
-            $path = Storage::putFile($saveFolder, $file);
+            $path = Storage::putFile($this->saveFolder, $file);
             if ($path) {
                 unset($file);
                 array_push($paths, $path);
@@ -105,11 +141,9 @@ class UploadController extends BaseController
         if (!$this->checkImg($file)) {
             return $this->error($this->getError());
         }
-        $user = auth('api')->user();
-        $company_id = $user->company_id;
-        $saveFolder = $company_id . '/business/' . date('Ymd');
+
         // 上传文件操作
-        $res = Storage::putFile($saveFolder, $file);
+        $res = Storage::putFile($this->saveFolder, $file);
         if ($res) {
             $data['path'] = $res;
             unset($file);
@@ -176,10 +210,9 @@ class UploadController extends BaseController
         if (!$this->checkFile($file)) {
             return $this->error($this->getError());
         }
-        $company_id = $this->company_id;
-        $saveFolder = $company_id . '/business/' . date('Ymd');
+
         // 上传文件操作
-        $res = Storage::putFile($saveFolder, $file);
+        $res = Storage::putFile($this->saveFolder, $file);
         if ($res) {
             $data['path'] = $res;
             unset($file);
@@ -232,17 +265,12 @@ class UploadController extends BaseController
             return $this->error($error);
         }
         $file = $request->file('file');
-        // $tmpPath = $file->getRealPath();
+
         $fileExt = strtolower($file->getClientOriginalExtension());
         if (!in_array($fileExt, ['doc', 'docx', 'pdf'])) {
             return $this->error("上传格式不允许");
         }
-        // $file_name=$file->getClientOriginalName();
-        $user = auth('api')->user();
-        $company_id = $user->company_id;
-        // $fileName = date('Ymd').'/'.$user->company_id."-".$file_name;
-        $saveFolder = $company_id . '/contract';
-        $res = Storage::putFile($saveFolder, $file);
+        $res = Storage::putFile($this->saveFolder, $file);
         if ($res) {
             $data['path'] = $res;
             unset($file);
@@ -317,14 +345,5 @@ class UploadController extends BaseController
     {
         $fileExts = config('file_upload_allow');
         return empty($fileExts) ? true : in_array(strtolower($ext), $fileExts);
-    }
-
-
-    private function saveFile($fileName, $tmpFile, $disk = 'public')
-    {
-        if (Storage::disk($disk)->put($fileName, file_get_contents($tmpFile))) {
-            return ['code' => 1, 'msg' => $fileName];
-        }
-        return false;
     }
 }

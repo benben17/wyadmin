@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Common;
 
+use OpenApi\Processors\BuildPaths;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -18,7 +19,10 @@ class Attachment extends Model
   protected $table = "bse_common_attachment";
   protected $hidden = ["deleted_at", "company_id", 'parent_type', 'updated_at'];
   // protected $fillable = [];
+  protected $appends = ['file_path_full'];
 
-
-
+  public function getFilePathFullAttribute()
+  {
+    return picFullPath($this->file_path);
+  }
 }

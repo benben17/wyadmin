@@ -564,12 +564,12 @@ function getMonthRange($yearMonth): array
  * @param mixed $pic 
  * @return string[] 
  */
-function picFullPath($pic): array
+function picFullPath($pics): array
 {
     $picFull = [];
-    $picList = str2Array($pic);
-    foreach ($picList as $key => $value) {
-        $picFull[] = getOssUrl($value);
+    $picList = str2Array($pics);
+    foreach ($picList as $pic) {
+        $picFull[] = getOssUrl($pic);
     }
     return $picFull;
 }

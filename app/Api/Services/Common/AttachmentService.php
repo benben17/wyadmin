@@ -47,12 +47,6 @@ class AttachmentService
     $map['parent_type'] = $parent_type;
     DB::enableQueryLog();
     $data = $this->model()->where($map)->get();
-    if ($data) {
-      $data = $data->toArray();
-      foreach ($data as $k => &$v) {
-        $v['file_path_full'] = getOssUrl($v['file_path']);
-      }
-    }
     return $data;
   }
 
@@ -65,23 +59,6 @@ class AttachmentService
    */
   public function delete($Ids)
   {
-    return $this->model()->whereIn('id', $Ids)->delete();
-  }
-
-  /** 通过附件ID集合获取所有的附件路径信息 */
-  public function getFilePath($ids)
-  {
-    $ids = str2Array($ids);
-    $files  = $this->model()->whereIn($ids)
-      ->select(DB::Raw('group_concat(file_path) file_path'))->first();
-    if ($files) {
-      $filePath = str2Array($files['file_path']);
-      foreach ($filePath as $k => &$v) {
-        $v = getOssUrl($v);
-      }
-      return $files;
-    } else {
-      return false;
-    }
+    return $this->model()->destroy(str2Array($Ids));
   }
 }

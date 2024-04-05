@@ -3,10 +3,11 @@
 namespace App\Api\Controllers\Common;
 
 use JWTAuth;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Api\Controllers\BaseController;
 
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Common\AttachmentService;
 
 
@@ -19,10 +20,12 @@ use App\Api\Services\Common\AttachmentService;
  */
 class AttachmentController extends BaseController
 {
+    private $attachment;
     public function __construct()
     {
         parent::__construct();
         // $this->user = auth('api')->user();
+        $this->attachment = new AttachmentService;
     }
     /**
      * @OA\Post(
@@ -74,10 +77,8 @@ class AttachmentController extends BaseController
             'file_path' => 'required|String|max:512',
         ]);
         $DA =  $request->toArray();
-        $user = auth('api')->user();
-        $attachment = new AttachmentService;
 
-        $res = $attachment->save($DA, $user);
+        $res = $this->attachment->save($DA, $this->user);
         if ($res) {
             return $this->success('附件上传成功。');
         }
@@ -118,8 +119,8 @@ class AttachmentController extends BaseController
             'Ids' => 'required|array',
         ]);
         $data = $request->toArray();
-        $attachment = new AttachmentService;
-        $res = $attachment->delete($data['Ids']);
+
+        $res = $this->attachment->delete($data['Ids']);
 
         if ($res) {
             return $this->success('附件删除成功。');
@@ -167,9 +168,10 @@ class AttachmentController extends BaseController
             'parent_id' => 'required|int|gt:0',
             'parent_type' => 'required|int|gt:0',
         ]);
-        $data = $request->toArray();
-        $attachment = new AttachmentService;
-        $data = $attachment->getAttarch($request->parent_id, $request->parent_type);
+
+        $query = $this->attachment->model()->where('parent_id', $request->parent_id)
+            ->where('parent_type', $request->parent_type);
+        $data = $this->pageData($query, $request);
         return $this->success($data);
     }
 }
