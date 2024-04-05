@@ -3,6 +3,7 @@
 namespace App\Api\Models\Business;
 
 use App\Enums\AppEnum;
+use App\Enums\ClueStatus;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Tenant;
@@ -43,14 +44,9 @@ class CusClue extends Model
   }
   public function getStatusLabelAttribute()
   {
-    $statusLabels = [
-      1 => "待转化",
-      2 => "已转化",
-      3 => "无效",
-    ];
-
+    $labels = ClueStatus::getAll();
     $status = $this->attributes['status'] ?? '';
-    return $statusLabels[$status] ?? "未知";
+    return $labels[$status] ?? "未知";
   }
   public function getCUserAttribute()
   {

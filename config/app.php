@@ -182,7 +182,6 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
@@ -190,6 +189,8 @@ return [
         Maatwebsite\Excel\ExcelServiceProvider::class,
         // 微信登陆
         SocialiteProviders\Manager\ServiceProvider::class,
+        // Toplan\PhpSms\PhpSmsServiceProvider::class,
+        // Toplan\Sms\SmsManagerServiceProvider::class,
 
     ],
 
@@ -247,6 +248,7 @@ return [
         'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
         'Aliyunsms' => Cisco\Aliyunsms\Facades\Aliyunsms::class,
         'Socialite' =>  Laravel\Socialite\Facades\Socialite::class,
+
     ],
 
 ];

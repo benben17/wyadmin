@@ -35,7 +35,6 @@
         "smallruraldog/light-box": "^1.0",
         "socialiteproviders/weixin": "^4.1",
         "socialiteproviders/weixin-web": "^4.1",
-        "toplan/laravel-sms": "~2.6",
         "tymon/jwt-auth": "^1.0.2",
         "wechatpay/wechatpay": "^1.4"
     },
