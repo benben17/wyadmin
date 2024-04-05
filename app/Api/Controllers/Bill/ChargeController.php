@@ -456,22 +456,18 @@ class ChargeController extends BaseController
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 				$request->year && $q->whereYear('verify_date', $request->year);
 			})
-			->with(['billDetail' => function ($query) use ($request) {
-				$query->select('tenant_name', 'tenant_id', 'id', 'status');
-				$request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
+			->with(['billDetail:tenant_name,tenant_id,id,status'])
+			->whereHas('billDetail', function ($query) use ($request) {
+				$request->tenant_id && $query->where('tenant_id', $request->tenant_id);
 				$request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-			}]);
+			});
 		// return response()->json(DB::getQueryLog());
 		$totalAmt = 0.00;
 		$data = $this->pageData($subQuery, $request);
 		// return $data;
-		foreach ($data['result'] as &$v) {
-			$v['tenant_name'] = getTenantNameById($v['bill_detail']['tenant_id'] ?? 0);
-			if ($v['type'] == 1) {
-				$totalAmt += $v['amount'];
-			} else {
-				$totalAmt -= $v['amount'];
-			}
+		foreach ($data['result'] as &$item) {
+			$item['tenant_name'] = getTenantNameById($item['bill_detail']['tenant_id'] ?? 0);
+			$totalAmt += $item['type'] == 1 ? $item['amount'] : -$item['amount'];
 		}
 		$data['total_amount'] = $totalAmt;
 		return $this->success($data);
