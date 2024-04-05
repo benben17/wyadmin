@@ -435,7 +435,7 @@ class ChargeController extends BaseController
 			'proj_ids' => 'required|array',
 		], $msg);
 
-		$pagesize = $this->setPagesize($request);
+		// $pagesize = $this->setPagesize($request);
 		$map = array();
 		// 排序字段
 		if ($request->input('orderBy')) {
@@ -444,17 +444,9 @@ class ChargeController extends BaseController
 			$orderBy = 'created_at';
 		}
 		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$order = $request->input('order');
-		} else {
-			$order = 'desc';
-		}
-		if ($request->type) {
-			$map['type'] = $request->type;
-		}
 
 		DB::enableQueryLog();
-		$data = $this->chargeService->chargeRecord()
+		$subQuery = $this->chargeService->chargeRecord()
 			->where($map)
 			->where(function ($q) use ($request) {
 				$request->start_date && $q->where('verify_date', '>=', $request->start_date);
@@ -468,14 +460,13 @@ class ChargeController extends BaseController
 				$query->select('tenant_name', 'tenant_id', 'id', 'status');
 				$request->tenant_id && $query->whereIn('tenant_id', $request->tenant_id);
 				$request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
-			}])
-			->orderBy($orderBy, $order)
-			->paginate($pagesize)->toArray();
+			}]);
 		// return response()->json(DB::getQueryLog());
 		$totalAmt = 0.00;
-		$data = $this->handleBackData($data);
+		$data = $this->pageData($subQuery, $request);
+		// return $data;
 		foreach ($data['result'] as &$v) {
-			$v['tenant_name'] = getTenantNameById($v['tenant_id']);
+			$v['tenant_name'] = getTenantNameById($v['bill_detail']['tenant_id'] ?? 0);
 			if ($v['type'] == 1) {
 				$totalAmt += $v['amount'];
 			} else {
