@@ -15,14 +15,13 @@ use Illuminate\Support\Facades\Storage;
 class UploadController extends BaseController
 {
 
-    protected $saveFolder;
+    private $saveFolder;
+    private $error_msg = '';
     public function __construct()
     {
         parent::__construct();
-        $this->$saveFolder = $this->company_id . '/business/' . date('Ym');
+        $this->saveFolder = $this->company_id . '/business/' . date('Ym');
     }
-    private $error_msg = '';
-
 
     /**
      * @OA\Post(
@@ -141,8 +140,11 @@ class UploadController extends BaseController
         if (!$this->checkImg($file)) {
             return $this->error($this->getError());
         }
+        return $this->fileUploadReturn($file);
+    }
 
-        // 上传文件操作
+    private function fileUploadReturn($file)
+    {
         $res = Storage::putFile($this->saveFolder, $file);
         if ($res) {
             $data['path'] = $res;
@@ -212,13 +214,7 @@ class UploadController extends BaseController
         }
 
         // 上传文件操作
-        $res = Storage::putFile($this->saveFolder, $file);
-        if ($res) {
-            $data['path'] = $res;
-            unset($file);
-            return $this->success($data);
-        }
-        return $this->error('文件上传失败！');
+        return $this->fileUploadReturn($file);
     }
 
 
@@ -270,13 +266,7 @@ class UploadController extends BaseController
         if (!in_array($fileExt, ['doc', 'docx', 'pdf'])) {
             return $this->error("上传格式不允许");
         }
-        $res = Storage::putFile($this->saveFolder, $file);
-        if ($res) {
-            $data['path'] = $res;
-            unset($file);
-            return $this->success($data);
-        }
-        return $this->error('文件上传失败！');
+        return $this->fileUploadReturn($file);
     }
 
 
@@ -285,7 +275,6 @@ class UploadController extends BaseController
     {
         return $this->error_msg;
     }
-
 
     private function checkImg($file)
     {

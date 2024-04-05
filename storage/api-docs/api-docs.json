@@ -6499,6 +6499,54 @@
                 }
             }
         },
+        "/api/common/upload/imgs": {
+            "post": {
+                "tags": [
+                    "公共"
+                ],
+                "summary": "上传多张图片",
+                "description": "",
+                "operationId": "9802537405177f52d3eb00ab46b10605",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {token}",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "description": "文件",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "file": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The result"
+                    }
+                }
+            }
+        },
         "/api/common/upload/img": {
             "post": {
                 "tags": [
