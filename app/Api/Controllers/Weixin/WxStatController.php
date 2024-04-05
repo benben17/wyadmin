@@ -5,7 +5,6 @@ namespace App\Api\Controllers\Weixin;
 use JWTAuth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Business\CustomerService;
