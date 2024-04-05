@@ -15,7 +15,7 @@
         "barryvdh/laravel-dompdf": "^2.1.1",
         "cisco/laravel-aliyunsms": "dev-master",
         "darkaonline/l5-swagger": "6.0.*",
-        "encore/laravel-admin": "^1.8",
+        "encore/laravel-admin": "^1.8.10",
         "fideloper/proxy": "^4.0",
         "guzzlehttp/guzzle": "^7.3",
         "iwesen/laravel-admin-config": "^1.1",
