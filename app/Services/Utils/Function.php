@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Company\BankAccount;
@@ -554,22 +553,4 @@ function getMonthRange($yearMonth): array
     $endDate = date('Y-m-t', strtotime($startDate));
     // Return an array with both start and end dates
     return [$startDate,  $endDate];
-}
-
-
-/**
- * 图片地址转换
- * @Author leezhua
- * @Date 2024-04-01
- * @param mixed $pic 
- * @return string[] 
- */
-function picFullPath($pics): array
-{
-    $picFull = [];
-    $picList = str2Array($pics);
-    foreach ($picList as $pic) {
-        $picFull[] = getOssUrl($pic);
-    }
-    return $picFull;
 }

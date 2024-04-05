@@ -64,7 +64,8 @@
             "database/factories"
         ],
         "files": [
-            "app/Services/Utils/Function.php"
+            "app/Services/Utils/Function.php",
+            "app/Services/Utils/Utils.php"
         ]
     },
     "autoload-dev": {

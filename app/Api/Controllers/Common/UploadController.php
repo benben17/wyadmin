@@ -6,6 +6,8 @@ use JWTAuth;
 use Illuminate\Http\Request;
 use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+
 
 /**
  *  文件上传
@@ -22,6 +24,7 @@ class UploadController extends BaseController
         parent::__construct();
         $this->saveFolder = $this->company_id . '/business/' . date('Ym');
     }
+    private $msg = ['file.file' => '类型必须为文件！', 'file.required' => '请选择要上传的文件！'];
 
     /**
      * @OA\Post(
@@ -40,7 +43,7 @@ class UploadController extends BaseController
      *     ),
      *    @OA\RequestBody(
      *       @OA\MediaType(
-     *           mediaType="application/json",
+     *           mediaType="multipart/form-data",
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"file"},
@@ -105,7 +108,7 @@ class UploadController extends BaseController
      *     ),
      *    @OA\RequestBody(
      *       @OA\MediaType(
-     *           mediaType="application/json",
+     *           mediaType="multipart/form-data",
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"file"},
@@ -128,10 +131,9 @@ class UploadController extends BaseController
      */
     public function uploadImg(Request $request)
     {
-        $messages = ['file.file' => '类型必须为图片！', 'file.required' => '请选择要上传的图片！'];
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'file' => 'required|file'
-        ], $messages);
+        ], $this->msg);
         $error = $validator->errors()->first();
         if ($error) {
             return $this->error($error);
@@ -171,7 +173,7 @@ class UploadController extends BaseController
      *     ),
      *    @OA\RequestBody(
      *       @OA\MediaType(
-     *           mediaType="application/json",
+     *           mediaType="multipart/form-data",
      *       @OA\Schema(
      *          schema="UserModel",
      *          required={"file"},
@@ -197,13 +199,10 @@ class UploadController extends BaseController
     public function uploadFile(Request $request)
     {
 
-        $messages = [
-            'file.file' => '类型必须为文件！',
-            'file.required' => '请选择要上传的文件！'
-        ];
+
         $validator = Validator::make($request->all(), [
             'file' => 'required|file'
-        ], $messages);
+        ], $this->msg);
         $error = $validator->errors()->first();
         if ($error) {
             return $this->error($error);
@@ -250,12 +249,10 @@ class UploadController extends BaseController
      */
 
     public function uploadContract(Request $request)
-    {
-
-        $messages = ['file.file' => '类型必须为文件！', 'file.required' => '请选择要上传的文件！'];
-        $validator = \Validator::make($request->all(), [
+    {;
+        $validator = Validator::make($request->all(), [
             'file' => 'required|file'
-        ], $messages);
+        ], $this->msg);
         $error = $validator->errors()->first();
         if ($error) {
             return $this->error($error);
@@ -306,6 +303,13 @@ class UploadController extends BaseController
         return empty($fileExts) ? true : in_array(strtolower($ext), $fileExts);
     }
 
+    /**
+     * 检查上传的文件是否合法
+     * @Author leezhua
+     * @Date 2024-04-05
+     * @param mixed $file 
+     * @return bool 
+     */
     private function checkFile($file)
     {
         /* 检查文件大小 */
@@ -315,24 +319,13 @@ class UploadController extends BaseController
             return false;
         }
         /* 检查文件后缀 */
-        if (!$this->checkFileExt($file->getClientOriginalExtension())) {
-            $this->error_msg = '上传文件格式不允许';
-            return false;
-        }
-        return true;
+        $fileExt = $file->getClientOriginalExtension();
+        $allowExts = config('file_upload_allow');
+        return in_array(strtolower($fileExt), $allowExts ?? []);
     }
     private function checkFileSize($size)
     {
         $maxSize = config('max_file_size') * 1024 * 1024;
         return !($size > $maxSize) || (0 == $maxSize);
-    }
-    /**
-     * 检查上传的文件后缀是否合法
-     * @param string $ext 后缀
-     */
-    private function checkFileExt($ext)
-    {
-        $fileExts = config('file_upload_allow');
-        return empty($fileExts) ? true : in_array(strtolower($ext), $fileExts);
     }
 }
