@@ -4,6 +4,7 @@ namespace App\Api\Services\Bill;
 
 use Exception;
 use App\Enums\AppEnum;
+use App\Enums\InvoiceEnum;
 use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -46,7 +47,7 @@ class InvoiceService
       $invoiceRecord->open_person    = isset($DA['open_person']) ? $DA['open_person'] : "";
       $invoiceRecord->status         = $DA['status'];
       // 作废发票更新费用 发票信息
-      if ($DA['status'] == AppEnum::invoiceStatusCancel && isset($DA['id']) && $DA['id'] > 0) {
+      if ($DA['status'] == InvoiceEnum::Cancel && isset($DA['id']) && $DA['id'] > 0) {
         $this->cancelInvoice($DA['id']);
       }
       $invoiceRecord->title        = $DA['title'];

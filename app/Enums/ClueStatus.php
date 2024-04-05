@@ -4,7 +4,7 @@ namespace App\Enums;
 
 use App\Enums\StatusEnum;
 
-class ClueStatus extends StatusEnum
+class ClueStatus extends BaseEnum
 {
   const Pending   = 1;
   const Converted = 2;

@@ -3,6 +3,7 @@
 namespace App\Api\Controllers\Bill;
 
 use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -319,7 +320,7 @@ class ChargeController extends BaseController
 
 			$verifyDate = $request->verify_date ?? nowYmd();
 			$whereMap['id'] = $request->id;
-			$whereMap['status'] = AppEnum::chargeUnVerify;
+			$whereMap['status'] = ChargeEnum::chargeUnVerify;
 
 			$charge = $this->chargeService->model()
 				->where($whereMap)
@@ -330,7 +331,7 @@ class ChargeController extends BaseController
 
 			$billDetailList = $billDetailService->billDetailModel()
 				->whereIn('id', $billDetailIds)
-				->where('status', AppEnum::chargeUnVerify)
+				->where('status', ChargeEnum::chargeUnVerify)
 				->where('bill_id', '>', 0)
 				->get();
 			// Check if all selected bill details are found
@@ -375,13 +376,13 @@ class ChargeController extends BaseController
 
 			$charge = $this->chargeService->model()
 				->where('id', $request->id)
-				->where('status', AppEnum::chargeUnVerify)
+				->where('status', ChargeEnum::chargeUnVerify)
 				->firstOrFail();
 
 			$billDetailService = new TenantBillService;
 			$billDetail = $billDetailService->billDetailModel()
 				->where('id', $request->bill_detail_id)
-				->where('status', AppEnum::chargeUnVerify)
+				->where('status', ChargeEnum::chargeUnVerify)
 				->first();
 
 			if ($billDetail->isEmpty()) {
@@ -588,8 +589,8 @@ class ChargeController extends BaseController
 		], $msg);
 
 		$charge = $this->chargeService->model()->findOrFail($request->id);
-		if ($charge->type == AppEnum::chargeRefund) {
-			return $this->error("支出不允许退款");
+		if ($charge->type == ChargeEnum::Refund) {
+			return $this->error("已退款，支出不允许退款");
 		}
 		$unusedAmt = $charge->amount - $charge->verify_amount;
 		if ($unusedAmt < $request->refund_amt) {

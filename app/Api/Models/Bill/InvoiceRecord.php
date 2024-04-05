@@ -3,6 +3,7 @@
 namespace App\Api\Models\Bill;
 
 use App\Enums\AppEnum;
+use App\Enums\InvoiceEnum;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Models\Tenant\Invoice;
@@ -23,17 +24,7 @@ class InvoiceRecord extends Model
   {
     if (isset($this->attributes['status'])) {
       $status = $this->attributes['status'];
-      switch ($status) {
-        case AppEnum::invoiceStatusUnOpen:
-          return '未开';
-          break;
-        case AppEnum::invoiceStatusOpened:
-          return "已开";
-          break;
-        case AppEnum::invoiceStatusCancel:
-          return "作废";
-          break;
-      }
+      return InvoiceEnum::getLabels()[$status];
     }
   }
   public function getCUserAttribute()

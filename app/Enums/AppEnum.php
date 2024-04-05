@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-use MyCLabs\Enum\Enum;
 
 /**
  * 应用变量信息
@@ -12,7 +11,7 @@ use MyCLabs\Enum\Enum;
  */
 
 
-abstract class AppEnum extends Enum
+abstract class AppEnum extends BaseEnum
 {
   const Channel      = 1;  //  渠道
   const Customer     = 2;  // 客户
@@ -51,38 +50,10 @@ abstract class AppEnum extends Enum
   const dailyFeeType   = 3;  // 日常费用
 
   // charge
-  const chargeIncome = 1;  // 收入     
-  const chargeRefund = 2;  // 支出
-
-  // const chargeCategoryFee  = 1;   //费用 类型
-  // const chargeCategoryDeposit  = 2;    //押金类型
-  const depositRecordReceive  = 1;  // 押金收入
-  const depositRecordToCharge = 2;  // 转收款
-  const depositRecordRefund   = 3;  // 押金退款
-
-
-  // 0 => "未收款",
-  // 1 => "已收款",
-  // 2 => "退款",
-  // 3 => '已结清',
-  const depositStatusUnReceive = 0;  // 未收款
-  const depositStatusReceived  = 1;  // 已收款
-  const depositStatusRefund    = 2;  // 部分退款
-  const depositStatusClear     = 3;  // 已结清
-
-
-  const chargeCategoryFee     = 1;  //费用
-  const chargeCategoryDeposit = 2;  // 押金转收入
-  const chargeCategoryRefund  = 3;  // 收入退款
 
   // 免租类型
   const freeMonth = 1;  // 按月免租
   const freeDay   = 2;  // 按天免租
-
-  const chargeVerify   = 1;  //  已核销
-  const chargeUnVerify = 0;  // 未核销
-
-
 
   // 单位
   const shareRate = "%";
@@ -98,11 +69,6 @@ abstract class AppEnum extends Enum
 
   // 跟进方式
   const followVisit = 87; // 来访
-
-  // 发票状态
-  const invoiceStatusUnOpen = 1;  // 未开
-  const invoiceStatusOpened = 2;  // 已开
-  const invoiceStatusCancel = 3;  // 作废
 
   // 应收状态
   const feeStatusUnReceive  = 0;  // 未结清

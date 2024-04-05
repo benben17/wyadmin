@@ -2,14 +2,15 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Enums\DepositEnum;
+use Illuminate\Support\Arr;
+use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use App\Api\Models\Contract\Contract;
-use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
-use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 
 /**
  *  账单详细
@@ -72,7 +73,7 @@ class TenantBillDetail extends Model
     $status = $this->attributes['status'] ?? null;
     $feeType = $this->attributes['type'] ?? 1;
     if ($feeType == 2) {
-      return $this->depositStatusMap()[$status] ?? '';
+      return DepositEnum::getLabels()[$status] ?? '';
     }
     return $this->statusMap()[$status] ?? '';
   }
@@ -87,15 +88,7 @@ class TenantBillDetail extends Model
     ];
   }
 
-  protected function depositStatusMap()
-  {
-    return [
-      0 => "未收款",
-      1 => "已收款",
-      2 => "部分退款",
-      3 => '已结清',
-    ];
-  }
+
   public function getBillStatusAttribute()
   {
     if (isset($this->attributes['bill_id'])) {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Company\BankAccount;
 
@@ -413,7 +414,7 @@ function uuid($prefix = '')
 function getChargeNo($type)
 {
     $no = date('ymdHis', strtotime(nowTime()));
-    if ($type == AppEnum::chargeIncome) {
+    if ($type == ChargeEnum::Income) {
         return  'IE-' . $no . mt_rand(10, 99); // 收入
     } else {
         return  'EX-' . $no . mt_rand(10, 99); // 支出

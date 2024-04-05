@@ -2,11 +2,12 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Api\Models\Company\BankAccount;
-use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
-use App\Api\Scopes\CompanyScope;
 use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
+use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
+use App\Api\Models\Company\BankAccount;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChargeBill extends Model
@@ -26,21 +27,28 @@ class ChargeBill extends Model
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      return $this->getStatusLabels()[$this->attributes['status']] ?? '';
+      $status = $this->attributes['status'] ?? "";
+      // return ChargeEnum::getLabels()[$status] ?? '';
+      return $this->getStatusLabels()[$status] ?? '';
     }
   }
 
   public function getTypeLabelAttribute()
   {
     if (isset($this->attributes['type'])) {
-      return $this->getTypeLabels()[$this->attributes['type']] ?? '';
+      return ChargeEnum::getTypeLabels()[$this->attributes['type']] ?? '';
     }
   }
 
+  /**
+   * 获取类别标签属性
+   * 
+   * @return string
+   */
   public function getCategoryLabelAttribute()
   {
     if (isset($this->attributes['category'])) {
-      return $this->getCategoryLabels()[$this->attributes['category']] ?? '';
+      return ChargeEnum::getCategoryLabels()[$this->attributes['category']] ?? '';
     }
   }
 
@@ -77,20 +85,20 @@ class ChargeBill extends Model
     ];
   }
 
-  protected function getTypeLabels()
-  {
-    return [
-      1 => "收入",
-      2 => "支出",
-    ];
-  }
+  // protected function getTypeLabels()
+  // {
+  //   return [
+  //     1 => "收入",
+  //     2 => "支出",
+  //   ];
+  // }
 
-  protected function getCategoryLabels()
-  {
-    return [
-      1 => "费用收入",
-      2 => "押金转收入",
-      3 => '退款',
-    ];
-  }
+  // protected function getCategoryLabels()
+  // {
+  //   return [
+  //     1 => "费用收入",
+  //     2 => "押金转收入",
+  //     3 => '退款',
+  //   ];
+  // }
 }

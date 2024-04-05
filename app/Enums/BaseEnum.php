@@ -4,7 +4,7 @@ namespace App\Enums;
 
 use MyCLabs\Enum\Enum;
 
-abstract class StatusEnum extends Enum
+class BaseEnum extends Enum
 {
   protected static $labels = [];
 

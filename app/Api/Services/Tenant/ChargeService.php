@@ -2,17 +2,17 @@
 
 namespace App\Api\Services\Tenant;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
+use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
-use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\TenantBill;
+use Illuminate\Support\Facades\Log;
+use Doctrine\DBAL\Query\QueryException;
+use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\TenantBillService;
-use App\Enums\AppEnum;
-use Doctrine\DBAL\Query\QueryException;
-use Illuminate\Support\Arr;
 
 class ChargeService
 {
@@ -57,10 +57,10 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type        = $BA['type'];
-      $charge->category     = $BA['category'] ?? AppEnum::chargeCategoryFee;
+      $charge->category     = $BA['category'] ?? ChargeEnum::CategoryFee; // 费用
       $charge->source      = $BA['source'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
-      if ($BA['type'] == AppEnum::chargeIncome) {
+      if ($BA['type'] == ChargeEnum::Income) {
         $charge->unverify_amount = $BA['amount'];
       }
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
@@ -109,7 +109,7 @@ class ChargeService
         $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
         $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
         if ($chargeBill['unverify_amount'] == 0) {
-          $charge->status = AppEnum::chargeVerify;
+          $charge->status = AppEnum::Verify;
         }
 
         $charge->save();
@@ -187,7 +187,7 @@ class ChargeService
           $charge->verify_amount = $chargeBill['verify_amount'] + $totalVerifyAmt;
 
           if ($chargeBill['unverify_amount'] == 0) {
-            $charge->status = AppEnum::chargeVerify;
+            $charge->status = ChargeEnum::chargeVerify;
           }
           $charge->save();
         }, 3);
@@ -259,7 +259,7 @@ class ChargeService
           $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $actVerifyAmt;
 
           if ($chargeBill['unverify_amount'] == 0) {
-            $chargeBill['status'] = AppEnum::chargeVerify;
+            $chargeBill['status'] = ChargeEnum::chargeVerify;
           }
           $this->save($chargeBill, $user);
         }, 3);
@@ -323,7 +323,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $billDetail['proj_id'];
       $charge->type        = 1; // 收入 // 2 支出
-      $charge->category     = AppEnum::chargeCategoryDeposit; // 押金转收入;
+      $charge->category     = ChargeEnum::CategoryDeposit; // 押金转收入;
       $charge->source      = 1; // 费用
       $charge->verify_amount = 0.00;
       $charge->tenant_name = $billDetail['tenant_name'];
@@ -437,11 +437,11 @@ class ChargeService
         $charge->save();
         $charge->id = 0;
         $charge->charge_id = $chargeId;
-        $charge->type = AppEnum::chargeRefund;
+        $charge->type = ChargeEnum::Refund;
         $charge->amount = $refundAmt;
         $charge->status = 1;
         $charge->charge_date = nowYmd();
-        $charge->category     = AppEnum::chargeCategoryRefund; // 收入退款;
+        $charge->category     = ChargeEnum::CategoryRefund; // 收入退款;
         $this->save($charge->toArray(), $user);
       }, 2);
       return true;

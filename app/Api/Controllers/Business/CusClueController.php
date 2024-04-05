@@ -4,7 +4,9 @@ namespace App\Api\Controllers\Business;
 
 use Exception;
 use App\Enums\ClueStatus;
+use App\Enums\InvoiceEnum;
 use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Invoice;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\CusClueExcel;
@@ -67,7 +69,6 @@ class CusClueController extends BaseController
         $request->status && $q->where('status', $request->status);
         $request->phone && $q->where('phone', 'like', $request->end_date . "%");
       });
-
     $data = $this->pageData($query, $request);
     if ($request->export) {
       return $this->exportToExcel($data['result'], CusClueExcel::class);

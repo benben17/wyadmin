@@ -2,16 +2,17 @@
 
 namespace App\Api\Services\Operation;
 
+use Exception;
+use App\Enums\AppEnum;
+
+use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Api\Services\Common\SmsService;
+use App\Api\Services\Common\MessageService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Api\Models\Operation\WorkOrder as WorkOrderModel;
 use App\Api\Models\Operation\WorkOrderLog as WorkOrderLogModel;
-use App\Api\Services\Common\MessageService;
-use App\Api\Services\Common\SmsService;
-use App\Api\Services\Bill\TenantBillService;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  * 工单服务
@@ -198,7 +199,7 @@ class WorkOrderService
             'charge_date'  => nowYmd(),
             'tenant_id'    => $order->tenant_id,
             'tenant_name'  => $order->tenant_name,
-            'type'         => AppEnum::chargeIncome, // 收款
+            'type'         => ChargeEnum::Income, // 收款
             'fee_type'     => AppEnum::maintenanceFeeType,
             'bank_id'      => $DA['bank_id'],
             'amount'       => $chargeAmount,
