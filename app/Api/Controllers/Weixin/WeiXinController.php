@@ -4,16 +4,15 @@ namespace App\Api\Controllers\Weixin;
 
 use JWTAuth;
 use FFI\Exception;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
+
 use Laravel\Socialite\Facades\Socialite;
-
 use App\Api\Services\Weixin\WeiXinServices;
-
-
 
 class WeixinController extends BaseController
 {
@@ -24,7 +23,7 @@ class WeixinController extends BaseController
 
   public function weixin()
   {
-    return Socialite::with('weixin')->redirect();
+    return Socialite::with('weixinweb')->redirect();
   }
   /**
    * 微信接口回调
@@ -33,45 +32,16 @@ class WeixinController extends BaseController
    * @param    Request    $request [description]
    * @return   [type]              [description]
    */
-  public function handleProviderCallback(Request $request)
+  public function weixinCallback()
   {
-    try {
-      $wx_data = Socialite::with('weixin')->stateless()->user();
-      if ($wx_data) {
-        // Log::error("11111");
-        $uid = base64_decode($request->state);
-        Log::error($uid . "------" . $request->state);
-        $wx_user = $wx_data->user;
+    // $uid = base64_decode($request->state);
+    $wxUser = Socialite::driver('weixinweb')->stateless()->user();
 
-        $wxService = new WeiXinServices;
-        DB::enableQueryLog();
-        $wxOpenid = $wx_user['openid'];
-        // return response()->json(DB::getQueryLog());
-        $res = $wxService->bindWx($wxOpenid, $wx_user, $uid);
-        if ($res) {
-          return $this->success("绑定成功;");
-        } else {
-          return $this->error("绑定失败");
-        }
-      }
-    } catch (Exception $e) {
-      Log::error($e->getMessage());
-      return $this->error($e->getMessage());
-    }
-  }
-
-
-  public function weixinLogin()
-  {
-    $uid = base64_decode($request->state);
-    $wxUser = Socialite::driver('weixin')->user();
-    Log::error(json_encode($wxUser));
+    return $wxUser;
     $wxService = new WeiXinServices;
-    DB::enableQueryLog();
-    $wxOpenid = $wxUser['openid'];
-    // return response()->json(DB::getQueryLog());
-    $res = $wxService->bindWx($wxOpenid, $wxUser, $uid);
-    return $res ? $this->success("绑定成功;") : $this->error("绑定失败");
+    $res = $wxService->saveWxUser($wxUser);
+
+    return $res ? $this->success($wxUser) : $this->error("绑定失败");
   }
 
 
