@@ -30,11 +30,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    'weixin' =>  [
+    'weixinweb' =>  [
         'client_id' =>  env('WEIXIN_KEY'),
         'client_secret' =>  env('WEIXIN_SECRET'),
         'redirect' =>  env('WEIXIN_REDIRECT_URI'),
         'auth_base_uri' => 'https://open.weixin.qq.com/connect/qrconnect',
+        // 'scope' => 'snsapi_login',
     ],
 
 ];

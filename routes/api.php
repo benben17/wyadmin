@@ -542,7 +542,7 @@ Route::group(['prefix' => 'business/wx'], function () {
 // 微信 登录
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WeixinController@weixin')->name('weixin');
-    Route::get('/weixin/callback', '\App\Api\Controllers\Weixin\WeixinController@weixinLogin');
+    Route::get('/weixin/callback', '\App\Api\Controllers\Weixin\WeixinController@weixinCallback');
 
     // Route::post('/user/bind', '\App\Api\Controllers\Weixin\WeiXinController@bindWx');
     // Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
