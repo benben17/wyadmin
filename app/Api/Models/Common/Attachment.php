@@ -2,7 +2,7 @@
 
 namespace App\Api\Models\Common;
 
-use OpenApi\Processors\BuildPaths;
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -19,10 +19,22 @@ class Attachment extends Model
   protected $table = "bse_common_attachment";
   protected $hidden = ["deleted_at", "company_id", 'parent_type', 'updated_at'];
   // protected $fillable = [];
-  protected $appends = ['file_path_full'];
+  protected $appends = ['file_path_full', 'atta_type_label'];
 
   public function getFilePathFullAttribute()
   {
     return getOssUrl($this->file_path);
+  }
+
+  public function getAttaTypeLabelAttribute()
+  {
+    $atta_type = $this->atta_type ?? "";
+    return getDictName($atta_type);
+  }
+
+  protected static function boot()
+  {
+    parent::boot();
+    static::addGlobalScope(new CompanyScope);
   }
 }

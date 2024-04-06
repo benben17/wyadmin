@@ -425,7 +425,6 @@ function getChargeVerifyNo()
 function getDictName($dictId)
 {
 	$dictKey = 'dict_value' . $dictId;
-
 	return Cache::remember($dictKey, 60, function () use ($dictId) {
 		return \App\Api\Models\Company\CompanyDict::where('id', $dictId)->value('dict_value') ?? "";
 	});
