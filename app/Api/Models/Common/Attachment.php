@@ -23,6 +23,6 @@ class Attachment extends Model
 
   public function getFilePathFullAttribute()
   {
-    return picFullPath($this->file_path);
+    return getOssUrl($this->file_path);
   }
 }

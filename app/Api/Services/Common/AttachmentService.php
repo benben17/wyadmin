@@ -5,7 +5,9 @@ namespace App\Api\Services\Common;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Common\Attachment;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * 附件服务
@@ -59,6 +61,14 @@ class AttachmentService
    */
   public function delete($Ids)
   {
+    try {
+      $files = $this->model()->select('file_path')->whereIn('id', str2Array($Ids))->get();
+      foreach ($files as $file) {
+        Storage::delete($file->file_path);
+      }
+    } catch (Exception $e) {
+      Log::warning('oss删除附件失败' . $e->getMessage());
+    }
     return $this->model()->destroy(str2Array($Ids));
   }
 }

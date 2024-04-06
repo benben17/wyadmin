@@ -503,8 +503,7 @@ class ContractController extends BaseController
      *      @OA\Property(property="contract_id",type="int",
      *       description="合同id")
      *     ),
-     *       example={
-     *              "contract_id": ""
+     *       example={"contract_id": "1","bill_rule":"[]","contract_room":"[]","free_list":"[]","contract_type":"1","sign_date":"2020-01-01","start_date":"2020-01-01","end_date":"2020-01-01","tenant_id":"1","proj_id":"1","tenant_legal_person":"张三","sign_area":"100","bill_day":"1"
      *           }
      *       )
      *     ),
