@@ -122,11 +122,7 @@ class AttachmentController extends BaseController
 
         $res = $this->attachment->delete($data['Ids']);
 
-        if ($res) {
-            return $this->success('附件删除成功。');
-        } else {
-            return $this->error('附件删除失败！');
-        }
+        return $res ? $this->success('附件删除成功。') : $this->error('附件删除失败！');
     }
 
     /**
@@ -152,7 +148,7 @@ class AttachmentController extends BaseController
      *       )
      *     ),
      *       example={
-     *              "parent_id": "","parent_type":""
+     *              "parent_id": "","parent_type":"1 channel 2 租户 3 合同  4 供应商 5 公共关系"
      *           }
      *       )
      *     ),
@@ -169,7 +165,8 @@ class AttachmentController extends BaseController
             'parent_type' => 'required|int|gt:0',
         ]);
 
-        $query = $this->attachment->model()->where('parent_id', $request->parent_id)
+        $query = $this->attachment->model()
+            ->where('parent_id', $request->parent_id)
             ->where('parent_type', $request->parent_type);
         $data = $this->pageData($query, $request);
         return $this->success($data);

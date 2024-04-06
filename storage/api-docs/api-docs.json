@@ -2962,7 +2962,19 @@
                                 "type": "object"
                             },
                             "example": {
-                                "contract_id": ""
+                                "contract_id": "1",
+                                "bill_rule": "[]",
+                                "contract_room": "[]",
+                                "free_list": "[]",
+                                "contract_type": "1",
+                                "sign_date": "2020-01-01",
+                                "start_date": "2020-01-01",
+                                "end_date": "2020-01-01",
+                                "tenant_id": "1",
+                                "proj_id": "1",
+                                "tenant_legal_person": "张三",
+                                "sign_area": "100",
+                                "bill_day": "1"
                             }
                         }
                     }
@@ -6520,7 +6532,7 @@
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
@@ -6568,7 +6580,7 @@
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
@@ -6616,7 +6628,7 @@
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
@@ -13758,7 +13770,7 @@
                                         "type": "string"
                                     },
                                     "proj_ids": {
-                                        "description": "项目ID",
+                                        "description": "项目ID列表",
                                         "type": "list"
                                     }
                                 },

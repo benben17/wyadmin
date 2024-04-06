@@ -100,16 +100,15 @@ class WxStatController extends BaseController
             'proj_ids' => 'required',
         ]);
 
-        $map = array();
-
         if ($request->channel_id && $request->channel_id > 0) {
             $map['channel_id'] = $request->channel_id;
         }
 
-        $request->type = [1, 3];
+        if (!$request->type) {
+            $request->type = [1, 3]; // 1 客户列表 2 在租户 3 退租租户
+        }
         DB::enableQueryLog();
         $resultQuery = $this->customerService->tenantModel()
-            ->where($map)
             ->where(function ($q) use ($request) {
                 $request->type && $q->whereIn('type', $request->type);
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
@@ -120,7 +119,7 @@ class WxStatController extends BaseController
             })
             ->with('contacts')
             ->with('extraInfo')
-            ->whereHas('extraInfo', function ($q) use ($request) {
+            ->has('extraInfo', function ($q) use ($request) {
                 $request->demand_area && $q->where('demand_area', $request->demand_area);
             })
             // ->with('customerRoom')
@@ -145,7 +144,7 @@ class WxStatController extends BaseController
      *       @OA\Property(property="follow_type",type="int",description="跟进类型"),
      *       @OA\Property(property="start_time",type="string",description="开始时间"),
      *       @OA\Property(property="end_time",type="string",description="结束时间"),
-     *       @OA\Property(property="proj_ids",type="list",description="项目ID"),
+     *       @OA\Property(property="proj_ids",type="list",description="项目ID列表"),
      *     ),
      *       example={
      *          "pagesize":10,"proj_ids":"[]","follow_type":1,"start_time":"2020-01-01","end_time":"2020-01-01"
@@ -160,23 +159,18 @@ class WxStatController extends BaseController
      */
     public function followList(Request $request)
     {
-
-
-        $map = array();
-        if ($request->follow_type) {
-            $map['follow_type'] = $request->follow_type;
-        }
         // 排序字段
         if (!$request->input('orderBy')) {
             $request->orderBy = 'follow_time';
         }
-
+        $DA = $request->toArray();
         DB::enableQueryLog();
-        $result = $this->customerService->followModel()->where($map)
-            ->where(function ($q) use ($request) {
-                $request->start_time && $q->where('follow_time', '>=', $request->start_time);
-                $request->end_time && $q->where('follow_time', '<=', $request->end_time);
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $result = $this->customerService->followModel()
+            ->where(function ($q) use ($DA) {
+                $DA['follow_type'] && $q->where('follow_type', $DA['follow_type']);
+                $DA['start_time'] && $q->where('follow_time', '>=', $DA['start_time']);
+                $DA['end_time'] && $q->where('follow_time', '<=', $DA['end_time']);
+                $DA['proj_ids'] && $q->whereIn('proj_id', $DA['proj_ids']);
             });
 
         // return response()->json(DB::getQueryLog());
