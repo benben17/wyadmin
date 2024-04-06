@@ -618,6 +618,7 @@ class ChannelController extends BaseController
     public function policyList(Request $request)
     {
 
+        $map = array();
         if ($request->id && $request->id > 0) {
             $map['id'] = $request->id;
         }

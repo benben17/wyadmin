@@ -34,7 +34,7 @@ class WxPayService
     $this->confService = new WxConfService;
     $conf = $this->confService->getWechatPayConf();
     $companyId                  = $this->companyId;
-    ConfEnum::keys();
+    // ConfEnum::keys();
     $this->appid                = Cache::get(ConfEnum::XCX_APPID . $companyId) ?? $conf['app_id'];
     $this->merchantId           = Cache::get(ConfEnum::MERCHANT_ID . $companyId) ?? $conf['mch_id'];
     $this->notifyUrl            = Cache::get(ConfEnum::NOTIFY_URL . $companyId) ?? $conf['notify_url'];

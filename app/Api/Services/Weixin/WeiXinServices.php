@@ -5,7 +5,9 @@ namespace App\Api\Services\Weixin;
 use Exception;
 use App\Models\User;
 use GuzzleHttp\Client;
-use App\Api\Models\Weixin\WxInfo;
+use App\Enums\WeixinEnum;
+use Illuminate\Support\Arr;
+use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -14,10 +16,13 @@ use Illuminate\Support\Facades\Log;
  */
 class WeiXinServices
 {
-  public function wxModel()
+  protected $wxApiUrl = 'https://api.weixin.qq.com';
+  protected $wxConfService;
+  public function wxUserModel()
   {
-    $model = new WxInfo;
+    $model = new WxUser;
     return $model;
+    $this->wxConfService = new WxConfService;
   }
   /**
    * 保存微信用户
@@ -28,10 +33,9 @@ class WeiXinServices
   public function saveWxUser($DA)
   {
     try {
-      $wxModel = $this->wxModel();
-      $wx_user = $wxModel->where('unionid', $DA['unionid'])->first();
+      $wx_user = $this->wxUserModel()->where('unionid', $DA['unionid'])->first();
       if (!$wx_user) {
-        $wx_user = new WxInfo;
+        $wx_user = $this->wxUserModel();
       }
       $wx_user->unionid   = isset($DA['unionid']) ? $DA['unionid'] : "";
       $wx_user->openid    = isset($DA['openid']) ? $DA['openid'] : "";
@@ -46,7 +50,7 @@ class WeiXinServices
       $wx_user->city      = isset($DA['city']) ? $DA['city'] : "";
       $wx_user->location  = isset($DA['location']) ? $DA['location'] : "";
       $wx_user->gender    = isset($DA['gender']) ? $DA['gender'] : "";
-      $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
+      // $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
       $wx_user->save();
       return $wx_user;
     } catch (Exception $e) {
@@ -55,29 +59,22 @@ class WeiXinServices
   }
 
   /** 获取公众号token */
-  public function getAccessToken()
+  public function getAccessToken($appid, $weixinType)
   {
-    //当前时间戳
-    $now_time = strtotime(date('Y-m-d H:i:s', time()));
-    //失效时间
-    $timeout = 7200;
-    //判断access_token是否过期
-    $before_time = $now_time - $timeout;
-    //未查找到就为过期
-    // $map['open_id'] = $openId;
-    // $access_token = $this->wxModel()->find(1);
-    //如果过期
+    $tokenKey = $appid . '_token';
+    if (Cache::has($tokenKey)) {
+      $token = Cache::get($tokenKey);
+      return $token;
+    }
 
+    $wxConf = $this->wxConfService->getWeixinConf($appid, $weixinType);
     //获取新的access_token
-    $weixinConf = config('weixin');
-    $appid  = $weixinConf['appid'];
-    $secret = $weixinConf['AppSecret'];
-    $url    = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" . $appid . "&secret=" . $secret;
+    $appid  = $wxConf['appid'];
+    $secret = $wxConf['app_secret'];
+    $url    = $this->wxApiUrl . "/cgi-bin/token?grant_type=client_credential&appid=" . $appid . "&secret=" . $secret;
     $res    = json_decode(file_get_contents($url), true);
     $access_token = $res['access_token'];
-    //更新数据库
-    // $update = ['access_token' => $access_token, 'update_time' => $now_time];
-
+    Cache::put($tokenKey, $access_token, 60 * 60 * 1.5); // 缓存1.5小时
     return $access_token;
   }
 
@@ -93,9 +90,10 @@ class WeiXinServices
   public function sendSubMsg($touser, $template_id, $page, $content)
   {
     //access_token
-    $access_token = $this->getAccessToken();
+    $access_token = $this->getAccessToken($appid, WeixinEnum::OFFICIAL_ACCOUNT);
     //请求url
-    $url = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=' . $access_token;
+
+    $url = $this->wxApiUrl . '/cgi-bin/message/subscribe/send?access_token=' . $access_token;
     //发送内容
     $data = [];
     //接收者（用户）的 openid
@@ -144,15 +142,10 @@ class WeiXinServices
    * @param $code 传入
    * @return array|mixed
    */
-  public function wxKey($code)
+  public function wxXcxLogin($appid, $code)
   {
-    /**
-     * code 换取 session_key
-     * ​这是一个 HTTPS 接口，开发者服务器使用登录凭证 code 获取 session_key 和 openid。
-     * 其中 session_key 是对用户数据进行加密签名的密钥。为了自身应用安全，session_key 不应该在网络上传输。
-     */
     // 微信小程序ID
-    $weixinConf = config('weixin');
+    $weixinConf = $this->wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
     try {
       $params = http_build_query([
         'appid'       => $weixinConf['appid'],
@@ -160,10 +153,9 @@ class WeiXinServices
         'js_code'     => $code,
         'grant_type'  => 'authorization_code'
       ]);
-      $url = 'https://api.weixin.qq.com/sns/jscode2session?';
+      $url = $this->wxApiUrl . '/sns/jscode2session?';
       $client = new Client;
       $result = $client->get($url . $params);
-
       $response = $result->getBody()->getContents();
 
       Log::error($result->getBody());
@@ -183,16 +175,12 @@ class WeiXinServices
    * @param [type] $userId
    * @return void
    */
-  public function bindWx($wxUser)
+  public function bindWx($wxUser, $uid)
   {
-
-    // $map['id'] = $userId;
-
     try {
-      DB::transaction(function () use ($wxUser) {
-        $data['avatar'] = isset($wxUser['avatarUrl']) ? $wxUser['avatarUrl'] : "";
-        $data['unionid'] = $wxUser['unionid'];
-        User::where('unionid', $wxUser['unionid'])->update($data);
+      DB::transaction(function () use ($wxUser, $uid) {
+        User::whereId($uid)->update(['unionid' => $wxUser['unionid']]);
+        $this->wxUserModel()->updateOrCreate('unionid', $wxUser['unionid'], ['uid' => $uid]);
       });
       return true;
     } catch (Exception $e) {
@@ -214,7 +202,7 @@ class WeiXinServices
       DB::transaction(function () use ($userId) {
         $data['unionid'] = "";
         User::whereId($userId)->update($data);
-        // $this->wxModel()->where('uid', $userId)->update(['uid' => 0]);
+        $this->wxUserModel()->where('uid', $userId)->update(['uid' => 0]);
       });
       return true;
     } catch (Exception $e) {
@@ -223,8 +211,28 @@ class WeiXinServices
     }
   }
 
-  public function checkBind($map)
+  /**
+   * 获取小程序openid ,unionid
+   *
+   * @param [type] $code
+   * @return void
+   */
+  public function getMiniProgramOpenId($code, $appid)
   {
-    return $this->wxModel()->where($map)->count();
+    try {
+      $wxConf = $this->wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
+      $params = [
+        'appid' => $appid,
+        'secret' => $wxConf['app_secret'],
+        'js_code' => $code,
+        'grant_type' => 'authorization_code'
+      ];
+      $url = $this->wxApiUrl . 'sns/jscode2session?' . http_build_query($params);
+      return json_decode(file_get_contents($url), true);
+    } catch (Exception $e) {
+      Log::error($e->getMessage());
+      throw new Exception($e->getMessage());
+      return false;
+    }
   }
 }

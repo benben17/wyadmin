@@ -16,8 +16,10 @@ use App\Api\Services\Weixin\WeiXinServices;
 
 class WeixinController extends BaseController
 {
+  protected $wxService;
   public function __construct()
   {
+    $this->wxService = new WeiXinServices;
   }
 
 
@@ -37,8 +39,8 @@ class WeixinController extends BaseController
     // $uid = base64_decode($request->state);
     $wxUser = Socialite::driver('weixinweb')->stateless()->user();
 
-    $wxService = new WeiXinServices;
-    $wx_user = $wxService->saveWxUser($wxUser);
+
+    $wx_user = $this->wxService->saveWxUser($wxUser);
 
     return $this->success($wx_user);
   }
@@ -76,16 +78,13 @@ class WeixinController extends BaseController
     if (!$uid) {
       return $this->error("请先登录");
     }
-    $wxService = new WeiXinServices;
-    $result = $wxService->wxKey($request->code);
+
+    $result = $this->wxService->getMiniProgramOpenId($request->appid, $request->code);
     Log::error(json_encode($result));
     if (isset($result['errcode']) || !isset($result['unionid'])) {
       return $this->error($result['errmsg']);
     }
-    // Log::error($result['unionid']);
-    // DB::enableQueryLog();
-    // $result['unionid'] = "o-9QJ1K7V8sV4dsHtneM1P9o67s8";
-    $res = $wxService->bindWx($result['unionid'], $uid, $request->wxUser);
+    $res = $this->wxService->bindWx($result['unionid'], $uid);
     if ($res) {
       return $this->success("绑定成功;");
     } else {
@@ -159,29 +158,26 @@ class WeixinController extends BaseController
     ]);
     try {
       $wxService = new WeiXinServices;
-      $result = $wxService->wxKey($request->code);
+      $result = $wxService->getMiniProgramOpenId($request->appid, $request->code);
       if (isset($result['unionid'])) {
-        $map['unionid']  = $result['unionid'];
-        $map['is_vaild'] = 1;
-        // $user = \App\Models\User::where($map)->first();
-        $user = \App\User::where($map)->first();
+        $userService = new UserServices;
+        $where['unionid']  = $result['unionid'];
+        $where['is_vaild'] = 1;
+        $user = $userService->userModel()->where($where)->first();
         if (!$user) {
           return $this->error("未绑定微信，请登陆绑定微信!");
         }
         if (!$token =  auth('api')->login($user, false)) { //$user->id
-          return $this->error('Token获取失败!');
+          return $this->error('登录失败!');
         }
-        $user = auth('api')->user();
-        // Log::error("aaaa" . json_encode($user));
-        $userService = new UserServices;
-        $data = $userService->loginUserInfo($user, $token);
+
+        $data = $userService->miniUserInfo($user, $token);
         return $this->success($data);
       } else {
-        return $this->error("获取失败" . $result['errcode']);
+        return $this->error("登录失败" . $result['errcode']);
       }
     } catch (Exception $e) {
-      throw $e->getMessage();
-      return $this->error("获取失败");
+      return $this->error("登录失败" . $e->getMessage());
     }
   }
 }
