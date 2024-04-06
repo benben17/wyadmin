@@ -3,7 +3,6 @@
 namespace App\Api\Controllers\Company;
 
 use JWTAuth;
-// use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;

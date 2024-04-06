@@ -12,10 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\ChannelExcel;
-use App\Api\Services\Common\DictServices;
+use Illuminate\Support\Facades\Validator;
 use App\Api\Services\Channel\ChannelService;
 use App\Api\Models\Common\Contact as ContactModel;
-
 
 /**
  * 渠道管理
@@ -420,7 +419,7 @@ class ChannelController extends BaseController
             'channel_name.required' => '渠道信息名称不能为空!',
             'channel_name.unique' => '渠道名称重复!'
         ];
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'id' => 'required|numeric|gt:0',
             'channel_name' =>  ['required', Rule::unique('bse_channel')->ignore($request->input('id'))],
             'channel_contact' => 'required|array',
@@ -593,10 +592,7 @@ class ChannelController extends BaseController
             return $this->error('渠道佣金政策名称重复！');
         }
         $res = $policy->savePolicy($BA, $this->user);
-        if ($res) {
-            return $this->success('渠道政策保存成功。');
-        }
-        return $this->error('渠道政策保存失败！');
+        return $res ? $this->success('渠道政策保存成功。') : $this->error('渠道政策保存失败！');
     }
 
     public function showPolicy(Request $request)
@@ -621,47 +617,25 @@ class ChannelController extends BaseController
      */
     public function policyList(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
-        $map = array();
+
         if ($request->id && $request->id > 0) {
             $map['id'] = $request->id;
         }
         // 是否可用 1 可用0禁用
-        if ($request->input('is_vaild')) {
+        if (isset($request->is_vaild) && empty($request->is_vaild)) {
             $map['is_vaild'] = $request->input('is_vaild');
         }
-
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
-
-        $BA = $request->toArray();
-        DB::enableQueryLog();
         //
         $policy = new ChannelService;
-        $data =  $policy->policyModel()->where($map)
+        $subQuery =  $policy->policyModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->policy_type && $q->where('policy_type', $request->policy_type);
                 $request->month && $q->where('month', $request->month);
-            })
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
+            });
 
         // return response()->json(DB::getQueryLog());
-        $data = $this->handleBackData($data);
+        $data = $this->pageData($subQuery, $request);
         return $this->success($data);
     }
-    // return response()->json(DB::getQueryLog());
-
-
 }
