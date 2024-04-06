@@ -5,7 +5,7 @@ namespace App\Api\Services\Weixin;
 use Exception;
 use App\Models\User;
 use GuzzleHttp\Client;
-use App\Api\Models\Weixin\WxInfo;
+use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Log;
  */
 class WeiXinServices
 {
-  public function wxModel()
+  public function wxUserModel()
   {
-    $model = new WxInfo;
+    $model = new WxUser;
     return $model;
   }
   /**
@@ -28,10 +28,9 @@ class WeiXinServices
   public function saveWxUser($DA)
   {
     try {
-      $wxModel = $this->wxModel();
-      $wx_user = $wxModel->where('unionid', $DA['unionid'])->first();
+      $wx_user = $this->wxUserModel()->where('unionid', $DA['unionid'])->first();
       if (!$wx_user) {
-        $wx_user = new WxInfo;
+        $wx_user = $this->wxUserModel();
       }
       $wx_user->unionid   = isset($DA['unionid']) ? $DA['unionid'] : "";
       $wx_user->openid    = isset($DA['openid']) ? $DA['openid'] : "";
@@ -95,6 +94,7 @@ class WeiXinServices
     //access_token
     $access_token = $this->getAccessToken();
     //请求url
+
     $url = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=' . $access_token;
     //发送内容
     $data = [];
