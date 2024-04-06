@@ -47,7 +47,8 @@ class WeiXinServices
       $wx_user->location  = isset($DA['location']) ? $DA['location'] : "";
       $wx_user->gender    = isset($DA['gender']) ? $DA['gender'] : "";
       $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
-      return $wx_user->save();
+      $wx_user->save();
+      return $wx_user;
     } catch (Exception $e) {
       throw $e;
     }

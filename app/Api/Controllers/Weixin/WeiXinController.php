@@ -37,11 +37,10 @@ class WeixinController extends BaseController
     // $uid = base64_decode($request->state);
     $wxUser = Socialite::driver('weixinweb')->stateless()->user();
 
-    return $wxUser;
     $wxService = new WeiXinServices;
-    $res = $wxService->saveWxUser($wxUser);
+    $wx_user = $wxService->saveWxUser($wxUser);
 
-    return $res ? $this->success($wxUser) : $this->error("绑定失败");
+    return $this->success($wx_user);
   }
 
 
