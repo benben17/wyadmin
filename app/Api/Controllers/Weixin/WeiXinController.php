@@ -35,18 +35,12 @@ class WeixinController extends BaseController
   public function weixinCallback()
   {
     // $uid = base64_decode($request->state);
-    $wxUser = Socialite::driver('weixinweb')->user();
-    Log::error(json_encode($wxUser));
-    return $wxUser;
+    $wxUser = Socialite::driver('weixinweb')->stateless()->user();
+
     $wxService = new WeiXinServices;
-    $unionid = $wxUser['unionid'];
-    $userBind = User::where('unionid', $unionid)->exists();
-    if ($userBind) {
-      return $this->error("该微信已绑定其他账号");
-    }
-    // return response()->json(DB::getQueryLog());
-    $res = $wxService->bindWx($wxOpenid, $wxUser);
-    return $res ? $this->success("绑定成功;") : $this->error("绑定失败");
+    $wx_user = $wxService->saveWxUser($wxUser);
+
+    return $this->success($wx_user);
   }
 
 

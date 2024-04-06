@@ -47,7 +47,8 @@ class WeiXinServices
       $wx_user->location  = isset($DA['location']) ? $DA['location'] : "";
       $wx_user->gender    = isset($DA['gender']) ? $DA['gender'] : "";
       $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
-      return $wx_user->save();
+      $wx_user->save();
+      return $wx_user;
     } catch (Exception $e) {
       throw $e;
     }
@@ -182,28 +183,20 @@ class WeiXinServices
    * @param [type] $userId
    * @return void
    */
-  public function bindWx($unionid, $wxUser)
+  public function bindWx($wxUser)
   {
-    $map['unionid'] = $unionid;
+
     // $map['id'] = $userId;
-    $res = User::where($map)->count();
-    if ($res > 0) {
-      return false;
-    }
+
     try {
-      DB::transaction(function () use ($unionid, $userId, $wxUser) {
-        $data['unionid'] = $unionid;
-        User::whereId($userId)->update($data);
-        if ($wxUser) {
-          $wxUser['avatar'] = isset($wxUser['avatarUrl']) ? $wxUser['avatarUrl'] : "";
-          $wxUser['unionid'] = $unionid;
-          $this->saveWxUser($wxUser);
-        }
+      DB::transaction(function () use ($wxUser) {
+        $data['avatar'] = isset($wxUser['avatarUrl']) ? $wxUser['avatarUrl'] : "";
+        $data['unionid'] = $wxUser['unionid'];
+        User::where('unionid', $wxUser['unionid'])->update($data);
       });
       return true;
     } catch (Exception $e) {
       throw $e;
-      Log::error($unionid . "unionid");
       Log::error($e->getMessage());
       return false;
     }
