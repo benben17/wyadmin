@@ -182,11 +182,11 @@ class WeiXinServices
    * @param [type] $userId
    * @return void
    */
-  public function bindWx($unionid, $userId, $wxUser)
+  public function bindWx($unionid, $wxUser)
   {
     $map['unionid'] = $unionid;
-    $map['id'] = $userId;
-    $res =  User::where($map)->count();
+    // $map['id'] = $userId;
+    $res = User::where($map)->count();
     if ($res > 0) {
       return false;
     }

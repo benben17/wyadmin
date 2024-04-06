@@ -22,6 +22,7 @@ class EventServiceProvider extends ServiceProvider
         //微信登陆
         \SocialiteProviders\Manager\SocialiteWasCalled::class => [
             'SocialiteProviders\Weixin\WeixinExtendSocialite@handle',
+            \SocialiteProviders\WeixinWeb\WeixinWebExtendSocialite::class . '@handle',
         ],
 
     ];
