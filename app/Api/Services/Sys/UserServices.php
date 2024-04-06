@@ -3,7 +3,7 @@
 namespace App\Api\Services\Sys;
 
 use Exception;
-use App\Api\Models\Weixin\WxInfo;
+use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Log;
@@ -116,17 +116,16 @@ class UserServices
     ];
     $data['project_info'] = $project_info;
     $depart = getDepartById($user->depart_id);
-    $wxInfo = WxInfo::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
+    $wxUser = WxUser::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
     $data['info'] = [
-      'name' => $user->realname,
-      'uid' => $user->id,
-      // 'avatar' => $user->avatar,
-      'access' => ['admin'],
-      'company_name' => $result->name,
+      'name'           => $user->realname,
+      'uid'            => $user->id,
+      'access'         => ['admin'],
+      'company_name'   => $result->name,
       'company_access' => [$result->product->en_name],
-      'avatar' => $wxInfo->avatar,
-      'nickname' => $wxInfo->nickname,
-      'depart_name' => $depart->name
+      'avatar'         => $wxUser->avatar,
+      'nickname'       => $wxUser->nickname,
+      'depart_name'    => $depart->name
     ];
     // $data['menu_list'] = $this->userMenu($user);
     return $data;

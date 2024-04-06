@@ -6,7 +6,7 @@ use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class WxInfo extends Model
+class WxUser extends Model
 {
   /**
    * 关联到模型的数据表

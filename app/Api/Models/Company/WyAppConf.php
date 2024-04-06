@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Api\Models\Weixin;
+namespace App\Api\Models\Company;
 
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
 /**
- * 微信支付 配置表
+ * 小程序以及公众号配置 支付配置
  *
  * @Author leezhua
  * @DateTime 2024-01-14
  */
-class WeChatPayConf extends Model
+class WyAppConf extends Model
 {
   /**
    * 关联到模型的数据表
@@ -23,7 +23,7 @@ class WeChatPayConf extends Model
 
   use SoftDeletes;
 
-  protected $table = 'base_pay_conf';
+  protected $table = 'base_app_conf';
   protected $fillable = ['*'];
   protected $hidden = ['deleted_at', "company_id"];
 
