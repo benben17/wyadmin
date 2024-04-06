@@ -2,12 +2,12 @@
 
 namespace App\Api\Services\Weixin;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Exception;
-use App\Api\Models\Weixin\WxInfo;
-use GuzzleHttp\Client;
 use App\Models\User;
+use GuzzleHttp\Client;
+use App\Api\Models\Weixin\WxInfo;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 微信公众号服务
@@ -202,6 +202,7 @@ class WeiXinServices
       });
       return true;
     } catch (Exception $e) {
+      throw $e;
       Log::error($unionid . "unionid");
       Log::error($e->getMessage());
       return false;

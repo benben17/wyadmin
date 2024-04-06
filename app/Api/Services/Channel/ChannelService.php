@@ -50,11 +50,7 @@ class ChannelService
     $policy->is_vaild = isset($DA['is_vaild']) ? $DA['is_vaild'] : 1;
     $policy->remark = isset($DA['remark']) ? $DA['remark'] : "";
     $res = $policy->save();
-    if ($res) {
-      return $policy;
-    } else {
-      return false;
-    }
+    return $res;
   }
   /** 判断政策是否存在 */
   public function policyExists($DA)

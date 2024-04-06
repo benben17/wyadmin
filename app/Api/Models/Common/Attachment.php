@@ -32,6 +32,8 @@ class Attachment extends Model
     return getDictName($atta_type);
   }
 
+
+
   protected static function boot()
   {
     parent::boot();

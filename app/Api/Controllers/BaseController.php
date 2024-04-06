@@ -3,9 +3,10 @@
 namespace App\Api\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * @OA\Info(

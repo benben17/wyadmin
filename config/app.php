@@ -189,8 +189,7 @@ return [
         Maatwebsite\Excel\ExcelServiceProvider::class,
         // 微信登陆
         SocialiteProviders\Manager\ServiceProvider::class,
-        // Toplan\PhpSms\PhpSmsServiceProvider::class,
-        // Toplan\Sms\SmsManagerServiceProvider::class,
+        // \SocialiteProviders\Manager\ServiceProvider::class,
 
     ],
 
@@ -247,7 +246,7 @@ return [
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
         'Aliyunsms' => Cisco\Aliyunsms\Facades\Aliyunsms::class,
-        'Socialite' =>  Laravel\Socialite\Facades\Socialite::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
 
     ],
 
