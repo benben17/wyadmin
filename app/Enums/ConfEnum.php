@@ -20,4 +20,7 @@ abstract class ConfEnum extends Enum
   const NOTIFY_URL                  = 'NOTIFY_URL';  //  支付通知地址
   const XCX_APPID                   = 'XCX_APPID';  // 小程序ID
 
+  const APPID                       = 'APPID';  // 公众号APPID
+  const APP_SECRET                  = 'APP_SECRET';  // 公众号APP_SECRET
+
 }
