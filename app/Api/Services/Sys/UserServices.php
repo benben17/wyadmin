@@ -121,8 +121,13 @@ class UserServices
       'name'           => $user->realname,
       'uid'            => $user->id,
       'access'         => ['admin'],
+<<<<<<< HEAD
       'company_name'   => $company->name,
       'company_access' => [$company->product->en_name],
+=======
+      'company_name'   => $result->name,
+      'company_access' => [$result->product->en_name],
+>>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
       'avatar'         => $wxUser->avatar,
       'nickname'       => $wxUser->nickname,
       'depart_name'    => $depart->name

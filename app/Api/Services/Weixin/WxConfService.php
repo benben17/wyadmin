@@ -3,7 +3,10 @@
 namespace App\Api\Services\Weixin;
 
 use App\Enums\ConfEnum;
+<<<<<<< HEAD
 use App\Enums\WeixinEnum;
+=======
+>>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
 use App\Api\Models\Company\WyAppConf;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,11 +20,19 @@ class WxConfService
   // private $platformPublicKeyInstance;
   // private $platformCertificateSerial;
   // private $notifyUrl;
+<<<<<<< HEAD
   private $wyAppConf;
   private $companyId;
   public function __construct()
   {
     $this->wyAppConf = new WyAppConf();
+=======
+  private $appConfModel;
+  private $companyId;
+  public function __construct()
+  {
+    $this->appConfModel = new WyAppConf();
+>>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
     $user = auth('api')->user();
     $this->companyId = $user->company_id;
   }
@@ -30,7 +41,11 @@ class WxConfService
 
   public function getWechatPayConf()
   {
+<<<<<<< HEAD
     $wxPayConf =  $this->wyAppConf->where('type', WeixinEnum::PAY)->firstOrFail();
+=======
+    $wxPayConf =  $this->appConfModel->where('type', 'wechatpay')->firstOrFail();
+>>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
     if ($wxPayConf) {
       Cache::set(ConfEnum::MERCHANT_ID . $this->companyId, $wxPayConf['mch_id']);
       Cache::set(ConfEnum::XCX_APPID . $this->companyId, $wxPayConf['app_id']);
