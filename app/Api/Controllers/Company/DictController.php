@@ -98,6 +98,7 @@ class DictController extends BaseController
             ->where(function ($q) use ($request) {
                 $request->is_edit && $q->where('is_edit', $request->is_edit);
                 $request->model && $q->where('model', $request->model);
+                $request->type && $q->where('type', $request->type);
             })->get();
         // return response()->json(DB::getQueryLog());
         if ($data) {
