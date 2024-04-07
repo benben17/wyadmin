@@ -42,7 +42,7 @@ Route::group(['prefix' => 'business/channel'], function () {
     Route::post('show', '\App\Api\Controllers\Business\ChannelController@show');
     Route::post('enable', '\App\Api\Controllers\Business\ChannelController@enable');
 
-    Route::post('brokerage/list', '\App\Api\Controllers\Business\ChannelController@brokerageList');
+    Route::post('brokerage/list', '\App\Api\Controllers\Business\ChannelBrokerageController@list');
     //政策
     Route::post('policy/list', '\App\Api\Controllers\Business\ChannelController@policyList');
     Route::post('policy/add', '\App\Api\Controllers\Business\ChannelController@storePolicy');

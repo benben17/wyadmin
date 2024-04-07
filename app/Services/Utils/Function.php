@@ -83,22 +83,27 @@ function companyConfig($id)
 
 function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 {
-	if (empty($contacts) || empty($parentId) || empty($userInfo)) {
-		return false;
+	try {
+		if (empty($contacts) || empty($parentId) || empty($userInfo)) {
+			return false;
+		}
+		foreach ($contacts as $k => $v) {
+			$data[$k]['created_at']    = nowTime();
+			$data[$k]['u_uid']         = $userInfo['id'];
+			$data[$k]['company_id']    = $userInfo['company_id'];
+			$data[$k]['parent_id']     = $parentId;
+			$data[$k]['contact_name']  = $v['contact_name'];
+			$data[$k]['parent_type']   = $userInfo['parent_type'];
+			$data[$k]['contact_role']  = isset($v['contact_role']) ? $v['contact_role'] : "";
+			$data[$k]['contact_phone'] = isset($v['contact_phone']) ? $v['contact_phone'] : "";
+			$data[$k]['is_default']    = isset($v['is_default']) ? $v['is_default'] : 0;
+			$data[$k]['updated_at']    = nowTime();
+		}
+		return $data;
+	} catch (\Exception $e) {
+		Log::error($e->getMessage());
+		throw new \Exception("联系人信息格式化失败" . $e->getMessage());
 	}
-	foreach ($contacts as $k => $v) {
-		$data[$k]['created_at'] = nowTime();
-		$data[$k]['u_uid'] = $userInfo['id'];
-		$data[$k]['company_id'] = $userInfo['company_id'];
-		$data[$k]['parent_id'] = $parentId;
-		$data[$k]['contact_name'] = $v['contact_name'];
-		$data[$k]['parent_type'] = $userInfo['parent_type'];
-		$data[$k]['contact_role'] = isset($v['contact_role']) ? $v['contact_role'] : "";
-		$data[$k]['contact_phone'] = isset($v['contact_phone']) ? $v['contact_phone'] : "";
-		$data[$k]['is_default'] = isset($v['is_default']) ? $v['is_default'] : 0;
-		$data[$k]['updated_at'] = nowTime();
-	}
-	return $data;
 }
 
 /**

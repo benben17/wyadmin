@@ -208,36 +208,42 @@ class ChannelService
   }
 
 
-  public function formatChannel($DA, $user, $type = 1)
+  /**
+   * format channel
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-29
+   * @param [type] $DA
+   * @param [type] $user
+   * @param integer $type
+   *
+   * @return array
+   */
+
+  public function formatChannel($channel, $user, $type = 1)
   {
-    if ($type == 1) {
-      $BA['company_id'] = $user['company_id'];
-      $BA['c_uid'] = $user['id'];
-      $BA['is_valid'] = $DA['is_vaild'];
-      $BA['created_at'] = nowTime();
-    } else {
-      $BA['u_uid'] = $user['id'];
-      $BA['id'] = $DA['id'];
-    }
-    $BA['channel_name'] = $DA['channel_name'];
-    if (isset($DA['channel_addr'])) {
-      $BA['channel_addr'] = $DA['channel_addr'];
-    }
-    if (isset($DA['channel_type'])) {
-      $BA['channel_type'] = $DA['channel_type'];
-    }
-    if (isset($DA['policy_id'])) {
-      $BA['policy_id'] = $DA['policy_id'];
-    }
-    if (isset($DA['brokerage_amount'])) {
-      $BA['brokerage_amount'] = $DA['brokerage_amount'];
-    }
+    try {
+      $channelData = [];
+      if ($type == 1) {
+        $channelData['company_id'] = $user['company_id'];
+        $channelData['c_uid'] = $user['id'];
+        $channelData['is_valid'] = $channel['is_vaild'];
+        $channelData['created_at'] = nowTime();
+      } else {
+        $channelData['u_uid'] = $user['id'];
+        $channelData['id'] = $channel['id'];
+      }
+      $channelData['channel_name']     = $channel['channel_name'];
+      $channelData['channel_addr']     = $channel['channel_addr'] ?? "";
+      $channelData['channel_type']     = $channel['channel_type'] ?? "";
+      $channelData['policy_id']        = $channel['policy_id'] ?? 0;
+      $channelData['brokerage_amount'] = $channel['brokerage_amount'] ?? 0.00;
+      $channelData['remark']           = $channel['remark'] ?? "";
+      $channelData['proj_ids']         = $channel['proj_ids'] ?? "";
 
-    if (isset($DA['remark'])) {
-      $BA['remark'] = $DA['remark'];
+      return $channelData;
+    } catch (\Exception $e) {
+      throw new \Exception("渠道数据格式化失败" . $e->getMessage());
     }
-    $BA['proj_ids'] = isset($DA['proj_ids']) ? $DA['proj_ids'] : "";
-
-    return $BA;
   }
 }

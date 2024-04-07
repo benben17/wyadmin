@@ -229,13 +229,14 @@ class ChannelController extends BaseController
             'channel_contact' => 'array',
         ]);
         try {
-            DB::transaction(function () use ($request) {
-                $channel = $this->channelService->formatChannel($request->toArray(), $this->user); // 格式化数据
+            $userInfo = $this->user;
+            $userInfo['parent_type'] = AppEnum::Channel;
+            DB::transaction(function () use ($request, $userInfo) {
+                $channel = $this->channelService->formatChannel($request->toArray(), $userInfo); // 格式化数据
                 $result = $this->channelService->model()->Create($channel);
                 if ($result &&  $request->channel_contact) {
-                    $channel_id = $result->id;
-                    $userInfo['parent_type'] = AppEnum::Channel;
-                    $contacts = formatContact($request->channel_contact, $channel_id, $userInfo);
+                    $channelId = $result->id;
+                    $contacts = formatContact($request->channel_contact, $channelId, $userInfo);
                     if ($contacts) {
                         $contact = new ContactModel;
                         $contact->addAll($contacts);
@@ -303,77 +304,6 @@ class ChannelController extends BaseController
         return $this->success($data);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/business/channel/brokerage/list",
-     *     tags={"渠道"},
-     *     summary="根据渠道id获取渠道佣金信息",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"id"},
-     *       @OA\Property(property="id",type="int", description="渠道ID"
-     *       )
-     *     ),
-     *       example={"id": 11}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function brokerageList(Request $request)
-    {
-        $pagesize = $this->setPagesize($request);
-
-
-        $map = array();
-        if ($request->channel_id) {
-            $map['channel_id'] = $request->channel_id;
-        }
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
-
-        $data = $this->channelService->brokerageModel()->where($map)
-            ->where(function ($q) use ($request) {
-                $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
-            })
-            ->whereHas('tenant', function ($q) use ($request) {
-                if (!$this->user['is_admin']) {
-                    if ($request->depart_id) {
-                        $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                        $q->whereIn('depart_id', $departIds);
-                    }
-                    if ($this->user['is_manager']) {
-                        $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                        $q->whereIn('depart_id', $departIds);
-                    } else if (!$request->depart_id) {
-                        $q->where('belong_uid', $this->uid);
-                    }
-                }
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-            })
-            ->orderBy($orderBy, $order)
-            ->paginate($pagesize)->toArray();
-        if ($data) {
-            $data = $this->handleBackData($data);
-        }
-
-        return $this->success($data);
-    }
 
     /**
      * @OA\Post(
@@ -435,22 +365,24 @@ class ChannelController extends BaseController
         }
         try {
             DB::transaction(function () use ($request) {
+                $channelId = $request->id;
                 $channelData = $request->toArray();
-                $userinfo['parent_type'] = AppEnum::Channel;
-                $channel = $this->channelService->formatChannel($channelData, $this->user, 2); //编辑传入值
+                // $userInfo = $this->user;
+                $userInfo['parent_type'] = AppEnum::Channel;
+                $channel = $this->channelService->formatChannel($channelData, $userInfo, 2); //编辑传入值
                 //更新渠道
-                DB::enableQueryLog();
-                $this->channelService->model()->whereId($request->id)->update($channel);
-                //更新或者新增渠道联系人
+                $this->channelService->model()->whereId($channelId)->update($channel);
+                // //更新或者新增渠道联系人
                 if ($channelData['channel_contact']) {
-                    $contacts = formatContact($channelData['channel_contact'], $request->id, $userinfo, 2);
-                    ContactModel::where('parent_id', $request->id)->where('parent_type', $this->parent_type)->delete();
+                    $contacts = formatContact($channelData['channel_contact'], $channelId, $userInfo, 2);
+                    ContactModel::where('parent_id', $channelId)->where('parent_type', $this->parent_type)->delete();
                     $contact = new ContactModel;
                     $contact->addAll($contacts);
                 }
             });
             return $this->success('渠道更新成功');
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return $this->error('渠道更新失败!');
         }
     }
