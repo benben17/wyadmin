@@ -54,7 +54,7 @@ class DictController extends BaseController
 
         DB::enableQueryLog();
         $data = DictModel::where($map)
-            ->select('id', 'dict_key', 'dict_value', 'is_vaild')
+            ->select('id', 'dict_key', 'dict_value', 'is_vaild', 'dict_key as key', 'dict_value as value')
             ->where(function ($q) use ($request) {
                 $request->dict_key && $q->where('dict_key', $request->dict_key);
             })
