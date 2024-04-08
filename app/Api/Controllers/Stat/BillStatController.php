@@ -421,6 +421,9 @@ class BillStatController extends BaseController
       ["title" => "总已收金额", "amount" => $DA['allTenant']['total_receive_amt']],
       ["title" => "总未收金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
     );
+    foreach ($DA['total'] as &$v) {
+      $v['amount'] = number_format($v['amount'], 2);
+    }
     return $this->success($DA);
   }
 }
