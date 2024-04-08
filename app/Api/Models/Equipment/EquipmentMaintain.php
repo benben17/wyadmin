@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Equipment;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  *  设备维护模型
@@ -20,9 +20,17 @@ class EquipmentMaintain extends Model
   protected $table = 'bse_equipment_maintain';
   protected $fillable = [];
   protected $hidden = ['company_id'];
-  protected $appends = ['proj_name', 'maintain_period_label'];
+  protected $appends = ['proj_name', 'maintain_period_label', 'pic_full'];
 
 
+  public function getPicFullAttribute()
+  {
+    $pic = $this->attributes['pic'];
+    if (empty($pic)) {
+      return [];
+    }
+    return picFullPath($pic);
+  }
 
 
   public function maintainPlan()

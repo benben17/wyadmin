@@ -27,8 +27,7 @@ class EquipmentService
   /** 设备维保模型 */
   public function maintainModel()
   {
-    $model = new MaintainModel;
-    return $model;
+    return new MaintainModel;
   }
   /** 维护计划模型 */
   public function MaintainPlanModel()
