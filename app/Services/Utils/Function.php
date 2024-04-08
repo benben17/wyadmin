@@ -44,16 +44,17 @@ function getCompanyIds($uid): array
  */
 function getBankIdByFeeType($feeId, $projId): int
 {
+	$errorMsg = "未找到【" . getFeeNameById($feeId)['fee_name'] . "】费用的银行账户";
 	try {
 		$bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
 		if ($bank) {
 			return $bank->id;
 		} else {
-			throw new \Exception("未找到【" . getFeeNameById($feeId) . "】费用的银行账户");
+			throw new \Exception($errorMsg);
 		}
 	} catch (\Exception $e) {
 		Log::error($e->getMessage());
-		throw new \Exception("【" . getFeeNameById($feeId) . "】费用的银行账户获取失败");
+		throw new \Exception($errorMsg);
 	}
 }
 

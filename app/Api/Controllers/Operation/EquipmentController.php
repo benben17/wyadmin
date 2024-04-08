@@ -780,4 +780,20 @@ class EquipmentController extends BaseController
     $data['equipment_quantity'] = $this->equipment->equipmentModel()->find($data['equipment_id'])->pluck('quantity')->first();
     return $this->success($data);
   }
+
+
+  public function planStore(Request $request)
+  {
+    $request->validate([
+      'equipment_id'    => 'required',
+      'plan_date'   => 'required|date',
+      'plan_quantity' => 'required',
+    ]);
+    $DA = $request->toArray();
+    $res = $this->equipment->saveMaintainPlan($DA, $this->user);
+    if ($res) {
+      return $this->success('维护计划保存成功。');
+    }
+    return $this->error('维护计划保存失败！');
+  }
 }

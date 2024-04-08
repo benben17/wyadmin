@@ -140,7 +140,7 @@ class EquipmentService
   public function editMaintainPlan($maintainPlan)
   {
     $plan = $this->MaintainPlanModel()->find($maintainPlan['id']);
-
+    $equipment = $this->equipmentModel()->find($maintainPlan['equipment_id']);
     $plan->plan_date       = $maintainPlan['plan_date'];
     $plan->device_name     = $maintainPlan['device_name'];
     $plan->model           = $maintainPlan['model'];
@@ -149,8 +149,8 @@ class EquipmentService
     // 'maintain_period' => $equipment['maintain_period'],
     $plan->equipment_id    = $maintainPlan['equipment_id'];
     $plan->equipment_type  = $maintainPlan['equipment_type'];
-    $plan->quantity        = $maintainPlan['plan_quantity'];
-    $plan->plan_quantity      = nowTime();
+    $plan->quantity        = $equipment['quantity'];
+    $plan->plan_quantity   = $maintainPlan['plan_quantity'];
     return $plan->save();
   }
 
@@ -271,5 +271,28 @@ class EquipmentService
     // Set the day to Monday (1) to get the first day of the week
     $dto->modify('-' . ($dto->format('N') - 1) . ' days');
     return $dto->format('Y-m-d');
+  }
+
+  public function saveMaintainPlan($plan, $user)
+  {
+    $equipment = $this->equipmentModel()->find($plan['equipment_id']);
+    // $planMode = $this->MaintainPlanModel();
+    $planData = [
+      'company_id'  => $user['company_id'],
+      'c_uid'       => $user['id'],
+      'c_username'  => $user['realname'],
+      'plan_date'   => $plan['plan_date'],
+      'proj_id'     => $equipment['proj_id'],
+      'device_name' => $equipment['device_name'],
+      'model'       => $equipment['model'],
+      'major'       => $equipment['major'],
+      'position'    => $equipment['position'],
+      'quantity'    => $equipment['quantity'],
+      // 'maintain_period' => $equipment['maintain_period'],
+      'equipment_id' => $equipment['id'],
+      // 'equipment_type'  => $equipment['equipment_type'],
+      'plan_quantity' => $equipment['quantity'],
+    ];
+    $this->MaintainPlanModel()->insert($planData);
   }
 }
