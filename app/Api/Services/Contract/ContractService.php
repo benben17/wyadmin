@@ -675,4 +675,15 @@ class ContractService
       return "";
     }
   }
+
+  public function getContractRoomByTenantId($tenantId)
+  {
+    $room = $this->contractRoomModel()->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')
+      ->where('tenant_id', $tenantId)->groupBy('tenant_id')->first();
+    if ($room) {
+      return $room['rooms'];
+    } else {
+      return "";
+    }
+  }
 }
