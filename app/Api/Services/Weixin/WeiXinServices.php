@@ -5,25 +5,19 @@ namespace App\Api\Services\Weixin;
 use Exception;
 use App\Models\User;
 use GuzzleHttp\Client;
-<<<<<<< HEAD
 use App\Enums\WeixinEnum;
-use Illuminate\Support\Arr;
-=======
->>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
 use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Api\Services\Weixin\WxConfService;
 
 /**
  * 微信公众号服务
  */
 class WeiXinServices
 {
-<<<<<<< HEAD
   protected $wxApiUrl = 'https://api.weixin.qq.com';
   protected $wxConfService;
-=======
->>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
   public function wxUserModel()
   {
     $model = new WxUser;
@@ -99,11 +93,7 @@ class WeiXinServices
     $access_token = $this->getAccessToken($appid, WeixinEnum::OFFICIAL_ACCOUNT);
     //请求url
 
-<<<<<<< HEAD
     $url = $this->wxApiUrl . '/cgi-bin/message/subscribe/send?access_token=' . $access_token;
-=======
-    $url = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=' . $access_token;
->>>>>>> a87f70ac6d3e4a910b9b421854bc86614ccedae9
     //发送内容
     $data = [];
     //接收者（用户）的 openid

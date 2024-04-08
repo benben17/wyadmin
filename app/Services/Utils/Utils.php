@@ -17,3 +17,9 @@ function picFullPath($pics): array
   }
   return $picFull;
 }
+
+
+function isEmptyObj($obj): bool
+{
+  return empty(get_object_vars($obj));
+}

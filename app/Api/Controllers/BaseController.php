@@ -53,11 +53,13 @@ class BaseController extends Controller
     }
 
     //成功返回
-    public function success($data = "", $msg = "ok")
+    public function success($data, $msg = "ok")
     {
-        if (is_object($data)) {
+
+        if (!isEmptyObj($data) && is_object($data)) {
             $data = $data->toArray();
         }
+
         $this->parseNull($data);
         $result = [
             "code"      => 200,

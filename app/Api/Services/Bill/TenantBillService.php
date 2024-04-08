@@ -2,34 +2,38 @@
 
 namespace App\Api\Services\Bill;
 
-use App\Api\Models\Bill\ChargeBill;
-use App\Api\Models\Bill\ChargeBillRecord;
-use App\Api\Models\Bill\TenantBill as BillModel;
-use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
-use App\Api\Models\Bill\TenantBillDetailLog;
-use App\Api\Models\Company\BankAccount;
-use App\Api\Models\Contract\Contract;
-use App\Api\Models\Contract\ContractBill;
-use App\Api\Services\Contract\ContractService;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Bill\ChargeBill;
 use Illuminate\Support\Facades\Log;
+use App\Api\Models\Contract\Contract;
+use App\Api\Models\Company\BankAccount;
+use App\Api\Models\Bill\ChargeBillRecord;
+use App\Api\Models\Contract\ContractBill;
+use App\Api\Models\Bill\TenantBillDetailLog;
+use App\Api\Services\Contract\ContractService;
+use App\Api\Models\Bill\TenantBill as BillModel;
+use App\Api\Models\Bill\TenantBillDetail as BillDetailModel;
 
 /**
  *   租户账单服务
  */
-class TenantBillService {
+class TenantBillService
+{
 
 	// 账单
-	public function billModel() {
+	public function billModel()
+	{
 		return new BillModel;
 	}
 	/** 账单详情 */
-	public function billDetailModel() {
+	public function billDetailModel()
+	{
 		return new BillDetailModel;
 	}
 
-	public function chargeBillModel() {
+	public function chargeBillModel()
+	{
 		return new ChargeBill;
 	}
 
@@ -42,7 +46,8 @@ class TenantBillService {
 	 *
 	 * @return array
 	 */
-	public function saveBill($DA, $user) {
+	public function saveBill($DA, $user)
+	{
 		try {
 			if (isset($DA['id']) && $DA['id'] > 0) {
 				$bill = $this->billModel()->find($DA['id']);
@@ -53,15 +58,15 @@ class TenantBillService {
 				$bill->proj_id = $DA['proj_id'];
 				$bill->c_uid = $user['id'];
 			}
-			$bill->tenant_id = $DA['tenant_id'];
+			$bill->tenant_id   = $DA['tenant_id'];
 			$bill->tenant_name = $DA['tenant_name'];
 			$bill->contract_id = isset($DA['contract_id']) ? $DA['contract_id'] : 0;
-			$bill->bill_no = isset($DA['bill_no']) ? $DA['bill_no'] : "";
-			$bill->bill_title = isset($DA['bill_title']) ? $DA['bill_title'] : "";
-			$bill->bank_id = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
-			$bill->amount = isset($DA['amount']) ? $DA['amount'] : 0.00;
-			$bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : ""; //收款日期
-			$bill->remark = isset($DA['remark']) ? $DA['remark'] : "";
+			$bill->bill_no     = isset($DA['bill_no']) ? $DA['bill_no'] : "";
+			$bill->bill_title  = isset($DA['bill_title']) ? $DA['bill_title'] : "";
+			$bill->bank_id     = isset($DA['bank_id']) ? $DA['bank_id'] : 0;
+			$bill->amount      = isset($DA['amount']) ? $DA['amount'] : 0.00;
+			$bill->charge_date = isset($DA['charge_date']) ? $DA['charge_date'] : "";  //收款日期
+			$bill->remark      = isset($DA['remark']) ? $DA['remark'] : "";
 			$bill->save();
 			return $bill;
 		} catch (Exception $e) {
@@ -78,7 +83,8 @@ class TenantBillService {
 	 * @param    [type]     $DA [description]
 	 * @return   [type]         [description]
 	 */
-	public function saveBillDetail($DA, $user) {
+	public function saveBillDetail($DA, $user)
+	{
 		try {
 			DB::transaction(function () use ($DA, $user) {
 				if (isset($DA['id']) && $DA['id'] > 0) {
@@ -138,7 +144,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function updateShareBillDetail(int $detailId, $updateData) {
+	public function updateShareBillDetail(int $detailId, $updateData)
+	{
 		try {
 			$this->billDetailModel()->where('id', $detailId)->update($updateData);
 		} catch (Exception $e) {
@@ -157,7 +164,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function editBillDetail($DA, $user) {
+	public function editBillDetail($DA, $user)
+	{
 		try {
 			DB::transaction(function () use ($DA, $user) {
 				$billDetail = $this->billDetailModel()->find($DA['id']);
@@ -192,10 +200,10 @@ class TenantBillService {
 			Log::error("费用保存失败" . $th);
 			throw new Exception("费用保存失败" . $th->getMessage());
 		}
-
 	}
 
-	public function saveBillDetailLog($billDetail, $DA, $user) {
+	public function saveBillDetailLog($billDetail, $DA, $user)
+	{
 		try {
 			$detailLogModel = new TenantBillDetailLog;
 			$detailLogModel->company_id = $user['company_id'];
@@ -224,7 +232,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function batchSaveBillDetail($contractId, $user, int $projId) {
+	public function batchSaveBillDetail($contractId, $user, int $projId)
+	{
 		try {
 			DB::transaction(function () use ($contractId, $user, $projId) {
 				$feeList = ContractBill::where('contract_id', $contractId)->get()->toArray();
@@ -261,7 +270,8 @@ class TenantBillService {
 	 * @param    [type]     $DA [description]
 	 * @return   [type]         [description]
 	 */
-	public function billAudit($DA) {
+	public function billAudit($DA)
+	{
 		try {
 			$bill = $this->billModel()->find($DA['id']);
 			if (!$bill->audit_uid) {
@@ -293,7 +303,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function createBill(array $tenant, array $billDetails, $month, $billDay, $user): array {
+	public function createBill(array $tenant, array $billDetails, $month, $billDay, $user): array
+	{
 		try {
 
 			DB::transaction(function () use ($tenant, $billDetails, $month, $billDay, $user) {
@@ -313,7 +324,7 @@ class TenantBillService {
 					];
 
 					$bill = $this->saveBill($billData, $user);
-					Log::error("bill_id" . $bill['id']);
+					// Log::error("bill_id" . $bill['id']);
 					$billId = $bill['id'];
 
 					$idArray = str2Array($v['billDetailIds']);
@@ -340,7 +351,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function formatBillDetail(array $DA, $user, int $projId = 0) {
+	public function formatBillDetail(array $DA, $user, int $projId = 0)
+	{
 		$data = array();
 		try {
 			if ($DA && $user) {
@@ -387,7 +399,8 @@ class TenantBillService {
 	 *
 	 * @return integer
 	 */
-	private function getBankIdByContractId($contractId, $feeType): int {
+	private function getBankIdByContractId($contractId, $feeType): int
+	{
 		if (!$contractId || !$feeType) {
 			return 0;
 		}
@@ -408,7 +421,8 @@ class TenantBillService {
 	 *
 	 * @return void
 	 */
-	public function showBill($billId) {
+	public function showBill($billId)
+	{
 		$data = $this->billModel()->with('tenant:id,shop_name,tenant_no,name')->find($billId);
 		if (!$data) {
 			return (object) [];
@@ -431,9 +445,9 @@ class TenantBillService {
 			$v['bill_detail'] = $this->billDetailModel()
 				->where('bill_id', $billId)
 				->where('bank_id', $v['bank_id'])->get();
-			$totalAmt += $v['amount'];
+			$totalAmt    += $v['amount'];
 			$discountAmt += $v['discount_amount'];
-			$receiveAmt += $v['receive_amount'];
+			$receiveAmt  += $v['receive_amount'];
 		}
 		$data['bills'] = $billGroups;
 
@@ -455,7 +469,8 @@ class TenantBillService {
 	 *
 	 * @return boolean
 	 */
-	public function deleteDetail(array $detailList, $user): bool {
+	public function deleteDetail(array $detailList, $user): bool
+	{
 		try {
 			DB::transaction(function () use ($detailList, $user) {
 				foreach ($detailList as $detail) {
