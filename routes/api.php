@@ -449,10 +449,11 @@ Route::group(['prefix' => 'operation/equipment'], function () {
     Route::post('/edit', '\App\Api\Controllers\Operation\EquipmentController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\EquipmentController@show');
 
-    Route::post('/plan/show', '\App\Api\Controllers\Operation\EquipmentController@planShow');
-    Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentController@planList');
-    Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentController@planDelete');
-    Route::post('/plan/edit', '\App\Api\Controllers\Operation\EquipmentController@planEdit');
+    Route::post('/plan/show', '\App\Api\Controllers\Operation\EquipmentPlanController@show');
+    Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentPlanController@list');
+    Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentPlanController@del');
+    Route::post('/plan/add', '\App\Api\Controllers\Operation\EquipmentPlanController@store');
+    Route::post('/plan/edit', '\App\Api\Controllers\Operation\EquipmentPlanController@edit');
     Route::post('/plan/generate', '\App\Api\Controllers\Operation\EquipmentController@planGenerate');
 
     Route::post('/maintain/list', '\App\Api\Controllers\Operation\EquipmentController@maintainList');
