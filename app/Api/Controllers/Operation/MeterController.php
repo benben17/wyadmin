@@ -20,7 +20,6 @@ use App\Api\Services\Energy\EnergyService;
 class MeterController extends BaseController
 {
 
-
   private $meterService;
   public function __construct()
   {
@@ -292,9 +291,9 @@ class MeterController extends BaseController
       ->first();
     if ($data) {
       $data['tenant_name'] = getTenantNameById($data['tenant_id']);
-      $record = $this->meterService->getNewMeterRecord($request->id);
-      $data['last_record']  = $record->meter_value ?? 0;
-      $data['last_date'] = $record->record_date ?? "";
+      $record              = $this->meterService->getNewMeterRecord($request->id);
+      $data['last_record'] = $record->meter_value ?? 0;
+      $data['last_date']   = $record->record_date ?? "";
     }
 
     return $this->success($data);
@@ -517,18 +516,18 @@ class MeterController extends BaseController
         $q->where('type', $request->type);
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $q->where('status', 0); // 过滤掉初始化记录
       })
+      ->where('status', 0) // 1为初始化
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id');
     $data = $this->pageData($query, $request);
 
     foreach ($data['result'] as $k => &$v) {
-      $v['meter_no'] = $v['meter']['meter_no'];
-      $v['proj_name'] = $v['meter']['proj_name'];
-      $tenantInfo = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
+      $v['meter_no']    = $v['meter']['meter_no'];
+      $v['proj_name']   = $v['meter']['proj_name'];
+      $tenantInfo       = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
       $v['tenant_name'] = $tenantInfo['tenant_name'];
-      $v['is_virtual'] = $v['meter']['is_virtual'];
-      $v['room_info']  = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
+      $v['is_virtual']  = $v['meter']['is_virtual'];
+      $v['room_info']   = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
         $used = abs($v['used_value'] - $v['pre_used_value']) / $v['pre_used_value'] * 100;
         $v['unusual'] = $used >= 50 ? 0 : 1;
@@ -570,7 +569,6 @@ class MeterController extends BaseController
     ]);
     $DA = $request->toArray();
     $res = $this->meterService->meterRecordModel()->whereId($request->id)
-      ->where('audit_status', AppEnum::statusUnAudit)
       ->delete();
 
     return $res ? $this->success('删除成功.') : $this->error('删除失败！');

@@ -676,6 +676,13 @@ class ContractService
     }
   }
 
+  /**
+   * @Desc: 通过租户id获取房间信息
+   * @Author leezhua
+   * @Date 2024-04-08
+   * @param [type] $tenantId
+   * @return void
+   */
   public function getContractRoomByTenantId($tenantId)
   {
     $room = $this->contractRoomModel()->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')

@@ -177,21 +177,21 @@ class EquipmentService
         $maintain->c_uid        = $user['id'];
         $maintain->c_username   = $user['realname'];
       }
-      $maintain->proj_id        = $equipment['proj_id'];
-      $maintain->device_name    = $equipment['device_name'];
-      $maintain->model          = $equipment['model'];
-      $maintain->major          = $equipment['major'];
-      $maintain->position       = $equipment['position'];
-      $maintain->maintain_period = $equipment['maintain_period'];
-      $maintain->plan_id        = $DA['plan_id'];
-      $maintain->equipment_id   = $DA['equipment_id'];
-      $maintain->equipment_type = $DA['equipment_type'] ?? "";
-      $maintain->maintain_content = $DA['maintain_content'];
-      $maintain->maintain_date  = $DA['maintain_date'];
-      $maintain->maintain_person = $DA['maintain_person'];
-      $maintain->maintain_quantity =  $DA['maintain_quantity']  ?? $equipment['quantity'];
-      $maintain->maintain_type  = $DA['maintain_type'];
-      $maintain->pic            = isset($DA['pic']) ? $DA['pic'] : $equipment['pic'];
+      $maintain->proj_id           = $equipment['proj_id'];
+      $maintain->device_name       = $equipment['device_name'];
+      $maintain->model             = $equipment['model'];
+      $maintain->major             = $equipment['major'];
+      $maintain->position          = $equipment['position'];
+      $maintain->maintain_period   = $equipment['maintain_period'];
+      $maintain->plan_id           = $DA['plan_id'];
+      $maintain->equipment_id      = $DA['equipment_id'];
+      $maintain->equipment_type    = $DA['equipment_type'] ?? "";
+      $maintain->maintain_content  = $DA['maintain_content'];
+      $maintain->maintain_date     = $DA['maintain_date'];
+      $maintain->maintain_person   = $DA['maintain_person'];
+      $maintain->maintain_quantity = $DA['maintain_quantity']  ?? $equipment['quantity'];
+      $maintain->maintain_type     = $DA['maintain_type'];
+      $maintain->pic               = isset($DA['pic']) ? $DA['pic'] : $equipment['pic'];
       $maintain->save();
       return $maintain->id;
     } catch (Exception $e) {
@@ -297,6 +297,32 @@ class EquipmentService
     } catch (Exception $e) {
       throw new Exception($e);
       Log::error($e->getMessage());
+      return false;
+    }
+  }
+
+
+  /**
+   * @Desc: 维护删除
+   * @Author leezhua
+   * @Date 2024-04-08
+   * @param [type] $maintainId
+   * @return void
+   */
+  public function deleteMaintain($maintainId)
+  {
+    try {
+      DB::transaction(function () use ($maintainId) {
+        $maintain = $this->maintainModel()->find($maintainId);
+        $maintainPlan = $this->MaintainPlanModel()->find($maintain['plan_id']);
+        $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity - $maintain['maintain_quantity'];
+        $maintainPlan->status = 0;
+        $maintainPlan->save();
+        $maintain->delete();
+      });
+      return true;
+    } catch (Exception $e) {
+      Log::error("设备维护删除错误：" . $e->getMessage());
       return false;
     }
   }
