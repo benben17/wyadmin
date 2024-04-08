@@ -328,26 +328,7 @@ function dateFormat($style, $date)
 	return $date->format($style);
 }
 
-/**
- * 获取两个日期之间的月份差
- *
- * @Author leezhua
- * @DateTime 2024-03-25
- * @param string $date1
- * @param string $date2
- * @param string $tags
- *
- * @return int
- */
-function getMonthNum($date1, $date2, $tags = '-'): int
-{
-	$datetime1 = new DateTime($date1);
-	$datetime2 = new DateTime($date2);
 
-	$interval = $datetime1->diff($datetime2);
-
-	return $interval->y * 12 + $interval->m;
-}
 
 /**
  * 获取图片full地址
@@ -554,4 +535,24 @@ function getMonthRange($yearMonth): array
 	$endDate = date('Y-m-t', strtotime($startDate));
 	// Return an array with both start and end dates
 	return [$startDate, $endDate];
+}
+
+/**
+ * 获取两个日期之间的月份差
+ *
+ * @Author leezhua
+ * @DateTime 2024-03-25
+ * @param string $date1
+ * @param string $date2
+ * @param string $tags
+ *
+ * @return int
+ */
+function diffMonths($startDate, $endDate)
+{
+	$start = new DateTime($startDate);
+	$end = new DateTime($endDate);
+	$end->modify('+1 day');
+	$interval = $start->diff($end);
+	return $interval->format('%m');
 }

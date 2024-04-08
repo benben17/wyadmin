@@ -4,6 +4,7 @@ namespace App\Api\Controllers\Stat;
 
 use JWTAuth;
 use App\Enums\AppEnum;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Hamcrest\Text\StringStartsWith;
@@ -411,10 +412,14 @@ class BillStatController extends BaseController
     unset($formattedData['total']);
     $DA['data'] = array_values($formattedData);
 
+    $month = date('n', strtotime(nowYmd()));
     $DA['total'] = array(
-      ["title" => "总金额", "amount" => $DA['allTenant']['total_amt']],
-      ["title" => "总收款金额", "amount" => $DA['allTenant']['total_receive_amt']],
-      ["title" => "总未收款金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
+      ['title' => "本月总金额", "amount" => $DA['allTenant']['m_' . $month]['amount']],
+      ['title' => "本月已收金额", "amount" => $DA['allTenant']['m_' . $month]['receive_amount']],
+      ['title' => "本月未收金额", "amount" => $DA['allTenant']['m_' . $month]['unreceive_amount']],
+      ["title" => "总金额", "amount" =>    $DA['allTenant']['total_amt']],
+      ["title" => "总已收金额", "amount" => $DA['allTenant']['total_receive_amt']],
+      ["title" => "总未收金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
     );
     return $this->success($DA);
   }
