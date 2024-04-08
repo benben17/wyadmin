@@ -56,8 +56,8 @@ class BaseController extends Controller
     public function success($data, $msg = "ok")
     {
 
-        if (!isEmptyObj($data) && is_object($data)) {
-            $data = $data->toArray();
+        if (is_object($data)) {
+            !isEmptyObj($data) && $data = $data->toArray();
         }
 
         $this->parseNull($data);
