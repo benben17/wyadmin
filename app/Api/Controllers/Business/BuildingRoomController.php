@@ -52,7 +52,7 @@ class BuildingRoomController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
+
         $map = array();
 
         if ($request->build_id) {
@@ -77,20 +77,9 @@ class BuildingRoomController extends BaseController
             $map['room_trim_state'] = $request->room_trim_state;
         }
         $map['is_valid'] = 1;
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'created_at';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
+
         DB::enableQueryLog();
-        $subQuery = $this->buildRoomService->model()->where($map)
+        $subQuery = $this->buildRoomService->buildingRoomModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', columnLike($request->room_no));
             })
