@@ -299,7 +299,7 @@ class ContractBillService
         $bill[$i]['end_date'] = $rule['end_date'];   // 结束日期为合同结束日期
         // 按月 最后一个帐期 总金额 - 之前账单金额
         if ($freeType == AppEnum::freeMonth) {
-          if ($period === $freeNum && $period == 1) {
+          if ($period === $freeNum) {
             $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
           } else {
             //  租金免租 账单金额 = 月租金 * (周期 - 免租月数)
