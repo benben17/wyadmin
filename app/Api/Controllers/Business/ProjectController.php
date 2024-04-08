@@ -4,8 +4,9 @@ namespace App\Api\Controllers\Business;
 
 use JWTAuth;
 use Illuminate\Http\Request;
-use App\Models\Area as AreaModel;
+use App\Api\Models\BuildingRoom;
 
+use App\Models\Area as AreaModel;
 use App\Services\CompanyServices;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
@@ -92,60 +93,29 @@ class ProjectController extends BaseController
             });
         // 分页数据
         $data = $this->pageData($subQuery, $request);
-
+        $arr = [
+            'build_room_count' => 0,
+            'total_area'       => 0,
+            'free_room_count'  => 0,
+            'free_area'        => 0,
+        ];
+        $map = array();
         //通过项目获取房间信息 并进行数据合并
         $projStat = $subQuery->get()->toArray();
         foreach ($projStat as $k => &$v) {
-            $statData =  BuildingModel::where('proj_id', $v['id'])
-                ->withCount(['buildRoom'  => function ($q) use ($subMap) {
-                    $q->where($subMap);
-                }])
-                // 统计空闲房间
-                ->withCount(['buildRoom as free_room_count' => function ($q) use ($subMap) {
-                    $q->where($subMap);
-                    $q->where('room_state', 1);
-                }])
-                ->whereHas('buildRoom', function ($q) use ($request, $subMap) {
-                    if ($request->free_room_count) {
-                        $q->havingRaw('count(*) = ?', [$request->free_room_count]);
-                        $q->where($subMap);
-                        $q->where('room_state', 1);
-                    }
+            $roomStat = BuildingRoom::selectRaw('count(id) as build_room_count,
+            sum(room_area) as total_area,
+            sum(case when room_state = 1 then 1 else 0 end) as free_room_count,
+            sum(case when room_state = 1 then room_area else 0 end) as free_area')
+                ->whereHas('building', function ($query) use ($v) {
+                    $query->where('proj_id', $v['id']);
                 })
-                //统计管理房间面积
-                ->withCount(['buildRoom as total_area' => function ($q)  use ($subMap) {
-                    $q->select(DB::raw("sum(room_area)"));
-                    $q->where($subMap);
-                }])
-                //统计空闲房间面积
-                ->withCount(['buildRoom as free_area' => function ($q) use ($subMap) {
-                    $q->select(DB::raw("sum(room_area)"));
-                    $q->where('room_state', 1);
-                    $q->where($subMap);
-                }])->get();
-
-            $v += array(
-                'build_room_count' => 0, // 总的房源数
-                'free_room_count' => 0, //空闲房源数
-                'total_area' => 0.00,  // 管理面积（所有房源面积总和）
-                'free_area' => 0.00, // 空闲面积
-            );
-            foreach ($statData as $kr => $vr) {
-                $v['build_room_count'] += $vr['build_room_count'] ?? 0;
-                $v['free_room_count']  += $vr['free_room_count'] ?? 0;
-                $v['total_area']       += $vr['total_area'] ?? 0.00;
-                $v['free_area']        += $vr['free_area'] ?? 0.00;
-            }
+                ->first()->toArray();
+            $map[$v['id']] = $roomStat ?? $arr;
+            $v = $map[$v['id']] + $v;
         }
-        foreach ($data['result'] as $k => &$v) {
-            foreach ($projStat as $kr => $vr) {
-                if ($v['id'] == $vr['id']) {
-                    $v['build_room_count'] = $vr['build_room_count'];
-                    $v['free_room_count'] = $vr['free_room_count'];
-                    $v['total_area'] = $vr['total_area'];
-                    $v['free_area'] = $vr['free_area'];
-                }
-            }
+        foreach ($data['result'] as &$pv) {
+            $pv += $map[$pv['id']] ?? $arr;
         }
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;

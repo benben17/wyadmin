@@ -28,7 +28,7 @@ class BuildingRoom extends Model
 	}
 	public function building()
 	{
-		return $this->hasOne(Building::class, 'id', 'build_id');
+		return $this->belongsTo(Building::class, 'build_id', 'id');
 	}
 	public function floor()
 	{
