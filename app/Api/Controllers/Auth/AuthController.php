@@ -87,7 +87,7 @@ class AuthController extends BaseController
             $departName = '系统管理员';
         } else {
             $depart = getDepartById($user->depart_id);
-            $departName = $depart->name;
+            $departName = $depart->name ?? '';
         }
 
         $data['project_info'] = $project_info;
