@@ -311,13 +311,16 @@ class DictController extends BaseController
             'is_vaild' =>  'required|in:0,1',
         ]);
         $data['is_vaild'] = $request['is_vaild'];
+        $dict = DictModel::whereIn('id', $request->Ids)
+            ->where('company_id', $this->company_id)->get();
+        if (!$dict) {
+            return $this->error('数据不存在,或者公共标签不允许编辑！');
+        }
         $res = DictModel::whereIn('id', $request->Ids)
             ->where('company_id', $this->company_id)
             ->update($data);
-        if ($res) {
-            return $this->success('更新成功！');
-        } else {
-            return $this->error('更新失败');
-        }
+        return $res ?
+            $this->success('更新成功！') :
+            $this->error('更新失败');
     }
 }

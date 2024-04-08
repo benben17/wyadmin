@@ -150,9 +150,10 @@ class BuildingRoomController extends BaseController
         $validatedData = $request->validate([
             'id' => 'required|numeric|gt:0',
         ]);
-        $data = $this->buildRoomService->model()->whereHas('building', function ($q) use ($request) {
-            $request->proj_id && $q->where('proj_id', $request->proj_id);
-        })
+        $data = $this->buildRoomService->buildingRoomModel()
+            ->whereHas('building', function ($q) use ($request) {
+                $request->proj_id && $q->where('proj_id', $request->proj_id);
+            })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no')
             ->find($request->id)->toArray();
@@ -224,17 +225,17 @@ class BuildingRoomController extends BaseController
         $map['room_no'] = $request->build_room_no;
         $map['floor_id'] = $request->floor_id;
 
-        $building = $this->buildRoomService->model()->whereId($request->build_id)->exists();
+        $building = $this->buildRoomService->buildingModel()->whereId($request->build_id)->exists();
         if (!$building) {
-            return $this->error('项目或者楼不存在');
+            return $this->error('项目或者楼宇不存在');
         }
-        $checkRoom = $this->buildRoomService->model()->where($map)->exists();
+        $checkRoom = $this->buildRoomService->buildingRoomModel()->where($map)->exists();
         if ($checkRoom) {
             return $this->error('房源重复');
         }
         $data = $request->toArray();
         $room = $this->buildRoomService->formatRoom($data, $this->user);
-        $res = $this->buildRoomService->model()->create($room);
+        $res = $this->buildRoomService->buildingRoomModel()->create($room);
         if ($res) {
             return $this->success('房源保存成功');
         }
@@ -301,7 +302,7 @@ class BuildingRoomController extends BaseController
         $map['floor_id'] = $request->floor_id;
         $map['room_type'] = $request->room_type;
 
-        $checkRoom = $this->buildRoomService->model()->where($map)
+        $checkRoom = $this->buildRoomService->buildingRoomModel()->where($map)
             ->where('id', '!=', $request->id)
             ->exists();
         if ($checkRoom) {
@@ -309,7 +310,7 @@ class BuildingRoomController extends BaseController
         }
         $data = $request->toArray();
         $room = $this->buildRoomService->formatRoom($data, $this->user, 2);
-        $res = $this->buildRoomService->model()->whereId($room['id'])->update($room);
+        $res = $this->buildRoomService->buildingRoomModel()->whereId($data['id'])->update($room);
         if ($res) {
             return $this->success('房源保存成功');
         }
@@ -360,7 +361,7 @@ class BuildingRoomController extends BaseController
             'is_vaild.required' => '启用禁用状态不能为空',
         ]);
         $data['is_vaild'] = $request->is_vaild;
-        $res = $this->buildRoomService->model()->whereIn('id', $request->Ids)->update($data);
+        $res = $this->buildRoomService->buildingRoomModel()->whereIn('id', $request->Ids)->update($data);
         if ($res) {
             return $this->success('房源删除成功');
         }
