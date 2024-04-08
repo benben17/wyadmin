@@ -299,22 +299,22 @@ class ContractBillService
         $bill[$i]['end_date'] = $rule['end_date'];   // 结束日期为合同结束日期
         // 按月 最后一个帐期 总金额 - 之前账单金额
         if ($freeType == AppEnum::freeMonth) {
-          if ($period === $freeNum) {
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
-          } else {
-            //  租金免租 账单金额 = 月租金 * (周期 - 免租月数)
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
-          }
-          $bill[$i]['remark'] = $remark . "免租" . $freeNum . "个月";
+          // if ($period == $freeNum) {
+          //   $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
+          // } else {
+          //   //  租金免租 账单金额 = 月租金 * (周期 - 免租月数)
+          //   $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
+          // }
+          $months = diffMonths($startDate, $rule['end_date']);
+          $bill[$i]['amount'] = numFormat($rule['month_amt'] * $months);
         } else { // 按天免租
           $freeAmt = $rule['month_amt'] / 30 * $freeNum;
           $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period - $freeAmt);
-          $bill[$i]['remark'] = $remark . "免租" . $freeNum . "天";
         }
 
         $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
         $data['total'] += $bill[$i]['amount'];
-
+        $bill[$i]['remark'] = $remark;
         break;
       } else {
         $bill[$i]['amount']     = numFormat($rule['month_amt'] * $period);
