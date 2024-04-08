@@ -232,12 +232,13 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $DA = $request->toArray();
-    $res = $this->inspection->inspectionModel()->whereIn('id', $request->Ids)->delete();
-    if ($res) {
+
+    try {
+      $this->inspection->delInspection($request->Ids);
       return $this->success("删除成功");
+    } catch (\Exception $e) {
+      return $this->error('删除失败！');
     }
-    return $this->error('删除失败！');
   }
 
   /**
@@ -489,9 +490,6 @@ class InspectionController extends BaseController
       'Ids' => 'required|array',
     ]);
     $res = $this->inspection->inspectionRecordModel()->whereIn('id', $request->Ids)->delete();
-    if ($res) {
-      return $this->success("记录删除成功。");
-    }
-    return $this->error('删除失败！');
+    return $res ? $this->success("巡检记录删除成功。") : $this->error('巡检记录删除失败！');
   }
 }

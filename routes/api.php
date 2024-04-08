@@ -452,7 +452,7 @@ Route::group(['prefix' => 'operation/equipment'], function () {
     // plan 
     Route::post('/plan/show', '\App\Api\Controllers\Operation\EquipmentPlanController@show');
     Route::post('/plan/list', '\App\Api\Controllers\Operation\EquipmentPlanController@list');
-    Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentPlanController@del');
+    Route::post('/plan/del', '\App\Api\Controllers\Operation\EquipmentPlanController@delete');
     Route::post('/plan/add', '\App\Api\Controllers\Operation\EquipmentPlanController@store');
     Route::post('/plan/edit', '\App\Api\Controllers\Operation\EquipmentPlanController@edit');
     Route::post('/plan/generate', '\App\Api\Controllers\Operation\EquipmentPlanController@planGenerate');
@@ -469,6 +469,7 @@ Route::group(['prefix' => 'operation/inspection'], function () {
     Route::post('/add', '\App\Api\Controllers\Operation\InspectionController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\InspectionController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\InspectionController@show');
+    Route::post('/del', '\App\Api\Controllers\Operation\InspectionController@delete');
 
     Route::post('/record/list', '\App\Api\Controllers\Operation\InspectionController@recordList');
     Route::post('/record/add', '\App\Api\Controllers\Operation\InspectionController@recordStore');
@@ -484,12 +485,14 @@ Route::group(['prefix' => 'operation/parking'], function () {
     Route::post('/add', '\App\Api\Controllers\Operation\ParkingController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\ParkingController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\ParkingController@show');
+    Route::post('/del', '\App\Api\Controllers\Operation\ParkingController@delete');
 });
 // 供应商管理
 Route::group(['prefix' => 'operation/supplier'], function () {
     Route::post('/list', '\App\Api\Controllers\Operation\SupplierController@list');
     Route::post('/add', '\App\Api\Controllers\Operation\SupplierController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\SupplierController@update');
+    Route::post('/del', '\App\Api\Controllers\Operation\SupplierController@delete');
     Route::post('/show', '\App\Api\Controllers\Operation\SupplierController@show');
 });
 // 公共关系
@@ -497,6 +500,7 @@ Route::group(['prefix' => 'operation/relation'], function () {
     Route::post('/list', '\App\Api\Controllers\Operation\PubRelationController@list');
     Route::post('/add', '\App\Api\Controllers\Operation\PubRelationController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\PubRelationController@update');
+    Route::post('/del', '\App\Api\Controllers\Operation\PubRelationController@delete');
     Route::post('/show', '\App\Api\Controllers\Operation\PubRelationController@show');
 });
 

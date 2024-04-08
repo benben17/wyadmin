@@ -3,6 +3,7 @@
 namespace App\Api\Services\Operation;
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Operation\WorkOrderService;
@@ -134,5 +135,20 @@ class InspectionService
     $data->status = $status;
     $res = $data->save();
     return $res;
+  }
+
+
+  public function delInspection($ids)
+  {
+    try {
+      DB::transaction(function () use ($ids) {
+        $id = explode(',', $ids);
+        $this->inspectionModel()->whereIn('id', $id)->delete();
+        $this->inspectionRecordModel()->whereIn('inspection_id', $id)->delete();
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("删除失败" . $e->getMessage());
+      throw new Exception("删除失败!");
+    }
   }
 }

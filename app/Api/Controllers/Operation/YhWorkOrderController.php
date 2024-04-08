@@ -219,9 +219,12 @@ class YhWorkOrderController extends BaseController
       'id' => 'required|numeric|gt:0',
 
     ]);
-
-    $res = $this->workService->delWorkorder($request->id);
-    return $res ? $this->success('工单删除成功。') : $this->error('工单删除失败！');
+    if ($this->user['is_manager']) {
+      $res = $this->workService->delWorkorder($request->id);
+      return $res ? $this->success('工单删除成功。') : $this->error('工单删除失败！');
+    } else {
+      return $this->error('当前用户无权限删除！需要用户为部门管理员。');
+    }
   }
 
 
@@ -528,7 +531,6 @@ class YhWorkOrderController extends BaseController
       'add_date' => $request->add_date ?? nowTime(),
     ];
     $res = $remarkService->save($data, $this->user);
-
     return $res ?  $this->success("添加成功") : $this->error("添加失败！");
   }
 }

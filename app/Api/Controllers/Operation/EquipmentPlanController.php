@@ -190,6 +190,7 @@ class EquipmentPlanController extends BaseController
     ]);
 
     $res = $this->equipment->MaintainPlanModel()->whereIn('id', $request->Ids)->delete();
+    $this->equipment->maintainModel()->whereIn('plan_id', $request->Ids)->delete();
     if ($res) {
       return $this->success("维护计划删除成功。");
     }
