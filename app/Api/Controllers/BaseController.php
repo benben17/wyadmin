@@ -53,8 +53,13 @@ class BaseController extends Controller
     }
 
     //成功返回
-    public function success($data = "", $msg = "ok")
+    public function success($data, $msg = "ok")
     {
+
+        if (!isEmptyObj($data) && is_object($data)) {
+            $data = $data->toArray();
+        }
+
         $this->parseNull($data);
         $result = [
             "code"      => 200,
@@ -85,6 +90,8 @@ class BaseController extends Controller
         } else {
             if (is_null($data)) {
                 $data = "";
+            } elseif (is_float($data)) {
+                $data = numFormat($data);
             }
         }
     }

@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### 2024-04-08
+
+1. BaseController 返回null bug fix
+
 ### 2024-04-04
 
 1. 核销bug fix
