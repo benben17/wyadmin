@@ -2,12 +2,10 @@
 
 namespace App\Api\Models\Contract;
 
-use App\Api\Models\Bill\TenantShareRule;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contract extends Model
 {
@@ -16,13 +14,23 @@ class Contract extends Model
    *
    * @var string
    */
-
+  use SoftDeletes;
   protected $table = 'bse_contract';
 
   protected $fillable = ['company_id', 'proj_id', 'contract_no', 'contract_type', 'violate_rate', 'contract_state', 'sign_date', 'start_date', 'end_date', 'belong_uid', 'belong_person', 'tenant_id', 'tenant_name', 'customer_industry', 'customer_sign_person', 'customer_legal_person', 'sign_area', 'c_uid', 'u_uid', 'lease_term', 'audit_uid', 'audit_state', 'attr', 'bank_account_id', 'rental_deposit_amount', 'rental_deposit_month', 'increase_year', 'increase_rate', 'increase_date', 'bill_day', 'ahead_pay_month', 'rental_price_type', 'rental_price', 'rental_month_amount', 'management_price', 'pay_method', 'rental_bank_name', 'rental_account_name', 'rental_account_number', 'manager_bank_name', 'manager_account_name', 'manager_account_number', 'rental_bank_id', 'manager_bank_id', 'manager_deposit_month', 'manager_deposit_amount', 'manager_show', 'increase_show', 'rental_usage', 'management_month_amount'];
 
   protected $hidden = ['deleted_at', 'company_id', 'c_uid', 'u_uid', 'updated_at'];
   protected $appends = ['state_label', 'proj_name'];
+
+
+  public function getTenantNameAttribute()
+  {
+    if (isset($this->attributes['tenant_id'])) {
+      $tenant = $this->tenant()->first();
+      return $tenant->name ?? "";
+    }
+  }
+
   public function contractRoom()
   {
     return $this->hasMany(ContractRoom::class,  'contract_id', 'id');
@@ -35,7 +43,7 @@ class Contract extends Model
 
   public function tenant()
   {
-    return $this->belongsTo(Tenant::class, 'id', 'tenant_id');
+    return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
   }
 
   public function project()
@@ -63,10 +71,12 @@ class Contract extends Model
   }
 
   // 分摊规则
-  public function shareRule()
-  {
-    return $this->hasMany(TenantShareRule::class, 'contract_id', 'id');
-  }
+  // public function shareRule()
+  // {
+  //   return $this->hasMany(TenantShareRule::class, 'contract_id', 'id');
+  // }
+
+
 
   public function getProjNameAttribute()
   {

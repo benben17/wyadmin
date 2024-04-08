@@ -252,6 +252,7 @@ class EquipmentController extends BaseController
     return $this->success($data);
   }
 
+
   /**
    * @OA\Post(
    *     path="/api/operation/equipment/del",
@@ -282,11 +283,17 @@ class EquipmentController extends BaseController
       'Ids' => 'required|array',
     ]);
     $DA = $request->toArray();
-    $res = $this->equipment->equipmentModel()->whereIn('id', $request->Ids)->delete();
-    if ($res) {
-      return $this->success($res);
+    try {
+      DB::transaction(function () use ($DA) {
+        $this->equipment->equipmentModel()->whereIn('id', $DA['Ids'])->delete();
+        $this->equipment->MaintainPlanModel()->whereIn('equipment_id', $DA['Ids'])->delete();
+        $this->equipment->maintainModel()->whereIn('equipment_id', $DA['Ids'])->delete();
+      });
+      return $this->success("设备删除成功。");
+    } catch (Exception $e) {
+      Log::error("设备删除失败！" . $e->getMessage());
+      return $this->error('设备删除失败！');
     }
-    return $this->error('删除失败！');
   }
 
   /**
@@ -526,68 +533,14 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'Ids' => 'required|array',
     ]);
-    $res = $this->equipment->maintainModel()->whereIn('id', $request->Ids)->delete();
+    $DA = $request->toArray();
+    foreach ($DA['Ids'] as $maintainId) {
+      $res = $this->equipment->maintainModel()->deleteMaintain($maintainId);
+    }
+
     if ($res) {
       return $this->success("维护记录删除成功。");
     }
-    return $this->error('删除失败！');
-  }
-
-
-
-  /**
-   * @OA\Post(
-   *     path="/api/operation/equipment/plan/generate",
-   *     tags={"设备"},
-   *     summary="设备维护计划生成",
-   *    @OA\RequestBody(
-   *       @OA\MediaType(
-   *           mediaType="application/json",
-   *       @OA\Schema(
-   *          schema="UserModel",
-   *          required={"equipment_ids","year"},
-   *       @OA\Property(property="equipment_ids",type="list",description="设备IDs"),
-   *       @OA\Property(property="year",type="int",description="计划年份"),
-   *     ),
-   *       example={"equipment_ids":"[1,2,3]","year":"2024"}
-   *       )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description=""
-   *     )
-   * )
-   */
-  public function planGenerate(Request $request)
-  {
-    $messages = [
-      'equipment_ids.required' => '设备ID字段是必填的且必须是数组。',
-      'year.required' => '年份字段是必填的。',
-      'year.numeric' => '年份必须是数字。',
-      'year.digits' => '年份必须是4位数。',
-      'year.gte' => '年份必须大于或等于当前年份。',
-    ];
-    $request->validate([
-      'equipment_ids' => 'required|array',
-      'year' => 'required|numeric|digits:4|gte:' . date('Y'),
-    ], $messages);
-
-    $planNum = 0;
-
-    foreach ($request->equipment_ids as $equipmentId) {
-      $planCount = $this->equipment->MaintainPlanModel()->where('equipment_id', $equipmentId)->count();
-
-      if ($planCount > 0) {
-        continue; // Fixing the typo here
-      }
-      $equipment = $this->equipment->equipmentModel()->find($equipmentId);
-      if ($equipment) {
-        $period = $equipment['maintain_period'];
-        $this->equipment->saveBatchMaintainPlan($equipmentId, $period, $this->user, $request->year);
-        $planNum++;
-      }
-    }
-
-    return $this->success("共计生成【" . $planNum . "】个设备计划");
+    return $this->error('维护记录删除失败！');
   }
 }

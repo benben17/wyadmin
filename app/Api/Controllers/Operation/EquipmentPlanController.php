@@ -234,4 +234,63 @@ class EquipmentPlanController extends BaseController
       ->find($data['equipment_id'])->pluck('quantity')->first();
     return $this->success($data);
   }
+
+
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/generate",
+   *     tags={"设备"},
+   *     summary="设备维护计划生成",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"equipment_ids","year"},
+   *       @OA\Property(property="equipment_ids",type="list",description="设备IDs"),
+   *       @OA\Property(property="year",type="int",description="计划年份"),
+   *     ),
+   *       example={"equipment_ids":"[1,2,3]","year":"2024"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function planGenerate(Request $request)
+  {
+    $messages = [
+      'equipment_ids.required' => '设备ID字段是必填的且必须是数组。',
+      'year.required' => '年份字段是必填的。',
+      'year.numeric' => '年份必须是数字。',
+      'year.digits' => '年份必须是4位数。',
+      'year.gte' => '年份必须大于或等于当前年份。',
+    ];
+    $request->validate([
+      'equipment_ids' => 'required|array',
+      'year' => 'required|numeric|digits:4|gte:' . date('Y'),
+    ], $messages);
+
+    $planNum = 0;
+
+    foreach ($request->equipment_ids as $equipmentId) {
+      $planCount = $this->equipment->MaintainPlanModel()->where('equipment_id', $equipmentId)->count();
+
+      if ($planCount > 0) {
+        continue; // Fixing the typo here
+      }
+      $equipment = $this->equipment->equipmentModel()->find($equipmentId);
+      if ($equipment) {
+        $period = $equipment['maintain_period'];
+        $this->equipment->saveBatchMaintainPlan($equipmentId, $period, $this->user, $request->year);
+        $planNum++;
+      }
+    }
+
+    return $this->success("共计生成【" . $planNum . "】个设备计划");
+  }
 }

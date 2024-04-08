@@ -58,7 +58,6 @@ class EnergyService
           $tenant = $this->getTenantByRoomId($DA['room_id'] ?? 0);
           $meter->tenant_id = $tenant['id'];
         }
-
         $meter->type         = $DA['type'];
         $meter->proj_id      = $DA['proj_id'];
         $meter->meter_no     = $DA['meter_no'];
@@ -129,12 +128,12 @@ class EnergyService
       } else {
         $meterRecord->tenant_name = '公区';
       }
-      $meterRecord->pre_value = isset($DA['meter_value']) ? $DA['meter_value'] : 0;
-      $meterRecord->meter_value = isset($DA['meter_value']) ? $DA['meter_value'] : 0;
-      $meterRecord->used_value  = isset($DA['use_value']) ? $DA['use_value'] : 0;
-      $meterRecord->record_date = isset($DA['record_date']) ? $DA['record_date'] : date('Y-m-d', time());
-      $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
-      $meterRecord->audit_user = isset($DA['audit_user']) ? $DA['audit_user'] : "";
+      $meterRecord->pre_value   = $DA['meter_value'] ?? 0;
+      $meterRecord->meter_value = $DA['meter_value'] ?? 0;
+      $meterRecord->used_value  = $DA['use_value'] ?? 0;
+      $meterRecord->record_date = $DA['record_date'] ?? nowYmd();
+      $meterRecord->pic         = $DA['pic'] ?? "";
+      $meterRecord->audit_user  = $DA['audit_user'] ?? "";
       if ($is_add) {
         $meterRecord->remark = date('Y-m-d', time()) . '初始化';
         $meterRecord->status = 1;  //  标识初始化
@@ -450,30 +449,26 @@ class EnergyService
    *
    * @return void
    */
+
   public function getTenantByRoomId($roomId)
   {
     $BA = array(
       'id' => 0,
-      "tenant_name" => '',
+      "tenant_name" => '公区',
     );
-    if ($roomId === 0) {
-      $BA['tenant_name'] = "公区";
-      return $BA;
+
+    if ($roomId !== 0) {
+      $room = ContractRoom::where('room_id', $roomId)->first();
+      if ($room) {
+        $contract = Contract::find($room->contract_id);
+        if ($contract) {
+          $BA['id'] = $contract->tenant_id;
+          $BA['tenant_name'] = $contract->tenant_name;
+        }
+      }
     }
-    $room = ContractRoom::where('room_id', $roomId)->first();
-    if (!$room) {
-      $BA['tenant_name'] = "公区";
-      return $BA;
-    }
-    $contract = Contract::find($room->contract_id);
-    if ($contract) {
-      $BA['id'] = $contract->tenant_id;
-      $BA['tenant_name'] = $contract->tenant_name;
-      return $BA;
-    } else {
-      $BA['tenant_name'] = "公区";
-      return $BA;
-    }
+
+    return $BA;
   }
 
 
@@ -494,10 +489,10 @@ class EnergyService
       $BA = [
         'build_id' => $room['build_id'] ?? 0,
         'floor_id' => $room['floor_id'] ?? 0,
-        'room_id' => $roomId,
+        'room_id'  => $roomId,
         'build_no' => $room['build_no'] ?? "",
         'floor_no' => $room['floor_no'] ?? "",
-        'room_no' => $room['room_no'] ?? ""
+        'room_no'  => $room['room_no'] ?? ""
       ];
     }
     return $BA;
