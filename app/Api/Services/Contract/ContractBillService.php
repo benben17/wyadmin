@@ -312,19 +312,17 @@ class ContractBillService
           $bill[$i]['remark'] = $remark . "免租" . $freeNum . "天";
         }
 
-        // $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
-        // $data['total'] += $bill[$i]['amount'];
+        $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
+        $data['total'] += $bill[$i]['amount'];
 
         break;
       } else {
         $bill[$i]['amount']     = numFormat($rule['month_amt'] * $period);
         $bill[$i]['end_date']   = getPreYmdByDay($endDate, 1);
-        // $bill[$i]['bill_date']  = $startDate . "至" . $bill[$i]['end_date'];
-        // $data['total']         += $bill[$i]['amount'];
+        $bill[$i]['bill_date']  = $startDate . "至" . $bill[$i]['end_date'];
+        $data['total']         += $bill[$i]['amount'];
         $bill[$i]['remark']     = $remark;
       }
-      $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
-      $data['total'] += $bill[$i]['amount'];
     }
     $data['bill'] = $bill;
     $data['fee_type_label'] = getFeeNameById($rule['fee_type'])['fee_name'];
