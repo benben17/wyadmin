@@ -137,7 +137,16 @@ class ProjectController extends BaseController
                 $v['free_area']        += $vr['free_area'] ?? 0.00;
             }
         }
-
+        foreach ($data['result'] as $k => &$v) {
+            foreach ($projStat as $kr => $vr) {
+                if ($v['id'] == $vr['id']) {
+                    $v['build_room_count'] = $vr['build_room_count'];
+                    $v['free_room_count'] = $vr['free_room_count'];
+                    $v['total_area'] = $vr['total_area'];
+                    $v['free_area'] = $vr['free_area'];
+                }
+            }
+        }
         // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($projStat);
