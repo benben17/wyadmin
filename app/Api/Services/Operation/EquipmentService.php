@@ -275,24 +275,30 @@ class EquipmentService
 
   public function saveMaintainPlan($plan, $user)
   {
-    $equipment = $this->equipmentModel()->find($plan['equipment_id']);
-    // $planMode = $this->MaintainPlanModel();
-    $planData = [
-      'company_id'  => $user['company_id'],
-      'c_uid'       => $user['id'],
-      'c_username'  => $user['realname'],
-      'plan_date'   => $plan['plan_date'],
-      'proj_id'     => $equipment['proj_id'],
-      'device_name' => $equipment['device_name'],
-      'model'       => $equipment['model'],
-      'major'       => $equipment['major'],
-      'position'    => $equipment['position'],
-      'quantity'    => $equipment['quantity'],
-      // 'maintain_period' => $equipment['maintain_period'],
-      'equipment_id' => $equipment['id'],
-      // 'equipment_type'  => $equipment['equipment_type'],
-      'plan_quantity' => $equipment['quantity'],
-    ];
-    $this->MaintainPlanModel()->insert($planData);
+
+    try {
+      $equipment  = $this->equipmentModel()->find($plan['equipment_id']);
+      $planModel  = $this->MaintainPlanModel();
+      $planModel->company_id      = $user['company_id'];
+      $planModel->c_uid           = $user['id'];
+      $planModel->c_username      = $user['realname'];
+      $planModel->plan_date       = $plan['plan_date'];
+      $planModel->proj_id         = $equipment['proj_id'];
+      $planModel->device_name     = $equipment['device_name'];
+      $planModel->model           = $equipment['model'];
+      $planModel->major           = $equipment['major'];
+      $planModel->position        = $equipment['position'];
+      // $planModel->quantity        = $equipment['quantity'];
+      // $planModel->maintain_period = $equipment['maintain_period'];
+      $planModel->equipment_id    = $plan['equipment_id'];
+      $planModel->equipment_type  = $equipment['equipment_type'];
+      $planModel->plan_quantity   = $plan['plan_quantity'];
+      $res = $planModel->save();
+      return $res;
+    } catch (Exception $e) {
+      throw new Exception($e);
+      Log::error($e->getMessage());
+      return false;
+    }
   }
 }

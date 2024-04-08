@@ -276,7 +276,7 @@ class BuildingController extends BaseController
                 if ($DA['floors']) {
                     $floors = $this->formatFloor($DA['floors'], $DA['id'], $DA['proj_id'], 2);
                     foreach ($floors as $k => $v) {
-                        if ($v['id'] && $v['id'] > 0) {
+                        if (isset($v['id']) && $v['id'] > 0) {
                             FloorModel::whereId($v['id'])->update($v);
                         } else {
                             FloorModel::Create($v);
@@ -631,15 +631,13 @@ class BuildingController extends BaseController
             if ($type == 1) {
                 $BA[$k]['c_uid'] = $this->uid;
             } else {
-                if (isset($v['id']) && $v['id'] > 0) {
-                    $BA[$k]['id'] = $v['id'];
-                }
+                (isset($v['id']) && $v['id'] > 0) ? $BA[$k]['id'] = $v['id'] : '';
                 $BA[$k]['u_uid'] = $this->uid;
             }
-            $BA[$k]['floor_no'] = $v['floor_no'];
-            $BA[$k]['build_id'] = $buildingId;
+            $BA[$k]['floor_no']   = $v['floor_no'];
+            $BA[$k]['build_id']   = $buildingId;
             $BA[$k]['company_id'] = $this->company_id;
-            $BA[$k]['created_at'] =  date('Y-m-d H:i:s');
+            $BA[$k]['created_at'] = nowYmd();
         }
         return $BA;
     }
