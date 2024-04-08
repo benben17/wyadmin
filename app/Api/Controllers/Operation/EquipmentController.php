@@ -4,7 +4,6 @@ namespace App\Api\Controllers\Operation;
 
 use JWTAuth;
 use Exception;
-use Svg\Tag\Rect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +20,10 @@ class EquipmentController extends BaseController
   public function __construct()
   {
     parent::__construct();
+
+    // if ($this->user == 'null' || !$this->user) {
+    //   return $this->error('用户信息错误');
+    // }
     $this->equipment = new EquipmentService;
   }
 
@@ -489,8 +492,7 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $DA = $request->toArray();
-    $data = $this->equipment->maintainModel()->find($DA['id']);
+    $data = $this->equipment->maintainModel()->find($request->id);
     // $data['maintain_type_label'] = getDictName($data['maintain_type']);
     return $this->success($data);
   }

@@ -3,9 +3,11 @@
 namespace App\Api\Controllers;
 
 use Illuminate\Http\Request;
+use function PHPSTORM_META\type;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
+
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
@@ -34,11 +36,11 @@ class BaseController extends Controller
     protected $user;
     public function __construct()
     {
-        $this->user = auth('api')->user();
-        $this->uid  = $this->user->id;
+        $this->uid  = auth()->payload()->get('sub');
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }
+        $this->user = auth('api')->user();
         $this->company_id = getCompanyId($this->uid);
     }
 
@@ -73,14 +75,12 @@ class BaseController extends Controller
     }
 
     //如果返回的数据中有 null 则那其值修改为空 （安卓和IOS 对null型的数据不友好，会报错）
+
     public function parseNull(&$data)
     {
         if (is_array($data)) {
             foreach ($data as &$v) {
                 $this->parseNull($v);
-                if (is_float($v)) {
-                    $v = numFormat($v);
-                }
             }
         } else {
             if (is_null($data)) {
@@ -88,6 +88,7 @@ class BaseController extends Controller
             }
         }
     }
+
 
     public function handleBackData($data)
     {
