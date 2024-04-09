@@ -49,25 +49,9 @@ class EquipmentPlanController extends BaseController
     // $validatedData = $request->validate([
     //     'order_type' => 'required|numeric',
     // ]);
-    $pagesize = $this->setPagesize($request);
-    // if (!$request->year) {
-    //   // $request->year = date('Y');
-    // }
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'maintain_date';
-    }
 
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
     DB::enableQueryLog();
-    $data = $this->equipment->MaintainPlanModel()
+    $subQuery = $this->equipment->MaintainPlanModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
@@ -77,7 +61,7 @@ class EquipmentPlanController extends BaseController
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
         $request->year && $q->whereYear('plan_date', $request->year);
-        $request->completed &&  $q->whereRaw('plan_quantity=maintain_quantity');
+        isset($request->completed) &&  $q->where('status', $request->completed);
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
@@ -85,14 +69,12 @@ class EquipmentPlanController extends BaseController
           $q->whereBetween('maintain_date', [$request->start_time, $request->end_time]);
         }
         $request->year && $q->whereYear('maintain_date', $request->year);
-      }])
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
+      }]);
     // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
-      $v['completed'] = $v['status'] === 1 ? 1 : 0;
-      $v['completed_label'] =   $v['status'] === 1 ? "是" : "否";
+      $v['completed']       = $v['status'] === 1 ? 1 : 0;
+      $v['completed_label'] = $v['status'] === 1 ? "是" : "否";
     }
     return $this->success($data);
   }

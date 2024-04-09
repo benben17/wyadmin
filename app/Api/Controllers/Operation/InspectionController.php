@@ -319,7 +319,7 @@ class InspectionController extends BaseController
   {
     $validatedData = $request->validate([
       'inspection_id'    => 'required',
-      'is_unusual'        => 'required|numeric|in:0,1', //0 异常 1 正常
+      'is_unusual'        => 'required|numeric|in:1,2', //2 异常 1 正常
 
     ]);
     $DA = $request->toArray();
@@ -393,7 +393,7 @@ class InspectionController extends BaseController
     $validatedData = $request->validate([
       'id'            => 'required|numeric|gt:0',
       'inspection_id'    => 'required',
-      'is_unusual'        => 'required|int',
+      'is_unusual'         => 'required|numeric|in:1,2', //2 异常 1 正常
 
     ]);
     $DA = $request->toArray();
