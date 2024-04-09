@@ -60,6 +60,8 @@ abstract class AppEnum extends BaseEnum
   const shareAmt  = "元";
   const shareArea = "m²";
 
+  const squareMeterUnit = "m²";
+  const percentUnit     = "%";
 
   // 房源单价
   const dayPrice   = "元/㎡/天";

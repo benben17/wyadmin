@@ -45,7 +45,7 @@ class WorkOrderService
       $order->building_floor_room = isset($DA['building_floor_room']) ? $DA['building_floor_room'] : "";
       $order->build_floor_room_id = isset($DA['build_floor_room_id']) ? $DA['build_floor_room_id'] : 0;
       $order->position        = isset($DA['position']) ? $DA['position'] : "";
-      $order->open_person     = isset($DA['open_person']) ? $DA['open_person'] : "";
+      $order->open_person     = isset($DA['open_person']) ? $DA['open_person'] : $user['realname'];
       $order->repair_goods    = $DA['repair_goods'] ?? "";
       $order->open_phone      = isset($DA['open_phone']) ? $DA['open_phone'] : "";
       $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";

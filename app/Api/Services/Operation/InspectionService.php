@@ -87,7 +87,7 @@ class InspectionService
         $record->c_username   = $user['realname'];
       }
       $record->proj_id        = $DA['proj_id'];
-      $record->inspection_id     = $DA['inspection_id'];
+      $record->inspection_id  = $DA['inspection_id'];
       $record->is_unusual     = $DA['is_unusual'];
       $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
       $record->record         = isset($DA['record']) ? $DA['record'] : "";

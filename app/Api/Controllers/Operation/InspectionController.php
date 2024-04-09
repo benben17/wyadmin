@@ -270,35 +270,22 @@ class InspectionController extends BaseController
    */
   public function recordList(Request $request)
   {
-    $pagesize = $this->setPagesize($request);
 
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
-    $data = $this->inspection->inspectionRecordModel()
+    $subQuery = $this->inspection->inspectionRecordModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->start_date && $q->where('created_at', '>=', $request->start_date);
         $request->end_date && $q->where('created_at', '<=', $request->end_date);
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->inspection_id && $q->where('inspection_id', $request->inspection_id);
-      })->with('inspection:id,name,device_name,proj_id,check_cycle')
-      ->paginate($pagesize)->toArray();
-    $data = $this->handleBackData($data);
-    if ($data['result']) {
-      foreach ($data['result'] as $k => &$v) {
-        $v['name'] = $v['inspection']['name'];
-        $v['device_name'] = $v['inspection']['device_name'];
-      }
+      })->with('inspection:id,name,device_name,proj_id,check_cycle,position');
+
+    $data = $this->pageData($subQuery, $request);
+
+    foreach ($data['result'] as $k => &$v) {
+      $v['name']        = $v['inspection']['name'];
+      $v['device_name'] = $v['inspection']['device_name'];
+      $v['position']    = $v['inspection']['position'];
     }
 
     return $this->success($data);
@@ -450,13 +437,10 @@ class InspectionController extends BaseController
       ->with('inspection')
       ->find($DA['id'])
       ->toArray();
-    if ($data['is_unusual'] == 1) {
-      $data['is_unusual_label'] = '正常';
-    } else {
-      $data['is_unusual_label'] = '异常';
-    }
+
     $data['name'] = $data['inspection']['name'];
     $data['device_name'] = $data['inspection']['device_name'];
+    $data['position'] = $data['inspection']['position'];
     return $this->success($data);
   }
 
