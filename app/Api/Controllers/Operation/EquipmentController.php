@@ -499,7 +499,9 @@ class EquipmentController extends BaseController
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
     ]);
-    $data = $this->equipment->maintainModel()->find($request->id);
+    $data = $this->equipment->maintainModel()
+      ->with('maintainPlan')
+      ->find($request->id);
     // $data['maintain_type_label'] = getDictName($data['maintain_type']);
     return $this->success($data);
   }
