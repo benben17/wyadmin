@@ -3,6 +3,7 @@
 namespace App\Api\Services\Contract;
 
 use Exception;
+use App\Enums\AppEnum;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,16 +17,17 @@ class BillRuleService
     return $model;
   }
 
-  /** 批量保存 */
-  public function batchSave($DA, $user, $contractId, $tenantId)
+  // 检查递增规则
+  public function validateIncrease(array $rule)
   {
-    try {
-      $ruleData = $this->formatRuleData($DA, $user, $contractId, $tenantId);
-      return $this->model()->addAll($ruleData);
-    } catch (Exception $e) {
-      throw $e;
-      Log::error("费用规则保存失败." . $e->getMessage());
-      return false;
+    foreach ($rule as $k => $v) {
+      if (
+        $v['fee_type'] == AppEnum::rentFeeType &&
+        !($v['increase_start_period'] && $v['increase_date']) &&
+        ($v['increase_start_period'] || $v['increase_date'])
+      ) {
+        throw new Exception('租金规则中的递增周期或者递增日期不能为空');
+      }
     }
   }
 
@@ -40,12 +42,16 @@ class BillRuleService
    * @param [type] $tenantId
    * @return void
    */
-  public function batchUpdate($DA, $user, $contractId, $tenantId)
+  public function ruleBatchSave($rule, $user, $contractId, $tenantId, $isSave = false)
   {
     try {
-      DB::transaction(function () use ($DA, $user, $contractId, $tenantId) {
-        $this->model()->where('contract_id', $contractId)->delete();
-        $ruleData = $this->formatRuleData($DA, $user, $contractId, $tenantId);
+      DB::transaction(function () use ($rule, $user, $contractId, $tenantId, $isSave) {
+        $this->validateIncrease($rule);
+        if (!$isSave) {
+          $this->model()->where('contract_id', $contractId)->delete();
+        }
+        // $this->model()->where('contract_id', $contractId)->delete();
+        $ruleData = $this->formatRuleData($rule, $user, $contractId, $tenantId);
         $this->model()->addAll($ruleData);
       });
       return true;
@@ -90,6 +96,10 @@ class BillRuleService
         $data[$k]['amount']           = isset($v['amount']) ? $v['amount'] : 0.00;
         $data[$k]['month_amt']        = isset($v['month_amt']) ? $v['month_amt'] : 0.00;
         $data[$k]['ahead_pay_month']  = isset($v['ahead_pay_month']) ? $v['ahead_pay_month'] : 0;
+        $data[$k]['increase_show']    = $v['increase_show'] ?? 0;
+        $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
+        $data[$k]['increase_date']    = $v['increase_date'] ?? "";
+        $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
         $data[$k]['unit_price_label'] = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
         $data[$k]['remark']           = isset($v['remark']) ? $v['remark'] : "";
         $data[$k]['is_valid']         = $v['is_valid'] ?? 1;                                          // 不传默认为有效

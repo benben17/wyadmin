@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### 2024-04-09
+
+1. 合同费用生成，支持租金递增
+
 ### 2024-04-08
 
 1. BaseController 返回null bug fix

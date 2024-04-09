@@ -556,7 +556,7 @@ function diffMonths($startDate, $endDate)
 {
 	$start = new DateTime($startDate);
 	$end = new DateTime($endDate);
-	$end->modify('+1 day');
+	// $end->modify('+1 day');
 	$interval = $start->diff($end);
 	return $interval->format('%m');
 }
