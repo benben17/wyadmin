@@ -50,15 +50,8 @@ class BillRuleService
         if ($isSave) {
           $this->model()->insert($ruleList);
         } else {
-          $feeTypeRules = array();
-          foreach ($ruleList as $rule) {
-            $feeTypeRules[$rule['fee_type']][] = $rule;
-          }
-          foreach ($feeTypeRules as $feeType => $feeTypeRule) {
-            $this->model()->where('contract_id', $contractId)->where('fee_type', $feeType)->delete();
-            Log::error(json_encode($feeTypeRule));
-            $this->model()->insert($feeTypeRule);
-          }
+          $this->model()->where('contract_id', $contractId)->delete();
+          $this->model()->insert($ruleList);
         }
       }, 2);
       return true;
