@@ -94,8 +94,10 @@ class InspectionService
       if ($DA['is_unusual'] == 0) {
         $workOrder = new WorkOrderService;
         $inspection = $this->inspectionModel()->find($DA['inspection_id'])->toArray();
-        $inspection['repair_content'] = isset($DA['record']) ? $DA['record'] : "";
-        $inspection['pic'] = $record->pic;
+
+        $DA['pic'] = $record->pic ?? "";
+        $DA['repair_content'] = $DA['record'] ?? "";
+        $DA['remark']         = "巡检异常";
         $workOrder->saveWorkOrder($DA, $user);
         // 更新主表状态
         $this->updateInspectionStatus($DA['inspection_id'], $DA['is_unusual']);
