@@ -305,8 +305,10 @@ class ContractBillService
 
       if ($endDate >= $rule['end_date']) {  //如果账单结束日期大于或者等于合同日期的时候 处理最后一个账单 并跳出
         // 按月 最后一个帐期 总金额 - 之前账单金额
-        if ($freeType == AppEnum::freeMonth && $freeNum % $period != 0) {
-          $freeAmt = numFormat($rule['month_amt'] * $freeNum);
+        $lastBillFreeNum = $freeNum % $period;
+        if ($freeType == AppEnum::freeMonth &&  $lastBillFreeNum != 0) {
+
+          $freeAmt = numFormat($rule['month_amt'] * $lastBillFreeNum);
         } elseif ($freeType != AppEnum::freeMonth) { // 按天免租
           $freeAmt = numFormat($rule['month_amt'] / (365 / 12) * $freeNum);
         }
