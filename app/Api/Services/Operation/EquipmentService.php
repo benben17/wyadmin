@@ -101,10 +101,10 @@ class EquipmentService
         'model'           => $equipment['model'],
         'major'           => $equipment['major'],
         'position'        => $equipment['position'],
-        // 'maintain_period' => $equipment['maintain_period'],
+        'model'           => $equipment['model'],
         'equipment_id'    => $equipment['id'],
-        // 'equipment_type'  => $equipment['equipment_type'],
-        'plan_quantity'        => $equipment['quantity'],
+        'equipment_type'  => $equipment['equipment_type'] ?? "",
+        'plan_quantity'   => $equipment['quantity'],
         'created_at'      => nowTime(),
       ];
 
