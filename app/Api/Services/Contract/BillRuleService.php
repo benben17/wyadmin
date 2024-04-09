@@ -21,12 +21,12 @@ class BillRuleService
   public function validateIncrease(array $rule)
   {
     foreach ($rule as $k => $v) {
-      if (
-        $v['fee_type'] == AppEnum::rentFeeType &&
-        !($v['increase_start_period'] && $v['increase_date']) &&
-        ($v['increase_start_period'] || $v['increase_date'])
-      ) {
-        throw new Exception('租金规则中的递增周期或者递增日期不能为空');
+      if ($v['fee_type'] == AppEnum::rentFeeType) {
+        if ((!$v['increase_start_period'] && $v['increase_date']) &&
+          ($v['increase_start_period'] || !$v['increase_date'])
+        ) {
+          throw new Exception('租金规则中的递增周期或者递增日期不能为空');
+        }
       }
     }
   }
@@ -42,28 +42,30 @@ class BillRuleService
    * @param [type] $tenantId
    * @return void
    */
-  public function ruleBatchSave($rules, $user, $contractId, $tenantId, $isSave = false)
+  public function ruleBatchSave($rules, $user, $contractId, $tenantId, bool $isSave)
   {
     try {
       DB::transaction(function () use ($rules, $user, $contractId, $tenantId, $isSave) {
         $this->validateIncrease($rules);
         $ruleList = $this->formatRuleData($rules, $user, $contractId, $tenantId);
-        if (!$isSave) {
-          foreach ($ruleList as $k => $rule) {
-            if (isset($rule['id']) && $rule['id'] > 0) {
-              $this->model()->where('id', $rule['id'])->update($rule);
-            } else {
-              $this->model()->create($rule);
-            }
-          }
+        if ($isSave) {
+          $this->model()->insert($ruleList);
         } else {
-          $this->model()->addAll($ruleList);
+          $feeTypeRules = array();
+          foreach ($ruleList as $rule) {
+            $feeTypeRules[$rule['fee_type']][] = $rule;
+          }
+          foreach ($feeTypeRules as $feeType => $feeTypeRule) {
+            $this->model()->where('contract_id', $contractId)->where('fee_type', $feeType)->delete();
+            Log::error(json_encode($feeTypeRule));
+            $this->model()->insert($feeTypeRule);
+          }
         }
-      });
+      }, 2);
       return true;
     } catch (Exception $e) {
-      throw $e;
       Log::error("费用规则保存失败." . $e->getMessage());
+      throw  new Exception($e->getMessage());
       return false;
     }
   }
@@ -82,7 +84,7 @@ class BillRuleService
     $data = array();
     try {
       foreach ($DA as $k => $v) {
-        // Log::error(json_encode($v));
+        // $data[$k]['id']          = $v['id'] ?? 0;
         $data[$k]['c_uid']       = $user['id'];
         $data[$k]['u_uid']       = $user['id'];
         $data[$k]['tenant_id']   = $tenantId;
@@ -104,7 +106,9 @@ class BillRuleService
         $data[$k]['ahead_pay_month']  = isset($v['ahead_pay_month']) ? $v['ahead_pay_month'] : 0;
         $data[$k]['increase_show']    = $v['increase_show'] ?? 0;
         $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
-        $data[$k]['increase_date']    = $v['increase_date'] ?? "";
+        if (isset($v['increase_date']) && !empty($v['increase_date'])) {
+          $data[$k]['increase_date']    = $v['increase_date'];
+        }
         $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
         $data[$k]['unit_price_label'] = $v['unit_price_label'] ?? "";
         $data[$k]['remark']           = $v['remark'] ?? "";
