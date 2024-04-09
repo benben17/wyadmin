@@ -82,14 +82,14 @@ class BillRuleService
         $data[$k]['tenant_id']   = $tenantId;
         $data[$k]['contract_id'] = $contractId;
         $data[$k]['type']        = $v['type'];
-        $data[$k]['fee_type']    = isset($v['fee_type']) ? $v['fee_type'] : 1;
+        $data[$k]['fee_type']    = $v['fee_type'] ?? 1;
         $data[$k]['unit_price']  = isset($v['unit_price']) ? $v['unit_price'] : 0.00;
         $data[$k]['price_type']  = isset($v['price_type']) ? $v['price_type'] : 0;
         $data[$k]['start_date']  = $v['start_date'] ?? "";
         $data[$k]['bill_type']        = $v['bill_type'] ?? 1;
         $data[$k]['end_date']         = $v['end_date'] ?? "";
         $data[$k]['charge_date']      = $v['charge_date'] ?? "";
-        $data[$k]['area_num']         = isset($v['area_num']) ? $v['area_num'] : 0.00;
+        $data[$k]['area_num']         = $v['area_num'] ?? 0.00;
         $data[$k]['lease_term']       = $v['lease_term'] ?? 0;
         $data[$k]['pay_method']       = isset($v['pay_method']) ? $v['pay_method'] : 0;
         $data[$k]['bill_day']         = isset($v['bill_day']) ? $v['bill_day'] : 0;
@@ -100,8 +100,8 @@ class BillRuleService
         $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
         $data[$k]['increase_date']    = $v['increase_date'] ?? "";
         $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
-        $data[$k]['unit_price_label'] = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
-        $data[$k]['remark']           = isset($v['remark']) ? $v['remark'] : "";
+        $data[$k]['unit_price_label'] = $v['unit_price_label'] ?? "";
+        $data[$k]['remark']           = $v['remark'] ?? "";
         $data[$k]['is_valid']         = $v['is_valid'] ?? 1;                                          // 不传默认为有效
         $data[$k]['created_at']       = nowTime();
       }
