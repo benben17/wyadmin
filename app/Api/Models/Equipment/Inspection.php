@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Equipment;
 
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
 /**
  *  巡检点
@@ -22,7 +22,7 @@ class Inspection extends Model
   protected $hidden = ['company_id', 'deleted_at'];
 
 
-  protected $appends = ['proj_name', 'check_cycle_label', 'type_label'];
+  protected $appends = ['proj_name', 'check_cycle_label', 'type_label', 'status_label'];
 
   public function getProjNameAttribute()
   {
@@ -52,11 +52,8 @@ class Inspection extends Model
 
   public function getStatusAttribute()
   {
-    if ($this->attributes['status']) {
-      return '正常';
-    } else {
-      return '异常';
-    }
+    $status = $this->attributes['status'] ?? 1;
+    return $status == 1 ? '正常' : '异常';
   }
 
   protected static function boot()
