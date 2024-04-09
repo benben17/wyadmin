@@ -360,16 +360,20 @@ function columnLike(string $column): string
 	return "%" . $column . "%";
 }
 
-function str2Array($str, $tag = ',')
+/**
+ * @Desc: 字符串转数组
+ * @Author leezhua
+ * @Date 2024-04-09
+ * @param mixed $str 
+ * @param string $tag 
+ * @return array 
+ */
+function str2Array($str, $tag = ','): array
 {
 	if (is_array($str)) {
 		return $str;
 	}
-	$arr = array();
-	if (!is_array($str) && !empty($str)) {
-		$arr = explode($tag, $str);
-	}
-	return $arr;
+	return !empty($str) ? explode($tag, $str) : [];
 }
 
 /** 获取UUID */

@@ -78,35 +78,36 @@ class InspectionService
   public function saveInspectionRecord($DA, $user)
   {
     try {
-      if (isset($DA['id']) && $DA['id'] > 0) {
-        $record = $this->inspectionRecordModel()->find($DA['id']);
-      } else {
-        $record = $this->inspectionRecordModel();
-        $record->company_id   = $user['company_id'];
-        $record->c_uid        = $user['id'];
-        $record->c_username   = $user['realname'];
-      }
-      $record->proj_id        = $DA['proj_id'];
-      $record->inspection_id  = $DA['inspection_id'];
-      $record->is_unusual     = $DA['is_unusual'];
-      $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
-      $record->record         = isset($DA['record']) ? $DA['record'] : "";
-      if ($DA['is_unusual'] == 2) { // 异常
-        $workOrder = new WorkOrderService;
-        $inspection = $this->inspectionModel()->find($DA['inspection_id'])->toArray();
-
-        $DA['pic'] = $record->pic ?? "";
-        $DA['repair_content'] = $DA['record'] ?? "";
-        $DA['remark']         = "巡检异常";
-        $workOrder->saveWorkOrder($DA, $user);
-        // 更新主表状态
-        $this->updateInspectionStatus($DA['inspection_id'], $DA['is_unusual']);
-      }
-      $res = $record->save();
+      DB::transaction(function () use ($DA, $user) {
+        if (isset($DA['id']) && $DA['id'] > 0) {
+          $record = $this->inspectionRecordModel()->find($DA['id']);
+        } else {
+          $record = $this->inspectionRecordModel();
+          $record->company_id   = $user['company_id'];
+          $record->c_uid        = $user['id'];
+          $record->c_username   = $user['realname'];
+        }
+        $record->proj_id        = $DA['proj_id'];
+        $record->inspection_id  = $DA['inspection_id'];
+        $record->is_unusual     = $DA['is_unusual'];
+        $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
+        $record->record         = isset($DA['record']) ? $DA['record'] : "";
+        if ($DA['is_unusual'] == 2) { // 异常
+          $workOrder = new WorkOrderService;
+          $DA['pic']            = $record->pic ?? "";
+          $DA['repair_content'] = $DA['record'] ?? "";
+          $DA['remark']         = "巡检异常";
+          $workOrder->saveWorkOrder($DA, $user);
+          // 更新主表状态
+          $this->updateInspectionStatus($DA['inspection_id'], $DA['is_unusual']);
+        }
+        $record->save();
+      }, 2);
+      return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());
+      throw new Exception("巡检记录保存失败!");
     }
-    return $res;
   }
 
   /**
@@ -144,9 +145,9 @@ class InspectionService
   {
     try {
       DB::transaction(function () use ($ids) {
-        $id = explode(',', $ids);
-        $this->inspectionModel()->whereIn('id', $id)->delete();
-        $this->inspectionRecordModel()->whereIn('inspection_id', $id)->delete();
+        $idsArray = str2Array($ids);
+        $this->inspectionModel()->whereIn('id', $idsArray)->delete();
+        $this->inspectionRecordModel()->whereIn('inspection_id', $idsArray)->delete();
       }, 2);
     } catch (Exception $e) {
       Log::error("删除失败" . $e->getMessage());
