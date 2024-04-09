@@ -91,7 +91,7 @@ class InspectionService
       $record->is_unusual     = $DA['is_unusual'];
       $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
       $record->record         = isset($DA['record']) ? $DA['record'] : "";
-      if ($DA['is_unusual'] == 0) {
+      if ($DA['is_unusual'] == 2) { // 异常
         $workOrder = new WorkOrderService;
         $inspection = $this->inspectionModel()->find($DA['inspection_id'])->toArray();
 
