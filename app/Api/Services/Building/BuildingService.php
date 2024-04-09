@@ -3,10 +3,11 @@
 namespace App\Api\Services\Building;
 
 use Exception;
+use App\Enums\AppEnum;
 use App\Api\Models\Building;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
@@ -62,16 +63,17 @@ class BuildingService
     $freeRate = 0.00;
     if ($DA['t_manager_area']) {
       $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
-      $freeRate = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
+      $freeRate   = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
     }
-    return [
-      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']} ㎡"],
-      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']} ㎡"],
+
+    return array(
+      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']}/" . AppEnum::squareMeterUnit],
+      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']}/" . AppEnum::squareMeterUnit],
       ['label' => '总房间数', 'value' => $DA['t_room_count']],
       ['label' => '可招商房间', 'value' => $DA['t_free_count']],
-      ['label' => '当前出租率', 'value' => "$rentalRate %"],
-      ['label' => '当前空闲率', 'value' => "$freeRate %"]
-    ];
+      ['label' => '当前出租率', 'value' => "{$rentalRate}/" . AppEnum::percentUnit],
+      ['label' => '当前空闲率', 'value' => "{$freeRate}/" . AppEnum::percentUnit]
+    );
   }
 
   /**

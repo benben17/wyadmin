@@ -110,14 +110,18 @@ class ProjectController extends BaseController
                 ->whereHas('building', function ($query) use ($v) {
                     $query->where('proj_id', $v['id']);
                 })
+                ->where($subMap)
                 ->first()->toArray();
+            unset($roomStat['pic_full'], $roomStat['price_label']);
+            $roomStat = array_map('floatval', $roomStat);
+
             $map[$v['id']] = $roomStat ?? $arr;
             $v = $map[$v['id']] + $v;
         }
         foreach ($data['result'] as &$pv) {
             $pv += $map[$pv['id']] ?? $arr;
+            unset($pv['bill_instruction']);
         }
-        // return response()->json(DB::getQueryLog());
         $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($projStat);
         return $this->success($data);

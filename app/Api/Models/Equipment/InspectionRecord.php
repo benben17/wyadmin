@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Equipment;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  *  巡检记录
@@ -22,7 +22,8 @@ class InspectionRecord extends Model
   protected $hidden = ["company_id"];
 
 
-  protected $appends = ['proj_name', 'is_unusual_label'];
+  protected $appends = ['proj_name', 'is_unusual_label', "pic_full"];
+
 
   public function getProjNameAttribute()
   {
@@ -33,13 +34,15 @@ class InspectionRecord extends Model
 
   public function getIsUnusualLabelAttribute()
   {
-    if ($this->attributes['is_unusual'] == 1) {
-      return "正常";
-    } else {
-      return "异常";
-    }
+    $unusual = $this->attributes['is_unusual'] ?? 0;
+    return  $unusual == 1  ? "正常" : "异常";
   }
 
+  public function getPicFullAttribute()
+  {
+    $pic = $this->attributes['pic'];
+    return picFullPath($pic);
+  }
 
   public function inspection()
   {

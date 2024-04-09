@@ -36,12 +36,7 @@ class Project extends Model
   public function getProjPicFullAttribute()
   {
     if (isset($this->attributes['proj_pic'])) {
-      $pics = str2Array($this->attributes['proj_pic']);
-      return array_map(function ($pic) {
-        return getOssUrl($pic);
-      }, $pics);
-    } else {
-      return [];
+      return picFullPath($this->attributes['proj_pic']);
     }
   }
   public function projRoom()
