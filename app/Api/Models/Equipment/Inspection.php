@@ -50,7 +50,7 @@ class Inspection extends Model
     }
   }
 
-  public function getStatusAttribute()
+  public function getStatusLabelAttribute()
   {
     $status = $this->attributes['status'] ?? 1;
     return $status == 1 ? '正常' : '异常';
