@@ -397,17 +397,21 @@ class InspectionController extends BaseController
   {
     $validatedData = $request->validate([
       'id'            => 'required|numeric|gt:0',
-      'inspection_id'    => 'required',
-      'is_unusual'         => 'required|numeric|in:1,2', //2 异常 1 正常
+      'inspection_id' => 'required',
+      'is_unusual'    => 'required|numeric|in:1,2', //2 异常 1 正常
 
+    ], [
+      'id.required' => 'ID不能为空',
+      'inspection_id.required' => '巡检ID不能为空',
+      'is_unusual.required' => '巡检状态不能为空',
     ]);
-    $DA = $request->toArray();
-
-    $res = $this->inspection->saveInspectionRecord($DA, $this->user);
-    if (!$res) {
-      return $this->error('设备维护更新失败！');
+    try {
+      $DA = $request->toArray();
+      $this->inspection->saveInspectionRecord($DA, $this->user);
+      return $this->success('设备维护更新成功。');
+    } catch (\Exception $e) {
+      return $this->error('设备维护更新失败！' . $e->getMessage());
     }
-    return $this->success('设备维护更新成功。');
   }
 
   /**

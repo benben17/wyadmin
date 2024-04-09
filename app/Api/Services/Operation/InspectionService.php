@@ -38,29 +38,30 @@ class InspectionService
   public function saveInspection($DA, $user)
   {
     try {
+      DB::transaction(function () use ($DA, $user) {
+        if (isset($DA['id']) && $DA['id'] > 0) {
+          $inspection = $this->inspectionModel()->find($DA['id']);
+        } else {
+          $inspection = $this->inspectionModel();
+          $inspection->company_id = $user['company_id'];
+          $inspection->c_uid = $user['id'];
+        }
+        $inspection->proj_id      = $DA['proj_id'];
+        $inspection->name         = $DA['name'];
+        $inspection->type         = isset($DA['type']) ? $DA['type'] : 1;
+        // $inspection->major        = $DA['major'];
+        $inspection->device_name  = isset($DA['device_name']) ? $DA['device_name'] : "";
+        $inspection->position     = isset($DA['position']) ? $DA['position'] : "";
+        $inspection->check_cycle  = isset($DA['check_cycle']) ? $DA['check_cycle'] : 1;
+        $inspection->rfid_id      = isset($DA['rfid_id']) ? $DA['rfid_id'] : "";
+        $inspection->remark       = isset($DA['remark']) ? $DA['remark'] : "";
+        $inspection->save();
 
-      if (isset($DA['id']) && $DA['id'] > 0) {
-        $inspection = $this->inspectionModel()->find($DA['id']);
-      } else {
-        $inspection = $this->inspectionModel();
-        $inspection->company_id = $user['company_id'];
-        $inspection->c_uid = $user['id'];
-      }
-      $inspection->proj_id      = $DA['proj_id'];
-      $inspection->name         = $DA['name'];
-      $inspection->type         = isset($DA['type']) ? $DA['type'] : 1;
-      // $inspection->major        = $DA['major'];
-      $inspection->device_name  = isset($DA['device_name']) ? $DA['device_name'] : "";
-      $inspection->position     = isset($DA['position']) ? $DA['position'] : "";
-      $inspection->check_cycle  = isset($DA['check_cycle']) ? $DA['check_cycle'] : 1;
-      $inspection->rfid_id      = isset($DA['rfid_id']) ? $DA['rfid_id'] : "";
-      $inspection->remark       = isset($DA['remark']) ? $DA['remark'] : "";
-      $res = $inspection->save();
-
-      // 生成二维码
-      if (!isset($DA['id']) || $DA['id'] == 0) {
-        $this->createQr($inspection->id, $inspection->id, $user['company_id']);
-      }
+        // 生成二维码
+        if (!isset($DA['id']) || $DA['id'] == 0) {
+          $this->createQr($inspection->id, $inspection->id, $user['company_id']);
+        }
+      }, 2);
       return true;
     } catch (Exception $e) {
       Log::error($e->getMessage());
@@ -79,29 +80,36 @@ class InspectionService
   {
     try {
       DB::transaction(function () use ($DA, $user) {
+        // DB::enableQueryLog();
         if (isset($DA['id']) && $DA['id'] > 0) {
           $record = $this->inspectionRecordModel()->find($DA['id']);
+          if (!$record) {
+            Log::info("巡检记录不存在!");
+          }
         } else {
           $record = $this->inspectionRecordModel();
           $record->company_id   = $user['company_id'];
           $record->c_uid        = $user['id'];
           $record->c_username   = $user['realname'];
         }
+        // Log::info(json_encode($record->toArray()));
         $record->proj_id        = $DA['proj_id'];
         $record->inspection_id  = $DA['inspection_id'];
         $record->is_unusual     = $DA['is_unusual'];
         $record->pic            = isset($DA['pic']) ? $DA['pic'] : "";
         $record->record         = isset($DA['record']) ? $DA['record'] : "";
+        // 
+        $record->save();
         if ($DA['is_unusual'] == 2) { // 异常
           $workOrder = new WorkOrderService;
-          $DA['pic']            = $record->pic ?? "";
-          $DA['repair_content'] = $DA['record'] ?? "";
+          $DA['pic']            = $record->pic;
+          $DA['repair_content'] = $DA['record'];
           $DA['remark']         = "巡检异常";
+          unset($DA['id']);
           $workOrder->saveWorkOrder($DA, $user);
           // 更新主表状态
-          $this->updateInspectionStatus($DA['inspection_id'], $DA['is_unusual']);
+          $this->inspectionModel()->whereId($DA['inspection_id'])->update(['status' => 2]);
         }
-        $record->save();
       }, 2);
       return true;
     } catch (Exception $e) {
@@ -132,13 +140,6 @@ class InspectionService
     }
   }
 
-  public function updateInspectionStatus($id, $status)
-  {
-    $data = $this->inspectionModel()->find($id);
-    $data->status = $status;
-    $res = $data->save();
-    return $res;
-  }
 
 
   public function delInspection($ids)
