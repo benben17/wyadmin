@@ -421,13 +421,18 @@ class ContractController extends BaseController
             'free_list' => 'array',
             'bill_rule' => 'array',
             'fee_bill' => 'array'
+        ], [
+            'save_type.required' => '保存类型是必须',
+            'contract_room.array' => '房间信息必须是数组',
+            'free_list.array' => '免租信息必须是数组',
+            'bill_rule.array' => '租金规则必须是数组',
+            'fee_bill.array' => '费用账单必须是数组',
         ]);
         $DA = $request->toArray();
         $res = ContractModel::select('contract_state')->find($DA['id']);
         if ($res->contract_state == 2 || $res->contract_state == 99) {
             return $this->error('正式合同或者作废合同不允许更新');
         }
-
         try {
             DB::transaction(function () use ($DA) {
                 // $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
@@ -445,6 +450,7 @@ class ContractController extends BaseController
                     throw new Exception("保存失败");
                 }
                 $tenantId = $contract->tenant_id;
+                $contractId = $contract->id;
                 $contractService = new ContractService;
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
@@ -479,6 +485,8 @@ class ContractController extends BaseController
                 // 保存押金账单
                 if (isset($DA['deposit_bill'])) {
                     $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
+                } else {
+                    $contractService->contractBillModel()->where('contract_id', $contract['id'])->where('bill_type', 2)->delete();
                 }
                 $contractService->contractLog($contract, $user);
             });
@@ -869,7 +877,7 @@ class ContractController extends BaseController
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchUpdate($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id']);
+                    $ruleService->ruleBatchSave($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id'], false);
                 }
 
                 // 免租
