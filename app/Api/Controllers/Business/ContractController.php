@@ -294,12 +294,13 @@ class ContractController extends BaseController
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['bill_rule'], $user, $contract->id, $tenantId);
+                    // 保存租金规则
+                    $ruleService->ruleBatchSave($DA['bill_rule'], $user, $contract->id, $tenantId, true);
                 }
                 // 押金规则
                 if ($DA['deposit_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $tenantId);
+                    $ruleService->ruleBatchSave($DA['deposit_rule'], $user, $contract->id, $tenantId, true);
                 }
                 // 房间
                 if (!empty($DA['contract_room'])) {
@@ -464,12 +465,12 @@ class ContractController extends BaseController
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchUpdate($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->ruleBatchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
                 // 押金规则
                 if ($DA['deposit_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->batchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->ruleBatchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
                 }
                 // 保存费用账单
                 if ($DA['fee_bill']) {
@@ -543,23 +544,25 @@ class ContractController extends BaseController
         $contract = $request->toArray();
         $data = array();
         $fee_list = array();
+        $ruleService = new BillRuleService;
+        $ruleService->validateIncrease($contract['bill_rule']);
         foreach ($contract['bill_rule'] as $k => $rule) {
             $feeList = array();
             if ($rule['type'] != 1) {
                 continue;
             }
-            if ($rule['bill_type'] == 1) {  // 正常账期
+            // if ($rule['bill_type'] == 1) {  // 正常账期
+            //     $feeList = $billService->createBill($contract, $rule, $this->uid);
+            // } else if ($rule['bill_type'] == 2) { // 自然月账期
+            //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
+            // } 
+            // } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
+            if ($rule['fee_type'] == AppEnum::rentFeeType) {
+                $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
+            } else {
                 $feeList = $billService->createBill($contract, $rule, $this->uid);
-                // } else if ($rule['bill_type'] == 2) { // 自然月账期
-                //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
-                // } 
-            } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
-                if ($rule['fee_type'] == AppEnum::rentFeeType) {
-                    $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
-                } else {
-                    $feeList = $billService->createBill($contract, $rule, $this->uid);
-                }
             }
+            // }
             array_push($fee_list, $feeList);
         }
         if ($fee_list) {
@@ -969,12 +972,6 @@ class ContractController extends BaseController
         $contract->management_month_amount = isset($DA['management_month_amount']) ? $DA['management_month_amount'] : 0;
         // $contract->pay_method = $DA['pay_method'];
         $contract->rental_month_amount    = isset($DA['rental_month_amount']) ? $DA['rental_month_amount'] : 0.00;
-        $contract->rental_account_name    = isset($DA['rental_account_name']) ? $DA['rental_account_name'] : "";
-        $contract->rental_account_number  = isset($DA['rental_account_number']) ? $DA['rental_account_number'] : "";
-        $contract->rental_bank_name       = isset($DA['rental_bank_name']) ? $DA['rental_bank_name'] : "";
-        $contract->manager_account_name   = isset($DA['manager_account_name']) ? $DA['manager_account_name'] : "";
-        $contract->manager_account_number = isset($DA['manager_account_number']) ? $DA['manager_account_number'] : "";
-        $contract->manager_bank_name      = isset($DA['manager_bank_name']) ? $DA['manager_bank_name'] : "";
         $contract->manager_bank_id        = isset($DA['manager_bank_id']) ? $DA['manager_bank_id'] : 0;
         $contract->rental_bank_id         = isset($DA['rental_bank_id']) ? $DA['rental_bank_id'] : 0;
         $contract->manager_deposit_month  = isset($DA['manager_deposit_month']) ? $DA['manager_deposit_month'] : 0;

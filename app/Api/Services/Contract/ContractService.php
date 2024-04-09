@@ -485,7 +485,7 @@ class ContractService
           $data[$k]['proj_id']     = $projId;
           $data[$k]['contract_id'] = $contractId;
           $data[$k]['tenant_id']   = $tenantId;
-          $data[$k]['type']        = isset($v['type']) ? $v['type'] : 1; // 1 收款 2 付款
+          $data[$k]['type']        = $v['type'] ?? 1; // 1 收款 2 付款
           $data[$k]['fee_type']    = $v['fee_type']; // 费用类型
           $data[$k]['price']       = isset($v['price']) ? $v['price'] : "";
           $data[$k]['unit_price_label'] = isset($v['unit_price_label']) ? $v['unit_price_label'] : "";
@@ -495,7 +495,7 @@ class ContractService
           $data[$k]['start_date']  = $v['start_date'];
           $data[$k]['end_date']    = $v['end_date'];
           $data[$k]['c_uid']       = $user['id'];
-          $data[$k]['remark']      = isset($DA['remark']) ? $DA['remark'] : "";
+          $data[$k]['remark']      = $v['remark'] ?? "";
           $data[$k]['created_at']  = nowTime();
         }
         $this->contractBillModel()->addAll($data);

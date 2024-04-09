@@ -54,16 +54,22 @@ class ContractBillService
         $startDate = getNextYmd($startDate, $period);
         $bill[$i]['charge_date'] = date("Y-m-" . $rule['bill_day'], strtotime($chargeDate));
       }
+
       // 收款日期，根据合同的收款日走
       $endDate = getEndNextYmd($startDate, $period);
+      $increaseAmt = 0.00;
+      $this->increaseMonthAmt($rule, $startDate, $endDate, 0, $increaseAmt, $remark);
+      $bill[$i]['amount'] =  $increaseAmt;
       $bill[$i]['start_date'] = formatYmd($startDate);
       if ($i + 1 != $billNum) {
         $bill[$i]['end_date'] = $endDate;
-        $bill[$i]['amount'] = numFormat($period * $rule['month_amt']);
+        $bill[$i]['amount'] = $increaseAmt;
+        // numFormat($period * $rule['month_amt']);
       } else { // 最后一个租期
         $bill[$i]['end_date'] = formatYmd($rule['end_date']);
         $lastPeriod = $leaseTerm - ($period * $i);
-        $bill[$i]['amount'] = numFormat($lastPeriod * $rule['month_amt']);
+        // $bill[$i]['amount'] = numFormat($lastPeriod * $rule['month_amt']);
+        $bill[$i]['amount'] = $increaseAmt;
       }
 
       // 如有免租，账单期内减免
@@ -71,8 +77,8 @@ class ContractBillService
       if ($rule['fee_type'] == AppEnum::rentFeeType && $contract['free_type'] && $freeList) {
         $free = $this->freeRental($freeList, $rule, $bill[$i]['start_date'], $bill[$i]['end_date'], $contract['free_type'], $uid);
         if ($free) {
-          $bill[$i]['amount'] = $bill[$i]['amount'] - $free['free_amt'];
           $remark = $free['remark'];
+          $bill[$i]['amount'] -= $free['free_amt'];
         }
       }
       $bill[$i]['remark'] = $remark;
@@ -277,7 +283,7 @@ class ContractBillService
         $bill[$i]['charge_date'] = date("Y-m-" . $rule['bill_day'], strtotime($chargeDate));
       }
 
-      $endDate = getNextYmd($startDate, $period);
+      $endDate = getYmdPlusMonths($startDate, $period);
       // 免租处理
       if (!empty($DA['free_list'])) {
         if ($freeType == AppEnum::freeMonth) {
@@ -294,30 +300,31 @@ class ContractBillService
       // 账单逻辑
       $bill[$i]['start_date'] = $startDate;
       // 判断是否最后一个账单
+      $increaseAmt = 0.00;
+      $freeAmt = 0.00;
+
       if ($endDate >= $rule['end_date']) {  //如果账单结束日期大于或者等于合同日期的时候 处理最后一个账单 并跳出
         // 按月 最后一个帐期 总金额 - 之前账单金额
-        if ($freeType == AppEnum::freeMonth) {
-          if ($period == $freeNum) {
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period));
-          } else {
-            //  租金免租 账单金额 = 月租金 * (周期 - 免租月数)
-            $bill[$i]['amount'] = numFormat($rule['month_amt'] * ($period - $freeNum));
-          }
-        } else { // 按天免租
-          $freeAmt = $rule['month_amt'] / 30 * $freeNum;
-          $bill[$i]['amount'] = numFormat($rule['month_amt'] * $period - $freeAmt);
+        if ($freeType == AppEnum::freeMonth && $freeNum % $period != 0) {
+          $freeAmt = numFormat($rule['month_amt'] * $freeNum);
+        } elseif ($freeType != AppEnum::freeMonth) { // 按天免租
+          $freeAmt = numFormat($rule['month_amt'] / (365 / 12) * $freeNum);
         }
-        $bill[$i]['end_date'] = $rule['end_date'];   // 结束日期为合同结束日期
-        $bill[$i]['bill_date'] = $startDate . "至" . $bill[$i]['end_date'];
-        $data['total'] += $bill[$i]['amount'];
-        $bill[$i]['remark'] = $remark;
-        break;
+        $remark .= "最后一个账期";
+        $this->increaseMonthAmt($rule, $startDate, $rule['end_date'], $freeAmt, $increaseAmt, $remark);
+        $bill[$i]['end_date'] = $rule['end_date']; // 结束日期为合同结束日期
       } else {
-        $bill[$i]['amount']     = numFormat($rule['month_amt'] * $period);
-        $bill[$i]['end_date']   = getPreYmdByDay($endDate, 1);
-        $bill[$i]['bill_date']  = $startDate . "至" . $bill[$i]['end_date'];
-        $data['total']         += $bill[$i]['amount'];
-        $bill[$i]['remark']     = $remark;
+        $this->increaseMonthAmt($rule, $startDate, $endDate, 0, $increaseAmt, $remark);
+        $bill[$i]['end_date'] = getPreYmdByDay($endDate, 1);
+      }
+
+      $bill[$i]['amount']     = $increaseAmt;
+      $bill[$i]['bill_date']  = $startDate . "至" . $bill[$i]['end_date'];
+      $data['total']         += $bill[$i]['amount'];
+      $bill[$i]['remark']     = $remark;
+
+      if ($endDate >= $rule['end_date']) {
+        break;
       }
     }
     $data['bill'] = $bill;
@@ -325,28 +332,62 @@ class ContractBillService
     return $data;
   }
 
+  /**
+   * 处理租金涨租
+   * @Author leezhua
+   * @Date 2024-04-09
+   * @param mixed $rule 
+   * @param mixed $startDate 
+   * @param mixed $endDate 
+   * @param float $increaseAmt 
+   * @param string $remark 
+   * @return void 
+   */
+  public function increaseMonthAmt($rule, $startDate, $endDate, $freeAmt, &$increaseAmt = 0.00, &$remark = "")
+  {
+    $increaseAmt  = 0.00;
+    if (!$rule['increase_date'] && !$rule['increase_start_period']) {
+      $increaseAmt = $rule['month_amt'] * $rule['pay_method'];
+      if (strtotime($rule['end_date']) == strtotime($endDate)) {
+        $increaseAmt -= $freeAmt;
+      }
+      return;
+    }
+    $increaseStartDate = $rule['increase_date'];
+    $increaseTotalPeriod = $rule['lease_term'] - $rule['increase_start_period'];
+    $increaseEndDate = getYmdPlusMonths($increaseStartDate, $increaseTotalPeriod);
 
-  // private function priceUnit($roomType, $priceType)
-  // {
-  //   try {
-  //     if ($priceType == 1) {
-  //       if ($roomType == 1) {
-  //         return '元/㎡·天';
-  //       } else {
-  //         return '元·天';
-  //       }
-  //     } else {
-  //       if ($roomType == 1) {
-  //         return '元/㎡·天';
-  //       } else {
-  //         return '元/㎡·月';
-  //       }
-  //     }
-  //   } catch (Exception $e) {
-  //     Log::error($e->getMessage());
-  //     return "";
-  //   }
-  // }
+    $endDate = getYmdPlusDays($endDate, 1);
+    for ($num = 1; $num <= $rule['pay_method']; $num++) {
+      $feeStartDate = getYmdPlusMonths($startDate, $num - 1);
+      $feeEndDate = getYmdPlusMonths($startDate, $num);
+      if (strtotime($feeStartDate) >= strtotime($endDate)) {
+        break;
+      }
+      // 判断是否在涨租期内
+      $isIncreasePeriod = strtotime($increaseStartDate) <= strtotime($feeStartDate) && strtotime($increaseEndDate) >= strtotime($feeEndDate);
+      if ($isIncreasePeriod) {
+        $increaseMonthAmt = $rule['month_amt'] * (100 + $rule['increase_rate']) / 100;
+        $increaseAmt += $increaseMonthAmt;
+        $remark .=  $feeStartDate . "至" . $feeEndDate . "[涨租" . $rule['increase_rate'] . "%]";
+      } else {
+        $increaseAmt += $rule['month_amt'];
+        if (strtotime($feeEndDate) > strtotime($endDate)) {
+          $increaseAmt -= $freeAmt;
+        }
+      }
+      // 按天免租 遇涨租不做处理
+      // elseif (
+      //   strtotime($increaseStartDate) <= strtotime($feeStartDate)
+      //   && strtotime($increaseEndDate) < strtotime($feeEndDate)
+      // ) { // 
+      //   $increaseMonthAmt = $rule['month_amt'] * (100 + $rule['increase_rate']) / 100;
+      //   $increaseAmt += $increaseMonthAmt;
+      //   $remark .=  $feeStartDate . "至" . $endDate . "不足一个月，[涨租" . $rule['increase_rate'] . "%]";
+      // }
+    }
+  }
+
 
   /**
    * 正常账单，计算免租
