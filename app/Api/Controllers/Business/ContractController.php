@@ -483,11 +483,9 @@ class ContractController extends BaseController
                     $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 }
                 // 保存押金账单
-                if (isset($DA['deposit_bill'])) {
-                    $contractService->saveContractBill($DA['deposit_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
-                } else {
-                    $contractService->contractBillModel()->where('contract_id', $contract['id'])->where('bill_type', 2)->delete();
-                }
+                $depositBill = $DA['deposit_bill'] ?? array();
+                $contractService->saveContractBill($depositBill, $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
+
                 $contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
