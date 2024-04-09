@@ -61,6 +61,7 @@ class EquipmentPlanController extends BaseController
           $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
         }
         $request->year && $q->whereYear('plan_date', $request->year);
+        !$request->year && $q->whereYear('plan_date', date('Y')); // 默认查询当前年份
         isset($request->completed) &&  $q->where('status', $request->completed);
       })
       // ->where('year', $request->year)
@@ -85,12 +86,17 @@ class EquipmentPlanController extends BaseController
       'equipment_id'    => 'required',
       'plan_date'   => 'required|date',
       'plan_quantity' => 'required',
+    ], [
+      'equipment_id.required' => '设备ID字段是必填的。',
+      'plan_date.required' => '计划日期字段是必填的。',
+      'plan_date.date' => '计划日期字段必须是日期格式。',
+      'plan_quantity.required' => '计划数量字段是必填的。',
     ]);
     $DA = $request->toArray();
     $planExists  = $this->equipment->MaintainPlanModel()
       ->where('equipment_id', $DA['equipment_id'])
-      ->whereYear('plan_date', dateFormat("Y", $DA['plan_date']))
-      ->whereMonth('plan_date', dateFormat('m', $DA['plan_date']))->exists();
+      ->whereDate('plan_date', date("Y-m", strtotime($DA['plan_date'])))
+      ->exists();
     if ($planExists) {
       return $this->error('该月份已存在维护计划');
     }

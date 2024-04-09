@@ -270,7 +270,12 @@ class InspectionController extends BaseController
    */
   public function recordList(Request $request)
   {
-
+    $validatedData = $request->validate([
+      'proj_ids' => 'required|array',
+    ], [
+      'proj_ids.required' => '项目IDs不能为空',
+      'proj_ids.array'    => '项目ID格式错误',
+    ]);
     $subQuery = $this->inspection->inspectionRecordModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -376,7 +381,7 @@ class InspectionController extends BaseController
    *          schema="UserModel",
    *          required={"inspection_id","is_unusual"},
    *       @OA\Property(property="inspection_id",type="int",description="巡检ID"),
-   *       @OA\Property(property="is_unusual",type="int",description="1 正常 0 不正常")
+   *       @OA\Property(property="is_unusual",type="int",description="1 正常 2 异常")
    *
    *     ),
    *       example={"inspection_id":"","is_unusual":""}
@@ -397,6 +402,7 @@ class InspectionController extends BaseController
 
     ]);
     $DA = $request->toArray();
+
     $res = $this->inspection->saveInspectionRecord($DA, $this->user);
     if (!$res) {
       return $this->error('设备维护更新失败！');
