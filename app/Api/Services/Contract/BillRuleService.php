@@ -42,17 +42,23 @@ class BillRuleService
    * @param [type] $tenantId
    * @return void
    */
-  public function ruleBatchSave($rule, $user, $contractId, $tenantId, $isSave = false)
+  public function ruleBatchSave($rules, $user, $contractId, $tenantId, $isSave = false)
   {
     try {
-      DB::transaction(function () use ($rule, $user, $contractId, $tenantId, $isSave) {
-        $this->validateIncrease($rule);
+      DB::transaction(function () use ($rules, $user, $contractId, $tenantId, $isSave) {
+        $this->validateIncrease($rules);
+        $ruleList = $this->formatRuleData($rules, $user, $contractId, $tenantId);
         if (!$isSave) {
-          $this->model()->where('contract_id', $contractId)->delete();
+          foreach ($ruleList as $k => $rule) {
+            if (isset($rule['id']) && $rule['id'] > 0) {
+              $this->model()->where('id', $rule['id'])->update($rule);
+            } else {
+              $this->model()->create($rule);
+            }
+          }
+        } else {
+          $this->model()->addAll($ruleList);
         }
-        // $this->model()->where('contract_id', $contractId)->delete();
-        $ruleData = $this->formatRuleData($rule, $user, $contractId, $tenantId);
-        $this->model()->addAll($ruleData);
       });
       return true;
     } catch (Exception $e) {
@@ -69,9 +75,9 @@ class BillRuleService
    * @param [type] $user
    * @param [type] $contractId
    * @param [type] $tenantId
-   * @return void
+   * @return array
    */
-  function formatRuleData($DA, $user, $contractId, $tenantId)
+  function formatRuleData($DA, $user, $contractId, $tenantId): array
   {
     $data = array();
     try {
