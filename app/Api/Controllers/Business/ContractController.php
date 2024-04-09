@@ -465,12 +465,12 @@ class ContractController extends BaseController
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->ruleBatchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->ruleBatchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id'], false);
                 }
                 // 押金规则
                 if ($DA['deposit_rule']) {
                     $ruleService = new BillRuleService;
-                    $ruleService->ruleBatchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id']);
+                    $ruleService->ruleBatchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id'], false);
                 }
                 // 保存费用账单
                 if ($DA['fee_bill']) {
