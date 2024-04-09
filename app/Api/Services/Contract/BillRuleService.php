@@ -89,7 +89,7 @@ class BillRuleService
         $data[$k]['u_uid']       = $user['id'];
         $data[$k]['tenant_id']   = $tenantId;
         $data[$k]['contract_id'] = $contractId;
-        $data[$k]['type']        = $v['type'];
+        $data[$k]['type']        = $v['type'] ?? 1;
         $data[$k]['fee_type']    = $v['fee_type'] ?? 1;
         $data[$k]['unit_price']  = isset($v['unit_price']) ? $v['unit_price'] : 0.00;
         $data[$k]['price_type']  = isset($v['price_type']) ? $v['price_type'] : 0;
@@ -106,10 +106,10 @@ class BillRuleService
         $data[$k]['ahead_pay_month']  = isset($v['ahead_pay_month']) ? $v['ahead_pay_month'] : 0;
         $data[$k]['increase_show']    = $v['increase_show'] ?? 0;
         $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
-        if (isset($v['increase_date']) && !empty($v['increase_date'])) {
+        $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
+        if ($v['increase_show'] != 0) {
           $data[$k]['increase_date']    = $v['increase_date'];
         }
-        $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
         $data[$k]['unit_price_label'] = $v['unit_price_label'] ?? "";
         $data[$k]['remark']           = $v['remark'] ?? "";
         $data[$k]['is_valid']         = $v['is_valid'] ?? 1;                                          // 不传默认为有效
