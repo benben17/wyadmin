@@ -461,17 +461,17 @@ class ContractController extends BaseController
                         $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
-
+                $ruleService = new BillRuleService;
                 // 租赁规则
+                $ruleList = array();
                 if ($DA['bill_rule']) {
-                    $ruleService = new BillRuleService;
-                    $ruleService->ruleBatchSave($DA['bill_rule'], $user, $contract->id, $DA['tenant_id'], false);
+                    $ruleList = array_merge($ruleList, $DA['bill_rule']);
                 }
                 // 押金规则
                 if ($DA['deposit_rule']) {
-                    $ruleService = new BillRuleService;
-                    $ruleService->ruleBatchSave($DA['deposit_rule'], $user, $contract->id, $DA['tenant_id'], false);
+                    $ruleList = array_merge($ruleList, $DA['deposit_rule']);
                 }
+                $ruleService->ruleBatchSave($ruleList, $user, $contract->id, $DA['tenant_id'], false);
                 // 保存费用账单
                 if ($DA['fee_bill']) {
                     $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
