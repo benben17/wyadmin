@@ -476,8 +476,11 @@ class ContractService
   {
     try {
       // 先删除
-      // Log::error("bill" . json_encode($feeBill));
+
       $this->contractBillModel()->where('contract_id', $contractId)->where('type', $type)->delete();
+      if (empty($feeBill) || !$feeBill) {
+        return;
+      }
       foreach ($feeBill as $key => $bill) {
         $data = array();
         foreach ($bill['bill'] as $k => $v) {
