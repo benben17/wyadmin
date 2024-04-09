@@ -498,7 +498,7 @@ class ContractService
           $data[$k]['remark']      = $v['remark'] ?? "";
           $data[$k]['created_at']  = nowTime();
         }
-        $this->contractBillModel()->addAll($data);
+        $this->contractBillModel()->insert($data);
       }
 
       return true;
