@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use App\Api\Controllers\BaseController;
-use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
 

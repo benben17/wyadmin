@@ -174,9 +174,7 @@ class ChargeService
           $charge->status = ChargeEnum::chargeVerify;
           $detailStatus = 0;
         }
-        $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
-        $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
-        $charge->save();
+
 
         // 更新应收费用
         $detailBillData = [
@@ -198,6 +196,10 @@ class ChargeService
         $billService = new TenantBillService;
         $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
         $this->chargeBillRecordSave($billRecord, $user);
+
+        $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
+        $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
+        $charge->save();
       }
       return true;
     } catch (\Exception $e) {
