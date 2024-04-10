@@ -9,9 +9,11 @@ use App\Api\Models\BuildingRoom;
 use App\Models\Area as AreaModel;
 use App\Services\CompanyServices;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
+use App\Api\Services\Business\ProjectService;
 use App\Api\Services\Building\BuildingService;
 
 
@@ -26,10 +28,11 @@ use App\Api\Services\Building\BuildingService;
  */
 class ProjectController extends BaseController
 {
-
+    private $projectService;
     public function __construct()
     {
         parent::__construct();
+        $this->projectService = new ProjectService;
     }
     /**
      * @OA\Post(
@@ -85,7 +88,7 @@ class ProjectController extends BaseController
         $subMap['room_type'] = 1;
         // 获取项目信息
         DB::enableQueryLog();
-        $subQuery = ProjectModel::where($map)
+        $subQuery = $this->projectService->projectModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
                 $request->proj_ids && $q->whereIn('id', $request->proj_ids);
@@ -171,7 +174,7 @@ class ProjectController extends BaseController
         ]);
         $data = $request->toArray();
 
-        $projCheck = ProjectModel::where('proj_name', $data['proj_name'])->count();
+        $projCheck = $this->projectService->projectModel()->where('proj_name', $data['proj_name'])->count();
         if ($projCheck > 0) {
             return $this->error($data['proj_name'] . '名称重复');
         }
@@ -181,10 +184,10 @@ class ProjectController extends BaseController
             return  $this->error('项目已达到最大数量，如有需要请联系商务！');
         }
 
-        $data = $this->formatProj($data);
+        $data = $this->projectService->formatProj($data);
         $data['company_id'] = $this->company_id;
         $data['c_uid'] = $this->uid;
-        $project = ProjectModel::create($data);
+        $project = $this->projectService->projectModel()->create($data);
 
         if ($project) {
             return $this->success($data['proj_name'] . '项目添加成功！');
@@ -240,15 +243,15 @@ class ProjectController extends BaseController
         $map['proj_name'] = $data['proj_name'];
         $map['company_id'] = $this->company_id;
 
-        $projCheck = ProjectModel::where($map)
+        $projCheck = $this->projectService->projectModel()->where($map)
             ->where('id', '!=', $request['id'])->count();
         if ($projCheck > 0) {
             return $this->error($data['proj_name'] . '项目名称重复');
         }
 
-        $DA = $this->formatProj($data);
+        $DA = $this->projectService->formatProj($data);
         $DA['u_uid'] = $this->uid;
-        $project = ProjectModel::whereId($request['id'])->update($DA);
+        $project = $this->projectService->projectModel()->whereId($request['id'])->update($DA);
         if ($project) {
             return $this->success($DA['proj_name'] . '项目更新成功！');
         } else {
@@ -293,15 +296,17 @@ class ProjectController extends BaseController
     {
         $validatedData = $request->validate([
             'id'    => 'required|min:1',
+        ], [
+            'id.required' => '项目ID不能为空',
+            'id.min' => '项目ID不合法',
         ]);
-        $billProjData = [
-            'water_price' => $request->water_price ?? 0.00,
-            'electric_price' => $request->electric_price ?? 0.00,
-            'bill_instruction' => $request->bill_instruction ?? "",
-            'operate_entity' => $request->operate_entity ?? "",
-        ];
-        $res = ProjectModel::find($request->id)->update($billProjData);
-        return $res ? $this->success('项目账单内容更新成功！') : $this->error('项目账单内容更新失败！');
+        try {
+            $this->projectService->setProject($request, $this->user);
+            return $this->success('项目账单内容更新成功！');
+        } catch (\Exception $e) {
+            Log::error("项目账单设置失败." . $e->getMessage());
+            return $this->error($e->getMessage());
+        }
     }
 
     /**
@@ -450,52 +455,12 @@ class ProjectController extends BaseController
             'is_valid' => 'required|in:0,1',
         ]);
 
-        $res = ProjectModel::whereIn('id', $request->Ids)->update(["is_valid" => $request->is_valid]);
+        $res = $this->projectService->projectModel()->whereIn('id', $request->Ids)
+            ->update(["is_valid" => $request->is_valid]);
         if ($res) {
             return $this->success('项目更新成功。');
         } else {
             return $this->error('项目更新失败！');
         }
-    }
-
-
-
-    /**
-     *  格式化传入数据
-     */
-    private function formatProj($data)
-    {
-        $DA['proj_name'] = $data['proj_name'];
-        $DA['proj_type'] = isset($data['proj_type']) ? $data['proj_type'] : "";
-        $DA['proj_logo'] = isset($data['proj_logo']) ? $data['proj_logo'] : "";
-        if (isset($data['proj_province_id']) && $data['proj_province_id'] > 0) {
-            $res = AreaModel::find($data['proj_province_id']);
-            $DA['proj_province'] = $res->name;
-            $DA['proj_province_id'] = $data['proj_province_id'];
-        }
-        if (isset($data['proj_city_id']) && $data['proj_city_id'] > 0) {
-            $res = AreaModel::find($data['proj_city_id']);
-            $DA['proj_city'] = $res->name;
-            $DA['proj_city_id'] = $data['proj_city_id'];
-        }
-        if (isset($data['proj_district_id']) && $data['proj_district_id'] > 0) {
-            $res = AreaModel::find($data['proj_district_id']);
-            $DA['proj_district'] = $res->name;
-            $DA['proj_district_id'] = $data['proj_district_id'];
-        }
-        $DA['water_price'] = isset($data['water_price']) ? $data['water_price'] : "0.00";
-        $DA['electric_price'] = isset($data['electric_price']) ? $data['electric_price'] : "0.00";
-        $DA['proj_addr'] = isset($data['proj_addr']) ? $data['proj_addr'] : "";
-        $DA['proj_occupy'] = isset($data['proj_occupy']) ? $data['proj_occupy'] : 0;
-        $DA['proj_buildarea'] = isset($data['proj_buildarea']) ? $data['proj_buildarea'] : 0;
-        $DA['proj_usablearea'] = isset($data['proj_usablearea']) ? $data['proj_usablearea'] : 0;
-        $DA['proj_far'] = isset($data['proj_far']) ? $data['proj_far'] : "";
-        $DA['proj_pic'] = isset($data['proj_pic']) ? $data['proj_pic'] : "";
-        $DA['support'] = isset($data['support']) ? $data['support'] : "";
-        $DA['advantage'] = isset($data['advantage']) ? $data['advantage'] : "";
-        $DA['bill_instruction'] = isset($data['bill_instruction']) ? $data['bill_instruction'] : "";
-        $DA['operate_entity'] = isset($data['operate_entity']) ? $data['operate_entity'] : "";
-        $DA['is_valid'] = isset($data['is_valid']) ? $data['is_valid'] : 1;
-        return $DA;
     }
 }
