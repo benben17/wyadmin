@@ -99,9 +99,7 @@ class BillRuleService
         $data[$k]['increase_show']    = $v['increase_show'] ?? 0;
         $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
         $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
-        if ($data[$k]['increase_show'] != 0) {
-          $data[$k]['increase_date']    = $v['increase_date'];
-        }
+        $data[$k]['increase_date']    = $v['increase_date'] ?? null;
         $data[$k]['unit_price_label'] = $v['unit_price_label'] ?? "";
         $data[$k]['remark']           = $v['remark'] ?? "";
         $data[$k]['is_valid']         = $v['is_valid'] ?? 1;                                          // 不传默认为有效

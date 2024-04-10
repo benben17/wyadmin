@@ -2,11 +2,12 @@
 
 namespace App\Api\Models\Energy;
 
-use App\Api\Models\Contract\ContractRoom;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\RemarkType;
 use App\Api\Scopes\CompanyScope;
 use App\Services\CompanyServices;
+use App\Api\Models\Common\BseRemark;
+use Illuminate\Database\Eloquent\Model;
+use App\Api\Models\Contract\ContractRoom;
 
 class Meter extends Model
 {
@@ -15,7 +16,7 @@ class Meter extends Model
    *
    * @var string
    */
-  var $parentType = 3;
+  var $parentType = RemarkType::Meter;
   protected $table = 'bse_meter';
   protected $fillable = [];
   protected $hidden = ['deleted_at', "company_id", 'updated_at'];
@@ -54,7 +55,7 @@ class Meter extends Model
 
   public function remark()
   {
-    return $this->hasMany('App\Api\Models\Common\Remark', 'parent_id', 'id')
+    return $this->hasMany(BseRemark::class, 'parent_id', 'id')
       ->where('parent_type', $this->parentType);
   }
 

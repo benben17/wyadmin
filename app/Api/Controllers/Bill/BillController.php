@@ -86,7 +86,9 @@ class BillController extends BaseController
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
+        $request->month && $q->whereMonth('charge_date', $request->month);
         $request->start_date && $q->whereBetween('charge_date', [$request->start_date, $request->end_date]);
+        isset($request->status) && $q->where('status', $request->status);
       })
       ->with('tenant:id,name')
       ->orderBy($orderBy, $order)
@@ -327,5 +329,34 @@ class BillController extends BaseController
     } else {
       return $this->error("生成账单失败");
     }
+  }
+
+
+  public function billAudit(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|gt:0',
+      'audit_status' => 'required|in:1,2', // 1 审核通过 2 审核不通过
+    ], [
+      'audit_status.in' => '审核状态错误',
+      'id.gt' => '账单id错误',
+      'id.required' => '账单id不能为空',
+    ]);
+    $bill = $this->billService->billModel()->find($request->id);
+    if (!$bill) {
+      return $this->error("账单不存在");
+    }
+    if ($bill->status != 0) {
+      return $this->error("账单已审核");
+    }
+    if ($request->audit_status == 2) {
+      $bill->status        = AppEnum::statusAudit;
+    } else {
+      $bill->status        = AppEnum::statusUnAudit;
+    }
+    $bill->audit_user = $this->user['real_name'];
+    $bill->audit_date    = now();
+    $res = $bill->save();
+    return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
   }
 }

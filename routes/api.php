@@ -342,6 +342,7 @@ Route::group(['prefix' => 'operation/meter'], function () {
     Route::post('/record/show', '\App\Api\Controllers\Operation\MeterController@showMeterRecord');
     Route::post('/record/list', '\App\Api\Controllers\Operation\MeterController@listMeterRecord');
     Route::post('/record/audit', '\App\Api\Controllers\Operation\MeterController@auditMeterRecord');
+    Route::post('/record/del', '\App\Api\Controllers\Operation\MeterController@delMeterRecord');
 });
 Route::group(['prefix' => 'operation/workorder'], function () {
     Route::post('/list', '\App\Api\Controllers\Operation\WorkOrderController@list');
