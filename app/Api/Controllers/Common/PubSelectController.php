@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Sys\DepartService;
-use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\ChargeService;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Models\Building as BuildingModel;

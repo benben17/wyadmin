@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\DepositService;
-use App\Api\Services\Tenant\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
 
 /**
