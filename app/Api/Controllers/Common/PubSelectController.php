@@ -547,7 +547,7 @@ class PubSelectController extends BaseController
 				}
 			})
 			->with('contacts:id,contact_name,contact_phone,contact_role,is_default,parent_id,parent_type')
-			->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
+			// ->with('invoice:id,tenant_id,title,bank_name,tax_number,tel_number,account_name,invoice_type,addr')
 			->orderBy('name', 'asc')
 			->get()->toArray();
 
