@@ -6,7 +6,6 @@ use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Bill\ChargeService;
