@@ -52,6 +52,7 @@ class ChargeService
         $charge->unverify_amount = $BA['amount'];
         $charge->flow_no = getChargeNo($BA['type']);
       }
+      $charge->pay_person  = $BA['pay_person'] ?? "";
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $BA['tenant_id'];
       $charge->amount      = $BA['amount'];
