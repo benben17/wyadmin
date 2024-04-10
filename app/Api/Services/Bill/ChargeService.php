@@ -149,17 +149,19 @@ class ChargeService
    *
    * @return void
    */
-  public function detailBillListWriteOff(array $detailBillList, $chargeBill, $verifyDate, $user)
+  public function detailBillListWriteOff(array $detailBillList, $chargeId, $verifyDate, $user)
   {
-    $chargeAmt = $chargeBill['unverify_amount'];
+
     try {
+      $charge = $this->model()->find($chargeId);
+      $chargeAmt = $charge->unverify_amount;
       foreach ($detailBillList as $detailBill) {
         $verifyAmt = 0.00;
         // DB::transaction(function () use (&$totalVerifyAmt, $detailBillList, $chargeBill, $verifyDate, $user) {
         if ($chargeAmt == 0) { // 充值金额已经核销完毕
           break;
         }
-        $charge = $this->model()->find($chargeBill['id']);
+
         $detailAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($detailAmt <= $chargeAmt) {
           $chargeAmt -= $detailAmt;
@@ -172,21 +174,22 @@ class ChargeService
           $charge->status = ChargeEnum::chargeVerify;
           $detailStatus = 0;
         }
-        $charge->unverify_amount = $chargeBill['unverify_amount'] - $verifyAmt;
-        $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
+        $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
+        $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
         $charge->save();
 
+        // 更新应收费用
         $detailBillData = [
-          'status' => $detailStatus,
-          'receive_date' => $verifyDate,
+          'status'         => $detailStatus,
+          'receive_date'   => $verifyDate,
           'receive_amount' => $verifyAmt,
         ];
-
+        // 核销记录
         $billRecord = [
           'amount'         => $verifyAmt,
-          'charge_id'      => $chargeBill['id'],
+          'charge_id'      => $charge->id,
           'bill_detail_id' => $detailBill['id'],
-          'type'           => $chargeBill['type'],
+          'type'           => $charge->type,
           'fee_type'       => $detailBill['fee_type'],
           'proj_id'        => $detailBill['proj_id'],
           'verify_date'    => $verifyDate,
@@ -363,15 +366,13 @@ class ChargeService
           $charge = $this->model()->findOrFail($record->charge_id);
           $charge->unverify_amount += $record->amount;
           $charge->verify_amount -= $record->amount;
+          $charge->status = ChargeEnum::chargeUnVerify;
           $charge->save();
 
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
           $billDetail->receive_amount -= $record->amount;
           $billDetail->updated_at = nowYmd();
           $billDetail->status = 0; // 未结清
-          if ($billDetail['bill_id'] != 0) {
-            $this->billModel()->where('id', $billDetail['bill_id'])->update(['status' => 0]);
-          }
           $billDetail->save();
           $record->delete();
         }
