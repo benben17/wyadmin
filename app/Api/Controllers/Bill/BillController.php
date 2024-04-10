@@ -369,11 +369,10 @@ class BillController extends BaseController
       return $this->error("账单已审核");
     }
     $status = $request->audit_status == 1 ? AppEnum::statusAudit : AppEnum::statusUnAudit;
-    $res = $bill->update([
-      'status'     => $status,
-      'audit_user' => $this->user['realname'],
-      'audit_date' => now(),
-    ]);
+    $bill->status  = $status;
+    $bill->audit_user = $this->user['realname'];
+    $bill->audit_date = now();
+    $res = $bill->save();
     return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
   }
 }
