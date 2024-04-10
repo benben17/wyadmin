@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Services\Tenant;
+namespace App\Api\Services\Bill;
 
 use Exception;
 use App\Enums\AppEnum;
@@ -150,53 +150,56 @@ class ChargeService
    * @return void
    */
   public function detailBillListWriteOff(array $detailBillList, $chargeBill, $verifyDate, $user)
-  { {
-      $totalVerifyAmt = 0.00;
+  {
+    $chargeAmt = $chargeBill['unverify_amount'];
+    try {
+      foreach ($detailBillList as $detailBill) {
+        $verifyAmt = 0.00;
+        // DB::transaction(function () use (&$totalVerifyAmt, $detailBillList, $chargeBill, $verifyDate, $user) {
+        if ($chargeAmt == 0) { // 充值金额已经核销完毕
+          break;
+        }
+        $charge = $this->model()->find($chargeBill['id']);
+        $detailAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+        if ($detailAmt <= $chargeAmt) {
+          $chargeAmt -= $detailAmt;
+          $verifyAmt = $detailAmt;
+          $detailStatus = 1;
+        } else {
+          $detailAmt = $chargeAmt;
+          $chargeAmt = 0;
+          $verifyAmt = $detailAmt;
+          $charge->status = ChargeEnum::chargeVerify;
+          $detailStatus = 0;
+        }
+        $charge->unverify_amount = $chargeBill['unverify_amount'] - $verifyAmt;
+        $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
+        $charge->save();
 
-      try {
-        DB::transaction(function () use (&$totalVerifyAmt, $detailBillList, $chargeBill, $verifyDate, $user) {
-          foreach ($detailBillList as $detailBill) {
-            $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
-            $totalVerifyAmt += $verifyAmt;
+        $detailBillData = [
+          'status' => $detailStatus,
+          'receive_date' => $verifyDate,
+          'receive_amount' => $verifyAmt,
+        ];
 
-            $detailBillData = [
-              'status' => 1,
-              'receive_date' => $verifyDate,
-              'receive_amount' => $verifyAmt,
-            ];
+        $billRecord = [
+          'amount'         => $verifyAmt,
+          'charge_id'      => $chargeBill['id'],
+          'bill_detail_id' => $detailBill['id'],
+          'type'           => $chargeBill['type'],
+          'fee_type'       => $detailBill['fee_type'],
+          'proj_id'        => $detailBill['proj_id'],
+          'verify_date'    => $verifyDate,
+        ];
 
-            $billRecord = [
-              'amount' => $verifyAmt,
-              'charge_id' => $chargeBill['id'],
-              'bill_detail_id' => $detailBill['id'],
-              'type' => $chargeBill['type'],
-              'fee_type' => $detailBill['fee_type'],
-              'proj_id' => $detailBill['proj_id'],
-              'verify_date' => $verifyDate,
-            ];
-
-            $billService = new TenantBillService;
-            $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
-
-            $this->chargeBillRecordSave($billRecord, $user);
-          }
-
-          // 收款记录更新
-          $charge = $this->model()->find($chargeBill['id']);
-          $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $totalVerifyAmt);
-          $charge->verify_amount = $chargeBill['verify_amount'] + $totalVerifyAmt;
-
-          if ($chargeBill['unverify_amount'] == 0) {
-            $charge->status = ChargeEnum::chargeVerify;
-          }
-          $charge->save();
-        }, 3);
-
-        return true;
-      } catch (\Exception $e) {
-        Log::error("核销失败: " . $e->getMessage());
-        return false;
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
+        $this->chargeBillRecordSave($billRecord, $user);
       }
+      return true;
+    } catch (\Exception $e) {
+      Log::error("核销失败: " . $e->getMessage());
+      return false;
     }
   }
 

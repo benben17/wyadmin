@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
-use App\Api\Services\Tenant\ChargeService;
+use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
 use Illuminate\Validation\ValidationException;
 
@@ -25,10 +25,18 @@ use Illuminate\Validation\ValidationException;
 class ChargeController extends BaseController
 {
 	private $chargeService;
+	private $errorMsg;
 	public function __construct()
 	{
 		parent::__construct();
 		$this->chargeService = new ChargeService;
+		$this->errorMsg =  [
+			'tenant_id.required' => '租户id是必传的',
+			'amount.required' => '金额是必传的',
+			'type.required' => '类型是必传的',
+			'proj_id.required' => '项目id是必传的',
+			'charge_date.required' => '日期是必传的',
+		];
 	}
 
 	/**
@@ -140,12 +148,12 @@ class ChargeController extends BaseController
 	public function store(Request $request)
 	{
 		$validatedData = $request->validate([
-			'tenant_id' => 'required|numeric|gt:0',
-			'amount' => 'required',
-			'type' => 'required|in:1,2', // 1 收入 2 支出
-			'proj_id' => 'required|numeric|gt:0',
+			'tenant_id'   => 'required|numeric|gt:0',
+			'amount'      => 'required',
+			'type'        => 'required|in:1,2',         // 1 收入 2 支出
+			'proj_id'     => 'required|numeric|gt:0',
 			'charge_date' => 'required|date',
-		]);
+		], $this->errorMsg);
 
 		$res = $this->chargeService->save($request->toArray(), $this->user);
 		if (!$res) {
@@ -186,13 +194,13 @@ class ChargeController extends BaseController
 	public function edit(Request $request)
 	{
 		$validatedData = $request->validate([
-			'id' => 'required|numeric|gt:0',
-			'tenant_id' => 'required|numeric|gt:0',
-			'type' => 'required|in:1,2', // 1 收入 2 支出
-			'amount' => 'required',
-			'proj_id' => 'required|numeric|gt:0',
+			'id'          => 'required|numeric|gt:0',
+			'tenant_id'   => 'required|numeric|gt:0',
+			'type'        => 'required|in:1,2',         // 1 收入 2 支出
+			'amount'      => 'required',
+			'proj_id'     => 'required|numeric|gt:0',
 			'charge_date' => 'required|date',
-		]);
+		], $this->errorMsg);
 
 		$count = $this->chargeService->model()->whereHas('chargeBillRecord')
 			->where('id', $request->id)->count();
@@ -339,19 +347,11 @@ class ChargeController extends BaseController
 				return $this->error("所选应收 包含未生成账单的应收");
 			}
 
-			$totalVerifyAmt = $billDetailList->sum(function ($billDetail) {
-				return $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
-			});
-
-			if ($charge['unverify_amount'] < $totalVerifyAmt) {
-				return $this->error("充值金额不足，请重新选择应收款项!");
-			}
-
 			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge, $verifyDate, $this->user);
 
 			return $writeOffRes ? $this->success("核销成功") : $this->error("核销失败");
 		} catch (\Exception $e) {
-			return $this->error("发生错误：" . $e->getMessage());
+			return $this->error("核销发生错误：" . $e->getMessage());
 		}
 	}
 
