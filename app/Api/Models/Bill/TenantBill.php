@@ -2,10 +2,10 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
-
 use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
+
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -34,16 +34,15 @@ class TenantBill extends Model
   public function getIsPrintLabelAttribute()
   {
     if (isset($this->attributes['is_print'])) {
-      return $this->attributes['is_print'] ?  '已打印' : "未打印";
+      return $this->attributes['is_print'] == 1 ?  '已打印' : "未打印";
     }
   }
   public function getStatusLabelAttribute()
   {
     if (isset($this->attributes['status'])) {
-      return $this->attributes['status'] ?  '已结清' : "未结清";
+      return $this->attributes['status'] == 1 ?  '已审核' : "未审核";
     }
   }
-
 
 
   protected static function boot()

@@ -14,7 +14,7 @@ use App\Api\Models\Energy\MeterRecord;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Template\TemplateService;
-
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * @OA\Tag(
@@ -81,7 +81,7 @@ class BillController extends BaseController
     }
     DB::enableQueryLog();
 
-    $data = $this->billService->billModel()
+    $subQuery = $this->billService->billModel()
       ->where($map)
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
@@ -89,22 +89,20 @@ class BillController extends BaseController
         $request->month && $q->whereMonth('charge_date', $request->month);
         $request->start_date && $q->whereBetween('charge_date', [$request->start_date, $request->end_date]);
         isset($request->status) && $q->where('status', $request->status);
+        isset($request->is_print) && $q->where('is_print', $request->is_print);
       })
-      ->with('tenant:id,name')
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)->toArray();
-    // return response()->json(DB::getQueryLog());
+      ->with('tenant:id,name');
 
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
       $v['tenant_name'] = $v['tenant']['name'];
       unset($v['tenant']);
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
-      $v['total_amount'] = $billCount['totalAmt'];
-      $v['discount_amount'] = $billCount['disAmt'];
-      $v['receive_amount'] = $billCount['receiveAmt'];
+      $v['total_amount']     = $billCount['totalAmt'];
+      $v['discount_amount']  = $billCount['disAmt'];
+      $v['receive_amount']   = $billCount['receiveAmt'];
       $v['unreceive_amount'] = $v['total_amount'] - $v['discount_amount'];
     }
     return $this->success($data);
@@ -331,7 +329,28 @@ class BillController extends BaseController
     }
   }
 
-
+  /**
+   * @OA\Post(
+   *    path="/api/operation/tenant/bill/audit",
+   *   tags={"账单"},
+   *  summary="账单审核",
+   * @OA\RequestBody(
+   *   @OA\MediaType(
+   *      mediaType="application/json",
+   *  @OA\Schema(
+   *    schema="UserModel",
+   *   required={"id","audit_status"},
+   * @OA\Property(property="id",type="int",description="账单id"),
+   * @OA\Property(property="audit_status",type="int",description="1 审核通过 2 审核不通过")
+   * )
+   * ),
+   * @OA\Response(
+   *    response=200,
+   *  description=""
+   * )
+   * )
+   * 
+   */
   public function billAudit(Request $request)
   {
     $validatedData = $request->validate([
@@ -349,14 +368,12 @@ class BillController extends BaseController
     if ($bill->status != 0) {
       return $this->error("账单已审核");
     }
-    if ($request->audit_status == 2) {
-      $bill->status        = AppEnum::statusAudit;
-    } else {
-      $bill->status        = AppEnum::statusUnAudit;
-    }
-    $bill->audit_user = $this->user['real_name'];
-    $bill->audit_date    = now();
-    $res = $bill->save();
+    $status = $request->audit_status == 1 ? AppEnum::statusAudit : AppEnum::statusUnAudit;
+    $res = $bill->update([
+      'status'     => $status,
+      'audit_user' => $this->user['realname'],
+      'audit_date' => now(),
+    ]);
     return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
   }
 }
