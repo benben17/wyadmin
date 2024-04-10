@@ -24,11 +24,21 @@ class DepositController extends BaseController
 	private $depositService;
 	private $depositType = AppEnum::depositFeeType;
 	private $chargeService;
+	private $errorMsg;
 	public function __construct()
 	{
 		parent::__construct();
 		$this->depositService = new DepositService;
 		$this->chargeService = new ChargeService;
+		$this->errorMsg =  [
+			'amount.required'      => '金额字段是必填的。',
+			'fee_type.required'    => '费用类型字段是必填的。',
+			'fee_type.gt'          => '费用类型必须大于0。',
+			'charge_date.required' => '收费日期字段是必填的。',
+			'charge_date.date'     => '收费日期必须是有效的日期。',
+			'tenant_id.required'   => '租户ID字段是必填的。',
+			'proj_id.required'     => '项目ID字段是必填的。',
+		];
 	}
 
 	/**
@@ -146,15 +156,7 @@ class DepositController extends BaseController
 			'charge_date' => 'required|date',
 			'tenant_id' => 'required',
 			'proj_id' => 'required',
-		], [
-			'amount.required' => '金额字段是必填的。',
-			'fee_type.required' => '费用类型字段是必填的。',
-			'fee_type.gt' => '费用类型必须大于0。',
-			'charge_date.required' => '收费日期字段是必填的。',
-			'charge_date.date' => '收费日期必须是有效的日期。',
-			'tenant_id.required' => '租户ID字段是必填的。',
-			'proj_id.required' => '项目ID字段是必填的。',
-		]);
+		], $this->errorMsg);
 		$DA = $request->toArray();
 		$DA['type'] = $this->depositType;
 		$tenantBillService = new TenantBillService;
@@ -201,15 +203,7 @@ class DepositController extends BaseController
 			'charge_date' => 'required|date',
 			'tenant_id' => 'required',
 			'proj_id' => 'required',
-		], [
-			'amount.required' => '金额字段是必填的。',
-			'fee_type.required' => '费用类型字段是必填的。',
-			'fee_type.gt' => '费用类型必须大于0。',
-			'charge_date.required' => '收费日期字段是必填的。',
-			'charge_date.date' => '收费日期必须是有效的日期。',
-			'tenant_id.required' => '租户ID字段是必填的。',
-			'proj_id.required' => '项目ID字段是必填的。',
-		]);
+		], $this->errorMsg);
 		$DA = $request->toArray();
 		$DA['type'] = $this->depositType;
 		$tenantBillService = new TenantBillService;

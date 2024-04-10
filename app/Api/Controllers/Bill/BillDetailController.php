@@ -75,7 +75,6 @@ class BillDetailController extends BaseController
 		if (isset($request->status) && $request->status != "") {
 			$map['status'] = $request->status;
 		}
-		// $request->end_date = date('Y-m-t', strtotime(nowYmd()));
 		DB::enableQueryLog();
 		// $map['type'] =  AppEnum::feeType;
 		$subQuery = $this->billService->billDetailModel()
@@ -91,6 +90,7 @@ class BillDetailController extends BaseController
 				if (!empty($request->is_bill)) {
 					$request->is_bill ? $q->where('bill_id', '>', 0) : $q->where('bill_id', 0);
 				}
+				$request->bank_id && $q->where('bank_id', $request->bank_id);
 			});
 		$result = $subQuery->with('tenant:id,name')
 			->orderBy($orderBy, $order)->paginate($pagesize)->toArray();

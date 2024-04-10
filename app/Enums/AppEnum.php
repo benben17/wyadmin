@@ -80,4 +80,7 @@ abstract class AppEnum extends BaseEnum
 
   const statusUnAudit = 0;  // 未审核
   const statusAudit   = 1;  // 已审核
+
+  const valid = 1;  // 有效
+  const invalid = 0;  // 无效
 }

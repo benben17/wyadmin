@@ -58,7 +58,7 @@ class ChargeService
       $charge->amount      = $BA['amount'];
       $charge->proj_id     = $BA['proj_id'];
       $charge->type        = $BA['type'];
-      $charge->category     = $BA['category'] ?? ChargeEnum::CategoryFee; // 费用
+      $charge->category    = $BA['category'] ?? ChargeEnum::CategoryFee; // 费用
       $charge->source      = $BA['source'];
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
       if ($BA['type'] == ChargeEnum::Income) {
@@ -110,7 +110,7 @@ class ChargeService
         $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
         $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
         if ($chargeBill['unverify_amount'] == 0) {
-          $charge->status = AppEnum::Verify;
+          $charge->status = ChargeEnum::chargeVerify;
         }
 
         $charge->save();
@@ -154,54 +154,57 @@ class ChargeService
   {
 
     try {
-      $charge = $this->model()->find($chargeId);
-      $chargeAmt = $charge->unverify_amount;
-      foreach ($detailBillList as $detailBill) {
-        $verifyAmt = 0.00;
-        // DB::transaction(function () use (&$totalVerifyAmt, $detailBillList, $chargeBill, $verifyDate, $user) {
-        if ($chargeAmt == 0) { // 充值金额已经核销完毕
-          break;
+      DB::transaction(function () use ($detailBillList, $chargeId, $verifyDate, $user) {
+        $charge = $this->model()->find($chargeId);
+        $chargeAmt = $charge->unverify_amount;
+        foreach ($detailBillList as $detailBill) {
+          $verifyAmt = 0.00;
+          if ($chargeAmt == 0) { // 充值金额已经核销完毕
+            break; // 跳出循环
+          }
+
+          $detailAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+          if ($detailAmt <= $chargeAmt) { // 应收金额小于等于充值金额
+            $chargeAmt -= $detailAmt;
+            $verifyAmt = $detailAmt;
+            $detailStatus = 1;
+            if ($detailAmt == $chargeAmt) {
+              $charge->status = ChargeEnum::chargeVerify;
+            }
+          } else { // 应收金额大于充值金额
+            $detailAmt = $chargeAmt;
+            $chargeAmt = 0;
+            $verifyAmt = $detailAmt;
+            $charge->status = ChargeEnum::chargeVerify;
+            $detailStatus = 0;
+          }
+
+          // 更新应收费用
+          $detailBillData = [
+            'status'         => $detailStatus,
+            'receive_date'   => $verifyDate,
+            'receive_amount' => $verifyAmt,
+          ];
+          // 核销记录
+          $billRecord = [
+            'amount'         => $verifyAmt,
+            'charge_id'      => $charge->id,
+            'bill_detail_id' => $detailBill['id'],
+            'type'           => $charge->type,
+            'fee_type'       => $detailBill['fee_type'],
+            'proj_id'        => $detailBill['proj_id'],
+            'verify_date'    => $verifyDate,
+          ];
+
+          $billService = new TenantBillService;
+          $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
+          $this->chargeBillRecordSave($billRecord, $user);
+
+          $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
+          $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
+          $charge->save();
         }
-
-        $detailAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
-        if ($detailAmt <= $chargeAmt) {
-          $chargeAmt -= $detailAmt;
-          $verifyAmt = $detailAmt;
-          $detailStatus = 1;
-        } else {
-          $detailAmt = $chargeAmt;
-          $chargeAmt = 0;
-          $verifyAmt = $detailAmt;
-          $charge->status = ChargeEnum::chargeVerify;
-          $detailStatus = 0;
-        }
-
-
-        // 更新应收费用
-        $detailBillData = [
-          'status'         => $detailStatus,
-          'receive_date'   => $verifyDate,
-          'receive_amount' => $verifyAmt,
-        ];
-        // 核销记录
-        $billRecord = [
-          'amount'         => $verifyAmt,
-          'charge_id'      => $charge->id,
-          'bill_detail_id' => $detailBill['id'],
-          'type'           => $charge->type,
-          'fee_type'       => $detailBill['fee_type'],
-          'proj_id'        => $detailBill['proj_id'],
-          'verify_date'    => $verifyDate,
-        ];
-
-        $billService = new TenantBillService;
-        $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
-        $this->chargeBillRecordSave($billRecord, $user);
-
-        $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
-        $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
-        $charge->save();
-      }
+      }, 2);
       return true;
     } catch (\Exception $e) {
       Log::error("核销失败: " . $e->getMessage());
@@ -282,7 +285,16 @@ class ChargeService
   }
 
 
-
+  /**
+   * 保存核销记录
+   *
+   * @Author leezhua
+   * @DateTime 2024-01-29
+   * @param array $DA
+   * @param array $user
+   *
+   * @return void
+   */
   public function chargeBillRecordSave($DA, $user)
   {
     try {
@@ -414,7 +426,7 @@ class ChargeService
         foreach ($chargeRecords as $record) {
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
           $billDetail->receive_amount -= $record->amount;
-          $billDetail->charge_date = now()->format('Ymd');
+          $billDetail->charge_date = nowYmd();
           $billDetail->save();
         }
 
@@ -432,6 +444,17 @@ class ChargeService
   }
 
 
+  /**
+   * 收款退款
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-14
+   * @param integer $chargeId
+   * @param float $refundAmt
+   * @param array $user
+   *
+   * @return boolean
+   */
   public function chargeRefund($chargeId, $refundAmt,  $user): bool
   {
     try {

@@ -18,6 +18,7 @@ use App\Api\Models\Bill\TenantBillDetail;
  */
 class DepositService
 {
+  // 押金收款记录
   public function recordModel()
   {
     return new DepositRecord;

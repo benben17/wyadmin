@@ -6,6 +6,7 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Sys\DepartService;
@@ -686,8 +687,10 @@ class PubSelectController extends BaseController
 	public function feetypeList(Request $request)
 	{
 		$request->validate([
-
 			'proj_id' => 'required|gt:0',
+		], [
+			'proj_id.required' => '项目ID不能为空',
+			'proj_id.gt' => '项目ID必须大于0'
 		]);
 		$service = new \App\Api\Services\Company\FeeTypeService;
 		$companyIds = getCompanyIds($this->uid);
@@ -695,7 +698,7 @@ class PubSelectController extends BaseController
 			->where(function ($q) use ($request) {
 				$request->type && $q->where('type', $request->type);
 			})
-			->where('is_vaild', 1)
+			->where('is_vaild', AppEnum::valid)
 			->orderBy('id', 'asc')
 			->get()->toArray();
 		foreach ($data as &$v) {
