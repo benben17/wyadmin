@@ -403,28 +403,27 @@ class BillStatController extends BaseController
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
 
-    $DA['allTenant'] = $formattedData['total'];
+    $allTenant = $formattedData['total'];
     unset($formattedData['total']);
     $DA['data'] = array_values($formattedData);
-    $DA['data'] = array_push($DA['data'], $DA['allTenant']);
+    // 把总计数据 push 到数组最后一行
+    $DA['data'][] = $allTenant;
     // 判断是不是本年度
     $monthData = array();
     if ($request->year == date('Y')) {
       $month = date('n', strtotime(nowYmd()));
-      $monthData = $DA['allTenant']['m_' . $month];
+      $monthData = $allTenant['m_' . $month];
     }
 
+    // 
     $DA['total'] = array(
       ['title' => "本月总金额", "amount"  => $monthData['amount'] ?? 0.00],
       ['title' => "本月已收金额", "amount" => $monthData['receive_amount'] ?? 0.00],
       ['title' => "本月未收金额", "amount" => $monthData['unreceive_amount'] ?? 0.00],
-      ["title" => "本年总金额", "amount"   => $DA['allTenant']['total_amt']],
-      ["title" => "本年已收金额", "amount" => $DA['allTenant']['total_receive_amt']],
-      ["title" => "本年未收金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
+      ["title" => "本年总金额", "amount"   => $allTenant['total_amt']],
+      ["title" => "本年已收金额", "amount" => $allTenant['total_receive_amt']],
+      ["title" => "本年未收金额", "amount" => $allTenant['total_unreceive_amt']]
     );
-    // foreach ($DA['total'] as &$v) {
-    //   $v['amount'] = number_format($v['amount'], 2);
-    // }
     return $this->success($DA);
   }
 }
