@@ -361,13 +361,11 @@ class BillStatController extends BaseController
       ] + $monthsTemplate;
     }
     foreach ($monthlySummaries as $summary) {
-      $tenantId = $summary->tenant_id;
-      $tenantName = $summary->tenant_name;
-      $ym = $summary->ym;
-
-      // Check if the values are numeric before formatting
-      $amount = $summary->amount;
-      $receiveAmount = $summary->receiveAmt;
+      $tenantId        = $summary->tenant_id;
+      $tenantName      = $summary->tenant_name;
+      $ym              = $summary->ym;
+      $amount          = $summary->amount;
+      $receiveAmount   = $summary->receiveAmt;
       $unreceiveAmount = $summary->unreceiveAmt;
 
 
@@ -385,16 +383,16 @@ class BillStatController extends BaseController
 
       // Add data to the corresponding month
       $formattedData[$tenantId][$ym] = [
-        'amount' => floatval($amount),
-        'receive_amount' => floatval($receiveAmount),
+        'amount'           => floatval($amount),
+        'receive_amount'   => floatval($receiveAmount),
         'unreceive_amount' => floatval($unreceiveAmount),
       ];
       $formattedData['total']['total_amt'] += $amount;
       $formattedData['total']['total_receive_amt'] += $receiveAmount;
       $formattedData['total']['total_unreceive_amt'] += $unreceiveAmount;
       $formattedData['total'][$ym] = array(
-        'amount' =>  $formattedData['total'][$ym]['amount'] + $amount,
-        'receive_amount' => $formattedData['total'][$ym]['receive_amount'] + $receiveAmount,
+        'amount'           => $formattedData['total'][$ym]['amount'] + $amount,
+        'receive_amount'   => $formattedData['total'][$ym]['receive_amount'] + $receiveAmount,
         'unreceive_amount' => $formattedData['total'][$ym]['unreceive_amount'] +  $unreceiveAmount,
       );
 
@@ -408,7 +406,7 @@ class BillStatController extends BaseController
     $DA['allTenant'] = $formattedData['total'];
     unset($formattedData['total']);
     $DA['data'] = array_values($formattedData);
-
+    $DA['data'] = array_push($DA['data'], $DA['allTenant']);
     // 判断是不是本年度
     $monthData = array();
     if ($request->year == date('Y')) {
@@ -417,16 +415,16 @@ class BillStatController extends BaseController
     }
 
     $DA['total'] = array(
-      ['title' => "本月总金额", "amount" => $monthData['amount'] ?? 0.00],
+      ['title' => "本月总金额", "amount"  => $monthData['amount'] ?? 0.00],
       ['title' => "本月已收金额", "amount" => $monthData['receive_amount'] ?? 0.00],
       ['title' => "本月未收金额", "amount" => $monthData['unreceive_amount'] ?? 0.00],
-      ["title" => "本年总金额", "amount" =>    $DA['allTenant']['total_amt']],
+      ["title" => "本年总金额", "amount"   => $DA['allTenant']['total_amt']],
       ["title" => "本年已收金额", "amount" => $DA['allTenant']['total_receive_amt']],
       ["title" => "本年未收金额", "amount" => $DA['allTenant']['total_unreceive_amt']]
     );
-    foreach ($DA['total'] as &$v) {
-      $v['amount'] = number_format($v['amount'], 2);
-    }
+    // foreach ($DA['total'] as &$v) {
+    //   $v['amount'] = number_format($v['amount'], 2);
+    // }
     return $this->success($DA);
   }
 }

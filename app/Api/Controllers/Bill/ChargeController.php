@@ -201,16 +201,14 @@ class ChargeController extends BaseController
 			'charge_date' => 'required|date',
 		], $this->errorMsg);
 
-		$count = $this->chargeService->model()->whereHas('chargeBillRecord')
-			->where('id', $request->id)->count();
-		if (!$count) {
-			return $this->error("不允许修改！");
+		$charge = $this->chargeService->model()
+			->withCount('chargeBillRecord')
+			->where('id', $request->id)->first();
+		if ($charge->charge_bill_record_count > 0 || $charge->verify_amount > 0) {
+			return $this->error("已有核销，不允许修改！");
 		}
 		$res = $this->chargeService->save($request->toArray(), $this->user);
-		if (!$res) {
-			return $this->error("更新失败！");
-		}
-		return $this->success("更新成功。");
+		return $res ? $this->success("收款更新成功。") : $this->error("收款更新失败！");
 	}
 
 	/**
@@ -343,7 +341,7 @@ class ChargeController extends BaseController
 				->get();
 			// Check if all selected bill details are found
 			if ($billDetailList->count() < count($billDetailIds)) {
-				return $this->error("所选应收 包含未生成账单的应收");
+				return $this->error("所选应收,包含未生成账单的应收,或者已核销的应收");
 			}
 
 			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge->id, $verifyDate, $this->user);
