@@ -403,10 +403,11 @@ class BillStatController extends BaseController
       $formattedData[$tenantId]['total_unreceive_amt'] += $unreceiveAmount;
     }
 
-    $DA['allTenant'] = $formattedData['total'];
+    // $DA['allTenant'] = $formattedData['total'];
     unset($formattedData['total']);
     $DA['data'] = array_values($formattedData);
-    $DA['data'] = array_push($DA['data'], $DA['allTenant']);
+    // 把总计数据 push 到数组最后一行
+    $DA['data'] = array_push($DA['data'], $formattedData['total']);
     // 判断是不是本年度
     $monthData = array();
     if ($request->year == date('Y')) {
