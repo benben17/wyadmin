@@ -346,7 +346,7 @@ class ChargeController extends BaseController
 				return $this->error("所选应收 包含未生成账单的应收");
 			}
 
-			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge, $verifyDate, $this->user);
+			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge->id, $verifyDate, $this->user);
 
 			return $writeOffRes ? $this->success("核销成功") : $this->error("核销失败");
 		} catch (\Exception $e) {
