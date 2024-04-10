@@ -8,7 +8,6 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use Illuminate\Support\Facades\Log;
 
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Energy\EnergyService;
@@ -566,11 +565,25 @@ class MeterController extends BaseController
   {
     $validator = \Validator::make($request->all(), [
       'id' => 'required|numeric|gt:0',
+    ], [
+      'id.required' => '记录ID 必传',
+      'id.numeric' => '记录ID 必须为数字',
+      'id.gt' => '记录ID 必须大于0',
     ]);
-    $DA = $request->toArray();
-    $res = $this->meterService->meterRecordModel()->whereId($request->id)
-      ->delete();
+    try {
 
-    return $res ? $this->success('删除成功.') : $this->error('删除失败！');
+      $record = $this->meterService->meterRecordModel()->find($request->id);
+      if (!$record) {
+        throw new Exception('记录不存在！');
+      } else if ($record->audit_status == 1) {
+        throw new Exception('已审核的记录不能删除！');
+      } else {
+        $res = $record->delete();
+      }
+
+      return $res ? $this->success('删除成功！') : $this->error('删除失败！');
+    } catch (Exception $e) {
+      return $this->error('删除失败！' . $e->getMessage());
+    }
   }
 }

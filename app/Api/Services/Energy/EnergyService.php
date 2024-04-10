@@ -4,10 +4,11 @@ namespace App\Api\Services\Energy;
 
 use Exception;
 use App\Enums\AppEnum;
+use App\Enums\RemarkType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Api\Models\Contract\Contract;
 
+use App\Api\Models\Contract\Contract;
 use App\Api\Models\Contract\ContractRoom;
 use App\Api\Services\Common\QrcodeService;
 use App\Api\Services\Tenant\TenantService;
@@ -23,7 +24,7 @@ use App\Api\Models\Energy\MeterRecord as MeterRecordModel;
  */
 class EnergyService
 {
-  var $parent_type = 3;
+  var $parent_type = RemarkType::Meter;
   /** 表模型 */
   public function meterModel()
   {
