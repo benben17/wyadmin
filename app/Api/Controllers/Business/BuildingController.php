@@ -597,8 +597,6 @@ class BuildingController extends BaseController
         // return response()->json(DB::getQueryLog());
         $map = array();
 
-
-
         $DA['data'] = $BA;
         $DA['stat'] = $this->buildService->areaStat($map, $request->proj_ids, $buildIds);
         return $this->success($DA);

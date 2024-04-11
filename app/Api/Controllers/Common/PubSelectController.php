@@ -111,13 +111,14 @@ class PubSelectController extends BaseController
 		]);
 		$projId = $request->proj_id;
 		// DB::enableQueryLog();
-		$data = BuildingModel::select('id', 'id as value', 'build_no as label', 'build_no')
+		$data = BuildingModel::selectRaw('id,id as value , build_no as label, build_no,build_no as title ,1 as level')
 			->whereHas('project', function ($q) use ($projId) {
 				$q->whereId($projId);
 			})
 			->with(['children' => function ($q) {
-				$q->select(DB::Raw('id as value,build_id,floor_no as label,id,floor_no'));
+				$q->selectRaw('id as value,build_id,floor_no as label,id,floor_no,floor_no as title,2 as level');
 			}])
+			->where('is_valid', AppEnum::valid)
 			->withCount('floor')
 			->get()->toArray();
 		// return response()->json(DB::getQueryLog());
