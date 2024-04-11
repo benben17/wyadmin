@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api\Controllers\Business;
+namespace App\Api\Controllers\Contract;
 
 use JWTAuth;
 use Exception;
@@ -13,9 +13,6 @@ use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Contract\ContractService;
 use App\Api\Services\Template\TemplateService;
 use App\Api\Services\Tenant\TenantShareService;
-use App\Api\Services\Contract\ContractBillService;
-use App\Api\Models\Contract\Contract as ContractModel;
-use App\Api\Models\Contract\ContractRoom as ContractRoomModel;
 
 /**
  * @OA\Tag(
@@ -27,8 +24,7 @@ class ContractController extends BaseController
 {
 
     /**
-    
-     * 合同编号
+     * 合同管理
      */
     private $tenantShareService;
     private $contractService;
@@ -125,77 +121,7 @@ class ContractController extends BaseController
         return $this->success($data);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/business/contract/list/stat",
-     *     tags={"合同"},
-     *     summary="同期合同到期，默认显示2年的数据",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={},
-     *     ),
-     *       example={""}
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function getContractStat(Request $request)
-    {
 
-        $validatedData = $request->validate([
-            'proj_ids' => 'required|array',
-        ]);
-
-        $thisMonth = date('Y-m-01', time());
-        $endMonth = getNextMonth($thisMonth, 25);
-        DB::enableQueryLog();
-        $contractStat = ContractModel::select(DB::Raw("count(*) as expire_count,sum(sign_area) as expire_area,DATE_FORMAT(end_date,'%Y-%m') as ym"))
-            ->whereBetween('end_date', [$thisMonth, $endMonth . '-01'])
-            ->where('contract_state', 2)
-            ->whereIn('proj_id', $request->proj_ids)
-            ->where(function ($q) use ($request) {
-                if ($request->room_type) {
-                    $q->where('room_type', $request->room_type);
-                }
-            })
-            ->where(function ($q) use ($request) {
-                $request->tenant_name && $q->where('tenant_name', 'like', "%" . $request->tenant_name . "%");
-                $request->sign_start_date && $q->where('sign_date', '>=', $request->sign_start_date);
-                $request->sign_end_date && $q->where('sign_date', '<=', $request->sign_end_date);
-                if ($request->contract_state != '') {
-                    $state = str2Array($request->contract_state);
-                    $q->whereIn('contract_state', $state);
-                }
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
-            })
-            ->groupBy("ym")
-            ->orderBy("ym")->get()->toArray();
-        // return response()->json(DB::getQueryLog());
-        $i = 0;
-        while ($i < 24) {
-            foreach ($contractStat as $k => $v) {
-                if ($v['ym'] === getNextMonth($thisMonth, $i)) {
-                    $stat[$i]['ym'] = getNextMonth($thisMonth, $i);
-                    $stat[$i]['expire_area'] = $v['expire_area'];
-                    $stat[$i]['expire_count'] = $v['expire_count'];
-                    $i++;
-                }
-            }
-            $stat[$i]['ym'] = getNextMonth($thisMonth, $i);
-            $stat[$i]['expire_area'] = 0;
-            $stat[$i]['expire_count'] = 0;
-            $i++;
-        }
-        return $this->success($stat);
-    }
 
     /**
      * @OA\Post(
@@ -305,8 +231,7 @@ class ContractController extends BaseController
                 // 房间
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $contract->id, $DA['proj_id'], $tenantId);
-                    $rooms = new ContractRoomModel;
-                    $rooms->addAll($roomList);
+                    $rooms = $this->contractService->contractRoomModel()->addAll($roomList);
                 }
                 // 免租
                 $freeList = $DA['free_list'];
@@ -429,7 +354,7 @@ class ContractController extends BaseController
             'fee_bill.array' => '费用账单必须是数组',
         ]);
         $DA = $request->toArray();
-        $res = ContractModel::select('contract_state')->find($DA['id']);
+        $res = $this->contractService->model()->select('contract_state')->find($DA['id']);
         if ($res->contract_state == 2 || $res->contract_state == 99) {
             return $this->error('正式合同或者作废合同不允许更新');
         }
@@ -450,21 +375,19 @@ class ContractController extends BaseController
                     throw new Exception("保存失败");
                 }
                 $tenantId = $contract->tenant_id;
-                $contractId = $contract->id;
-                $contractService = new ContractService;
+                // $contractId = $contract->id;
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
                     // DB::enableQueryLog();
-                    $res = ContractRoomModel::where('contract_id', $DA['id'])->delete();
-                    // return response()->json(DB::getQueryLog());
-                    $rooms = new ContractRoomModel;
-                    $rooms->addAll($roomList);
+                    $this->contractService->contractRoomModel()->where('contract_id', $DA['id'])->delete();
+
+                    $this->contractService->contractRoomModel()->addAll($roomList);
                 }
                 // 免租 全部删除后全部新增
                 if ($DA['free_type']) {
-                    $contractService->delFreeList($DA['id']);
+                    $this->contractService->delFreeList($DA['id']);
                     foreach ($DA['free_list'] as $k => $v) {
-                        $contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
+                        $this->contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
                     }
                 }
                 $ruleService = new BillRuleService;
@@ -480,13 +403,13 @@ class ContractController extends BaseController
                 $ruleService->ruleBatchSave($ruleList, $user, $contract->id, $DA['tenant_id'], false);
                 // 保存费用账单
                 if ($DA['fee_bill']) {
-                    $contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
+                    $this->contractService->saveContractBill($DA['fee_bill'], $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id']);
                 }
                 // 保存押金账单
                 $depositBill = $DA['deposit_bill'] ?? array();
-                $contractService->saveContractBill($depositBill, $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
+                $this->contractService->saveContractBill($depositBill, $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
 
-                $contractService->contractLog($contract, $user);
+                $this->contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
         } catch (Exception $e) {
@@ -494,134 +417,7 @@ class ContractController extends BaseController
             return $this->error('合同更新失败');
         }
     }
-    /**
-     * @OA\Post(
-     *     path="/api/business/contract/bill/create",
-     *     tags={"合同"},
-     *     summary="合同账单生成",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"contract_id" },
-     *      @OA\Property(property="contract_id",type="int",
-     *       description="合同id")
-     *     ),
-     *       example={"contract_id": "1","bill_rule":"[]","contract_room":"[]","free_list":"[]","contract_type":"1","sign_date":"2020-01-01","start_date":"2020-01-01","end_date":"2020-01-01","tenant_id":"1","proj_id":"1","tenant_legal_person":"张三","sign_area":"100","bill_day":"1"
-     *           }
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function contractBill(Request $request)
-    {
-        $msg =  [
-            'bill_rule.array' => '租金规则必须是数组',
-            'contract_room.array' => '房间信息必须是数组',
-            'free_list.array' => '免租信息必须是数组',
-            'contract_type.numeric' => '合同类型必须是数字',
-            'contract_type.in' => '合同类型不正确,[1 or 2]',
-            'contract_type.required' => '合同类型是必须',
-            'sign_date.required' => '签署日期是必须',
-            'start_date.required' => '合同开始时间是必须',
-            'end_date.required' => '合同截止时间是必须',
-            'tenant_id.required' => '租户ID是必须',
-        ];
-        $validatedData = $request->validate([
-            'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
-            'sign_date' => 'required|date',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'tenant_id' => 'required|numeric',
-            'proj_id' => 'required|numeric',
-            'tenant_legal_person' => 'required|String|between:1,64',
-            'sign_area' => 'required|numeric|gt:0',
-            // 'bill_day' => 'required|numeric',
-            'bill_rule' => 'array',
-            'contract_room' => 'array',
-            'free_list' => 'array',
-        ], $msg);
-        $billService = new ContractBillService;
-        $contract = $request->toArray();
-        $data = array();
-        $fee_list = array();
-        $ruleService = new BillRuleService;
-        $ruleService->validateIncrease($contract['bill_rule']);
-        foreach ($contract['bill_rule'] as $k => $rule) {
-            $feeList = array();
-            if ($rule['type'] != 1) {
-                continue;
-            }
-            // if ($rule['bill_type'] == 1) {  // 正常账期
-            //     $feeList = $billService->createBill($contract, $rule, $this->uid);
-            // } else if ($rule['bill_type'] == 2) { // 自然月账期
-            //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
-            // } 
-            // } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
-            if ($rule['fee_type'] == AppEnum::rentFeeType) {
-                $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
-            } else {
-                $feeList = $billService->createBill($contract, $rule, $this->uid);
-            }
-            // }
-            array_push($fee_list, $feeList);
-        }
-        if ($fee_list) {
-            $data['fee_bill']  = $fee_list;
-        }
-        if ($contract['deposit_rule']) {
-            $data['deposit_bill'] = array();
-            $depositBill = $billService->createDepositBill($contract['deposit_rule'], $this->uid);
-            if ($depositBill) {
-                array_push($data['deposit_bill'], $depositBill);
-            }
-        }
 
-        return $this->success($data);
-    }
-    /**
-     * @OA\Post(
-     *     path="/api/business/contract/bill/save",
-     *     tags={"合同"},
-     *     summary="合同账单保存",
-     *    @OA\RequestBody(
-     *       @OA\MediaType(
-     *           mediaType="application/json",
-     *       @OA\Schema(
-     *          schema="UserModel",
-     *          required={"contract_id" },
-     *      @OA\Property(property="contract_id",type="int",description="合同id"),
-     *     ),
-     *       example={
-     *              "contract_id": "1"
-     *           }
-     *       )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description=""
-     *     )
-     * )
-     */
-    public function saveContractBill(Request $request)
-    {
-        // $validatedData = $request->validate([
-        //     'contract_id' => 'required',
-        // ]);
-        $DA = $request->toArray();
-        try {
-            $contractService = new ContractService;
-            $contractService->saveContractBill($DA['bills'], $this->user, $DA['proj_id'], $DA['id'], $DA['tenant_id']);
-            return $this->success('合同账单保存成功。');
-        } catch (\Throwable $th) {
-            return $this->error("合同账单保存失败！");
-        }
-    }
     /**
      * @OA\Post(
      *     path="/api/business/contract/word",
@@ -779,7 +575,7 @@ class ContractController extends BaseController
             'audit_state' => 'required|numeric|in:0,1', // 0 不同 1 通过
         ]);
         $DA = $request->toArray();
-        $contract = ContractModel::find($DA['id']);
+        $contract = $this->contractService->model()->find($DA['id']);
         if ($contract['contract_state'] == 2) {
             return $this->error("合同已经审核完成。");
         } else if ($contract['contract_state'] != 1) {
@@ -871,7 +667,6 @@ class ContractController extends BaseController
                     throw new Exception("保存失败");
                 }
 
-
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
@@ -918,6 +713,60 @@ class ContractController extends BaseController
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/business/contract/return",
+     *     tags={"合同"},
+     *     summary="合同退回编辑状态",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id" ,"remark"},
+     *      @OA\Property(
+     *       property="id",
+     *       type="int",
+     *       description="合同Id"
+     *     ),
+     *     @OA\Property(
+     *       property="remark",
+     *       type="String",
+     *       description="备注原因")
+     *     ),
+     *       example={
+     *              "id": "1","remark":"合同退回编辑状态"
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function adminReturn(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required|numeric',
+        ], [
+            'id.required' => '合同ID是必须',
+            'remark.required' => '备注是必须'
+        ]);
+        if (!($this->user->role_id == 2 || $this->user->is_admin == 1)) {
+            return $this->error('您没有权限操作,请联系管理员处理！');
+        }
+        $contract = $this->contractService->model()->find($request->id);
+        if (!$contract) {
+            return $this->error('您所选合同不存在');
+        }
+        if ($contract->contract_state != AppEnum::contractExecute) {
+            return $this->error('您所选合同不是执行中状态!');
+        }
+        $res = $this->contractService->adminReturn($request->id, $request->remark, $this->user);
+        return $res ? $this->success('合同退回成功') : $this->error('合同退回失败');
+    }
+
 
     /**
      * 格式化合同
@@ -931,12 +780,12 @@ class ContractController extends BaseController
     {
         $user = auth('api')->user();
         if ($type == "add") {
-            $contract = new ContractModel;
+            $contract = $this->contractService->model();
             $contract->c_uid = $user->id;
             $contract->company_id = $user->company_id;
         } else {
             //编辑
-            $contract = ContractModel::find($DA['id']);
+            $contract = $this->contractService->model()->find($DA['id']);
             $contract->u_uid = $user->id;
         }
         // 合同编号不设置的时候系统自动生成
@@ -976,7 +825,6 @@ class ContractController extends BaseController
         $contract->rental_price_type       = isset($DA['rental_price_type']) ? $DA['rental_price_type'] : 1;
         $contract->management_price        = isset($DA['management_price']) ? $DA['management_price'] : 0.00;
         $contract->management_month_amount = isset($DA['management_month_amount']) ? $DA['management_month_amount'] : 0;
-        // $contract->pay_method = $DA['pay_method'];
         $contract->rental_month_amount    = isset($DA['rental_month_amount']) ? $DA['rental_month_amount'] : 0.00;
         $contract->manager_bank_id        = isset($DA['manager_bank_id']) ? $DA['manager_bank_id'] : 0;
         $contract->rental_bank_id         = isset($DA['rental_bank_id']) ? $DA['rental_bank_id'] : 0;
@@ -996,24 +844,24 @@ class ContractController extends BaseController
 
     private function formatRoom($DA, $contractId, $proj_id, $tenantId, $type = 1): array
     {
-        $currentDateTime = date('Y-m-d H:i:s');
+        $currentDateTime = nowTime();
         foreach ($DA as $k => $v) {
             $BA[$k] = [
                 'contract_id' => $contractId,
-                'tenant_id' => $tenantId,
-                'proj_id' => $proj_id,
-                'proj_name' => $v['proj_name'],
-                'build_id' => $v['build_id'],
-                'build_no' => $v['build_no'],
-                'floor_id' => $v['floor_id'],
-                'floor_no' => $v['floor_no'],
-                'room_id' => $v['room_id'],
-                'room_no' => $v['room_no'],
-                'room_area' => $v['room_area'],
-                'room_type' => $v['room_type'],
-                'station_no' => isset($v['station_no']) ? $v['station_no'] : "",
-            ];
+                'tenant_id'   => $tenantId,
+                'proj_id'     => $proj_id,
+                'proj_name'   => $v['proj_name'],
+                'build_id'    => $v['build_id'],
+                'build_no'    => $v['build_no'],
+                'floor_id'    => $v['floor_id'],
+                'floor_no'    => $v['floor_no'],
+                'room_id'     => $v['room_id'],
+                'room_no'     => $v['room_no'],
+                'room_area'   => $v['room_area'],
+                'room_type'   => $v['room_type'],
+                'station_no'  => $v['station_no'] ?? "",
 
+            ];
             $BA[$k][$type != 1 ? 'created_at' : 'updated_at'] = $currentDateTime;
         }
         return $BA;

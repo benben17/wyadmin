@@ -75,13 +75,13 @@ class AuthController extends BaseController
             $isBind = 0;
         }
         $data = [
-            'token' => $token,
-            'uuid' => $user->id,
+            'token'    => $token,
+            'uuid'     => $user->id,
             'username' => $user->name,
             'is_admin' => $user->is_admin,
-            'phone' => $user->phone,
-            'is_bind' => $isBind,
-
+            'phone'    => $user->phone,
+            'is_bind'  => $isBind,
+            'role_id'  => $user->role_id
         ];
         if ($user->depart_id == 0) {
             $departName = '系统管理员';

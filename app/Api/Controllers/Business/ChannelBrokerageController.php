@@ -88,9 +88,9 @@ class ChannelBrokerageController extends BaseController
    *       @OA\Property(property="tenant_id",type="int", description="租户ID"),
    *       @OA\Property(property="brokerage",type="int", description="佣金"),
    *       @OA\Property(property="remark",type="string", description="备注")
-   *       )
    *     ),
    *       example={"channel_id": 11, "tenant_id": 1, "brokerage": 10, "remark": "备注"}
+   *      )
    *     ),
    *     @OA\Response(
    *         response=200,
@@ -108,16 +108,17 @@ class ChannelBrokerageController extends BaseController
       return $this->error($validator->errors()->first());
     }
     $data = $request->all();
-    $DA['brokerage'] = $data['brokerage'];
-    $DA['remark'] = $data['remark'];
+    $DA = array();
+    $DA['brokerage']  = $data['brokerage'];
+    $DA['remark']     = $data['remark'];
     $DA['channel_id'] = $data['channel_id'];
-    $DA['tenant_id'] = $data['tenant_id'];
+    $DA['tenant_id']  = $data['tenant_id'];
 
-    $brokerage = $this->channelService->brokerageModel()->where('channel_id', $data['channel_id'])
+    $brokerage = $this->channelService->brokerageModel()->where('channel_id', $DA['channel_id'])
       ->where('tenant_id', $data['tenant_id'])
       ->first();
     if ($brokerage) {
-      $brokerage->update($data);
+      $brokerage->update($DA);
     } else {
       $brokerage = $this->channelService->brokerageModel()->create($DA);
     }
