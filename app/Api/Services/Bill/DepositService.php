@@ -46,16 +46,16 @@ class DepositService
       DB::transaction(function () use ($deposit, $DA, $user) {
         $dRecord = $this->recordModel();
         $dRecord->deposit_record_no = $this->depositRecordNo();
-        $dRecord->company_id    = $user['company_id'];
-        $dRecord->operate_date  = nowTime();
+        $dRecord->company_id     = $user['company_id'];
+        $dRecord->operate_date   = nowTime();
         $dRecord->proj_id        = $deposit['proj_id'];
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
-        $dRecord->type          = $DA['type'];
-        $dRecord->bank_id       = $deposit['bank_id'];
-        $dRecord->remark        = isset($DA['remark']) ? $DA['remark'] : "";
-        $dRecord->c_user        = $user['realname'];
-        $dRecord->c_uid         = $user['id'];
+        $dRecord->type           = $DA['type'];
+        $dRecord->bank_id        = $deposit['bank_id'];
+        $dRecord->remark         = isset($DA['remark']) ? $DA['remark'] : "";
+        $dRecord->c_user         = $user['realname'];
+        $dRecord->c_uid          = $user['id'];
         $dRecord->save();
       }, 2);
       return true;
@@ -85,15 +85,18 @@ class DepositService
     $BA = ['receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'available_amt' => 0.00];
     if (!empty($recordList)) {
       foreach ($recordList as $v1) {
-        if ($v1['type'] == DepositEnum::RecordReceive) {
-          $BA['receive_amt'] += $v1['amount'];
-        } elseif ($v1['type'] == DepositEnum::RecordRefund) {
-          $BA['refund_amt'] +=  $v1['amount'];
-        } elseif ($v1['type'] == DepositEnum::RecordToCharge) {
-          $BA['charge_amt'] +=  $v1['amount'];
+        switch ($v1['type']) {
+          case DepositEnum::RecordReceive: // 押金收入
+            $BA['receive_amt'] += $v1['amount'];
+            break;
+          case DepositEnum::RecordRefund: // 押金退款
+            $BA['refund_amt'] +=  $v1['amount'];
+            break;
+          case DepositEnum::RecordToCharge: // 转收款
+            $BA['charge_amt'] +=  $v1['amount'];
+            break;
         }
       }
-
       $BA['available_amt'] = $BA['receive_amt'] - $BA['refund_amt'] - $BA['charge_amt'];
     }
     return $BA;
@@ -119,17 +122,17 @@ class DepositService
       $stat['refund_amt'] += $record['refund_amt'];
       $stat['charge_amt'] += $record['charge_amt'];
       $stat['receive_amt'] += $v['receive_amount'];
+      $stat['available_amt'] = $stat['receive_amt'] - $stat['refund_amt'] - $stat['charge_amt'];
     }
-    $availableAmt = $stat['receive_amt'] - $stat['charge_amt'] - $stat['refund_amt'];
     $statData = array(
       ["label" => '总金额', "amount" =>  $stat['total_amt'], 'remark' => '押金账单总金额'],
       ["label" => '已收款金额', "amount" => $stat['receive_amt'], 'remark' => '押金账单总收款金额'],
       ["label" => '退款金额', "amount" => $stat['refund_amt'], 'remark' => '押金账单总退款金额'],
       ["label" => '转收入金额', "amount" => $stat['charge_amt'], 'remark' => '押金账单总转收入金额'],
-      ["label" => '押金余额', "amount" => $availableAmt, 'remark' => '押金总可用金额，总收入-退款-转收入'],
+      ["label" => '押金余额', "amount" => $stat['available_amt'], 'remark' => '押金总可用金额，总收入-退款-转收入'],
     );
-    foreach ($statData as $k => $v) {
-      $statData[$k]['amount'] = number_format($v['amount'], 2);
+    foreach ($statData as &$v) {
+      $v['amount'] = number_format($v['amount'], 2);
     }
     return $statData;
   }

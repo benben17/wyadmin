@@ -320,7 +320,7 @@ class DepositController extends BaseController
 			'amount' => 'required|gt:0',
 			'remark' => 'required',
 		], [
-			'id.required' => 'ID字段是必填的。',
+			'id.required' => '押金ID字段是必填的。',
 			'amount.required' => '金额字段是必填的。',
 			'amount.gt' => '金额必须大于0。',
 		]);
