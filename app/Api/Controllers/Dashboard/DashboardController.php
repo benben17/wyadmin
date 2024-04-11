@@ -40,8 +40,8 @@ class DashboardController extends BaseController
       ->where('contract_state', AppEnum::contractExecute)
       ->whereRaw('date_format(end_date, "%Y-%m") = date_format(now(), "%Y-%m")')->count();
 
-    $currMonthRecive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y-m') . '%')->sum('amount');
-    $currYearRecive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y') . '%')->sum('amount');
+    $currMonthReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y-m') . '%')->sum('amount');
+    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y') . '%')->sum('amount');
 
     return $this->success([
       'free_room' => $rooms['free_rooms'] ?? 0,
@@ -51,8 +51,8 @@ class DashboardController extends BaseController
       'TenantCount' => $TenantCount,
       'contractCount' => $contractCount,
       'currMonthExpireContractCount' => $currMonthExpireContractCount,
-      'currMonthRecive' => $currMonthRecive,
-      'currYearRecive' => $currYearRecive,
+      'currMonthReceive' => $currMonthReceive,
+      'currYearReceive' => $currYearReceive,
     ]);
   }
 }
