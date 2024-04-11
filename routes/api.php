@@ -24,6 +24,12 @@ Route::get('/login', 'AuthUserController@login');
 // Route::group([ 'middleware' => ['auth:api']], function () {
 
 // });
+
+
+Route::group(['prefix' => 'dashboard'], function () {
+    Route::post('index', '\App\Api\Controllers\Dashboard\DashboardController@index');
+});
+
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', '\App\Api\Controllers\Auth\AuthController@login');
     Route::post('logout', '\App\Api\Controllers\Auth\AuthController@logout');
