@@ -29,7 +29,9 @@ class DashboardController extends BaseController
 
     $rooms = BuildingRoom::selectRaw('count(*) as total_rooms, 
     sum(case when room_state = 1 then 1 else 0 end) as free_rooms')
-      ->whereIn('proj_id', $request->proj_ids)
+      ->whereHas('building', function ($query) use ($request) {
+        $query->whereIn('proj_id', $request->proj_ids);
+      })
       ->first();
 
     $customerCount = Tenant::whereIn('type', [1, 3])->whereIn('proj_id', $request->proj_ids)->count();
@@ -40,19 +42,24 @@ class DashboardController extends BaseController
       ->where('contract_state', AppEnum::contractExecute)
       ->whereRaw('date_format(end_date, "%Y-%m") = date_format(now(), "%Y-%m")')->count();
 
-    $currMonthReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y-m') . '%')->sum('amount');
-    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->where('bill_date', 'like', date('Y') . '%')->sum('amount');
+    $startDate = date('Y-m-01'); // 当月的第一天
+    $endDate = date('Y-m-t'); // 当月的最后一天
+
+    $currMonthReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)
+      ->whereBetween('bill_date', [$startDate, $endDate])
+      ->sum('amount');
+    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->whereYear('bill_date',  date('Y'))->sum('amount');
 
     return $this->success([
-      'free_room' => $rooms['free_rooms'] ?? 0,
-      'total_room' => $rooms['total_rooms'],
-      'free_room_rate' => $rooms['total_rooms'] == 0 ? 0 : round($rooms['free_rooms'] / $rooms['total_rooms'] * 100, 2),
-      'customerCount' => $customerCount,
-      'TenantCount' => $TenantCount,
-      'contractCount' => $contractCount,
+      'free_room'                    => $rooms['free_rooms'] ?? 0,
+      'total_room'                   => $rooms['total_rooms'],
+      'free_room_rate'               => $rooms['total_rooms'] == 0 ? 0 : round($rooms['free_rooms'] / $rooms['total_rooms'] * 100, 2),
+      'customerCount'                => $customerCount,
+      'TenantCount'                  => $TenantCount,
+      'contractCount'                => $contractCount,
       'currMonthExpireContractCount' => $currMonthExpireContractCount,
-      'currMonthReceive' => $currMonthReceive,
-      'currYearReceive' => $currYearReceive,
+      'currMonthReceive'             => $currMonthReceive,
+      'currYearReceive'              => $currYearReceive,
     ]);
   }
 }
