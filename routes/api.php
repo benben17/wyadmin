@@ -208,28 +208,28 @@ Route::group(['prefix' => 'business/customer'], function () {
 });
 // 招商合同管理
 Route::group(['prefix' => 'business/contract'], function () {
-    Route::post('list', '\App\Api\Controllers\Business\ContractController@index');
-    Route::post('add', '\App\Api\Controllers\Business\ContractController@store');
-    Route::post('edit', '\App\Api\Controllers\Business\ContractController@update');
-    Route::post('change', '\App\Api\Controllers\Business\ContractController@change');
+    Route::post('list', '\App\Api\Controllers\Contract\ContractController@index');
+    Route::post('add', '\App\Api\Controllers\Contract\ContractController@store');
+    Route::post('edit', '\App\Api\Controllers\Contract\ContractController@update');
+    Route::post('change', '\App\Api\Controllers\Contract\ContractController@change');
     //合同作废
-    Route::post('disuse', '\App\Api\Controllers\Business\ContractController@disuseContract');
+    Route::post('disuse', '\App\Api\Controllers\Contract\ContractController@disuseContract');
     //合同审核
-    Route::post('audit', '\App\Api\Controllers\Business\ContractController@auditContract');
-
+    Route::post('audit', '\App\Api\Controllers\Contract\ContractController@auditContract');
+    Route::post('return', '\App\Api\Controllers\Contract\ContractController@adminReturn');
+    Route::post('show', '\App\Api\Controllers\Contract\ContractController@show');
     // 退租
     // Route::post('leaseback', '\App\Api\Controllers\Business\ContractController@leaseBack');
-    //列表看板数据
-    Route::post('list/stat', '\App\Api\Controllers\Business\ContractController@getContractStat');
+    //列表看板数据 执行合同表头
+    Route::post('list/stat', '\App\Api\Controllers\Contract\ContractBillController@getContractStat');
 
-    Route::post('show', '\App\Api\Controllers\Business\ContractController@show');
     //合同账单
-    Route::post('bill/create', '\App\Api\Controllers\Business\ContractController@contractBill');
-    Route::post('bill/save', '\App\Api\Controllers\Business\ContractController@saveContractBill');
+    Route::post('bill/create', '\App\Api\Controllers\Contract\ContractBillController@contractBill');
+    // Route::post('bill/save', '\App\Api\Controllers\Contract\ContractBillController@saveContractBill');
     //合同模版
-    Route::post('word', '\App\Api\Controllers\Business\ContractController@contractWord');
+    Route::post('word', '\App\Api\Controllers\Contract\ContractController@contractWord');
     // 合同附件
-    Route::post('uploadAttr', '\App\Api\Controllers\Business\ContractController@contractAttr');
+    Route::post('uploadAttr', '\App\Api\Controllers\Contract\ContractController@contractAttr');
 });
 
 Route::group(['prefix' => 'sysconfig'], function () {
@@ -392,7 +392,7 @@ Route::group(['prefix' => 'operation/tenant/share'], function () {
 });
 
 
-
+// 租户退租
 Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
     Route::post('/list', '\App\Api\Controllers\Operation\LeasebackController@list');
     Route::post('/add', '\App\Api\Controllers\Operation\LeasebackController@store');

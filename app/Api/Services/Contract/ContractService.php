@@ -690,10 +690,34 @@ class ContractService
   {
     $room = $this->contractRoomModel()->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')
       ->where('tenant_id', $tenantId)->groupBy('tenant_id')->first();
-    if ($room) {
-      return $room['rooms'];
-    } else {
-      return "";
+
+    return $room['rooms'] ?? "";
+  }
+
+  // 合同退回 ,管理员权限才有
+  public function adminReturn($contractId, $remark, $user)
+  {
+    try {
+      DB::transaction(function () use ($contractId, $remark, $user) {
+        // 删除应收
+        $billDetail = new TenantBillService;
+        $billDetail->billDetailModel()->where('contract_id', $contractId)->delete();
+        // 更改状态
+        $contract = $this->model()->find($contractId);
+        $contract->contract_state = AppEnum::contractSave;
+        $contract->save();
+        // 写入日志
+        $DA['id']             = $contractId;
+        $DA['c_uid']          = $user['id'];
+        $DA['c_username']     = $user['realname'];
+        $DA['title']          = "合同退回";
+        $DA['remark']         = ($remark ?? '合同退回') . "删除对应所有的应收";
+        $DA['contract_state'] = 0;
+        $this->saveLog($DA);
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("合同退回失败" . $e->getMessage());
+      throw new Exception("合同退回失败" . $e->getMessage());
     }
   }
 }

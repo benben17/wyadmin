@@ -393,6 +393,46 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/audit": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "账单审核",
+                "operationId": "c941750a693d315cde08046f96b79a93",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "账单id",
+                                        "type": "int"
+                                    },
+                                    "audit_status": {
+                                        "description": "1 审核通过 2 审核不通过",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/bill/fee/list": {
             "post": {
                 "tags": [
@@ -2366,6 +2406,97 @@
                 }
             }
         },
+        "/api/business/channel/brokerage/list": {
+            "post": {
+                "tags": [
+                    "渠道"
+                ],
+                "summary": "根据渠道id获取渠道佣金信息",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "channel_id,tenant_id"
+                                ],
+                                "properties": {
+                                    "channel_id": {
+                                        "description": "渠道ID",
+                                        "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/channel/brokerage/save": {
+            "post": {
+                "tags": [
+                    "渠道"
+                ],
+                "summary": "保存渠道佣金信息",
+                "operationId": "e0a4e5dede778aaad90cda5cd1e7068f",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "channel_id",
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "channel_id": {
+                                        "description": "渠道ID",
+                                        "type": "int"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户ID",
+                                        "type": "int"
+                                    },
+                                    "brokerage": {
+                                        "description": "佣金",
+                                        "type": "int"
+                                    },
+                                    "remark": {
+                                        "description": "备注",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "channel_id": 11,
+                                "tenant_id": 1,
+                                "brokerage": 10,
+                                "remark": "备注"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/channel/list": {
             "post": {
                 "tags": [
@@ -2500,42 +2631,6 @@
                 ],
                 "summary": "根据渠道id获取渠道信息",
                 "operationId": "454dd21d235b90448444ab8a3bb97243",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "渠道ID",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": 11
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/channel/brokerage/list": {
-            "post": {
-                "tags": [
-                    "渠道"
-                ],
-                "summary": "根据渠道id获取渠道佣金信息",
-                "operationId": "f4404d5126d2aa123a9368d359b278c6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2721,470 +2816,6 @@
                             "example": {
                                 "name": "",
                                 "id": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/list": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同列表",
-                "operationId": "bd1b9f5342d64944e5bf3a9c2e8a5014",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "pagesize"
-                                ],
-                                "properties": {
-                                    "pagesize": {
-                                        "description": "每页行数",
-                                        "type": "int"
-                                    },
-                                    "proj_id": {
-                                        "description": "项目ID",
-                                        "type": "int"
-                                    },
-                                    "sign_start_date": {
-                                        "description": "签订开始日期",
-                                        "type": "date"
-                                    },
-                                    "sign_end_date": {
-                                        "description": "签订结束日期",
-                                        "type": "date"
-                                    },
-                                    "contract_state": {
-                                        "description": "合同状态 0 待提交 1 待审核 2 已审核执行合同 98 退租 99  作废",
-                                        "type": "list"
-                                    },
-                                    "belong_uid": {
-                                        "description": "合同所属人id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "belong_uid": 1,
-                                "contract_state": "[]",
-                                "sign_end_date": "",
-                                "sign_start_date": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/list/stat": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "同期合同到期，默认显示2年的数据",
-                "operationId": "8e5cc80ed9a2cefeed9efe5a33b040bf",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": []
-                            },
-                            "example": [
-                                ""
-                            ]
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/add": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同新增",
-                "operationId": "a46a43dd01c0545dc7257bdcc0f85e84",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_state",
-                                    "sign_date",
-                                    "start_date",
-                                    "end_date"
-                                ],
-                                "properties": {
-                                    "contract_state": {
-                                        "description": "0:草稿 1:待审核 2:正式合同",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_state": "1",
-                                "sign_date": "",
-                                "start_date": "1",
-                                "end_date": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/show": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "根据渠道id获取合同信息",
-                "operationId": "e4bee1b962fbb74ad8a99392fe87ba1d",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "合同ID",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": 11
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/edit": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同编辑",
-                "operationId": "97818b819634c49ffbc8082a8d8c8157",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id",
-                                    "contract_state"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "合同Id",
-                                        "type": "int"
-                                    },
-                                    "contract_state": {
-                                        "description": "合同状态 0 草稿 1 待审核 2 正式合同",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": "1",
-                                "contract_state": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/bill/create": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同账单生成",
-                "operationId": "232bd0d88572d6c8276d121e5d66b618",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_id"
-                                ],
-                                "properties": {
-                                    "contract_id": {
-                                        "description": "合同id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_id": "1",
-                                "bill_rule": "[]",
-                                "contract_room": "[]",
-                                "free_list": "[]",
-                                "contract_type": "1",
-                                "sign_date": "2020-01-01",
-                                "start_date": "2020-01-01",
-                                "end_date": "2020-01-01",
-                                "tenant_id": "1",
-                                "proj_id": "1",
-                                "tenant_legal_person": "张三",
-                                "sign_area": "100",
-                                "bill_day": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/bill/save": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同账单保存",
-                "operationId": "f78c7062d5064ea99b1d008c656c47c1",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_id"
-                                ],
-                                "properties": {
-                                    "contract_id": {
-                                        "description": "合同id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_id": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/word": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "生成合同",
-                "operationId": "187d756fb4d208b900f81336af78a9d2",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contractId",
-                                    "templateId"
-                                ],
-                                "properties": {
-                                    "contractId": {
-                                        "description": "合同Id",
-                                        "type": "int"
-                                    },
-                                    "templateId": {
-                                        "description": "合同模版ID",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contractId": "1",
-                                "templateId": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/disuse": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同作废",
-                "operationId": "994f35074ef1c3b50a718a23e2975330",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id",
-                                    "remark"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "合同Id",
-                                        "type": "int"
-                                    },
-                                    "remark": {
-                                        "description": "备注原因",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": "1",
-                                "remark": "合同作废"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/audit": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同审核",
-                "operationId": "b69afb0b8307071f50fc2978072212c8",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id",
-                                    "remark",
-                                    "audit_state"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "合同Id",
-                                        "type": "int"
-                                    },
-                                    "remark": {
-                                        "description": "备注原因",
-                                        "type": "String"
-                                    },
-                                    "audit_state": {
-                                        "description": "审核状态1 通过 0 不通过",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": "1",
-                                "remark": "合同作废",
-                                "audit_state": "1"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/business/contract/change": {
-            "post": {
-                "tags": [
-                    "合同"
-                ],
-                "summary": "合同变更",
-                "operationId": "5bc24b8fcdd159cb8f933bf4031e451d",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_state",
-                                    "sign_date",
-                                    "start_date",
-                                    "end_date"
-                                ],
-                                "properties": {
-                                    "contract_state": {
-                                        "description": "0:草稿 1:待审核 2:正式合同",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_state": "1",
-                                "sign_date": "",
-                                "start_date": "1",
-                                "end_date": ""
                             }
                         }
                     }
@@ -4914,7 +4545,7 @@
                             },
                             "example": {
                                 "parent_id": "",
-                                "parent_type": ""
+                                "parent_type": "1 channel 2 租户 3 合同  4 供应商 5 公共关系"
                             }
                         }
                     }
@@ -7456,6 +7087,510 @@
                 }
             }
         },
+        "/api/business/contract/list/stat": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "同期合同到期，默认显示2年的数据",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": []
+                            },
+                            "example": [
+                                ""
+                            ]
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/bill/create": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同账单生成",
+                "operationId": "09b0c5132f218f704f8161a1f4ea33f1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": "1",
+                                "bill_rule": "[]",
+                                "contract_room": "[]",
+                                "free_list": "[]",
+                                "contract_type": "1",
+                                "sign_date": "2020-01-01",
+                                "start_date": "2020-01-01",
+                                "end_date": "2020-01-01",
+                                "tenant_id": "1",
+                                "proj_id": "1",
+                                "tenant_legal_person": "张三",
+                                "sign_area": "100",
+                                "bill_day": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/bill/save": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同账单保存",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/list": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同列表",
+                "operationId": "81bc72fb02975598f39b0a8da9447c60",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "pagesize"
+                                ],
+                                "properties": {
+                                    "pagesize": {
+                                        "description": "每页行数",
+                                        "type": "int"
+                                    },
+                                    "proj_id": {
+                                        "description": "项目ID",
+                                        "type": "int"
+                                    },
+                                    "sign_start_date": {
+                                        "description": "签订开始日期",
+                                        "type": "date"
+                                    },
+                                    "sign_end_date": {
+                                        "description": "签订结束日期",
+                                        "type": "date"
+                                    },
+                                    "contract_state": {
+                                        "description": "合同状态 0 待提交 1 待审核 2 已审核执行合同 98 退租 99  作废",
+                                        "type": "list"
+                                    },
+                                    "belong_uid": {
+                                        "description": "合同所属人id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "belong_uid": 1,
+                                "contract_state": "[]",
+                                "sign_end_date": "",
+                                "sign_start_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/add": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同新增",
+                "operationId": "be9f16f94a6bd4799d655c81a044f9c2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_state",
+                                    "sign_date",
+                                    "start_date",
+                                    "end_date"
+                                ],
+                                "properties": {
+                                    "contract_state": {
+                                        "description": "0:草稿 1:待审核 2:正式合同",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_state": "1",
+                                "sign_date": "",
+                                "start_date": "1",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/show": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "根据渠道id获取合同信息",
+                "operationId": "75ccdaf38bbd0de993fd7644d399a621",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 11
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/edit": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同编辑",
+                "operationId": "4fb18abef928739de65e442839a95656",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "contract_state"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同Id",
+                                        "type": "int"
+                                    },
+                                    "contract_state": {
+                                        "description": "合同状态 0 草稿 1 待审核 2 正式合同",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "contract_state": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/word": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "生成合同",
+                "operationId": "3ccc4e5daed33b76f3a193166dd5cf79",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contractId",
+                                    "templateId"
+                                ],
+                                "properties": {
+                                    "contractId": {
+                                        "description": "合同Id",
+                                        "type": "int"
+                                    },
+                                    "templateId": {
+                                        "description": "合同模版ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contractId": "1",
+                                "templateId": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/disuse": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同作废",
+                "operationId": "7715c66ea7fe2628923c59a93dc7ee13",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "remark"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同Id",
+                                        "type": "int"
+                                    },
+                                    "remark": {
+                                        "description": "备注原因",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "remark": "合同作废"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/audit": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同审核",
+                "operationId": "b70b30357c335e8bf8661aa032f6229d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "remark",
+                                    "audit_state"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同Id",
+                                        "type": "int"
+                                    },
+                                    "remark": {
+                                        "description": "备注原因",
+                                        "type": "String"
+                                    },
+                                    "audit_state": {
+                                        "description": "审核状态1 通过 0 不通过",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "remark": "合同作废",
+                                "audit_state": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/change": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同变更",
+                "operationId": "04e47cdd4b7c0dba1d335b574230a183",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_state",
+                                    "sign_date",
+                                    "start_date",
+                                    "end_date"
+                                ],
+                                "properties": {
+                                    "contract_state": {
+                                        "description": "0:草稿 1:待审核 2:正式合同",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_state": "1",
+                                "sign_date": "",
+                                "start_date": "1",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/contract/return": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同退回",
+                "operationId": "fcd683ba7a6396fefd361497a27fdf84",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "remark"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同Id",
+                                        "type": "int"
+                                    },
+                                    "remark": {
+                                        "description": "备注原因",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "remark": "合同退回"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/equipment/list": {
             "post": {
                 "tags": [
@@ -8048,7 +8183,6 @@
                     "设备"
                 ],
                 "summary": "维护计划列表",
-                "operationId": "d434cb6858de866744c964d2a155ee38",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8108,7 +8242,7 @@
                     "设备"
                 ],
                 "summary": "设备维护计划编辑",
-                "operationId": "1fa9d376a4bcea866b3f38a1f77421aa",
+                "operationId": "bb843311b9b8b5977ded508b97d1aa70",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8144,7 +8278,7 @@
                     "设备"
                 ],
                 "summary": "设备维护计划删除",
-                "operationId": "6e647fed377ef8a244fa22e79a168ec7",
+                "operationId": "1bb3793db2d3bc508acb8f924aade232",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8174,13 +8308,49 @@
                 }
             }
         },
+        "/api/operation/equipment/plan/show": {
+            "post": {
+                "tags": [
+                    "设备"
+                ],
+                "summary": "设备维护计划查看",
+                "operationId": "a579066bfd90373ab45d784208627541",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "Ids"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "设备维护计划id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/equipment/plan/generate": {
             "post": {
                 "tags": [
                     "设备"
                 ],
                 "summary": "设备维护计划生成",
-                "operationId": "80be24fceaa00ee4c67f5b466b679f9d",
+                "operationId": "aeeb9f7260cfb98bc0c0a0b5d4e5432f",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8205,42 +8375,6 @@
                             "example": {
                                 "equipment_ids": "[1,2,3]",
                                 "year": "2024"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/equipment/plan/show": {
-            "post": {
-                "tags": [
-                    "设备"
-                ],
-                "summary": "设备维护计划查看",
-                "operationId": "bf2362c26e51901ccbf6532f78912217",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "Ids"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "设备维护计划id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "id": ""
                             }
                         }
                     }
@@ -8644,7 +8778,7 @@
                                         "type": "int"
                                     },
                                     "is_unusual": {
-                                        "description": "1 正常 0 不正常",
+                                        "description": "1 正常 2 异常",
                                         "type": "int"
                                     }
                                 },
@@ -13385,7 +13519,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序绑定",
-                "operationId": "829286cfcf717303902684c84e0710ef",
+                "operationId": "7b88ab5a96c845ec01cbbdb469fd71c9",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13421,7 +13555,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信解除绑定",
-                "operationId": "81724d8c038d8731d4813dcecdb88d99",
+                "operationId": "91fbb3c128f79eee43b69cff5ec69078",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13446,7 +13580,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序登陆",
-                "operationId": "1d3dddcf617e36f1f034ef469dbed11a",
+                "operationId": "a0cb70f2392e1b18320d0ba5afaec57c",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13838,10 +13972,6 @@
             "description": "渠道管理/渠道政策"
         },
         {
-            "name": "合同",
-            "description": "合同管理"
-        },
-        {
             "name": "客户线索",
             "description": "客户线索管理"
         },
@@ -13884,6 +14014,14 @@
         {
             "name": "公共",
             "description": "公共方法"
+        },
+        {
+            "name": "合同",
+            "description": "合同管理"
+        },
+        {
+            "name": "合同",
+            "description": "合同管理"
         }
     ]
 }

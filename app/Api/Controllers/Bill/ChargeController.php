@@ -74,21 +74,8 @@ class ChargeController extends BaseController
 			'source.in' => '类别字段必须是1或2。',
 		]);
 
-		$pagesize = $request->input('pagesize');
-		$pagesize = $this->setPagesize($request);
+
 		$map = array();
-		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'created_at';
-		}
-		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$order = $request->input('order');
-		} else {
-			$order = 'desc';
-		}
 		if ($request->type) {
 			$map['type'] = $request->type;
 		}
@@ -97,7 +84,7 @@ class ChargeController extends BaseController
 		}
 		$map['source'] = $request->source;
 		DB::enableQueryLog();
-		$data = $this->chargeService->model()
+		$subQuery = $this->chargeService->model()
 			->where($map)
 			->where(function ($q) use ($request) {
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
@@ -106,15 +93,28 @@ class ChargeController extends BaseController
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->category && $q->where('category', $request->category);
-			})
-			->withCount('chargeBillRecord')
-			->orderBy($orderBy, $order)
-			->paginate($pagesize)->toArray();
-		// return response()->json(DB::getQueryLog());
-		$data = $this->handleBackData($data);
+				$request->bank_id && $q->where('bank_id', $request->bank_id);
+			});
+		$pageSubQuery = $subQuery->with(['bankAccount:id,account_name'])
+			->withCount('chargeBillRecord');
+		$data = $this->pageData($subQuery, $request);
 		foreach ($data['result'] as &$v) {
+			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
+			unset($v['bank_account']);
 			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
 		}
+
+		$statData = $subQuery->selectRaw('sum(amount) as amount, sum(verify_amount) as verify_amount')->first();
+		$statCurrentMonth = $subQuery->whereMonth('charge_date', now()->month)->selectRaw('sum(amount) as amount, sum(verify_amount) as verify_amount')->first();
+		$data['stat'] = [
+			['amount' => $statCurrentMonth['amount'], 'label' => '本月金额'],
+			['amount' => $statCurrentMonth['verify_amount'], 'label' => '本月已核金额'],
+			['amount' => $statCurrentMonth['amount'] - $statCurrentMonth['verify_amount'], 'label' => '本月未核金额'],
+			['amount' => $statData['amount'], 'label' => '总金额'],
+			['amount' => $statData['verify_amount'], 'label' => '已核总金额'],
+			['amount' => $statData['amount'] - $statData['verify_amount'], 'label' => '未核总金额'],
+		];
+
 		return $this->success($data);
 	}
 

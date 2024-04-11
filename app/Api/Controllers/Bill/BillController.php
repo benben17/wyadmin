@@ -339,22 +339,23 @@ class BillController extends BaseController
    *    path="/api/operation/tenant/bill/audit",
    *   tags={"账单"},
    *  summary="账单审核",
-   * @OA\RequestBody(
-   *   @OA\MediaType(
-   *      mediaType="application/json",
-   *  @OA\Schema(
-   *    schema="UserModel",
-   *   required={"id","audit_status"},
-   * @OA\Property(property="id",type="int",description="账单id"),
-   * @OA\Property(property="audit_status",type="int",description="1 审核通过 2 审核不通过")
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="账单id"),
+   *       @OA\Property(property="audit_status",type="int",description="1 审核通过 2 审核不通过")
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
    * )
-   * ),
-   * @OA\Response(
-   *    response=200,
-   *  description=""
-   * )
-   * )
-   * 
    */
   public function billAudit(Request $request)
   {

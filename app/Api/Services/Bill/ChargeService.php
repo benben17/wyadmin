@@ -60,6 +60,7 @@ class ChargeService
       $charge->type        = $BA['type'];
       $charge->category    = $BA['category'] ?? ChargeEnum::CategoryFee; // 费用
       $charge->source      = $BA['source'];
+      $charge->pay_method  = $BA['pay_method'] ?? 0;
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
       if ($BA['type'] == ChargeEnum::Income) {
         $charge->unverify_amount = $BA['amount'];

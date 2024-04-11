@@ -17,7 +17,7 @@ class ChargeBill extends Model
   protected $table = 'bse_charge_bill';
   protected $fillable = [];
   protected $hidden = ['company_id', 'deleted_at', 'updated_at'];
-  protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label', 'category_label'];
+  protected $appends = ['tenant_name', 'c_user', 'type_label', 'bank_name', 'status_label', 'category_label', 'pay_method_label'];
 
   public function getTenantNameAttribute()
   {
@@ -32,7 +32,12 @@ class ChargeBill extends Model
       return $this->getStatusLabels()[$status] ?? '';
     }
   }
-
+  public function getPayMethodLabelAttribute()
+  {
+    if (isset($this->attributes['pay_method'])) {
+      return getDictName($this->attributes['pay_method'], 0) ?: '其他';
+    }
+  }
   public function getTypeLabelAttribute()
   {
     if (isset($this->attributes['type'])) {
@@ -61,6 +66,11 @@ class ChargeBill extends Model
   public function getBankNameAttribute()
   {
     return $this->belongsTo(BankAccount::class, 'bank_id')->value('account_name');
+  }
+
+  public function bankAccount()
+  {
+    return $this->belongsTo(BankAccount::class, 'bank_id', 'id');
   }
 
   // 核销记录
