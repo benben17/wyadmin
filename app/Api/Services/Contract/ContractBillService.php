@@ -477,7 +477,12 @@ class ContractBillService
     $endDate = getNextYmd($startDate, $period);
     $free_num = 0;
     foreach ($freeList as $v) {
-      if (strtotime($v['start_date']) >= strtotime($startDate) && strtotime($v['start_date']) < strtotime($endDate) && strtotime($endDate) < strtotime($signEndDate)) {
+      // 备注：免租开始时间大于等于账单开始时间，免租开始时间小于账单结束时间，账单结束时间小于合同结束时间
+      if (
+        strtotime($v['start_date']) >= strtotime($startDate)
+        && strtotime($v['start_date']) < strtotime($endDate)
+        && strtotime($endDate) < strtotime($signEndDate)
+      ) {
 
         $free_num += $v['free_num'];
         $months += $v['free_num'];
