@@ -114,9 +114,16 @@ class ContractController extends BaseController
             })->withCount('contractRoom');
 
         $data = $this->pageData($subQuery, $request);
+        $overdueRemind = getVariable($this->company_id, 'contract_due_remind');
+        $overdueTime = strtotime(getPreYmdByDay(nowYmd(), $overdueRemind));
+        $nowTime = time();
         foreach ($data['result'] as $k => &$v) {
             $v['room'] = $this->contractService->getContractRoom($v['id']);
             $v['is_share'] = $this->tenantShareService->isShare($v['id']);
+            $v['overdue_remind'] = 0;
+            if (strtotime($v['end_date']) > $overdueTime && strtotime($v['end_date']) < $nowTime) {
+                $v['overdue_remind'] = 1;
+            }
         }
         return $this->success($data);
     }
@@ -865,5 +872,21 @@ class ContractController extends BaseController
             $BA[$k][$type != 1 ? 'created_at' : 'updated_at'] = $currentDateTime;
         }
         return $BA;
+    }
+
+    public function checkRepeat($contractNo, $projId, $contractId, $type = 'add')
+    {
+        if ($type == 'add') {
+            $contract = $this->contractService->model()
+                ->where('contract_no', $contractNo)
+                ->where('proj_id', $projId)->exists();
+        } else {
+            $contract = $this->contractService->model()
+                ->where('contract_no', $contractNo)
+                ->where('proj_id', $projId)
+                ->where('id', '!=', $contractId)
+                ->exists();
+        }
+        return $contract;
     }
 }

@@ -60,16 +60,12 @@ class BillDetailController extends BaseController
 			$map['tenant_id'] = $request->tenant_id;
 		}
 		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'created_at';
+		if (!$request->orderBy) {
+			$request->orderBy = 'charge_date';
 		}
 		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$order = $request->input('order');
-		} else {
-			$order = 'desc';
+		if (!$request->order) {
+			$request->order = 'desc';
 		}
 
 		if (isset($request->status) && $request->status != "") {
@@ -92,23 +88,24 @@ class BillDetailController extends BaseController
 				}
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
 			});
-		$result = $subQuery->with('tenant:id,name')
-			->orderBy($orderBy, $order)->paginate($pagesize)->toArray();
+		$pageQuery = clone $subQuery;
+		$pageQuery->with('tenant:id,name');
+		$data = $this->pageData($pageQuery, $request);
 		// return response()->json(DB::getQueryLog());
 		$feeStat = FeeType::selectRaw('fee_name,id,type')
 			->where('type', AppEnum::feeType)
 			->whereIn('company_id', getCompanyIds($this->uid))->get();
 		// 统计每种类型费用的应收/实收/未收
 		foreach ($feeStat as $k => &$v) {
-			$count = $subQuery->selectRaw('sum(amount) total_amt,
-                                    sum(receive_amount) receive_amt,fee_type')
+			$count = $subQuery
+				->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
 				->where('fee_type', $v['id'])
 				->groupBy('fee_type')->first();
-			$v['total_amt'] = $count['total_amt'] ?? 0.00;
-			$v['receive_amt'] = $count['receive_amt'] ?? 0.00;
+			$v['total_amt']     = $count['total_amt'] ?? 0.00;
+			$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
 			$v['unreceive_amt'] = $v['total_amt'] - $v['receive_amt'];
 		}
-		$data = $this->handleBackData($result);
+
 		foreach ($data['result'] as $k => &$v) {
 			$v['tenant_name'] = $v['tenant']['name'];
 			unset($v['tenant']);

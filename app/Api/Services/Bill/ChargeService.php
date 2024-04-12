@@ -480,6 +480,13 @@ class ChargeService
     return false;
   }
 
+  /**
+   * 收款列表表头统计
+   * @Author leezhua
+   * @Date 2024-04-12
+   * @param mixed $query 
+   * @return array 
+   */
   public function listStat($query)
   {
     $statSelect = 'ifnull(sum(amount),0.00) as amount, ifnull(sum(verify_amount),0.00) as verify_amount, 

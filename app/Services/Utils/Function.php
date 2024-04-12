@@ -61,8 +61,20 @@ function getBankIdByFeeType($feeId, $projId): int
 // 获取公司配置变量信息
 function getVariable($companyId, $key)
 {
-	$data = \App\Api\Models\Company\CompanyVariable::select($key)->find($companyId);
-	return $data[$key];
+	$cacheKey = "company_variable:{$companyId}:{$key}";
+
+	// Try to get the value from the cache
+	$value = Cache::get($cacheKey);
+
+	// If the value was not in the cache, retrieve it from the database
+	if ($value === null) {
+		$data = \App\Api\Models\Company\CompanyVariable::select($key)->find($companyId);
+		$value = $data[$key];
+
+		// Store the value in the cache for 1 hour
+		Cache::put($cacheKey, $value, 60);
+	}
+	return $value;
 }
 
 // 获取公司配置
