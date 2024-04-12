@@ -157,32 +157,28 @@ class ChargeService
     try {
       DB::transaction(function () use ($detailBillList, $chargeId, $verifyDate, $user) {
         $charge = $this->model()->find($chargeId);
-        $chargeAmt = $charge->unverify_amount;
+        $chargeAmt = $charge->unverify_amount;  //  充值未核销金额
         foreach ($detailBillList as $detailBill) {
           $verifyAmt = 0.00;
           if ($chargeAmt == 0) { // 充值金额已经核销完毕
             break; // 跳出循环
           }
 
-          $detailAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
-          if ($detailAmt <= $chargeAmt) { // 应收金额小于等于充值金额
-            $chargeAmt -= $detailAmt;
-            $verifyAmt = $detailAmt;
-            $detailStatus = 1;
-            if ($detailAmt == $chargeAmt) {
-              $charge->status = ChargeEnum::chargeVerify;
-            }
+          $receivableAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+          if ($receivableAmt <= $chargeAmt) { // 应收金额小于等于充值金额
+            $chargeAmt    -= $receivableAmt;  // 充值金额减去应收金额
+            $verifyAmt     = $receivableAmt;  // 核销金额
+            $feeStatus  = AppEnum::feeStatusReceived;           // 应收状态
+
           } else { // 应收金额大于充值金额
-            $detailAmt = $chargeAmt;
-            $chargeAmt = 0;
-            $verifyAmt = $detailAmt;
-            $charge->status = ChargeEnum::chargeVerify;
-            $detailStatus = 0;
+            $verifyAmt = $chargeAmt;   // 核销金额
+            $chargeAmt = 0.00;         // 充值金额为0
+            $feeStatus = AppEnum::feeStatusUnReceive; // 应收 未结清
           }
 
           // 更新应收费用
           $detailBillData = [
-            'status'         => $detailStatus,
+            'status'         => $feeStatus,
             'receive_date'   => $verifyDate,
             'receive_amount' => $verifyAmt,
           ];
@@ -201,10 +197,13 @@ class ChargeService
           $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
           $this->chargeBillRecordSave($billRecord, $user);
 
-          $charge->unverify_amount = $charge->unverify_amount - $verifyAmt;
-          $charge->verify_amount   = $charge->verify_amount + $verifyAmt;
-          $charge->save();
+          $charge->unverify_amount -= $verifyAmt;
+          $charge->verify_amount += $verifyAmt;
         }
+        if ($charge->unverify_amount == 0) {
+          $charge->status = ChargeEnum::chargeVerify;
+        }
+        $charge->save();
       }, 2);
       return true;
     } catch (\Exception $e) {
