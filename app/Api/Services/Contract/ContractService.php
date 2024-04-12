@@ -715,6 +715,7 @@ class ContractService
         $DA['contract_state'] = 0;
         $this->saveLog($DA);
       }, 2);
+      return true;
     } catch (Exception $e) {
       Log::error("合同退回失败" . $e->getMessage());
       throw new Exception("合同退回失败" . $e->getMessage());
