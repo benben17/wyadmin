@@ -423,40 +423,38 @@ class TenantBillService
 	 */
 	public function showBill($billId)
 	{
-		$data = $this->billModel()->with('tenant:id,shop_name,tenant_no,name')->find($billId);
+		$data = $this->billModel()
+			->select('id', 'tenant_id', 'bill_title', 'audit_user', 'bill_no', 'audit_date', 'is_print', 'status', 'proj_id')
+			->with('tenant:id,shop_name,tenant_no,name')->find($billId);
 		if (!$data) {
 			return (object) [];
 		}
 		$contractService = new ContractService;
 		$data['room'] = $contractService->getContractRoomByTenantId($data['tenant_id']);
-		$data['project'] = getProjById($data['proj_id']);
+		$project = getProjById($data['proj_id']);
+		$data['project'] = [
+			'bill_title'          => $project['bill_title'],
+			'bill_instruction'    => $project['bill_instruction'],
+			'operate_entity'      => $project['operate_entity'],
+			'bill_project' 				=> $project['bill_project'],
+		];
 
 		$billGroups = $this->billDetailModel()
-			->selectRaw('sum(amount) amount,sum(discount_amount) discount_amount,sum(receive_amount) receive_amount,bank_id')
+			->selectRaw('bank_id,sum(amount) amount,
+									sum(discount_amount) discount_amount,
+									sum(receive_amount) receive_amount,
+									sum(amount -receive_amount-discount_amount) unreceive_amount')
 			->where('bill_id', $billId)
 			->groupBy('bank_id')->get();
 
-		$totalAmt = 0;
-		$discountAmt = 0;
-		$receiveAmt = 0;
 		foreach ($billGroups as $k => &$v) {
-			$v['bank_info'] = BankAccount::find($v['bank_id']);
-			// $v['receivable_amount'] = numFormat($v['total_amount'] - $v['discount_amount']);
+			$v['bank_info'] = BankAccount::select('account_name', 'account_number', 'bank_name')->find($v['bank_id']);
 			$v['bill_detail'] = $this->billDetailModel()
+				->select('amount', 'discount_amount', 'receive_amount', 'fee_type', 'charge_date', 'remark', 'bill_date')
 				->where('bill_id', $billId)
 				->where('bank_id', $v['bank_id'])->get();
-			$totalAmt    += $v['amount'];
-			$discountAmt += $v['discount_amount'];
-			$receiveAmt  += $v['receive_amount'];
 		}
 		$data['bills'] = $billGroups;
-
-		$billTotal['amount'] = numFormat($totalAmt - $discountAmt - $receiveAmt);
-		$billTotal['discount_amount'] = $discountAmt;
-		$billTotal['receive_amount'] = $receiveAmt;
-
-		$billTotal['total_amount'] = $totalAmt;
-		$data['bill_count'] = $billTotal;
 		return $data;
 	}
 

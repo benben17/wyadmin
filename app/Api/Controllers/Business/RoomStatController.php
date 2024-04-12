@@ -112,7 +112,7 @@ class RoomStatController extends BaseController
             } else if (!isset($v['free_count'])) {
                 $v['free_count'] = 0;
             }
-            $v['total'] = $v['used_count'] + $v['free_count'];
+            $v['total'] = $v['used_count'] ?? 0.00 + $v['free_count'] ?? 0.00;
         }
         // Log::error(json_encode($areaTypeStat));
         $data['stat'] = $areaTypeStat;

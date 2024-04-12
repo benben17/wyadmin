@@ -413,6 +413,7 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     Route::post('show', '\App\Api\Controllers\Bill\BillController@show');
     Route::post('del', '\App\Api\Controllers\Bill\BillController@del');
     Route::post('audit', '\App\Api\Controllers\Bill\BillController@billAudit');
+    Route::post('print', '\App\Api\Controllers\Bill\BillController@billPrint');
     //租户账单详细
     Route::post('fee/list', '\App\Api\Controllers\Bill\BillDetailController@list');
     Route::post('fee/show', '\App\Api\Controllers\Bill\BillDetailController@show');
