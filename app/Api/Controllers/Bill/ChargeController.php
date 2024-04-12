@@ -82,6 +82,8 @@ class ChargeController extends BaseController
 		if (isset($request->status) && $request->status != "") {
 			$map['status'] = $request->status;
 		}
+		$request->orderBy = 'charge_date';
+		$request->order = 'desc';
 		$map['source'] = $request->source;
 		DB::enableQueryLog();
 		$subQuery = $this->chargeService->model()
