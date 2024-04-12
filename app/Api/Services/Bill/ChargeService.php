@@ -169,7 +169,6 @@ class ChargeService
             $chargeAmt    -= $receivableAmt;  // 充值金额减去应收金额
             $verifyAmt     = $receivableAmt;  // 核销金额
             $feeStatus  = AppEnum::feeStatusReceived;           // 应收状态
-
           } else { // 应收金额大于充值金额
             $verifyAmt = $chargeAmt;   // 核销金额
             $chargeAmt = 0.00;         // 充值金额为0
