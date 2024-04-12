@@ -47,8 +47,11 @@ class DashboardController extends BaseController
 
     $currMonthReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)
       ->whereBetween('bill_date', [$startDate, $endDate])
+      ->whereType(1)
       ->sum('amount');
-    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)->whereYear('bill_date',  date('Y'))->sum('amount');
+    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)
+      ->whereType(1)
+      ->whereYear('bill_date',  date('Y'))->sum('amount');
 
     return $this->success([
       'free_room'                    => $rooms['free_rooms'] ?? 0,
