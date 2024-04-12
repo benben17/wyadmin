@@ -7,6 +7,7 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
@@ -81,6 +82,7 @@ class BillStatController extends BaseController
 
     $subQuery = $this->billService->billDetailModel()
       ->whereBetween('charge_date', [$startYmd, $endYmd])
+      ->whereIn('proj_id', $request->proj_ids)
       ->whereType(1); // 费用
     $totalStat = $subQuery->selectRaw($select)->first();
     $rentalStat = clone $subQuery->where('fee_type', AppEnum::rentFeeType)->first();
@@ -113,6 +115,7 @@ class BillStatController extends BaseController
                 ifnull(sum(case when fee_type not in (101,102) then amount-discount_amount-receive_amount end),0.00) otherAmt';
     $overdue = $this->billService->billDetailModel()
       ->selectRaw($overdueSelect)
+      ->whereIn('proj_id', $request->proj_ids)
       ->where('charge_date', '<', nowYmd())
       ->where('type', 1)
       ->first();
@@ -167,10 +170,10 @@ class BillStatController extends BaseController
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
     $billService  = new TenantBillService;
-    $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
-    ifnull(sum(discount_amount),0.00) discountAmt,
-    ifnull(sum(receive_amount),0.00) receiveAmt,
-    DATE_FORMAt(charge_date,"%Y-%m") ym';
+    $select = 'ifnull(sum(amount-discount_amount),0.00) amt ,
+              ifnull(sum(discount_amount),0.00) discountAmt,
+              ifnull(sum(receive_amount),0.00) receiveAmt,
+              DATE_FORMAt(charge_date,"%Y-%m") ym';
     DB::enableQueryLog();
 
     $stat = $billService->billDetailModel()
@@ -178,35 +181,38 @@ class BillStatController extends BaseController
       ->whereBetween('charge_date', [$startYmd, $endYmd])
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        if ($request->type == 1) {
-        } else if ($request->type == 2) {
+        if ($request->type == 2) {
           $q->where('fee_type', AppEnum::rentFeeType);
         } else if ($request->type == 3) {
           $q->where('fee_type', AppEnum::managerFeeType);
         } else if ($request->type == 4) {
           $q->where('fee_type', '!=', [AppEnum::rentFeeType, AppEnum::managerFeeType]);
-          $q->whereDoesntHave('feetype', function ($q) {
-            $q->where('type', '!=', 2);
-          });
+          // $q->whereDoesntHave('feetype', function ($q) {
+          //   $q->where('type', '!=', 2);
+          // });
         }
       })
+      ->whereType(1)
       ->groupBy('ym')->orderBy('ym')
       ->get()->toArray();
     $month = 0;
     $statNew = array();
     while ($month < 12) {
-      // $v = 
+      $nextMonth = getNextMonth($startYmd, $month);
+      $found = false;
       foreach ($stat as $k => &$v) {
-        if ($v['ym'] == getNextMonth($startYmd, $month)) {
+        if ($v['ym'] == $nextMonth) {
           $statNew[$month] = $v;
-          $month++;
+          $found = true;
           break;
         }
       }
-      $statNew[$month]['ym'] = getNextMonth($startYmd, $month);
-      $statNew[$month]['amt'] = 0.00;
-      $statNew[$month]['discountAmt'] = 0.00;
-      $statNew[$month]['receiveAmt']  = 0.00;
+      if (!$found) {
+        $statNew[$month]['ym'] = $nextMonth;
+        $statNew[$month]['amt'] = 0.00;
+        $statNew[$month]['discountAmt'] = 0.00;
+        $statNew[$month]['receiveAmt']  = 0.00;
+      }
       $month++;
     }
     return $this->success($statNew);
@@ -251,9 +257,10 @@ class BillStatController extends BaseController
     $map = array();
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
+    DB::enableQueryLog();
     $chargeService  = new ChargeService;
-    $select = 'ifnull(sum(case when type = 1 then amount end),"0.00") chargeAmt ,
-              ifnull(sum(case when type = 2 then amount end),"0.00") payAmt,
+    $select = 'ifnull(sum(case when type = 1 then amount end),0.00) chargeAmt ,
+              ifnull(sum(case when type = 2 then amount end),0.00) payAmt,
     DATE_FORMAt(charge_date,"%Y-%m") ym';
 
     $chargeStat = $chargeService->model()->selectRaw($select)
@@ -268,17 +275,21 @@ class BillStatController extends BaseController
     $month = 0;
     $statNew = array();
     while ($month < 12) {
-      // $v = 
+      $nextMonth = getNextMonth($startYmd, $month);
+      Log::info($nextMonth);
+      $found = false;
       foreach ($chargeStat as $k => &$v) {
-        if ($v['ym'] == getNextMonth($startYmd, $month)) {
+        if ($v['ym'] == $nextMonth) {
           $statNew[$month] = $v;
-          $month++;
+          $found = true;
           break;
         }
       }
-      $statNew[$month]['ym'] = getNextMonth($startYmd, $month);
-      $statNew[$month]['chargeAmt'] = "0.00";
-      $statNew[$month]['payAmt'] = "0.00";
+      if (!$found) {
+        $statNew[$month]['ym'] = $nextMonth;
+        $statNew[$month]['chargeAmt'] = "0.00";
+        $statNew[$month]['payAmt'] = "0.00";
+      }
       $month++;
     }
     return $this->success($statNew);
