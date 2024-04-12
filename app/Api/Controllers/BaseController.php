@@ -99,7 +99,7 @@ class BaseController extends Controller
 
     public function handleBackData($data)
     {
-        if (is_object($data)) {
+        if (!empty($data) && is_object($data)) {
             $data = $data->toArray();
         }
         $backData['result'] = $data['data'];

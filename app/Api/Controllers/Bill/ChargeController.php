@@ -89,7 +89,6 @@ class ChargeController extends BaseController
 			$request->order = 'desc';
 		}
 		$map['source'] = $request->source;
-		DB::enableQueryLog();
 		$subQuery = $this->chargeService->model()
 			->where($map)
 			->where(function ($q) use ($request) {
@@ -101,28 +100,20 @@ class ChargeController extends BaseController
 				$request->category && $q->where('category', $request->category);
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
 			});
-		$pageSubQuery = $subQuery->with(['bankAccount:id,account_name'])
+
+		$pageSubQuery = clone $subQuery;
+		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name'])
 			->withCount('chargeBillRecord');
-		$data = $this->pageData($subQuery, $request);
+		$data = $this->pageData($pageSubQuery, $request);
 		foreach ($data['result'] as &$v) {
 			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
 			unset($v['bank_account']);
 			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
 		}
-		$statSelect = 'ifnull(sum(amount),0.00) as amount, ifnull(sum(verify_amount),0.00) as verify_amount, 
-									ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
-		$statData = $subQuery->selectRaw($statSelect)->first();
-		$statCurrMonth = $subQuery->whereMonth('charge_date', now()->month)
-			->selectRaw($statSelect)
-			->first();
-		$data['stat'] = [
-			['amount' => $statCurrMonth['amount'] ?? 0.00, 'label' => '本月金额'],
-			['amount' => $statCurrMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
-			['amount' => $statCurrMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
-			['amount' => $statData['amount'], 'label' => '总金额'],
-			['amount' => $statData['verify_amount'], 'label' => '已核总金额'],
-			['amount' => $statData['unverify_amount'], 'label' => '未核总金额'],
-		];
+
+		DB::enableQueryLog();
+
+		$data['stat'] = $this->chargeService->listStat($subQuery);
 
 		return $this->success($data);
 	}

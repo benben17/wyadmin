@@ -60,9 +60,7 @@ class BillController extends BaseController
   public function list(Request $request)
   {
 
-    $pagesize = $this->setPagesize($request);
     $map = array();
-
     // 排序字段
     if (!$request->orderBy) {
       $request->orderBy = 'charge_date';
@@ -88,16 +86,18 @@ class BillController extends BaseController
       ->with('tenant:id,name');
 
     $data = $this->pageData($subQuery, $request);
+
     foreach ($data['result'] as $k => &$v) {
       $v['tenant_name'] = $v['tenant']['name'];
       unset($v['tenant']);
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
-      $v['total_amount']     = $billCount['totalAmt'];
+      $v['amount']     = $billCount['totalAmt'];
       $v['discount_amount']  = $billCount['disAmt'];
       $v['receive_amount']   = $billCount['receiveAmt'];
-      $v['unreceive_amount'] = $v['total_amount'] - $v['discount_amount'] - $v['receive_amount'];
+      $v['unreceive_amount'] = $v['amount'] - $v['discount_amount'] - $v['receive_amount'];
+      $v['bill_label']  = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
     }
     return $this->success($data);
   }
