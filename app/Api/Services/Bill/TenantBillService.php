@@ -424,7 +424,7 @@ class TenantBillService
 	public function showBill($billId)
 	{
 		$data = $this->billModel()
-			->select('id', 'tenant_id', 'bill_title', 'audit_user', 'bill_no', 'audit_date', 'is_print', 'status', 'proj_id')
+			->select('id', 'tenant_id', 'bill_title', 'audit_user', 'bill_no', 'audit_date', 'is_print', 'status', 'proj_id', 'charge_date')
 			->with('tenant:id,shop_name,tenant_no,name')->find($billId);
 		if (!$data) {
 			return (object) [];
@@ -440,7 +440,7 @@ class TenantBillService
 		];
 
 		$billGroups = $this->billDetailModel()
-			->selectRaw('bank_id,sum(amount) amount,
+			->selectRaw('bank_id,sum(amount) amount,status,
 									sum(discount_amount) discount_amount,
 									sum(receive_amount) receive_amount,
 									sum(amount -receive_amount-discount_amount) unreceive_amount')
