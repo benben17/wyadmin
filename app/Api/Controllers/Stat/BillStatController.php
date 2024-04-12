@@ -118,9 +118,11 @@ class BillStatController extends BaseController
                 ifnull(sum(case when fee_type not in (101,102) then amount-discount_amount-receive_amount end),0.00) otherAmt';
     $overdue = $this->billService->billDetailModel()
       ->selectRaw($overdueSelect)
-      ->whereIn('proj_id', $request->proj_ids)
-      ->where('charge_date', '<', nowYmd())
-      ->where('type', 1)
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $q->where('charge_date', '<', nowYmd());
+        $q->where('type', 1);
+      })
       ->first();
 
     $data = array(
