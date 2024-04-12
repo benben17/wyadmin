@@ -367,10 +367,15 @@ class BillController extends BaseController
       'remark' => $request->remark ?? "",
     );
 
-    $res = $this->billService->billModel()
-      ->where('status', AppEnum::statusUnAudit)
-      ->where('id', $request->billIds)->update($updateData);
-    return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
+    try {
+      $this->billService->billModel()
+        ->where('status', AppEnum::statusUnAudit)
+        ->where('id', $request->billIds)->update($updateData);
+      return $this->success("账单审核成功");
+    } catch (Exception $e) {
+      Log::error("账单审核失败" . $e);
+      return $this->error("账单审核失败");
+    }
   }
 
 
@@ -406,7 +411,9 @@ class BillController extends BaseController
     ]);
 
     $res = $this->billService->billModel()
-      ->whereIn('id', $request->billIds)->update(['is_print' => 1]);
+      ->whereIn('id', $request->billIds)
+      ->where('status', AppEnum::statusAudit)
+      ->update(['is_print' => 1]);
     return $this->success($res ? "账单打印成功" : "账单打印失败");
   }
 
@@ -443,11 +450,15 @@ class BillController extends BaseController
 
     $billIds = $request->billIds;
     $bills = array();
-    foreach ($billIds as $k => $billId) {
-      $bill = $this->billService->showBill($billId);
-      if (!empty($bill)) {
-        $bills[] = $bill;
+    foreach ($billIds as $billId) {
+      $billExists = $this->billService->billModel()->where('id', $billId)
+        ->where('status', AppEnum::statusAudit)
+        ->whereHas('billDetail')->exists();
+      if (!$billExists) {
+        continue;
       }
+      $bill = $this->billService->showBill($billId);
+      $bills[] = $bill;
     }
     return $this->success($bills);
   }
