@@ -74,7 +74,7 @@ class BillStatController extends BaseController
       $endYmd = date('Y-m-01');
       $endYmd = date('Y-m-t');
     }
-
+    DB::enableQueryLog();
     $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
   ifnull(sum(discount_amount),0.00) discountAmt,
   ifnull(sum(receive_amount),0.00) receiveAmt';

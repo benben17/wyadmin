@@ -74,17 +74,17 @@ class DashboardController extends BaseController
     $currMonthExpireContractCount = Contract::whereIn('proj_id', $request->proj_ids)
       ->where('contract_state', AppEnum::contractExecute)
       ->whereBetween('end_date', [$startDate, $endDate])->count();
-
+    DB::enableQueryLog();
     $currMonthReceive = TenantBillDetail::selectRaw('ifnull(sum(amount-discount_amount),"0.00") amt')
       // ->whereIn('proj_id', $request->proj_ids)
-      ->whereBetween('bill_date', [$startDate, $endDate])
+      ->whereBetween('charge_date', [$startDate, $endDate])
       ->whereType(1)
       ->first();
     // DB::enableQueryLog();
     $currYearReceive = TenantBillDetail::selectRaw('ifnull(sum(amount-discount_amount),"0.00") amt')
       ->whereIn('proj_id', $request->proj_ids)
       ->whereType(1)
-      ->whereYear('bill_date',  date('Y'))->first();
+      ->whereYear('charge_date',  date('Y'))->first();
 
     return $this->success([
       'free_room'                    => $rooms['free_rooms'] ?? 0,
