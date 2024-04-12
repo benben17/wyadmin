@@ -76,7 +76,7 @@ class DashboardController extends BaseController
       ->whereBetween('end_date', [$startDate, $endDate])->count();
     DB::enableQueryLog();
     $currMonthReceive = TenantBillDetail::selectRaw('ifnull(sum(amount-discount_amount),"0.00") amt')
-      // ->whereIn('proj_id', $request->proj_ids)
+      ->whereIn('proj_id', $request->proj_ids)
       ->whereBetween('charge_date', [$startDate, $endDate])
       ->whereType(1)
       ->first();
