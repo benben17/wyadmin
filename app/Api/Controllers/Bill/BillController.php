@@ -14,7 +14,6 @@ use App\Api\Models\Energy\MeterRecord;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Template\TemplateService;
-use Illuminate\Contracts\Container\BindingResolutionException;
 
 /**
  * @OA\Tag(
@@ -103,7 +102,7 @@ class BillController extends BaseController
       $v['total_amount']     = $billCount['totalAmt'];
       $v['discount_amount']  = $billCount['disAmt'];
       $v['receive_amount']   = $billCount['receiveAmt'];
-      $v['unreceive_amount'] = $v['total_amount'] - $v['discount_amount'];
+      $v['unreceive_amount'] = $v['total_amount'] - $v['discount_amount'] - $v['receive_amount'];
     }
     return $this->success($data);
   }
