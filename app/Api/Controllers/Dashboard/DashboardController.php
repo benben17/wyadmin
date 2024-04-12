@@ -6,6 +6,7 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use App\Api\Models\BuildingRoom;
 use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\DB;
 use App\Api\Models\Contract\Contract;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Bill\TenantBillDetail;
@@ -75,13 +76,15 @@ class DashboardController extends BaseController
       ->whereBetween('end_date', [$startDate, $endDate])->count();
 
     $currMonthReceive = TenantBillDetail::selectRaw('ifnull(sum(amount-discount_amount),"0.00") amt')
-      ->whereIn('proj_id', $request->proj_ids)
+      // ->whereIn('proj_id', $request->proj_ids)
       ->whereBetween('bill_date', [$startDate, $endDate])
       ->whereType(1)
       ->first();
-    $currYearReceive = TenantBillDetail::whereIn('proj_id', $request->proj_ids)
+    // DB::enableQueryLog();
+    $currYearReceive = TenantBillDetail::selectRaw('ifnull(sum(amount-discount_amount),"0.00") amt')
+      ->whereIn('proj_id', $request->proj_ids)
       ->whereType(1)
-      ->whereYear('bill_date',  date('Y'))->sum('amount');
+      ->whereYear('bill_date',  date('Y'))->first();
 
     return $this->success([
       'free_room'                    => $rooms['free_rooms'] ?? 0,
@@ -92,7 +95,7 @@ class DashboardController extends BaseController
       'contractCount'                => $contractCount,
       'currMonthExpireContractCount' => $currMonthExpireContractCount,
       'currMonthReceive'             => $currMonthReceive['amt'],
-      'currYearReceive'              => $currYearReceive,
+      'currYearReceive'              => $currYearReceive['amt'],
     ]);
   }
 }
