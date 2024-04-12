@@ -64,16 +64,11 @@ class BillController extends BaseController
     $map = array();
 
     // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
+    if (!$request->orderBy) {
+      $request->orderBy = 'charge_date';
     }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
+    if ($request->order) {
+      $request->order = 'desc';
     }
     if ($request->tenant_id) {
       $map['tenant_id'] = $request->tenant_id;
