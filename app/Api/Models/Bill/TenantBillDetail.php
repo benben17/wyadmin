@@ -54,7 +54,7 @@ class TenantBillDetail extends Model
   {
     if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
       // Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
-      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount']);
+      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount'] - $this->attributes['receive_amount']);
     } else {
       return 0.00;
     }

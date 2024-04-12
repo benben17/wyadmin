@@ -381,4 +381,49 @@ class BillController extends BaseController
     $res = $bill->save();
     return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
   }
+
+
+  /**
+   * @OA\Post(
+   *    path="/api/operation/tenant/bill/print",
+   *   tags={"账单"},
+   *  summary="账单打印",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","receive_amount"},
+   *       @OA\Property(property="billIds",type="list",description="账单ids"),
+   *     ),
+   *       example={"billIds":"[1]"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function billPrint(Request $request)
+  {
+    $validatedData = $request->validate([
+      'billIds' => 'required|array',
+
+    ], [
+      'billIds.array' => '账单格式错误',
+      'billIds.required' => '账单id不能为空',
+    ]);
+
+    $bills = array();
+    $billIds = $request->billIds;
+    foreach ($billIds as $k => $billId) {
+      $bill = $this->billService->showBill($billId);
+      if (!empty($bill)) {
+        $bills[] = $bill;
+      }
+    }
+    $this->billService->billModel()->whereIn('id', $request->billIds)->update(['is_print' => 1]);
+    return $this->success($bills);
+  }
 }
