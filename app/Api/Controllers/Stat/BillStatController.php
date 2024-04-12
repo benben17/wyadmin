@@ -338,6 +338,7 @@ class BillStatController extends BaseController
       $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . "%");
       $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
       $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+      $q->whereType(1);
     })
       ->groupBy('tenant_id', 'ym')
       ->orderBy('tenant_id')
