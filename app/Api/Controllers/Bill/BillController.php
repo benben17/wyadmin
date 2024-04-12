@@ -354,25 +354,22 @@ class BillController extends BaseController
   public function billAudit(Request $request)
   {
     $validatedData = $request->validate([
-      'id' => 'required|gt:0',
+      'billIds' => 'required|array',
       'audit_status' => 'required|in:1,2', // 1 审核通过 2 审核不通过
     ], [
       'audit_status.in' => '审核状态错误',
       'id.gt' => '账单id错误',
       'id.required' => '账单id不能为空',
     ]);
-    $bill = $this->billService->billModel()->find($request->id);
-    if (!$bill) {
-      return $this->error("账单不存在");
-    }
-    if ($bill->status != 0) {
-      return $this->error("账单已审核");
-    }
     $status = $request->audit_status == 1 ? AppEnum::statusAudit : AppEnum::statusUnAudit;
-    $bill->status  = $status;
-    $bill->audit_user = $this->user['realname'];
-    $bill->audit_date = now();
-    $res = $bill->save();
+    $updateData = array(
+      'status' => $status,
+      'remark' => $request->remark ?? "",
+    );
+
+    $res = $this->billService->billModel()
+      ->where('status', AppEnum::statusUnAudit)
+      ->where('id', $request->billIds)->update($updateData);
     return $res ? $this->success("账单审核成功") : $this->error("账单审核失败");
   }
 
@@ -403,21 +400,55 @@ class BillController extends BaseController
   {
     $validatedData = $request->validate([
       'billIds' => 'required|array',
-
     ], [
       'billIds.array' => '账单格式错误',
       'billIds.required' => '账单id不能为空',
     ]);
 
-    $bills = array();
+    $res = $this->billService->billModel()
+      ->whereIn('id', $request->billIds)->update(['is_print' => 1]);
+    return $this->success($res ? "账单打印成功" : "账单打印失败");
+  }
+
+  /**
+   * @OA\Post(
+   *    path="/api/operation/tenant/bill/printView",
+   *   tags={"账单"},
+   *  summary="账单打印预览",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id","receive_amount"},
+   *       @OA\Property(property="billIds",type="list",description="账单ids"),
+   *     ),
+   *       example={"billIds":"[1]"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function billView(Request $request)
+  {
+    $validatedData = $request->validate([
+      'billIds' => 'required|array',
+    ], [
+      'billIds.array' => '账单格式错误',
+      'billIds.required' => '账单id不能为空',
+    ]);
+
     $billIds = $request->billIds;
+    $bills = array();
     foreach ($billIds as $k => $billId) {
       $bill = $this->billService->showBill($billId);
       if (!empty($bill)) {
         $bills[] = $bill;
       }
     }
-    $this->billService->billModel()->whereIn('id', $request->billIds)->update(['is_print' => 1]);
     return $this->success($bills);
   }
 }

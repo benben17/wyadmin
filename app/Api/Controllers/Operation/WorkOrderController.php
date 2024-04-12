@@ -83,38 +83,10 @@ class WorkOrderController extends BaseController
         }
         $request->maintain_person  && $q->where('maintain_person', 'like', '%' . $request->maintain_person . '%');
       });
-    $data = $this->pageData($subQuery, $request);
-    // 统计
-    if (in_array(4, $request->status) && count($request->status) == 1) {
-      $stat = $subQuery->selectRaw(
-        'count(*) count,
-        sum(charge_amount) amount,
-        sum(time_used) time_used,
-        avg(feedback_rate) rate'
-      )->first();
-      $data['stat'] = [
-        ['label' => '总工单', 'value' => $stat['count']],
-        ['label' => '平均评分', 'value' => numFormat($stat['rate'])],
-        ['label' => '总用时', 'value' => numFormat($stat['time_used']) . '小时'],
-        ['label' => '总金额', 'value' => $stat['amount'] . '元'],
-      ];
-    } else {
-      $stat = $subQuery->selectRaw(
-        'sum(case status when 1 then 1 else 0 end)  as "1",
-            sum(case status when 2 then 1 else 0 end) as "2",
-            sum(case status when 3 then 1 else 0 end) as "3",
-            sum(case status when 4 then 1 else 0 end) as "4",
-            sum(case status when 99 then 1 else 0 end) as "99",
-            count(*) total_count'
-      )
-        ->first();
+    $pageSubQuery = clone $subQuery;
+    $data = $this->pageData($pageSubQuery, $request);
 
-      $statusMap =  $this->workService->workModel()->statusMap();
-      foreach ($statusMap as $k => $v) {
-        $data['stat'][] = array('label' => $v, 'value' => $stat[$k], 'status' => $k);
-      }
-      $data['stat'][] = array('label' => "总计", 'value' => $stat['total_count'], 'status' => 'all');
-    }
+    $data['stat'] = $this->workService->listStat($subQuery);
     return $this->success($data);
   }
   /**

@@ -323,7 +323,7 @@ class ContractBillService
       $bill[$i]['amount']     = $increaseAmt;
       $bill[$i]['bill_date']  = $startDate . "至" . $bill[$i]['end_date'];
       $data['total']         += $bill[$i]['amount'];
-      $bill[$i]['remark']     = $remark;
+      $bill[$i]['remark']     = "面积：" . $rule['area_num'] . "|" . $remark;
 
       if ($endDate >= $rule['end_date']) {
         break;

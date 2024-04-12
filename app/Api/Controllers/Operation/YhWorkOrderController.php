@@ -80,7 +80,8 @@ class YhWorkOrderController extends BaseController
         $request->process_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
         $request->order_no  && $q->where('order_no', 'like', '%' . $request->order_no . '%');
       });
-    $data = $this->pageData($subQuery, $request);
+    $pageQuery = clone $subQuery;
+    $data = $this->pageData($pageQuery, $request);
     // 统计
     $stat = $subQuery->selectRaw('status, COUNT(*) as count')
       ->groupBy('status')
