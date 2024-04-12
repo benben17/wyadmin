@@ -230,7 +230,7 @@ Route::group(['prefix' => 'business/contract'], function () {
     Route::post('list/stat', '\App\Api\Controllers\Contract\ContractBillController@getContractStat');
 
     //合同账单
-    Route::post('bill/create', '\App\Api\Controllers\Contract\ContractBillController@contractBill');
+    Route::post('bill/create', '\App\Api\Controllers\Contract\ContractBillController@createContractBill');
     // Route::post('bill/save', '\App\Api\Controllers\Contract\ContractBillController@saveContractBill');
     //合同模版
     Route::post('word', '\App\Api\Controllers\Contract\ContractController@contractWord');
