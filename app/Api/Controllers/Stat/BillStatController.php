@@ -82,8 +82,11 @@ class BillStatController extends BaseController
 
     $subQuery = $this->billService->billDetailModel()
       ->whereBetween('charge_date', [$startYmd, $endYmd])
-      ->whereIn('proj_id', $request->proj_ids)
-      ->whereType(1); // 费用
+      ->where(function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $q->where('type', 1);
+      });
+    // 费用
     $totalStat = $subQuery->selectRaw($select)->first();
     $rentalStat = clone $subQuery->where('fee_type', AppEnum::rentFeeType)->first();
     $managerStat = clone $subQuery->where('fee_type', AppEnum::managerFeeType)->first();
@@ -195,25 +198,26 @@ class BillStatController extends BaseController
       ->whereType(1)
       ->groupBy('ym')->orderBy('ym')
       ->get()->toArray();
-    $month = 0;
+    $statYm = array();
+    foreach ($stat as $value) {
+      $statYm[$value['ym']] = [
+        'ym'          => $value['ym'],
+        'amt'         => floatval($value['amt']),
+        'discountAmt' => floatval($value['discountAmt']),
+        'receiveAmt'  => floatval($value['receiveAmt'])
+      ];
+    }
+
     $statNew = array();
-    while ($month < 12) {
-      $nextMonth = getNextMonth($startYmd, $month);
-      $found = false;
-      foreach ($stat as $k => &$v) {
-        if ($v['ym'] == $nextMonth) {
-          $statNew[$month] = $v;
-          $found = true;
-          break;
-        }
-      }
-      if (!$found) {
-        $statNew[$month]['ym'] = $nextMonth;
-        $statNew[$month]['amt'] = 0.00;
-        $statNew[$month]['discountAmt'] = 0.00;
-        $statNew[$month]['receiveAmt']  = 0.00;
-      }
-      $month++;
+    for ($month = 0; $month < 12; $month++) {
+      $ym = getNextMonth($startYmd, $month);
+      $emptyMonth = array(
+        'ym' => $ym,
+        'amt' => '0.00',
+        'discountAmt' => '0.00',
+        'receiveAmt'  => '0.00'
+      );
+      $statNew[] = $statYm[$ym] ?? $emptyMonth;
     }
     return $this->success($statNew);
   }
@@ -257,11 +261,11 @@ class BillStatController extends BaseController
     $map = array();
     $startYmd = date($year . '-01-01');
     $endYmd = date($year . '-12-t');
-    DB::enableQueryLog();
+    // DB::enableQueryLog();
     $chargeService  = new ChargeService;
     $select = 'ifnull(sum(case when type = 1 then amount end),0.00) chargeAmt ,
               ifnull(sum(case when type = 2 then amount end),0.00) payAmt,
-    DATE_FORMAt(charge_date,"%Y-%m") ym';
+              DATE_FORMAt(charge_date,"%Y-%m") ym';
 
     $chargeStat = $chargeService->model()->selectRaw($select)
       ->where($map)
@@ -272,25 +276,21 @@ class BillStatController extends BaseController
       ->groupBy('ym')
       ->orderBy('ym')
       ->get()->toArray();
-    $month = 0;
+
+    $chargeStatYm = array();
+    foreach ($chargeStat as $key => $value) {
+      $chargeStatYm[$value['ym']] = $value;
+    }
+
     $statNew = array();
-    while ($month < 12) {
-      $nextMonth = getNextMonth($startYmd, $month);
-      Log::info($nextMonth);
-      $found = false;
-      foreach ($chargeStat as $k => &$v) {
-        if ($v['ym'] == $nextMonth) {
-          $statNew[$month] = $v;
-          $found = true;
-          break;
-        }
-      }
-      if (!$found) {
-        $statNew[$month]['ym'] = $nextMonth;
-        $statNew[$month]['chargeAmt'] = "0.00";
-        $statNew[$month]['payAmt'] = "0.00";
-      }
-      $month++;
+    for ($month  = 0; $month < 12; $month++) {
+      $ym = getNextMonth($startYmd, $month);
+      $emptyMonth = array(
+        'ym' => $ym,
+        'chargeAmt' => 0.00,
+        'payAmt' => 0.00
+      );
+      $statNew[] = $chargeStatYm[$ym] ?? $emptyMonth;
     }
     return $this->success($statNew);
   }
