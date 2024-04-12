@@ -479,4 +479,24 @@ class ChargeService
     }
     return false;
   }
+
+  public function listStat($query)
+  {
+    $statSelect = 'ifnull(sum(amount),0.00) as amount, ifnull(sum(verify_amount),0.00) as verify_amount, 
+		ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
+    $statData = $query->selectRaw($statSelect)->first();
+    $currStartYmd = date('Y-m-01');
+    $currEndYmd = date('Y-m-t');
+    $currMonth = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
+      ->selectRaw($statSelect)
+      ->first();
+    return [
+      ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
+      ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
+      ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
+      ['amount' => $statData['amount'] ?? 0.00, 'label' => '总金额'],
+      ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
+      ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
+    ];
+  }
 }
