@@ -103,16 +103,19 @@ class ChargeController extends BaseController
 			unset($v['bank_account']);
 			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
 		}
-
-		$statData = $subQuery->selectRaw('sum(amount) as amount, sum(verify_amount) as verify_amount')->first();
-		$statCurrentMonth = $subQuery->whereMonth('charge_date', now()->month)->selectRaw('sum(amount) as amount, sum(verify_amount) as verify_amount')->first();
+		$statSelect = 'ifnull(sum(amount),0.00) as amount, ifnull(sum(verify_amount),0.00) as verify_amount, 
+									ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
+		$statData = $subQuery->selectRaw($statSelect)->first();
+		$statCurrMonth = $subQuery->whereMonth('charge_date', now()->month)
+			->selectRaw($statSelect)
+			->first();
 		$data['stat'] = [
-			['amount' => $statCurrentMonth['amount'], 'label' => '本月金额'],
-			['amount' => $statCurrentMonth['verify_amount'], 'label' => '本月已核金额'],
-			['amount' => $statCurrentMonth['amount'] - $statCurrentMonth['verify_amount'], 'label' => '本月未核金额'],
+			['amount' => $statCurrMonth['amount'] ?? 0.00, 'label' => '本月金额'],
+			['amount' => $statCurrMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
+			['amount' => $statCurrMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
 			['amount' => $statData['amount'], 'label' => '总金额'],
 			['amount' => $statData['verify_amount'], 'label' => '已核总金额'],
-			['amount' => $statData['amount'] - $statData['verify_amount'], 'label' => '未核总金额'],
+			['amount' => $statData['unverify_amount'], 'label' => '未核总金额'],
 		];
 
 		return $this->success($data);

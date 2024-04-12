@@ -56,7 +56,12 @@ class TenantController extends BaseController
      */
     public function list(Request $request)
     {
-
+        $request->validate([
+            'proj_ids' => 'required|array',
+        ], [
+            'proj_ids.required' => '请选择项目',
+            'proj_ids.array' => '项目参数错误'
+        ]);
         $map = array();
         // $map['parent_id'] = 0;
 
@@ -68,7 +73,7 @@ class TenantController extends BaseController
                 $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->on_rent && $q->where('on_rent', $request->on_rent);
+                isset($request->on_rent) && $q->where('on_rent', $request->on_rent);
                 $q->where('parent_id', 0);
             })
             ->withCount('maintain')
