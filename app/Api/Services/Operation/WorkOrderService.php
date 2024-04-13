@@ -255,7 +255,15 @@ class WorkOrderService
     return $res;
   }
 
-
+  /**
+   * 工单列表统计
+   * @Author   leezhua
+   * @DateTime 2020-07-24
+   * @param    [type]     $orderId     [工单id]
+   * @param    [type]     $orderStatus [工单状态]
+   * @param    [type]     $user        [description]
+   * @return   [type]                  [description]
+   */
   public function listStat($query)
   {
     $statData = $query->selectRaw(
@@ -265,7 +273,7 @@ class WorkOrderService
             sum(case status when 4 then 1 else 0 end) as "4",
             sum(case status when 99 then 1 else 0 end) as "99",
             count(*) total_count,
-            SUM(IF(status = 4, time_used, 0)) / SUM(CASE status WHEN 4 THEN 1 ELSE 0 END) AS avg_time_used'
+            SUM(IF(status = 4, time_used, 0)) AS time_used'
     )
       ->first();
     $stat = array();
@@ -274,7 +282,11 @@ class WorkOrderService
       $stat[] = array('label' => $v, 'value' => $statData[$k] ?? 0, 'status' => $k);
     }
     $stat[] = array('label' => "总计", 'value' => $statData['total_count'], 'status' => 'all');
-    $stat[] = array('label' => "平均用时", 'value' => numFormat($statData['avg_time_used']) . '小时', 'status' => 'time_used');
+    $stat[] = array(
+      'label' => "平均用时",
+      'value' => numFormat($statData['time_used'] / $statData['4']) . '小时',
+      'status' => 'time_used'
+    );
     return $stat;
   }
 }

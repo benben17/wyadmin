@@ -74,7 +74,6 @@ class BuildingController extends BaseController
      */
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
 
         $map = array();
 
@@ -605,14 +604,6 @@ class BuildingController extends BaseController
 
 
 
-    public function export(Request $request)
-    {
-        $param['proj_id'] = 16;
-
-        return null;
-    }
-
-
     /**
      * 格式化楼层数据
      * @Author   leezhua
@@ -632,6 +623,7 @@ class BuildingController extends BaseController
                 (isset($v['id']) && $v['id'] > 0) ? $BA[$k]['id'] = $v['id'] : '';
                 $BA[$k]['u_uid'] = $this->uid;
             }
+            $BA[$k]['proj_id']    = $projId;
             $BA[$k]['floor_no']   = $v['floor_no'];
             $BA[$k]['build_id']   = $buildingId;
             $BA[$k]['company_id'] = $this->company_id;
