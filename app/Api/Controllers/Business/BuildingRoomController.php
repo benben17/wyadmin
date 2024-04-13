@@ -23,10 +23,17 @@ use App\Api\Services\Building\BuildingRoomService;
 class BuildingRoomController extends BaseController
 {
     private $buildRoomService;
+    private $errorMsg;
     public function __construct()
     {
         parent::__construct();
         $this->buildRoomService = new BuildingRoomService;
+        $this->errorMsg = [
+            'build_id.required' => '楼号不能为空',
+            'floor_id.required' => '楼层不能为空',
+            'room_no.required' => '房间号不能为空',
+            'room_type.required' => '房间类型不能为空',
+        ];
     }
 
     /**
@@ -116,15 +123,15 @@ class BuildingRoomController extends BaseController
      *           mediaType="application/json",
      *       @OA\Schema(
      *          schema="UserModel",
-     *          required={"roomId"},
+     *          required={"id"},
      *       @OA\Property(
-     *          property="roomId",
+     *          property="id",
      *          type="int",
      *          description="房源Id"
      *       )
      *     ),
      *       example={
-     *              "roomId": 11
+     *              "id": 11
      *           }
      *       )
      *     ),
@@ -138,6 +145,8 @@ class BuildingRoomController extends BaseController
     {
         $validatedData = $request->validate([
             'id' => 'required|numeric|gt:0',
+        ], [
+            'id.required' => '房源ID不能为空',
         ]);
         $data = $this->buildRoomService->buildingRoomModel()
             ->whereHas('building', function ($q) use ($request) {
@@ -208,7 +217,7 @@ class BuildingRoomController extends BaseController
             'floor_id' => 'required|numeric|gt:0',
             'room_no' => 'required|String|min:1',
             'room_type' => 'required|numeric|in:1,2'
-        ]);
+        ], $this->errorMsg);
         // $map['proj_id'] = $request->proj_id;
         $map['build_id'] = $request->build_id;
         $map['room_no'] = $request->build_room_no;
@@ -283,7 +292,7 @@ class BuildingRoomController extends BaseController
             'floor_id' => 'required|numeric|gt:0',
             'room_type' => 'required|numeric|in:1,2',
             'room_no' => 'required|String',
-        ]);
+        ], $this->errorMsg);
 
         // $map['proj_id'] = $request->proj_id;
         $map['build_id'] = $request->build_id;

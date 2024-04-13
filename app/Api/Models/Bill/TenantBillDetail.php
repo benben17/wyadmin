@@ -9,6 +9,7 @@ use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use App\Api\Models\Contract\Contract;
+use App\Api\Models\Company\BankAccount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -88,6 +89,10 @@ class TenantBillDetail extends Model
     ];
   }
 
+  public function bankAccount()
+  {
+    return $this->belongsTo(BankAccount::class, 'bank_id', 'id');
+  }
 
   public function getBillStatusAttribute()
   {
