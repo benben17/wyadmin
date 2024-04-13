@@ -350,9 +350,10 @@ class ContractService
     $data = ContractModel::whereHas('contractRoom', function ($q) use ($roomId) {
       $q->where('room_id', $roomId);
     })
-      ->select('id', 'start_date', 'end_date', 'room_type', 'contract_state', 'tenant_name', 'sign_date', 'rental_price', 'rental_price_type')
+      ->select('id', 'start_date', 'end_date', 'room_type', 'contract_state', 'tenant_name', 'sign_date', 'rental_price', 'rental_price_type', 'tenant_id')
       ->get();
     if ($data) {
+      $data['tenant_name'] = getTenantNameById($data['tenant_id']);
       return $data->toArray();
     } else {
       return (object)[];
