@@ -358,7 +358,7 @@ class ContractService
       ->get();
     if ($data) {
       $data->map(function ($v) {
-        $v['tenant_name'] = $v['tenant']['name'];
+        $v['cus_name'] = $v['tenant']['name'];
         unset($v['tenant']);
       });
       return $data->toArray();
