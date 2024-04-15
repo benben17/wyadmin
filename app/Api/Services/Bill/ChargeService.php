@@ -26,7 +26,16 @@ class ChargeService
   {
     return new ChargeBillRecord;
   }
-
+  // 获取收款编号
+  function getChargeNo($type)
+  {
+    $no = date('ymdHis', strtotime(nowTime()));
+    if ($type == ChargeEnum::Income) {
+      return 'IE-' . $no . mt_rand(10, 99); // 收入
+    } else {
+      return 'EX-' . $no . mt_rand(10, 99); // 支出
+    }
+  }
   // 租户应收明细
   public function billDetailModel()
   {
@@ -50,7 +59,7 @@ class ChargeService
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
         $charge->unverify_amount = $BA['amount'];
-        $charge->flow_no = getChargeNo($BA['type']);
+        $charge->flow_no = $this->getChargeNo($BA['type']);
       }
       $charge->pay_person  = $BA['pay_person'] ?? "";
       $charge->company_id  = $user['company_id'];
@@ -118,13 +127,13 @@ class ChargeService
         //更新 收款
 
         $billRecord['amount'] = $verifyAmt;
-        $detail_bill_data['receive_date']   = $verifyDate;
-        $billRecord['charge_id']      = $chargeBill['id'];
-        $billRecord['bill_detail_id'] = $detailBill['id'];
-        $billRecord['type']           = $detailBill['type'];
-        $billRecord['fee_type']       = $detailBill['fee_type'];
-        $billRecord['proj_id']        = $detailBill['proj_id'];
-        $billRecord['verify_date'] = $verifyDate;
+        $detail_bill_data['receive_date'] = $verifyDate;
+        $billRecord['charge_id']          = $chargeBill['id'];
+        $billRecord['bill_detail_id']     = $detailBill['id'];
+        $billRecord['type']               = $detailBill['type'];
+        $billRecord['fee_type']           = $detailBill['fee_type'];
+        $billRecord['proj_id']            = $detailBill['proj_id'];
+        $billRecord['verify_date']        = $verifyDate;
         $billService = new TenantBillService;
         $billService->billDetailModel()->where('id', $detailBill)->update($detail_bill_data); // 更新费用信息
 
@@ -230,56 +239,55 @@ class ChargeService
 
 
   public function detailBillListWriteOffOne(array $detailBill, array $chargeBill, $verifyDate, $user)
-  { {
+  {
 
 
-      try {
-        DB::transaction(function () use ($detailBill, $chargeBill, $verifyDate, $user) {
-          $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
+    try {
+      DB::transaction(function () use ($detailBill, $chargeBill, $verifyDate, $user) {
+        $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
 
-          $detailBillData = [
+        $detailBillData = [
 
-            'receive_date' => $verifyDate,
-          ];
-          if ($chargeBill['unverify_amount'] >= $verifyAmt) {
-            $detailBillData['status'] = 1;
-            $actVerifyAmt = $verifyAmt;
-            $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $actVerifyAmt);
-          } else {
-            $actVerifyAmt = $chargeBill['unverify_amount'];
-            $chargeBill['unverify_amount'] = 0;
-          }
-          // 充值账单剩余金额
+          'receive_date' => $verifyDate,
+        ];
+        if ($chargeBill['unverify_amount'] >= $verifyAmt) {
+          $detailBillData['status'] = 1;
+          $actVerifyAmt = $verifyAmt;
+          $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $actVerifyAmt);
+        } else {
+          $actVerifyAmt = $chargeBill['unverify_amount'];
+          $chargeBill['unverify_amount'] = 0;
+        }
+        // 充值账单剩余金额
 
 
-          $billRecord = [
-            'amount'      => $actVerifyAmt,
-            'charge_id'   => $chargeBill['id'],
-            'bill_detail_id' => $detailBill['id'],
-            'type'        => $chargeBill['type'],
-            'fee_type'    => $detailBill['fee_type'],
-            'proj_id'     => $detailBill['proj_id'],
-            'verify_date' => $verifyDate,
-          ];
+        $billRecord = [
+          'amount'      => $actVerifyAmt,
+          'charge_id'   => $chargeBill['id'],
+          'bill_detail_id' => $detailBill['id'],
+          'type'        => $chargeBill['type'],
+          'fee_type'    => $detailBill['fee_type'],
+          'proj_id'     => $detailBill['proj_id'],
+          'verify_date' => $verifyDate,
+        ];
 
-          $billService = new TenantBillService;
-          $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
 
-          $this->chargeBillRecordSave($billRecord, $user);
+        $this->chargeBillRecordSave($billRecord, $user);
 
-          $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $actVerifyAmt;
+        $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $actVerifyAmt;
 
-          if ($chargeBill['unverify_amount'] == 0) {
-            $chargeBill['status'] = ChargeEnum::chargeVerify;
-          }
-          $this->save($chargeBill, $user);
-        }, 3);
+        if ($chargeBill['unverify_amount'] == 0) {
+          $chargeBill['status'] = ChargeEnum::chargeVerify;
+        }
+        $this->save($chargeBill, $user);
+      }, 3);
 
-        return true;
-      } catch (\Exception $e) {
-        Log::error("核销失败: " . $e->getMessage());
-        return false;
-      }
+      return true;
+    } catch (\Exception $e) {
+      Log::error("核销失败: " . $e->getMessage());
+      return false;
     }
   }
 
@@ -297,24 +305,26 @@ class ChargeService
   public function chargeBillRecordSave($DA, $user)
   {
     try {
+      $billDetail = $this->billDetailModel()->findOrFail($DA['bill_detail_id']);
       $billRecord = $this->chargeRecord();
       $billRecord->flow_no    = getChargeVerifyNo();   // 核销单编号
       $billRecord->charge_id  = $DA['charge_id'];
       // $billRecord->charge_type  = $DA['charge_id'];
-      $billRecord->company_id  = $user['company_id'];
-      $billRecord->proj_id  = $DA['proj_id'];
-      $billRecord->bill_detail_id = isset($DA['bill_detail_id']) ? $DA['bill_detail_id'] : 0;
-      $billRecord->amount     = $DA['amount'];
-      $billRecord->type       = $DA['type'];
-      $billRecord->fee_type   = $DA['fee_type'];
-      $billRecord->verify_date = $DA['verify_date'];
-      $billRecord->remark     = isset($DA['remark']) ? $DA['remark'] : "";
-      $billRecord->c_uid      = $user['id'];
-      $billRecord->c_username = $user['realname'];
+      $billRecord->company_id     = $user['company_id'];
+      $billRecord->proj_id        = $DA['proj_id'];
+      $billRecord->bill_detail_id = $billDetail->id;
+      $billRecord->tenant_id      = $billDetail->tenant_id;
+      $billRecord->amount         = $DA['amount'];
+      $billRecord->type           = $DA['type'];
+      $billRecord->fee_type       = $DA['fee_type'];
+      $billRecord->verify_date    = $DA['verify_date'];
+      $billRecord->remark         = isset($DA['remark']) ? $DA['remark'] : "";
+      $billRecord->c_uid          = $user['id'];
+      $billRecord->c_username     = $user['realname'];
       $billRecord->save();
     } catch (Exception $th) {
       Log::error("保存冲抵记录失败:" . $th);
-      throw $th;
+      throw new Exception("保存核销记录失败");
     }
   }
 
@@ -337,7 +347,7 @@ class ChargeService
       $charge         = $this->model();
       $charge->c_uid  = $user['id'];
       $charge->unverify_amount = 0;
-      $charge->flow_no = getChargeNo($BA['type']);
+      $charge->flow_no = $this->getChargeNo($BA['type']);
       $charge->company_id  = $user['company_id'];
       $charge->tenant_id   = $billDetail['tenant_id'];
       $charge->amount      = $BA['amount'];

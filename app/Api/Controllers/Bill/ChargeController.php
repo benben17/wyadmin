@@ -455,7 +455,7 @@ class ChargeController extends BaseController
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 				$request->year && $q->whereYear('verify_date', $request->year);
 			})
-			->with(['billDetail:tenant_name,tenant_id,id,status'])
+			->with(['billDetail:tenant_name,tenant_id,id,status,bill_date'])
 			->whereHas('billDetail', function ($query) use ($request) {
 				$request->tenant_id && $query->where('tenant_id', $request->tenant_id);
 				$request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
@@ -467,6 +467,7 @@ class ChargeController extends BaseController
 		foreach ($data['result'] as &$item) {
 			$item['tenant_name'] = getTenantNameById($item['bill_detail']['tenant_id'] ?? 0);
 			$totalAmt += $item['type'] == 1 ? $item['amount'] : -$item['amount'];
+			$item['bill_date'] = $item['bill_detail']['bill_date'] ?? '';
 		}
 		$data['total_amount'] = $totalAmt;
 		return $this->success($data);
