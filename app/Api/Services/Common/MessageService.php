@@ -3,8 +3,8 @@
 namespace App\Api\Services\Common;
 
 use Exception;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 use App\Api\Models\Common\Message as MessageModel;
 use App\Api\Models\Common\MessageRead as MessageReadModel;

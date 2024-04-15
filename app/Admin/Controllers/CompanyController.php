@@ -116,17 +116,20 @@ class CompanyController extends AdminController
         $show->order('订单', function ($order) {
             // $order->resource('/admin/orders');
             $order->order_no('订单号');
+            $order->column('company_id', '客户名称')->display(function ($value) {
+                return Company::find($value)->name;
+            });
+            // Log::info($order->product);
+            $order->column('product_name', '产品名称')->display(function () {
+                return $this->product->name;
+            });
+            $order->column('month', '时长');
+            $order->column('price', '单价');
+            $order->amount('总金额');
             $order->column('status', '状态')->display(function ($value) {
                 $status = config('paystatus')[$value];
                 return "<span style='color:blue'>$status</span>";
             });
-            $order->column('company_id', '客户名称')->display(function ($value) {
-                return Company::find($value)->name;
-            });
-            $order->product_name('产品名称');
-            $order->column('month', '时长');
-            $order->column('price', '单价');
-            $order->amount('总金额');
             $order->created_at('下单时间');
             $order->disableCreateButton();
             $order->disablePagination();

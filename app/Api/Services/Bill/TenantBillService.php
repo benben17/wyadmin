@@ -493,4 +493,31 @@ class TenantBillService
 			return false;
 		}
 	}
+
+	/**
+	 * 处理退租的应收
+	 * @Author   leezhua
+	 * @DateTime 2020-06-27
+	 * @param    [type]     $feeList [费用列表]
+	 * @param    [type]     $leasebackDate [退租日期]
+	 * @return   [type]               [处理后的费用列表]
+	 */
+	public function processLeaseBackFee($feeList, $leasebackDate)
+	{
+		$leasebackDate = strtotime($leasebackDate);
+		foreach ($feeList as &$bill) {
+			$bill->is_valid = 0;
+			$billDate = str2Array($bill->bill_date, "至");
+			$billStartTime = strtotime($billDate[0]);
+			$billEndTime = strtotime($billDate[1]);
+			if ($leasebackDate > $billEndTime) {
+				$bill->is_valid = 1;
+				break;
+			} else if ($leasebackDate >= $billStartTime && $leasebackDate <= $billEndTime) {
+				$bill->is_valid = 1;
+				break;
+			}
+		}
+		return $feeList;
+	}
 }

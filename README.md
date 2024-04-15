@@ -5,7 +5,7 @@
 - php 版本为7.2 以上版本
 - php-mysqlnd 模块
 - MySQL 5.7 以上版本
-- redis 模块
+- redis服务以及predis模块
 
 ### 安装所需组件
 

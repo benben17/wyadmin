@@ -80,9 +80,8 @@ function getVariable($companyId, $key)
 // 获取公司配置
 function companyConfig($id)
 {
-
 	$result = \App\Models\Company::select('config')->find($id);
-	return json_decode($result->config, true);
+	return json_decode($result->config ?? '', true);
 }
 
 /**
@@ -119,17 +118,7 @@ function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 	}
 }
 
-/**
- * 获取合同编号
- *  生成规则：前缀+年月日时分秒+3位随机数
- * @return string
- */
-function getContractNo($companyId): string
-{
-	$contractPrefix = getVariable($companyId, 'contract_prefix');
-	$contractNo = $contractPrefix . date("ymdHis") . mt_rand(10, 99);
-	return $contractNo;
-}
+
 
 /**
  * 数字转大写金额
@@ -191,7 +180,14 @@ function numFormat($num): float
 	// return number_format($num, 2, ",", "");
 }
 
-/** 通过开始日期获取几个月之后的日期 ，并减去一天（合同需要） */
+/**
+ * 通过开始日期获取几个月之后的日期 ，并减去一天（合同需要）
+ * @Author leezhua
+ * @Date 2024-04-14
+ * @param mixed $ymd 
+ * @param mixed $months 
+ * @return string 
+ */
 function getEndNextYmd($ymd, $months)
 {
 	if (empty($ymd) || empty($months)) {
@@ -293,7 +289,7 @@ function diffDays($date1, $date2)
 	$start_date = new DateTime($date1);
 	$end_end = new DateTime($date2);
 	$days = $start_date->diff($end_end)->days;
-	return $days + 1;
+	return $days;
 }
 /**
  * 获取日期后几个月
@@ -400,23 +396,6 @@ function uuid($prefix = '')
 	return $prefix . $uuid;
 }
 
-/**
- * 生成流水号
- *
- * @Author leezhua
- * @DateTime 2021-07-14
- *
- * @return void
- */
-function getChargeNo($type)
-{
-	$no = date('ymdHis', strtotime(nowTime()));
-	if ($type == ChargeEnum::Income) {
-		return 'IE-' . $no . mt_rand(10, 99); // 收入
-	} else {
-		return 'EX-' . $no . mt_rand(10, 99); // 支出
-	}
-}
 
 // 核销流水号
 function getChargeVerifyNo()
@@ -427,8 +406,11 @@ function getChargeVerifyNo()
 /** 通过id获取值 */
 function getDictName($dictId)
 {
+	if (empty($dictId) || !$dictId) {
+		return "";
+	}
 	$dictKey = 'dict_value' . $dictId;
-	return Cache::remember($dictKey, 60, function () use ($dictId) {
+	return Cache::remember($dictKey, 120, function () use ($dictId) {
 		return \App\Api\Models\Company\CompanyDict::where('id', $dictId)->value('dict_value') ?? "";
 	});
 }
@@ -468,11 +450,20 @@ function getTenantNameById($tenantId)
 	if (!$tenantId || empty($tenantId)) {
 		return "公区";
 	}
-	$tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
-	if (!$tenant) {
-		return "";
+	// 使用缓存键 'tenant_name_' . $tenantId
+	$cacheKey = 'tenant_name_' . $tenantId;
+	// 尝试从缓存中获取租户名称
+	$tenantName = Cache::get($cacheKey);
+
+	// 如果缓存中没有租户名称，则从数据库中获取并存入缓存
+	if (!$tenantName) {
+		$tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
+		$tenantName = $tenant['name'] ?? "";
+		// 将租户名称存入缓存，缓存时间为 60 分钟
+		Cache::put($cacheKey, $tenantName, 60 * 4);
 	}
-	return $tenant['name'];
+
+	return $tenantName;
 }
 /**
  * 通过UID获取部门ID
@@ -551,24 +542,4 @@ function getMonthRange($yearMonth): array
 	$endDate = date('Y-m-t', strtotime($startDate));
 	// Return an array with both start and end dates
 	return [$startDate, $endDate];
-}
-
-/**
- * 获取两个日期之间的月份差
- *
- * @Author leezhua
- * @DateTime 2024-03-25
- * @param string $date1
- * @param string $date2
- * @param string $tags
- *
- * @return int
- */
-function diffMonths($startDate, $endDate)
-{
-	$start = new DateTime($startDate);
-	$end = new DateTime($endDate);
-	// $end->modify('+1 day');
-	$interval = $start->diff($end);
-	return $interval->format('%m');
 }

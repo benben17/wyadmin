@@ -82,9 +82,9 @@ class BillRuleService
         $data[$k]['tenant_id']   = $tenantId;
         $data[$k]['contract_id'] = $contractId;
         $data[$k]['type']        = $v['type'] ?? 1;
-        $data[$k]['fee_type']    = $v['fee_type'] ?? 1;
-        $data[$k]['unit_price']  = isset($v['unit_price']) ? $v['unit_price'] : 0.00;
-        $data[$k]['price_type']  = isset($v['price_type']) ? $v['price_type'] : 0;
+        $data[$k]['fee_type']    = $v['fee_type'];
+        $data[$k]['unit_price']  = $v['unit_price'];
+        $data[$k]['price_type']  = $v['price_type'] ?? 1;
         $data[$k]['start_date']  = $v['start_date'] ?? "";
         $data[$k]['bill_type']        = $v['bill_type'] ?? 1;
         $data[$k]['end_date']         = $v['end_date'] ?? "";
@@ -100,7 +100,7 @@ class BillRuleService
         $data[$k]['increase_rate']    = $v['increase_rate'] ?? 0;
         $data[$k]['increase_start_period'] = $v['increase_start_period'] ?? 0;
         $data[$k]['increase_date']    = $v['increase_date'] ?? null;
-        $data[$k]['unit_price_label'] = $v['unit_price_label'] ?? "";
+        $data[$k]['unit_price_label'] = $v['price_type'] == 1 ? AppEnum::dayPrice : AppEnum::monthPrice;
         $data[$k]['remark']           = $v['remark'] ?? "";
         $data[$k]['is_valid']         = $v['is_valid'] ?? 1;                                          // 不传默认为有效
         $data[$k]['created_at']       = nowTime();

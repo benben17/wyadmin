@@ -25,7 +25,7 @@ class YhWorkOrder extends Model
   protected $hidden = ['company_id'];
 
 
-  protected $appends = ['status_label', "pic_full", 'process_pic_full'];
+  protected $appends = ['status_label', "pic_full", 'process_pic_full', 'process_status_label'];
 
 
   public function getStatusLabelAttribute()
@@ -44,6 +44,12 @@ class YhWorkOrder extends Model
   {
     $pic = $this->attributes['process_pic'] ?? "";
     return picFullPath($pic);
+  }
+
+  public function getProcessStatusLabelAttribute()
+  {
+    $status = $this->attributes['process_status'] ?? 0;
+    return  getDictName($status);
   }
 
   /**
@@ -67,7 +73,8 @@ class YhWorkOrder extends Model
 
   public function remarks()
   {
-    return $this->hasMany('App\Api\Models\Common\BseRemark', 'parent_id', 'id')->where('parent_type', AppEnum::YhWorkOrder);
+    return $this->hasMany('App\Api\Models\Common\BseRemark', 'parent_id', 'id')
+      ->where('parent_type', AppEnum::YhWorkOrder);
   }
 
   public function orderLogs()

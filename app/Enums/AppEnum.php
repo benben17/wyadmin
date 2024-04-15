@@ -9,8 +9,6 @@ namespace App\Enums;
  * @Author leezhua
  * @DateTime 2024-03-25
  */
-
-
 abstract class AppEnum extends BaseEnum
 {
   const Channel      = 1;  //  渠道
@@ -44,8 +42,11 @@ abstract class AppEnum extends BaseEnum
   const electricFeeType    = 104;  // 电类型
   const maintenanceFeeType = 105;  // 工程维修费
 
-  const TenantType     = 2;  // 客户类型  1 客户  2 租户
-  const feeType        = 1;  // 费用
+  const TenantCustomer = 1;  // 客户类型  1 客户  2 租户
+  const TenantType     = 2;  // 客户类型  1 客户  2 租户 3 退租租户
+  const TenantLeaseback     = 3;  // 退租租户
+
+  const feeType        = 1;  // 费用 
   const depositFeeType = 2;  // 押金类型
   const dailyFeeType   = 3;  // 日常费用
 
@@ -64,8 +65,8 @@ abstract class AppEnum extends BaseEnum
   const percentUnit     = "%";
 
   // 房源单价
-  const dayPrice   = "元/㎡/天";
-  const monthPrice = "元/㎡/月";
+  const dayPrice   = "元/㎡·天";
+  const monthPrice = "元/㎡·月";
 
   const projType = "办公园区";
 

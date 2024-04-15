@@ -12,8 +12,6 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 .env
-config/database.php
-database.php
 /public/uploads/*
 /storage/logs/*
 .phpintel

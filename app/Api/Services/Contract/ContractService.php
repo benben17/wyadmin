@@ -49,6 +49,38 @@ class ContractService
     return new ContractRoomModel;
   }
 
+
+  /**
+   * 获取合同编号
+   *  生成规则：前缀+年月日时分秒+3位随机数
+   * @return string
+   */
+  function getContractNo($companyId): string
+  {
+    $contractPrefix = getVariable($companyId, 'contract_prefix');
+    $contractNo = $contractPrefix . date("ymdHis") . mt_rand(10, 99);
+    return $contractNo;
+  }
+
+
+  public function checkContractNoRepeat($contractNo, $projId, $contractId = 0)
+  {
+    if (!$contractNo || empty($contractNo)) {
+      return false;
+    }
+    if ($contractId == 0) {
+      return $this->model()
+        ->where('contract_no', $contractNo)
+        ->where('proj_id', $projId)->exists();
+    } else {
+      return $this->model()
+        ->where('contract_no', $contractNo)
+        ->where('proj_id', $projId)
+        ->where('id', '!=', $contractId)
+        ->exists();
+    }
+  }
+
   /**
    * 合同查看
    * @Author   leezhua
@@ -163,6 +195,17 @@ class ContractService
     }
   }
 
+  public function saveContractLog($contract, $user, $title, $remark = "")
+  {
+    $BA['contract_state'] = $contract['contract_state'];
+    $BA['id']         = $contract['id'];
+    $BA['c_uid']      = $user['id'];
+    $BA['c_username'] = $user['realname'];
+    $BA['title']      = $title;
+    $BA['remark']     = $remark ?? "";
+    $this->saveLog($BA);
+  }
+
   /** 合同作废 */
   public function disuseContract($DA, $user)
   {
@@ -271,13 +314,13 @@ class ContractService
   {
     try {
       if ($DA['contract_state'] == 1) {
-        $DA['title'] = "待审核";
+        $DA['title']  = "待审核";
         $DA['remark'] = $user->realname . '在' . nowTime() . '提交' . $DA['title'] . "等待审核";
       } else {
-        $DA['title'] = "保存合同";
+        $DA['title']  = "保存合同";
         $DA['remark'] = $user->realname . '在' . nowTime() . $DA['title'];
       }
-      $DA['c_uid'] = $user->id;
+      $DA['c_uid']      = $user->id;
       $DA['c_username'] = $user->realname;
       // $DA['type'] = 2;
       $this->saveLog($DA);
@@ -452,9 +495,10 @@ class ContractService
     try {
       $freePeriod  = new ContractFreePeriod();
       $freePeriod->contract_id = $contractId;
-      $freePeriod->tenant_id       = $tenantId;
-      $freePeriod->start_date   = $DA['start_date'];
-      $freePeriod->free_num     = $DA['free_num'];
+      $freePeriod->tenant_id   = $tenantId;
+      $freePeriod->start_date  = $DA['start_date'];
+      $freePeriod->free_num    = $DA['free_num'];
+      $freePeriod->bill_date_delay = $DA['bill_date_delay'] ?? 0; // 账期是否顺延
       if (isset($DA['end_date'])) {
         $freePeriod->end_date = $DA['end_date'];
       }
@@ -540,14 +584,13 @@ class ContractService
     try {
       DB::transaction(function () use ($feeBill) {
         foreach ($feeBill as  $feeList) {
-          $data = array();
-          foreach ($feeList['bill'] as $k => $v) {
-            if ($v['is_valid'] === 1) {
+          foreach ($feeList['bill'] as $fee) {
+            if ($fee['is_valid'] == 1) {
               continue;
             }
-            $this->contractBillModel()->whereId($v['id'])->delete();
+            $this->contractBillModel()->whereId($fee['id'])->delete();
             $tenantBillService = new TenantBillService;
-            $tenantBillService->billDetailModel()->where('contract_bill_id', $v['id'])->delete();
+            $tenantBillService->billDetailModel()->where('contract_bill_id', $fee['id'])->delete();
           }
         }
       }, 2);
@@ -555,7 +598,7 @@ class ContractService
       return true;
     } catch (Exception $e) {
       Log::error("合同变更老账单处理失败，详细信息：" . $e->getMessage());
-      throw $e;
+      throw new Exception("合同变更账单处理失败");
     }
     return false;
   }
@@ -578,22 +621,15 @@ class ContractService
     try {
       DB::transaction(function () use ($feeBill, $contract, $user) {
         foreach ($feeBill as  $list) {
-
           foreach ($list['bill'] as $v) {
-
-
             // 保存新的合同费用
-            $contractFee = $this->formatFeeBill($v, $contract, $user);
-            $fee = $this->contractBillModel()->create($contractFee);
-
-            // 保存新的租户应收
+            $billFee = $this->formatFeeBill($v, $contract, $user);
+            $fee = $this->contractBillModel()->create($billFee);
+            // 保存新的应收
             $tenantBillService = new TenantBillService;
-
-
-            $contractFee['contract_bill_id'] = $fee->id;
-            $contractFee['id'] = 0;
-
-            $tenantBillService->saveBillDetail($contractFee, $user);
+            $billFee['contract_bill_id'] = $fee->id;
+            $billFee['id'] = 0;
+            $tenantBillService->saveBillDetail($billFee, $user);
           }
         }
       }, 2);
@@ -731,6 +767,81 @@ class ContractService
     } catch (Exception $e) {
       Log::error("合同退回失败" . $e->getMessage());
       throw new Exception("合同退回失败" . $e->getMessage());
+    }
+  }
+
+
+
+  /**
+   * 格式化合同并保存
+   * @Author   leezhua
+   * @DateTime 2021-06-01
+   * @param    [type]     $DA   [description]
+   * @param    string     $type [description]
+   * @return   [type]           [description]
+   */
+  public function saveContract($DA, $user, $type = "add")
+  {
+    if ($type == "add") {
+      $contract = $this->model();
+      $contract->c_uid = $user->id;
+      $contract->company_id = $user->company_id;
+    } else {
+      //编辑
+      $contract = $this->model()->find($DA['id']);
+      $contract->u_uid = $user->id;
+    }
+    // 合同编号不设置的时候系统自动生成
+    if (!isset($DA['contract_no']) || empty($DA['contract_no'])) {
+      $contractNo = $this->getContractNo($user->company_id);
+      $contract->contract_no = $contractNo;
+    } else {
+      $contract->contract_no = $DA['contract_no'];
+    }
+    $contract->free_type             = isset($DA['free_type']) ? $DA['free_type'] : 0;
+    $contract->proj_id               = $DA['proj_id'];
+    $contract->contract_state        = $DA['contract_state'];
+    $contract->contract_type         = $DA['contract_type'];
+    $contract->violate_rate          = isset($DA['violate_rate']) ? $DA['violate_rate'] : 0;
+    $contract->sign_date             = $DA['sign_date'];
+    $contract->start_date            = $DA['start_date'];
+    $contract->end_date              = $DA['end_date'];
+    $contract->belong_uid            = $DA['belong_uid'] ?? $user->id;
+    $contract->belong_person         = $DA['belong_person'] ?? $user->realname;
+    $contract->tenant_id             = $DA['tenant_id'];
+    $contract->tenant_name           = $DA['tenant_name'];
+    $contract->lease_term            = $DA['lease_term'];
+    $contract->industry              = $DA['industry'];
+    $contract->tenant_sign_person    = isset($DA['tenant_sign_person']) ? $DA['tenant_sign_person'] : "";
+    $contract->tenant_legal_person   = isset($DA['tenant_legal_person']) ? $DA['tenant_legal_person'] : "";
+    $contract->sign_area             = $DA['sign_area'];
+    $contract->rental_deposit_amount = isset($DA['rental_deposit_amount']) ? $DA['rental_deposit_amount'] : 0.00;
+    $contract->rental_deposit_month  = isset($DA['rental_deposit_month']) ? $DA['rental_deposit_month'] : 0;
+    if (isset($DA['increase_date'])) {
+      $contract->increase_date = $DA['increase_date'];
+    }
+    $contract->increase_rate           = isset($DA['increase_rate']) ? $DA['increase_rate'] : 0;
+    $contract->increase_year           = isset($DA['increase_year']) ? $DA['increase_year'] : 0;
+    $contract->bill_type               = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
+    $contract->ahead_pay_month         = isset($DA['ahead_pay_month']) ? $DA['ahead_pay_month'] : "";
+    $contract->rental_price            = isset($DA['rental_price']) ? $DA['rental_price'] : 0.00;
+    $contract->rental_price_type       = isset($DA['rental_price_type']) ? $DA['rental_price_type'] : 1;
+    $contract->management_price        = isset($DA['management_price']) ? $DA['management_price'] : 0.00;
+    $contract->management_month_amount = isset($DA['management_month_amount']) ? $DA['management_month_amount'] : 0;
+    $contract->rental_month_amount    = isset($DA['rental_month_amount']) ? $DA['rental_month_amount'] : 0.00;
+    $contract->manager_bank_id        = isset($DA['manager_bank_id']) ? $DA['manager_bank_id'] : 0;
+    $contract->rental_bank_id         = isset($DA['rental_bank_id']) ? $DA['rental_bank_id'] : 0;
+    $contract->manager_deposit_month  = isset($DA['manager_deposit_month']) ? $DA['manager_deposit_month'] : 0;
+    $contract->manager_deposit_amount = isset($DA['manager_deposit_amount']) ? $DA['manager_deposit_amount'] : 0.00;
+    $contract->increase_show          = isset($DA['increase_show']) ? $DA['increase_show'] : 0;
+    $contract->manager_show           = isset($DA['manager_show']) ? $DA['manager_show'] : 0;
+    $contract->rental_usage           = isset($DA['rental_usage']) ? $DA['rental_usage'] : "";
+    $contract->room_type              = isset($DA['room_type']) ? $DA['room_type'] : 1;
+    $res = $contract->save();
+    if ($res) {
+      return $contract;
+    } else {
+      return false;
     }
   }
 }

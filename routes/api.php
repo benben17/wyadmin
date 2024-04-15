@@ -231,6 +231,8 @@ Route::group(['prefix' => 'business/contract'], function () {
 
     //合同账单
     Route::post('bill/create', '\App\Api\Controllers\Contract\ContractBillController@createContractBill');
+    // 变更合同账单
+    Route::post('bill/change', '\App\Api\Controllers\Contract\ContractBillController@contractChangeBill');
     // Route::post('bill/save', '\App\Api\Controllers\Contract\ContractBillController@saveContractBill');
     //合同模版
     Route::post('word', '\App\Api\Controllers\Contract\ContractController@contractWord');
@@ -400,10 +402,10 @@ Route::group(['prefix' => 'operation/tenant/share'], function () {
 
 // 租户退租
 Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
-    Route::post('/list', '\App\Api\Controllers\Operation\LeasebackController@list');
-    Route::post('/add', '\App\Api\Controllers\Operation\LeasebackController@store');
-    Route::post('/edit', '\App\Api\Controllers\Operation\LeasebackController@update');
-    Route::post('/show', '\App\Api\Controllers\Operation\LeasebackController@show');
+    Route::post('/list', '\App\Api\Controllers\Contract\LeasebackController@list');
+    Route::post('/add', '\App\Api\Controllers\Contract\LeasebackController@store');
+    Route::post('/edit', '\App\Api\Controllers\Contract\LeasebackController@update');
+    Route::post('/show', '\App\Api\Controllers\Contract\LeasebackController@show');
 });
 
 //租户账单
@@ -430,6 +432,7 @@ Route::group(['prefix' => 'operation/tenant/bill'], function () {
     // 生成word 版账单
     Route::post('toWord', '\App\Api\Controllers\Bill\BillController@billToWord');
 });
+
 // 租户押金
 Route::group(['prefix' => 'operation/tenant'], function () {
     // 押金
