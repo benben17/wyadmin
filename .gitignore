@@ -4,7 +4,6 @@
 /public/template/*
 /vendor/
 /bootstrap/cache/*
-.env.backup
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml

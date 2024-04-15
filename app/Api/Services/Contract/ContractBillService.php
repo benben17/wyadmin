@@ -709,12 +709,6 @@ class ContractBillService
     }
   }
 
-
-
-
-
-
-
   /**
    * 生成账单
    *
@@ -758,4 +752,33 @@ class ContractBillService
 
     return $data;
   }
+
+
+  // /**
+  //  * 更新账单，单条数据更新
+  //  * 传入bill 根据bill 里面id 重新复值并更新
+  //  * 
+  //  */
+  // public function updateBill($bill)
+  // {
+  //   $billModel = $this->contractBillModel();
+  //   $billId = $bill['id'];
+  //   $bill = array(
+  //     'company_id'  => $bill['company_id'],
+  //     'project_id'  => $bill['project_id'],
+  //     'contract_id' => $bill['contract_id'],
+  //     'fee_type'    => $bill['fee_type'],
+  //     'type'        => $bill['type'],
+  //     'price'       => $bill['price'],
+  //     'price_label' => $bill['price_label'],
+  //     'amount'      => $bill['amount'],
+  //     'remark'      => $bill['remark'],
+  //     'bill_date'   => $bill['bill_date'],
+  //     'bill_num'    => $bill['bill_num'],
+  //     'charge_date' => $bill['charge_date'],
+  //     'start_date'  => $bill['start_date'],
+  //     'end_date'    => $bill['end_date'],
+  //   );
+  //   $billModel->where('id', $billId)->update($bill);
+  // }
 }

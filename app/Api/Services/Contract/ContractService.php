@@ -583,15 +583,13 @@ class ContractService
     // 把合同中的
     try {
       DB::transaction(function () use ($feeBill) {
-        foreach ($feeBill as  $feeList) {
-          foreach ($feeList['bill'] as $fee) {
-            if ($fee['is_valid'] == 1) {
-              continue;
-            }
-            $this->contractBillModel()->whereId($fee['id'])->delete();
-            $tenantBillService = new TenantBillService;
-            $tenantBillService->billDetailModel()->where('contract_bill_id', $fee['id'])->delete();
+        foreach ($feeBill['bill'] as $fee) {
+          if ($fee['is_valid'] == 1) {
+            continue;
           }
+          $this->contractBillModel()->whereId($fee['id'])->delete();
+          $tenantBillService = new TenantBillService;
+          $tenantBillService->billDetailModel()->where('contract_bill_id', $fee['id'])->delete();
         }
       }, 2);
 
@@ -686,23 +684,23 @@ class ContractService
   private function formatFeeBill($fee, $contract, $user): array
   {
     return [
-      'company_id' => $user['company_id'],
-      'proj_id' => $contract['proj_id'],
-      'contract_id' => $contract['id'],
-      'tenant_id' => $contract['tenant_id'],
-      'type' => isset($fee['type']) ? $fee['type'] : 1, // 1 收款 2 付款
-      'fee_type' => $fee['fee_type'], // 费用类型
-      'price' => isset($fee['price']) ? $fee['price'] : "",
+      'company_id'       => $user['company_id'],
+      'proj_id'          => $contract['proj_id'],
+      'contract_id'      => $contract['id'],
+      'tenant_id'        => $contract['tenant_id'],
+      'type'             => isset($fee['type']) ? $fee['type'] : 1,                            // 1 收款 2 付款
+      'fee_type'         => $fee['fee_type'],                                                  // 费用类型
+      'price'            => isset($fee['price']) ? $fee['price'] : "",
       'unit_price_label' => isset($fee['unit_price_label']) ? $fee['unit_price_label'] : "",
-      'amount' => $fee['amount'],
-      'bill_date' => $fee['bill_date'],
-      'charge_date' => $fee['charge_date'],
-      'start_date' => $fee['start_date'],
-      'end_date' => $fee['end_date'],
-      'is_valid' => 1,
-      'c_uid' => $user['id'],
-      'remark' => isset($fee['remark']) ? $fee['remark'] : "",
-      'created_at' => nowTime()
+      'amount'           => $fee['amount'],
+      'bill_date'        => $fee['bill_date'],
+      'charge_date'      => $fee['charge_date'],
+      'start_date'       => $fee['start_date'],
+      'end_date'         => $fee['end_date'],
+      'is_valid'         => 1,
+      'c_uid'            => $user['id'],
+      'remark'           => isset($fee['remark']) ? $fee['remark'] : "",
+      'created_at'       => nowTime()
     ];
   }
 

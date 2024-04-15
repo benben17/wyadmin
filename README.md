@@ -48,12 +48,16 @@
 #### 安装环境
 
 - nginx
+`apt install nginx`
 - MySQL
 - php 7.4
+- redis
+`apt install redis`
 - 安装
 `php composer-setup.php --install-dir=/usr/local/bin --filename=composer`
 - 下载代码
 `git clone git@github.com:benben17/wyadmin.git`
+`php artisan storage:link`
 - 变量信息
 `cd wyadmin`
 `cp .env.example  .env`
