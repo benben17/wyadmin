@@ -99,7 +99,7 @@ class BuildingService
             ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
       ->first()->toArray();
     if ($room['free_area'] == 0) {
-      $rentalRate = 0.00;
+      $rentalRate = 100.00;
     } else {
       $rentalRate = numFormat($room['free_area'] / $room['total_area'] * 100);
     }
@@ -123,11 +123,11 @@ class BuildingService
     try {
       $roomIds = str2Array($roomIds);
       $res = BuildingRoomModel::whereIn('id', $roomIds)->update(['room_state' => $roomState]);
+      return $res;
     } catch (Exception $e) {
+      Log::error("更新房间错误：" . $e->getMessage());
       throw new Exception("更新房间错误：" . $e->getMessage());
-      Log::error($e->getMessage());
     }
-    return $res;
   }
 
   /**
@@ -152,10 +152,9 @@ class BuildingService
       $v['proj_name'] = $v['building']['proj_name'];
       $v['build_no']  = $v['building']['build_no'];
       $v['floor_no']  = $v['floor']['floor_no'];
-      $v['pic_list_full'] = [];
-      foreach ($v['pic_list'] ?? [] as $key => $val) {
-        $v['pic_list_full'][$key] = getOssUrl($val);
-      }
+      // foreach ($v['pic_list'] ?? [] as $key => $val) {
+      //   $v['pic_list_full'][$key] = getOssUrl($val);
+      // }
     }
     return $data;
   }
@@ -208,14 +207,13 @@ class BuildingService
       } else {
         return false;
       }
-      $build->proj_name = $row[0];
-      $build->build_no = $row[1];
-      $build->build_type = $row[3];
-      $build->build_usage = $row[4];
-
+      $build->proj_name         = $row[0];
+      $build->build_no          = $row[1];
+      $build->build_type        = $row[3];
+      $build->build_usage       = $row[4];
       $build->build_certificate = $row[5];
-      $build->floor_height  = $row[6];
-      $build->build_area = $row[7];
+      $build->floor_height      = $row[6];
+      $build->build_area        = $row[7];
       if (isDate($row[8])) {
         $build->build_date =  $row[8];
       }

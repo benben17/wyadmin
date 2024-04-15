@@ -73,7 +73,7 @@ class DepositController extends BaseController
 		// $validatedData = $request->validate([
 		//     'order_type' => 'required|numeric',
 		// ]);
-		$pagesize = $this->setPagesize($request);
+		// $pagesize = $this->setPagesize($request);
 		$map = array();
 		// 排序字段
 		if ($request->input('orderBy')) {
@@ -106,18 +106,19 @@ class DepositController extends BaseController
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 			})
 			->with('depositRecord');
+		$pageQuery = clone $subQuery;
 
-		$data = $subQuery->orderBy($orderBy, $order)
-			->paginate($pagesize)->toArray();
+		$data = $this->pageData($pageQuery->with('bankAccount'), $request);
 
 		$list = $subQuery->get()->toArray();
 
-		$data = $this->handleBackData($data);
 		foreach ($data['result'] as $k => &$v1) {
 			$record = $this->depositService->formatDepositRecord($v1['deposit_record']);
+			$v1['bank_name'] = $v1['bank_account']['account_name'] ?? "";
+			unset($v1['bank_account']);
 			$v1 = $v1 + $record;
 		}
-		// 统计每种类型费用的应收/实收/ 退款/ 转收入
+		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
 		$data['stat'] = $this->depositService->depositStat($list);
 		return $this->success($data);
 	}
@@ -570,6 +571,7 @@ class DepositController extends BaseController
 			})
 			->whereHas('billDetail', function ($q) use ($request) {
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
+				$request->bill_detail_id && $q->where('id', $request->bill_detail_id);
 			})->with('billDetail:id,tenant_id,tenant_name')
 			->orderBy($orderBy, $order)
 			->paginate($pagesize)->toArray();

@@ -125,8 +125,8 @@ class DepositService
       $stat['available_amt'] = $stat['receive_amt'] - $stat['refund_amt'] - $stat['charge_amt'];
     }
     $statData = array(
-      ["label" => '总金额', "amount" =>  $stat['total_amt'], 'remark' => '押金账单总金额'],
-      ["label" => '已收款金额', "amount" => $stat['receive_amt'], 'remark' => '押金账单总收款金额'],
+      ["label" => '总应收金额', "amount" =>  $stat['total_amt'], 'remark' => '押金账单总金额'],
+      ["label" => '总已收金额', "amount" => $stat['receive_amt'], 'remark' => '押金账单总收款金额'],
       ["label" => '退款金额', "amount" => $stat['refund_amt'], 'remark' => '押金账单总退款金额'],
       ["label" => '转收入金额', "amount" => $stat['charge_amt'], 'remark' => '押金账单总转收入金额'],
       ["label" => '押金余额', "amount" => $stat['available_amt'], 'remark' => '押金总可用金额，总收入-退款-转收入'],

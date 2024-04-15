@@ -433,6 +433,80 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/print": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "账单打印",
+                "operationId": "485a0eb426a5242a357f46eab81a9120",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "receive_amount"
+                                ],
+                                "properties": {
+                                    "billIds": {
+                                        "description": "账单ids",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "billIds": "[1]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/bill/printView": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "账单打印预览",
+                "operationId": "00e983cb610b8eb723508d1d485e3bd8",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "receive_amount"
+                                ],
+                                "properties": {
+                                    "billIds": {
+                                        "description": "账单ids",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "billIds": "[1]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/bill/fee/list": {
             "post": {
                 "tags": [
@@ -2239,10 +2313,10 @@
                             "schema": {
                                 "schema": "UserModel",
                                 "required": [
-                                    "roomId"
+                                    "id"
                                 ],
                                 "properties": {
-                                    "roomId": {
+                                    "id": {
                                         "description": "房源Id",
                                         "type": "int"
                                     }
@@ -2250,7 +2324,7 @@
                                 "type": "object"
                             },
                             "example": {
-                                "roomId": 11
+                                "id": 11
                             }
                         }
                     }
@@ -7092,7 +7166,8 @@
                 "tags": [
                     "合同"
                 ],
-                "summary": "同期合同到期，默认显示2年的数据",
+                "summary": "同期合同到期，默认显示2年的数据/执行合同表头",
+                "operationId": "c43be928b776cc3226ccbe448a5ae9d1",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -7554,7 +7629,7 @@
                 "tags": [
                     "合同"
                 ],
-                "summary": "合同退回",
+                "summary": "合同退回编辑状态",
                 "operationId": "fcd683ba7a6396fefd361497a27fdf84",
                 "requestBody": {
                     "content": {
@@ -7579,7 +7654,7 @@
                             },
                             "example": {
                                 "id": "1",
-                                "remark": "合同退回"
+                                "remark": "合同退回编辑状态"
                             }
                         }
                     }
@@ -7587,6 +7662,55 @@
                 "responses": {
                     "200": {
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/api/dashboard/index": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "首页数据",
+                "description": "首页数据",
+                "operationId": "dashboard",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -11551,6 +11675,57 @@
                                 "properties": {
                                     "id": {
                                         "description": "ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/stat/bill": {
+            "post": {
+                "tags": [
+                    "费用统计"
+                ],
+                "summary": "运营费用收费统计",
+                "operationId": "2bbb58064e6a690f28abe8e3d2b455c5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "type",
+                                    "year"
+                                ],
+                                "properties": {
+                                    "year": {
+                                        "description": "2021,默认为本年度",
+                                        "type": "int"
+                                    },
+                                    "month": {
+                                        "description": "月份",
+                                        "type": "int"
+                                    },
+                                    "start_ymd": {
+                                        "description": "开始日期",
+                                        "type": "str"
+                                    },
+                                    "end_ymd": {
+                                        "description": "结束日期",
+                                        "type": "str"
+                                    },
+                                    "type": {
+                                        "description": "1所有 2 租金3管理费 4 其他",
                                         "type": "int"
                                     }
                                 },
