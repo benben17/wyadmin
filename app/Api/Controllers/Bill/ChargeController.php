@@ -337,11 +337,13 @@ class ChargeController extends BaseController
 			$billDetailList = $billDetailService->billDetailModel()
 				->whereIn('id', $billDetailIds)
 				->where('status', ChargeEnum::chargeUnVerify)
-				->where('bill_id', '>', 0)
 				->get();
 			// Check if all selected bill details are found
-			if ($billDetailList->count() < count($billDetailIds)) {
-				return $this->error("所选应收,包含未生成账单的应收,或者已核销的应收");
+			// if ($billDetailList->count() < count($billDetailIds)) {
+			// 	return $this->error("所选应收,包含未生成账单的应收,或者已核销的应收");
+			// }
+			if ($billDetailList->isEmpty()) {
+				return $this->error("未找到应收记录，或者选择的应收已核销");
 			}
 
 			$writeOffRes = $this->chargeService->detailBillListWriteOff($billDetailList->toArray(), $charge->id, $verifyDate, $this->user);
