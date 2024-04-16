@@ -91,6 +91,7 @@ class BillDetailController extends BaseController
 		$pageQuery = clone $subQuery;
 		$pageQuery->with('tenant:id,name');
 		$data = $this->pageData($pageQuery, $request);
+		return Db::getQueryLog();
 		// return response()->json(DB::getQueryLog());
 		$feeStat = FeeType::selectRaw('fee_name,id,type')
 			->where('type', AppEnum::feeType)

@@ -219,10 +219,10 @@ class LeasebackController extends BaseController
     {
         $validatedData = $request->validate([
             'contract_id'            => 'required|gt:0',
-            'leaseback_date'         => 'required|date',
+            // 'leaseback_date'         => 'required|date',
         ], [
-            'leaseback_date.required' => '退租日期不能为空',
-            'leaseback_date.date'     => '退租日期格式不正确',
+            // 'leaseback_date.required' => '退租日期不能为空',
+            // 'leaseback_date.date'     => '退租日期格式不正确',
             'contract_id.gt'          => '合同id不能为空',
             'contract_id.required'    => '合同id不能为空',
         ]);
