@@ -94,19 +94,19 @@ class TenantBillService
 					$billDetail = $this->billDetailModel();
 					$billDetail->c_uid = $user['id'];
 				}
-				$billDetail->company_id = $user['company_id'];
-				$billDetail->proj_id = $DA['proj_id'];
+				$billDetail->company_id  = $user['company_id'];
+				$billDetail->proj_id     = $DA['proj_id'];
 				$billDetail->contract_id = $DA['contract_id'] ?? 0;
-				$billDetail->tenant_id = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+				$billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
 				$billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
-				$billDetail->type = isset($DA['type']) ? $DA['type'] : 1;
-				$billDetail->bill_type = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
-				$billDetail->fee_type = $DA['fee_type']; // 费用类型
-				$billDetail->amount = $DA['amount'];
-				$billDetail->bank_id = $DA['bank_id'] ?? 0;
-				if ($billDetail->bank_id == 0) {
-					$billDetail->bank_id = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
-				}
+				$billDetail->type        = isset($DA['type']) ? $DA['type'] : 1;
+				$billDetail->bill_type   = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
+				$billDetail->fee_type    = $DA['fee_type'];                                 // 费用类型
+				$billDetail->amount      = $DA['amount'];
+				// $billDetail->bank_id = $DA['bank_id'] ?? 0;
+				// if ($billDetail->bank_id == 0) {
+				$billDetail->bank_id = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
+				// }
 
 				if (isset($DA['charge_date'])) {
 					$billDetail->charge_date = $DA['charge_date']; //账单日期
@@ -511,6 +511,9 @@ class TenantBillService
 	 */
 	public function processLeaseBackFee($feeList, $leasebackDate)
 	{
+		if (!$leasebackDate) {
+			return $feeList;
+		}
 		$leasebackDate = strtotime($leasebackDate);
 		foreach ($feeList as &$bill) {
 			$bill->is_valid = 0;

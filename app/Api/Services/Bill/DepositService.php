@@ -51,6 +51,8 @@ class DepositService
         $dRecord->proj_id        = $deposit['proj_id'];
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
+        $dRecord->tocharge_data  = $DA['tocharge_data'] ?? nowYmd();
+        $dRecord->receive_date   = $DA['receive_date'] ?? nowYmd();
         $dRecord->type           = $DA['type'];
         $dRecord->bank_id        = $deposit['bank_id'];
         $dRecord->remark         = isset($DA['remark']) ? $DA['remark'] : "";

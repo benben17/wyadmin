@@ -101,7 +101,14 @@ class DepositController extends BaseController
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->year && $q->whereYear('charge_date', $request->year);
-				$request->status && $q->whereIn('status', $request->status);
+				if ($request->status) {
+					$status = array_filter(str2Array($request->status), function ($v) {
+						is_numeric($v);
+					});
+					if (!empty($status) > 0) {
+						$q->whereIn('status', $status);
+					}
+				}
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 			})
@@ -119,7 +126,7 @@ class DepositController extends BaseController
 			$v1 = $v1 + $record;
 		}
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
-		$data['stat'] = $this->depositService->depositStat($list);
+		// $data['stat'] = $this->depositService->depositStat($list);
 		return $this->success($data);
 	}
 
@@ -250,10 +257,13 @@ class DepositController extends BaseController
 		$data = $this->depositService->depositBillModel()
 			->with('depositRecord')
 			->with('billDetailLog')
-			->find($request->id)->toArray();
+			->find($request->id);
+		if (!$data) {
+			return $this->error((object)[]);
+		}
 		// return response()->json(DB::getQueryLog());
 		$recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);
-		$data = $data + $recordSum;
+		$data = $data->toArray() + $recordSum;
 		// $data = array_merge($data + $info);
 		return $this->success($data);
 	}
@@ -340,7 +350,7 @@ class DepositController extends BaseController
 					->with('depositRecord')
 					->find($DA['id'])->toArray();
 				if (!$deposit) {
-					return $this->error("未找到押金信息");
+					throw new Exception("未找到押金信息");
 				}
 
 				$record = $this->depositService->formatDepositRecord($deposit['deposit_record']);
@@ -353,8 +363,10 @@ class DepositController extends BaseController
 					$remark = "押金转收入";
 				}
 				$DA['remark'] = $remark;
+				$DA['tocharge_date']  = $DA['tocharge_date'] ?? nowYmd();
 				$this->depositService->saveDepositRecord($deposit, $DA, $user);
 				// 押金转收入 写入到charge  收支表
+				$deposit['charge_date'] = $DA['tocharge_date'];
 				$this->chargeService->depositToCharge($deposit, $DA, $user);
 				if ($availableAmt == $DA['amount']) {
 					$updateData['status'] = DepositEnum::Clear;
@@ -430,6 +442,7 @@ class DepositController extends BaseController
 				}
 				$updateData['receive_date'] = $DA['receive_date'] ?? nowYmd();
 				// 保存押金流水记录
+				$DA['receive_date'] = $DA['receive_date'] ?? nowYmd();
 				$this->depositService->saveDepositRecord($depositFee, $DA, $user);
 				// 更新 押金信息 【状态，收款金额】
 				$this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);

@@ -194,7 +194,7 @@ class LeasebackController extends BaseController
     }
     /**
      * @OA\Post(
-     *     path="/api/operation/contract/leaseback/show",
+     *     path="/api/operation/tenant/leaseback/show",
      *     tags={"租户退租"},
      *     summary="租户退租",
      *    @OA\RequestBody(

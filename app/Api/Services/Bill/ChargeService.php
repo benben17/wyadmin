@@ -357,8 +357,8 @@ class ChargeService
       $charge->verify_amount = 0.00;
       $charge->tenant_name = $billDetail['tenant_name'];
       $charge->fee_type    =  0;
-      $charge->bank_id    =  $billDetail['bank_id'] ?? 0;
-      $charge->charge_date = nowYmd();
+      $charge->bank_id     =  $billDetail['bank_id'] ?? 0;
+      $charge->charge_date = $BA['charge_date'] ?? nowYmd();
       $charge->status      =  0; // 未核销
       $charge->remark      =  $BA['remark'];
       $chargeRes = $charge->save();

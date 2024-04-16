@@ -89,6 +89,7 @@ class ChargeController extends BaseController
 			$request->order = 'desc';
 		}
 		$map['source'] = $request->source;
+		DB::enableQueryLog();
 		$subQuery = $this->chargeService->model()
 			->where($map)
 			->where(function ($q) use ($request) {
@@ -105,10 +106,12 @@ class ChargeController extends BaseController
 		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name'])
 			->withCount('chargeBillRecord');
 		$data = $this->pageData($pageSubQuery, $request);
+		// return DB::getQueryLog();
 		foreach ($data['result'] as &$v) {
 			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
-			unset($v['bank_account']);
 			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
+			$v['pay_person'] = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
+			unset($v['bank_account']);
 		}
 
 		DB::enableQueryLog();
