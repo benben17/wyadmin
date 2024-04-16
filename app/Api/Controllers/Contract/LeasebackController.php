@@ -233,7 +233,7 @@ class LeasebackController extends BaseController
 
         $feeBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
-            ->where('type', '!=', AppEnum::feeType)
+            ->where('type', '!=', AppEnum::depositFeeType)
             ->where('status', AppEnum::feeStatusUnReceive)->get();
 
         $depositBills = $tenantService->billDetailModel()

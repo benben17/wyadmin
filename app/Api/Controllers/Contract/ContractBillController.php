@@ -259,11 +259,15 @@ class ContractBillController extends BaseController
     ], $this->errorMsg);
     $contract = $request->toArray();
     $feeList = array();
-    $this->billRuleService->validateIncrease($contract['bill_rule']);
-
-    $newFeeList = $this->billService->generateBill($contract, $this->uid);
-    $feeList = $newFeeList;
-    $feeList['old_fee_list'] = $this->billService->processOldBill($contract['id'], $contract['bill_rule']);
-    return $this->success($feeList);
+    try {
+      $this->billRuleService->validateIncrease($contract['bill_rule']);
+      $newFeeList = $this->billService->generateBill($contract, $this->uid);
+      $feeList = $newFeeList;
+      $feeList['old_fee_list'] = $this->billService->processOldBill($contract['id'], $contract['bill_rule']);
+      return $this->success($feeList);
+    } catch (\Exception $th) {
+      Log::error("合同变更账单生成失败." . $th->getMessage());
+      return $this->error("合同变更账单生成失败:" . $th->getMessage());
+    }
   }
 }

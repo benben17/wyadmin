@@ -583,12 +583,12 @@ class ContractService
     // 把合同中的
     try {
       DB::transaction(function () use ($feeBill) {
-        foreach ($feeBill['bill'] as $fee) {
+        $tenantBillService = new TenantBillService;
+        foreach ($feeBill as $fee) {
           if ($fee['is_valid'] == 1) {
             continue;
           }
           $this->contractBillModel()->whereId($fee['id'])->delete();
-          $tenantBillService = new TenantBillService;
           $tenantBillService->billDetailModel()->where('contract_bill_id', $fee['id'])->delete();
         }
       }, 2);
@@ -601,9 +601,6 @@ class ContractService
     return false;
   }
 
-
-
-
   /**
    * 合同变更账单处理 保存合同中的费用账单以及 租户表中的账单信息
    *
@@ -611,7 +608,7 @@ class ContractService
    * @DateTime 2021-07-11
    * @param [type] $feeBill
    *
-   * @return void
+   * @return bool
    */
   public function changeContractBill($feeBill, $contract, $user): bool
   {

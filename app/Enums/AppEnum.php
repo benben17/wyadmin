@@ -84,4 +84,7 @@ abstract class AppEnum extends BaseEnum
 
   const valid = 1;  // 有效
   const invalid = 0;  // 无效
+
+  const billDelay = 1; // 1 延期 2 正常
+  const billNormal = 2; // 1 延期 2 正常
 }

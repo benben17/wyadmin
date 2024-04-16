@@ -85,7 +85,7 @@ class ChargeController extends BaseController
 		if (!$request->orderBy) {
 			$request->orderBy = 'charge_date';
 		}
-		if ($request->order) {
+		if (!$request->order) {
 			$request->order = 'desc';
 		}
 		$map['source'] = $request->source;
@@ -112,9 +112,7 @@ class ChargeController extends BaseController
 		}
 
 		DB::enableQueryLog();
-
 		$data['stat'] = $this->chargeService->listStat($subQuery);
-
 		return $this->success($data);
 	}
 

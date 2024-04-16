@@ -255,14 +255,11 @@ class ContractBillService
     $period  = $rule['pay_method'];
     // $startDate = $DA['startDate'];
     $freeType = $DA['free_type'];
-    $ceil = ceil($DA['lease_term'] / $period);
-    // Log::error($ceil . "aaa" . $DA['lease_term']);
+    $ceil = ceil($rule['lease_term'] / $period);
+    Log::error($ceil . "aaa" . $DA['lease_term']);
     $bill = array();
-
-
     $remark = "";
     for ($i = 0; $i <= $ceil; $i++) {
-
       $remark = "";
       $bill[$i]['type'] = 1;
       $bill[$i]['fee_type'] = $rule['fee_type'];
@@ -303,9 +300,11 @@ class ContractBillService
       // $freeAmt = 0.00;
       if ($endDate >= $rule['end_date']) {  //如果账单结束日期大于或者等于合同日期的时候 处理最后一个账单 并跳出
         $lastBillEndDate  = $rule['end_date'];
-        // Log::error($lastDate . "最后一个账期");
+        //  本期免租加上顺延免租 除以周期 取余数（因为根据时间 ，免租时长大于一个周期，就不生成最后一个周期）
+        $freeNum = ($this->delayFreeNum + $freeNum) % $period;
         $this->increaseMonthAmt($rule, $startDate, $lastBillEndDate, $freeType, $freeNum, $increaseAmt, $remark);
         $remark .= "最后一个账期";
+
         $bill[$i]['end_date'] = $rule['end_date']; // 结束日期为合同结束日期
       } else {
         $this->increaseMonthAmt($rule, $startDate, $endDate, $freeType, $freeNum, $increaseAmt, $remark);
@@ -317,7 +316,7 @@ class ContractBillService
       $data['total']         += $bill[$i]['amount'];
       $bill[$i]['remark']     = "面积:" . $rule['area_num'] . "|" . $remark;
 
-      if ($endDate >= $rule['end_date']) {
+      if (strtotime($endDate) >= strtotime($rule['end_date'])) {
         break;
       }
     }
@@ -389,7 +388,7 @@ class ContractBillService
     $isLastBill = strtotime($rule['end_date']) == strtotime($endDate);
     if ($isLastBill) {
       if (AppEnum::freeMonth == $freeType) {
-        // 按月的 不处理
+        // 按月的不做处理
       } elseif (AppEnum::freeDay == $freeType) {
         // 按天的才去减免
         $freeNum = $this->delayFreeNum;
@@ -541,7 +540,7 @@ class ContractBillService
       }
 
       if ($isFreeDuringBill) {
-        if ($free['bill_date_delay']) {
+        if ($free['bill_date_delay'] == AppEnum::billDelay) {
           $this->delayFreeNum += $free['free_num'];
           $endDate = getNextYmdByDay($endDate, $free['free_num']);
         } else {
@@ -585,7 +584,7 @@ class ContractBillService
       ) {
         $free_num   += $free['free_num'];
         $freeRemark .= "免租" . $free['free_num'] . "个月|开始:" . $free['start_date'];
-        if ($free['bill_date_delay'] == 1) {
+        if ($free['bill_date_delay'] == AppEnum::billDelay) {
           $this->delayFreeNum = $free['free_num'];
           $endDate = getNextYmd($endDate, $free_num);
         } else {
@@ -700,13 +699,11 @@ class ContractBillService
         }
       }
       // 未收款的账单设置为可删除状态
-      $bill->is_deleted = $bill->status == AppEnum::feeStatusUnReceive ? 1 : 0;
+      if ($bill->status == AppEnum::feeStatusUnReceive && $bill->receive_amount == 0) {
+        $bill->is_deleted = 1;
+      }
     }
-    if (!empty($oldBills)) {
-      return $oldBills->toArray();
-    } else {
-      return [];
-    }
+    return $oldBills->isEmpty() ? [] : $oldBills->toArray();
   }
 
   /**
@@ -724,7 +721,7 @@ class ContractBillService
     $fee_list = array();
     foreach ($contract['bill_rule'] as $rule) {
       $feeList = array();
-      if ($rule['type'] != 1) {
+      if ($rule['type'] != 1) { // 押金类型不生成的
         continue;
       }
       // if ($rule['bill_type'] == 1) {  // 正常账期
@@ -733,6 +730,10 @@ class ContractBillService
       //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
       // } 
       // } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
+      if (strtotime($rule['end_date']) > strtotime($contract['end_date'])) {
+        throw new Exception("账单结束日期不能大于合同结束日期");
+      }
+
       if ($rule['fee_type'] == AppEnum::rentFeeType) {
         $feeList = $this->createBillByDelay($contract, $rule, $uid);
       } else {
@@ -759,26 +760,26 @@ class ContractBillService
   //  * 传入bill 根据bill 里面id 重新复值并更新
   //  * 
   //  */
-  // public function updateBill($bill)
-  // {
-  //   $billModel = $this->contractBillModel();
-  //   $billId = $bill['id'];
-  //   $bill = array(
-  //     'company_id'  => $bill['company_id'],
-  //     'project_id'  => $bill['project_id'],
-  //     'contract_id' => $bill['contract_id'],
-  //     'fee_type'    => $bill['fee_type'],
-  //     'type'        => $bill['type'],
-  //     'price'       => $bill['price'],
-  //     'price_label' => $bill['price_label'],
-  //     'amount'      => $bill['amount'],
-  //     'remark'      => $bill['remark'],
-  //     'bill_date'   => $bill['bill_date'],
-  //     'bill_num'    => $bill['bill_num'],
-  //     'charge_date' => $bill['charge_date'],
-  //     'start_date'  => $bill['start_date'],
-  //     'end_date'    => $bill['end_date'],
-  //   );
-  //   $billModel->where('id', $billId)->update($bill);
-  // }
+  public function updateContractBill($bill)
+  {
+    $billModel = $this->contractBillModel();
+    $billId = $bill['id'];
+    $bill = array(
+      'company_id'  => $bill['company_id'],
+      'project_id'  => $bill['project_id'],
+      'contract_id' => $bill['contract_id'],
+      'fee_type'    => $bill['fee_type'],
+      'type'        => $bill['type'],
+      'price'       => $bill['price'],
+      'price_label' => $bill['price_label'],
+      'amount'      => $bill['amount'],
+      'remark'      => $bill['remark'],
+      'bill_date'   => $bill['bill_date'],
+      'bill_num'    => $bill['bill_num'],
+      'charge_date' => $bill['charge_date'],
+      'start_date'  => $bill['start_date'],
+      'end_date'    => $bill['end_date'],
+    );
+    $billModel->where('id', $billId)->update($bill);
+  }
 }

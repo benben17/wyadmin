@@ -179,8 +179,15 @@ class TenantBillService
 				if ($billDetail->amount <= $billDetail->discount_amount) {
 					throw new Exception("收款金额不允许小于等于优惠金额");
 				}
-				$billDetail->u_uid = $user['id'];
+				$billDates = str2Array($billDetail->bill_date, "至");
+				if (sizeof($billDates) != 2) {
+					throw new Exception("收款区间格式错误");
+					if (strtotime($billDates[0]) >= strtotime($billDates[1])) {
+						throw new Exception("收款区间开始时间不能大于结束时间");
+					}
+				}
 
+				$billDetail->u_uid = $user['id'];
 				$billDetail->charge_date = $DA['charge_date'] ?? $billDetail->charge_date;
 				$billDetail->amount = $DA['amount'];
 				$billDetail->discount_amount = $DA['discount_amount'] ?? $billDetail->discount_amount;
@@ -205,16 +212,16 @@ class TenantBillService
 	public function saveBillDetailLog($billDetail, $DA, $user)
 	{
 		try {
-			$detailLogModel = new TenantBillDetailLog;
-			$detailLogModel->company_id = $user['company_id'];
-			$detailLogModel->amount = $DA['old_amount'];
-			$detailLogModel->edit_amount = $DA['amount'];
-			$detailLogModel->discount_amount = $billDetail['discount_amount'] ?? 0;
+			$detailLogModel                       = new TenantBillDetailLog;
+			$detailLogModel->company_id           = $user['company_id'];
+			$detailLogModel->amount               = $DA['old_amount'];
+			$detailLogModel->edit_amount          = $DA['amount'];
+			$detailLogModel->discount_amount      = $billDetail['discount_amount'] ?? 0;
 			$detailLogModel->edit_discount_amount = $DA['discount_amount'] ?? 0;
-			$detailLogModel->edit_reason = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
-			$detailLogModel->bill_detail_id = $DA['id'];
-			$detailLogModel->edit_user = $user->realname;
-			$detailLogModel->c_uid = $user->id;
+			$detailLogModel->edit_reason          = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
+			$detailLogModel->bill_detail_id       = $DA['id'];
+			$detailLogModel->edit_user            = $user->realname;
+			$detailLogModel->c_uid                = $user->id;
 			$detailLogModel->save();
 		} catch (Exception $e) {
 			Log::error("费用修改失败:" . $e);

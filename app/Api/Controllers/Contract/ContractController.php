@@ -685,13 +685,13 @@ class ContractController extends BaseController
                 }
                 // 合同老账单处理， 需要删除的时候删除 tenant_bill_detail 应收数据
                 if (!$DA['fee_bill']) {
-                    throw new Exception("无账单数据");
+                    Log::info($DA['contract_no'] . "旧账单数据无更新！");
                 } else {
                     $contractService->changeOldContractBill($DA['fee_bill']);
                 }
                 //  处理新费用信息
                 if (!$DA['new_fee_bill']) {
-                    throw new Exception("无新账单数据");
+                    Log::info($DA['contract_no'] . "无新账单数据！");
                 } else {
                     $contractService->changeContractBill($DA['new_fee_bill'], $contract, $this->user);
                 }
