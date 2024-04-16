@@ -533,7 +533,7 @@ class ChargeController extends BaseController
 			'id' => 'required|numeric|gt:0',
 		], $msg);
 		$exists = $this->chargeService->chargeRecord()->where('id', $request->id)->exists();
-		if ($exists) {
+		if (!$exists) {
 			return $this->error("核销记录不存在或者已删除");
 		}
 		$res = $this->chargeService->deleteChargeRecord(($request->id));
