@@ -85,7 +85,7 @@ class ChargeController extends BaseController
 		if (!$request->orderBy) {
 			$request->orderBy = 'charge_date';
 		}
-		if ($request->order) {
+		if (!$request->order) {
 			$request->order = 'desc';
 		}
 		$map['source'] = $request->source;
@@ -112,9 +112,7 @@ class ChargeController extends BaseController
 		}
 
 		DB::enableQueryLog();
-
 		$data['stat'] = $this->chargeService->listStat($subQuery);
-
 		return $this->success($data);
 	}
 
@@ -534,7 +532,10 @@ class ChargeController extends BaseController
 		$request->validate([
 			'id' => 'required|numeric|gt:0',
 		], $msg);
-
+		$exists = $this->chargeService->chargeRecord()->where('id', $request->id)->exists();
+		if ($exists) {
+			return $this->error("核销记录不存在或者已删除");
+		}
 		$res = $this->chargeService->deleteChargeRecord(($request->id));
 		return $res ? $this->success("核销删除成功") : $this->error("删除失败");
 	}

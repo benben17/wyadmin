@@ -1,19 +1,16 @@
 <?php
 
-namespace App\Api\Controllers\Operation;
+namespace App\Api\Controllers\Contract;
 
-use Exception;
 use JWTAuth;
+use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\TenantBillService;
-use App\Api\Services\Contract\ContractService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 use App\Api\Services\Tenant\LeasebackService;
-use App\Api\Services\Tenant\TenantService;
-use App\Enums\AppEnum;
+use App\Api\Services\Contract\ContractService;
 
 /**
  * 租户退租
@@ -28,8 +25,6 @@ class LeasebackController extends BaseController
         $this->parent_type = AppEnum::Tenant;
         $this->leasebackService = new LeasebackService;
     }
-
-
 
     /**
      * @OA\Post(
@@ -139,8 +134,10 @@ class LeasebackController extends BaseController
             'contract_id' => 'required',
             'type' => 'required',
             'leaseback_date' => 'required',
+            "fee_list" => 'array'
         ]);
-        $leaseback = $this->leasebackService->model()->where('contract_id', $request->contract_id)->count();
+        $leaseback = $this->leasebackService->model()
+            ->where('contract_id', $request->contract_id)->count();
         if ($leaseback > 0) {
             return $this->error("已退租，不允许重复退租！");
         }
@@ -197,7 +194,7 @@ class LeasebackController extends BaseController
     }
     /**
      * @OA\Post(
-     *     path="/api/operation/tenant/leaseback/show",
+     *     path="/api/operation/contract/leaseback/show",
      *     tags={"租户退租"},
      *     summary="租户退租",
      *    @OA\RequestBody(
@@ -222,17 +219,30 @@ class LeasebackController extends BaseController
     {
         $validatedData = $request->validate([
             'contract_id'            => 'required|gt:0',
+            'leaseback_date'         => 'required|date',
+        ], [
+            'leaseback_date.required' => '退租日期不能为空',
+            'leaseback_date.date'     => '退租日期格式不正确',
+            'contract_id.gt'          => '合同id不能为空',
+            'contract_id.required'    => '合同id不能为空',
         ]);
         $contractService = new ContractService;
         $tenantService = new TenantBillService;
-        $data = $contractService->model()->with('contractRoom')->find($request->contract_id);
-        $data['bills'] = $tenantService->billDetailModel()
+        $data = $contractService->model()
+            ->with('contractRoom')->find($request->contract_id);
+
+        $feeBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
-            ->where('type', '!=', 2)
-            ->where('status', 0)->get();
-        $data['deposit_bills'] = $tenantService->billDetailModel()
-            ->where('contract_id', $request->contract_id)->where('type', 2)
-            ->where('status', 0)->get();
+            ->where('type', '!=', AppEnum::depositFeeType)
+            ->where('status', AppEnum::feeStatusUnReceive)->get();
+
+        $depositBills = $tenantService->billDetailModel()
+            ->where('contract_id', $request->contract_id)
+            ->where('type', AppEnum::depositFeeType)
+            ->where('status', AppEnum::feeStatusUnReceive)->get();
+
+        $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
+        $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
         return $this->success($data);
     }
 }

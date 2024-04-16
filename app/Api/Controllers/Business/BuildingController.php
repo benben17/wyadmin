@@ -7,6 +7,7 @@ use JWTAuth;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\BuildingExcel;
 use App\Api\Models\Contract\ContractRoom;
@@ -203,7 +204,8 @@ class BuildingController extends BaseController
             }, 2);
             return $this->success('楼宇保存成功。');
         } catch (Exception $e) {
-            return $this->error($DA['build_no'] . '数据更新失败');
+            Log::error("楼宇保存失败" . $e->getMessage());
+            return $this->error($DA['build_no'] . '楼宇保存失败');
         }
     }
 

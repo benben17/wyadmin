@@ -209,7 +209,10 @@ class ContractController extends BaseController
         ]);
         $DA = $request->toArray();
         $DA['contract_state'] = $DA['save_type'];
-        // $DA['contract_state'] = $DA['save_type'];
+        $checkContractNoRepeat = $this->contractService->checkContractNoRepeat($DA['contract_no'], $DA['proj_id']);
+        if ($checkContractNoRepeat) {
+            return $this->error($DA['contract_no'] . '合同编号重复');
+        }
         $contractId = 0;
         try {
             DB::transaction(function () use ($DA, &$contractId) {
@@ -218,8 +221,8 @@ class ContractController extends BaseController
                 $contractService = new ContractService;
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
-                $DA['contract_state'] = 0;
-                $contract = $this->saveContract($DA); //格式化并保存
+                $DA['contract_state'] = $DA['save_type'] == 1 ? 1 : 0;
+                $contract = $contractService->saveContract($DA, $user); //格式化并保存
                 $tenantId = $DA['tenant_id'];
                 if (!$contract) {
                     throw new Exception("合同保存失败", 1);
@@ -365,21 +368,18 @@ class ContractController extends BaseController
         if ($res->contract_state == 2 || $res->contract_state == 99) {
             return $this->error('正式合同或者作废合同不允许更新');
         }
+        $checkContractNoRepeat = $this->contractService->checkContractNoRepeat($DA['contract_no'], $DA['proj_id'], $DA['id']);
+        if ($checkContractNoRepeat) {
+            return $this->error($DA['contract_no'] . '合同编号重复');
+        }
         try {
             DB::transaction(function () use ($DA) {
-                // $DA['rental_bank_id'] = getBankIdByFeeType(AppEnum::rentFeeType, $DA['proj_id']);
-                // $DA['manager_bank_id'] = getBankIdByFeeType(AppEnum::managerFeeType, $DA['proj_id']);
                 $user = auth('api')->user();
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
-                if ($DA['save_type'] == 1) {
-                    $DA['contract_state'] = 1;
-                } else {
-                    $DA['contract_state'] = 0;
-                }
-
-                $contract = $this->saveContract($DA, 'update'); //直接保存
+                $DA['contract_state'] = $DA['save_type'] == 1 ? 1 : 0;
+                $contract = $this->contractService->saveContract($DA, $user, 'update'); //直接保存
                 if (!$contract) {
-                    throw new Exception("保存失败");
+                    throw new Exception("合同保存失败");
                 }
                 $tenantId = $contract->tenant_id;
                 // $contractId = $contract->id;
@@ -387,7 +387,6 @@ class ContractController extends BaseController
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
                     // DB::enableQueryLog();
                     $this->contractService->contractRoomModel()->where('contract_id', $DA['id'])->delete();
-
                     $this->contractService->contractRoomModel()->addAll($roomList);
                 }
                 // 免租 全部删除后全部新增
@@ -415,7 +414,6 @@ class ContractController extends BaseController
                 // 保存押金账单
                 $depositBill = $DA['deposit_bill'] ?? array();
                 $this->contractService->saveContractBill($depositBill, $this->user, $contract['proj_id'], $contract['id'], $contract['tenant_id'], 2);
-
                 $this->contractService->contractLog($contract, $user);
             });
             return $this->success('合同更新成功!');
@@ -598,8 +596,6 @@ class ContractController extends BaseController
     }
 
 
-
-
     /**
      * @OA\Post(
      *     path="/api/business/contract/change",
@@ -669,17 +665,15 @@ class ContractController extends BaseController
             DB::transaction(function () use ($DA) {
                 $contractService = new ContractService;
                 /** 保存，还是保存提交审核 ，保存提交审核写入审核日志 */
-                $contract = $this->saveContract($DA, 'update'); //变更
+                $contract = $contractService->saveContract($DA, $this->user, 'update'); //变更
                 if (!$contract) {
                     throw new Exception("保存失败");
                 }
-
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
                     $ruleService->ruleBatchSave($DA['bill_rule'], $this->user, $contract->id, $DA['tenant_id'], false);
                 }
-
                 // 免租
                 $freeList = $DA['free_list'];
                 if (!empty($freeList)) {
@@ -689,28 +683,22 @@ class ContractController extends BaseController
                         $contractService->saveFreeList($free, $contract->id, $contract->tenant_id);
                     }
                 }
-                // 合同老账单处理， 需要删除的时候删除 tenant bill detail 数据
+                // 合同老账单处理， 需要删除的时候删除 tenant_bill_detail 应收数据
                 if (!$DA['fee_bill']) {
-                    throw new Exception("无账单数据");
+                    Log::info($DA['contract_no'] . "旧账单数据无更新！");
+                } else {
+                    $contractService->changeOldContractBill($DA['fee_bill']);
                 }
-                $contractService->changeOldContractBill($DA['fee_bill']);
-
+                //  处理新费用信息
                 if (!$DA['new_fee_bill']) {
-                    throw new Exception("无新账单数据");
+                    Log::info($DA['contract_no'] . "无新账单数据！");
+                } else {
+                    $contractService->changeContractBill($DA['new_fee_bill'], $contract, $this->user);
                 }
-                // throw new Exception("aaa", 200, $DA['new_fee_bill']);
-
-                $contractService->changeContractBill($DA['new_fee_bill'], $contract, $this->user);
-
 
                 // 保存日志
-                $log['id'] = $contract['id'];
-                $log['remark'] = $this->user['realname'] . "在" . nowTime() . "变更合同";
-                $log['contract_id'] = $contract['id'];
-                $log['title'] = "合同变更";
-                $log['c_uid'] = $this->uid;
-                $log['c_username'] = $this->user['realname'];
-                $contractService->saveLog($log);
+                $logRemark = $this->user['realname'] . "在" . nowTime() . "变更合同";
+                $contractService->saveContractLog($contract, $this->user, '合同变更', $logRemark);
             }, 2);
 
             return $this->success('合同变更成功！');
@@ -775,80 +763,6 @@ class ContractController extends BaseController
     }
 
 
-    /**
-     * 格式化合同
-     * @Author   leezhua
-     * @DateTime 2021-06-01
-     * @param    [type]     $DA   [description]
-     * @param    string     $type [description]
-     * @return   [type]           [description]
-     */
-    private function saveContract($DA, $type = "add")
-    {
-        $user = auth('api')->user();
-        if ($type == "add") {
-            $contract = $this->contractService->model();
-            $contract->c_uid = $user->id;
-            $contract->company_id = $user->company_id;
-        } else {
-            //编辑
-            $contract = $this->contractService->model()->find($DA['id']);
-            $contract->u_uid = $user->id;
-        }
-        // 合同编号不设置的时候系统自动生成
-        if (!isset($DA['contract_no']) || empty($DA['contract_no'])) {
-
-            $contract->contract_no = getContractNo($user->company_id);
-        } else {
-            $contract->contract_no = $DA['contract_no'];
-        }
-        $contract->free_type             = isset($DA['free_type']) ? $DA['free_type'] : 0;
-        $contract->proj_id               = $DA['proj_id'];
-        $contract->contract_state        = $DA['contract_state'];
-        $contract->contract_type         = $DA['contract_type'];
-        $contract->violate_rate          = isset($DA['violate_rate']) ? $DA['violate_rate'] : 0;
-        $contract->sign_date             = $DA['sign_date'];
-        $contract->start_date            = $DA['start_date'];
-        $contract->end_date              = $DA['end_date'];
-        $contract->belong_uid            = $DA['belong_uid'] ?? $user->id;
-        $contract->belong_person         = $DA['belong_person'] ?? $user->realname;
-        $contract->tenant_id             = $DA['tenant_id'];
-        $contract->tenant_name           = $DA['tenant_name'];
-        $contract->lease_term            = $DA['lease_term'];
-        $contract->industry              = $DA['industry'];
-        $contract->tenant_sign_person    = isset($DA['tenant_sign_person']) ? $DA['tenant_sign_person'] : "";
-        $contract->tenant_legal_person   = isset($DA['tenant_legal_person']) ? $DA['tenant_legal_person'] : "";
-        $contract->sign_area             = $DA['sign_area'];
-        $contract->rental_deposit_amount = isset($DA['rental_deposit_amount']) ? $DA['rental_deposit_amount'] : 0.00;
-        $contract->rental_deposit_month  = isset($DA['rental_deposit_month']) ? $DA['rental_deposit_month'] : 0;
-        if (isset($DA['increase_date'])) {
-            $contract->increase_date = $DA['increase_date'];
-        }
-        $contract->increase_rate           = isset($DA['increase_rate']) ? $DA['increase_rate'] : 0;
-        $contract->increase_year           = isset($DA['increase_year']) ? $DA['increase_year'] : 0;
-        $contract->bill_type               = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
-        $contract->ahead_pay_month         = isset($DA['ahead_pay_month']) ? $DA['ahead_pay_month'] : "";
-        $contract->rental_price            = isset($DA['rental_price']) ? $DA['rental_price'] : 0.00;
-        $contract->rental_price_type       = isset($DA['rental_price_type']) ? $DA['rental_price_type'] : 1;
-        $contract->management_price        = isset($DA['management_price']) ? $DA['management_price'] : 0.00;
-        $contract->management_month_amount = isset($DA['management_month_amount']) ? $DA['management_month_amount'] : 0;
-        $contract->rental_month_amount    = isset($DA['rental_month_amount']) ? $DA['rental_month_amount'] : 0.00;
-        $contract->manager_bank_id        = isset($DA['manager_bank_id']) ? $DA['manager_bank_id'] : 0;
-        $contract->rental_bank_id         = isset($DA['rental_bank_id']) ? $DA['rental_bank_id'] : 0;
-        $contract->manager_deposit_month  = isset($DA['manager_deposit_month']) ? $DA['manager_deposit_month'] : 0;
-        $contract->manager_deposit_amount = isset($DA['manager_deposit_amount']) ? $DA['manager_deposit_amount'] : 0.00;
-        $contract->increase_show          = isset($DA['increase_show']) ? $DA['increase_show'] : 0;
-        $contract->manager_show           = isset($DA['manager_show']) ? $DA['manager_show'] : 0;
-        $contract->rental_usage           = isset($DA['rental_usage']) ? $DA['rental_usage'] : "";
-        $contract->room_type              = isset($DA['room_type']) ? $DA['room_type'] : 1;
-        $res = $contract->save();
-        if ($res) {
-            return $contract;
-        } else {
-            return false;
-        }
-    }
-
     private function formatRoom($DA, $contractId, $proj_id, $tenantId, $type = 1): array
     {
         $currentDateTime = nowTime();
@@ -872,21 +786,5 @@ class ContractController extends BaseController
             $BA[$k][$type != 1 ? 'created_at' : 'updated_at'] = $currentDateTime;
         }
         return $BA;
-    }
-
-    public function checkRepeat($contractNo, $projId, $contractId, $type = 'add')
-    {
-        if ($type == 'add') {
-            $contract = $this->contractService->model()
-                ->where('contract_no', $contractNo)
-                ->where('proj_id', $projId)->exists();
-        } else {
-            $contract = $this->contractService->model()
-                ->where('contract_no', $contractNo)
-                ->where('proj_id', $projId)
-                ->where('id', '!=', $contractId)
-                ->exists();
-        }
-        return $contract;
     }
 }

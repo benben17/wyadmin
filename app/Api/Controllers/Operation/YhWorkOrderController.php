@@ -531,7 +531,21 @@ class YhWorkOrderController extends BaseController
       'remark' => $request->remark,
       'add_date' => $request->add_date ?? nowTime(),
     ];
-    $res = $remarkService->save($data, $this->user);
-    return $res ?  $this->success("添加成功") : $this->error("添加失败！");
+    try {
+      DB::transaction(function () use ($data, $request, $remarkService) {
+        $remarkService->save($data, $this->user);
+        // 更新隐患工单状态
+        $yhWorkOrder = $this->workService->yhWorkModel()->find($request->id);
+        if ($request->process_status) {
+          $yhWorkOrder->process_status = $request->process_status;
+          $yhWorkOrder->process_time = nowTime();
+        }
+
+        $yhWorkOrder->save();
+      });
+      return $this->success("隐患跟踪添加成功");
+    } catch (Exception $e) {
+      return $this->error("隐患添加失败！");
+    }
   }
 }

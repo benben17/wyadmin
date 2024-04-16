@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use \App\Api\Scopes\UserScope;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model
@@ -41,6 +42,6 @@ class Company extends Model
   }
   public function order()
   {
-    return $this->hasMany(Order::class, 'company_id', 'id');
+    return $this->hasMany(Order::class, 'company_id', 'id')->with('product');
   }
 }

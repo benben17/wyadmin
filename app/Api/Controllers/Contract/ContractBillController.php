@@ -17,7 +17,7 @@ use App\Api\Services\Contract\ContractBillService;
 /**
  * @OA\Tag(
  *     name="合同",
- *     description="合同管理"
+ *     description="合同账单"
  * )
  */
 class ContractBillController extends BaseController
@@ -25,15 +25,33 @@ class ContractBillController extends BaseController
 
   /**
     
-   * 合同编号
+   * 合同账单
    */
   // private $tenantShareService;
+
+  private $errorMsg = [
+    'bill_rule.array' => '租金规则必须是数组',
+    'contract_room.array' => '房间信息必须是数组',
+    'free_list.array' => '免租信息必须是数组',
+    // 'contract_type.numeric' => '合同类型必须是数字',
+    // 'contract_type.in' => '合同类型不正确,[1 or 2]',
+    'contract_type.required' => '合同类型是必须',
+    'sign_date.required' => '签署日期是必须',
+    'start_date.required' => '合同开始时间是必须',
+    'end_date.required' => '合同截止时间是必须',
+    'tenant_id.required' => '租户ID是必须',
+  ];
+
   private $contractService;
+  private $billService;
+  private $billRuleService;
   public function __construct()
   {
     parent::__construct();
     // $this->tenantShareService = new TenantShareService;
     $this->contractService = new ContractService;
+    $this->billService = new ContractBillService;
+    $this->billRuleService = new BillRuleService;
   }
 
   /**
@@ -135,19 +153,6 @@ class ContractBillController extends BaseController
    */
   public function createContractBill(Request $request)
   {
-    $msg =  [
-      'bill_rule.array' => '租金规则必须是数组',
-      'contract_room.array' => '房间信息必须是数组',
-      'free_list.array' => '免租信息必须是数组',
-      'contract_type.numeric' => '合同类型必须是数字',
-      'contract_type.in' => '合同类型不正确,[1 or 2]',
-      'contract_type.required' => '合同类型是必须',
-      'sign_date.required' => '签署日期是必须',
-      'start_date.required' => '合同开始时间是必须',
-      'end_date.required' => '合同截止时间是必须',
-      'tenant_id.required' => '租户ID是必须',
-    ];
-
     $request->validate([
       'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
       'sign_date' => 'required|date',
@@ -161,43 +166,11 @@ class ContractBillController extends BaseController
       'bill_rule' => 'array',
       'contract_room' => 'array',
       'free_list' => 'array',
-    ], $msg);
-    $billService = new ContractBillService;
+    ], $this->errorMsg);
     $contract = $request->toArray();
-    $data = array();
-    $fee_list = array();
-    $ruleService = new BillRuleService;
-    $ruleService->validateIncrease($contract['bill_rule']);
-    foreach ($contract['bill_rule'] as $k => $rule) {
-      $feeList = array();
-      if ($rule['type'] != 1) {
-        continue;
-      }
-      // if ($rule['bill_type'] == 1) {  // 正常账期
-      //     $feeList = $billService->createBill($contract, $rule, $this->uid);
-      // } else if ($rule['bill_type'] == 2) { // 自然月账期
-      //     $feeList = $billService->createBillziranyue($contract, $rule, $this->uid);
-      // } 
-      // } else if ($rule['bill_type'] == 2) { // 只有租金走账期顺延
-      if ($rule['fee_type'] == AppEnum::rentFeeType) {
-        $feeList = $billService->createBillByzhangqi($contract, $rule, $this->uid);
-      } else {
-        $feeList = $billService->createBill($contract, $rule, $this->uid);
-      }
-      // }
-      array_push($fee_list, $feeList);
-    }
-    if ($fee_list) {
-      $data['fee_bill']  = $fee_list;
-    }
-    if ($contract['deposit_rule']) {
-      $data['deposit_bill'] = array();
-      $depositBill = $billService->createDepositBill($contract['deposit_rule'], $this->uid);
-      if ($depositBill) {
-        array_push($data['deposit_bill'], $depositBill);
-      }
-    }
+    $this->billRuleService->validateIncrease($contract['bill_rule']);
 
+    $data = $this->billService->generateBill($contract, $this->uid);
     return $this->success($data);
   }
 
@@ -241,4 +214,60 @@ class ContractBillController extends BaseController
   //     return $this->error("合同账单保存失败！");
   //   }
   // }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/business/contract/bill/change",
+   *     tags={"合同"},
+   *     summary="合同账单变更",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"contract_id" },
+   *      @OA\Property(property="id",type="int",description="合同id"),
+   *     ),
+   *       example={
+   *            "id": "1","bill_rule":"[]","contract_room":"[]","free_list":"[]","contract_type":"1","sign_date":"2020-01-01","start_date":"2020-01-01","end_date":"2020-01-01","tenant_id":"1","proj_id":"1","tenant_legal_person":"张三","sign_area":"100","bill_day":"1"
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function contractChangeBill(Request $request)
+  {
+    $request->validate([
+      'id' => 'required|numeric', // 合同id
+      'contract_type' => 'required|numeric|in:1,2', // 1 新签 2 续签
+      'sign_date' => 'required|date',
+      'start_date' => 'required|date',
+      'end_date' => 'required|date',
+      'tenant_id' => 'required|numeric',
+      'proj_id' => 'required|numeric',
+      'tenant_legal_person' => 'required|String|between:1,64',
+      'sign_area' => 'required|numeric|gt:0',
+      // 'bill_day' => 'required|numeric',
+      'bill_rule' => 'array',
+      'contract_room' => 'array',
+      'free_list' => 'array',
+    ], $this->errorMsg);
+    $contract = $request->toArray();
+    $feeList = array();
+    try {
+      $this->billRuleService->validateIncrease($contract['bill_rule']);
+      $newFeeList = $this->billService->generateBill($contract, $this->uid);
+      $feeList = $newFeeList;
+      $feeList['old_fee_list'] = $this->billService->processOldBill($contract['id'], $contract['bill_rule']);
+      return $this->success($feeList);
+    } catch (\Exception $th) {
+      Log::error("合同变更账单生成失败." . $th->getMessage());
+      return $this->error("合同变更账单生成失败:" . $th->getMessage());
+    }
+  }
 }

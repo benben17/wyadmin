@@ -2,14 +2,16 @@
 
 namespace App\Api\Services\Tenant;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Enums\AppEnum;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
+use App\Api\Models\Tenant\Leaseback;
 use App\Api\Services\Tenant\TenantService;
 use App\Api\Services\Common\MessageService;
-use App\Api\Models\Tenant\Leaseback;
+use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Contract\ContractService;
-use App\Enums\AppEnum;
 
 /**
  *   租户合同退租服务
@@ -52,7 +54,7 @@ class LeasebackService
         $tenantId = $contract->tenant_id;
         $leaseback->tenant_id            = $tenantId;
         $leaseback->contract_id          = $DA['contract_id'];
-        $leaseback->tenant_name          = $contract->tenant_name;
+        $leaseback->tenant_name          = getTenantNameById($tenantId);
         $leaseback->leaseback_date       = $DA['leaseback_date'];
         $leaseback->regaddr_change_date  = isset($DA['regaddr_change_date']) ? $DA['regaddr_change_date'] : "null";
         $leaseback->leaseback_reason     = isset($DA['leaseback_reason']) ? $DA['leaseback_reason'] : "";
@@ -66,31 +68,44 @@ class LeasebackService
         $contract->contract_state = AppEnum::contractLeaseBack;
         $contract->save();
 
-        $contractCount = $contractService->model()->where('tenant_id', $tenantId)->where('contract_state', AppEnum::contractExecute)->count();
+        $contractCount = $contractService->model()
+          ->where('tenant_id', $tenantId)
+          ->where('contract_state', AppEnum::contractExecute)->count();
 
         if ($contractCount == 0) {
           $data['on_rent'] = 0;
-          $data['status'] = 3;
+          $data['status'] = AppEnum::Leaseback;
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
         }
+        // 处理租户应收
+        if (!empty($DA['fee_list'])) {
+          $this->processTenantFee($DA['fee_list']);
+        }
+
         // $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
         $this->sendMsg($contract->tenant_name . '租户退租', $msgContent, $user);
         // 保存日志
-        $log = array(
-          "id" => $contract->id,
-          "title" => $contract->tenant_name . '租户退租',
-          "contract_state" => $contract->contract_state,
-          "c_uid" => $user['id'],
-          "c_username" => $user['realname'],
-        );
-        $contractService->saveLog($log);
+        $title = $contract->tenant_name . '租户退租';
+        $logRemark = $contract->tenant_name . '在' . $DA['leaseback_date'] . '完成退租';
+        $contractService->saveContractLog($contract, $user, $title, $logRemark);
       });
       return true;
     } catch (Exception $e) {
       Log::error("退租失败" . $e);
       throw new Exception("退租失败" . $e->getMessage());
       return false;
+    }
+  }
+
+  // 处理退租租户应收
+  public function processTenantFee($feeList)
+  {
+    $tenantBillService = new TenantBillService;
+    foreach ($feeList as $fee) {
+      if ($fee['is_valid'] == 0) {
+        $tenantBillService->billDetailModel()->where('id', $fee['id'])->delete();
+      }
     }
   }
 

@@ -3,6 +3,7 @@
 namespace App\Api\Controllers\Business;
 
 use Exception;
+use DOMDocument;
 use App\Enums\ClueStatus;
 use App\Enums\InvoiceEnum;
 use Illuminate\Http\Request;
@@ -59,7 +60,6 @@ class CusClueController extends BaseController
     //     'type' => 'required|int|in:1,2,3', // 1 客户列表 2 在租户 3 退租租户
     // ]);
     $map = array();
-
     // DB::enableQueryLog();
     $query = $this->clueService->model()->where($map)
       ->where(function ($q) use ($request) {
@@ -76,6 +76,7 @@ class CusClueController extends BaseController
     $data['clueStat'] = $this->clueService->clueStat($request, $map);
     return $this->success($data);
   }
+
 
 
   /**

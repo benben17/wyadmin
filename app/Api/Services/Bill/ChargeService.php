@@ -182,7 +182,7 @@ class ChargeService
             $chargeAmt = 0;         // 充值金额为0
             $feeStatus = AppEnum::feeStatusUnReceive; // 应收 未结清
           }
-	  if ($chargeAmt == 0) {
+          if ($chargeAmt == 0 || $chargeAmt === 0.00) {
             $charge->status = ChargeEnum::chargeVerify;
           }
 
@@ -206,7 +206,6 @@ class ChargeService
 
           $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
           $this->chargeBillRecordSave($billRecord, $user);
-          // 更新充值信息
           // 更新充值信息
           $charge->unverify_amount = $chargeAmt;
           $charge->verify_amount   = bcadd($charge->verify_amount, $verifyAmt, 2);
@@ -384,19 +383,21 @@ class ChargeService
     try {
       DB::transaction(function () use ($recordId) {
         $record = $this->chargeRecord()->findOrFail($recordId);
-
         if ($record->type == 1) {
+          // 更新收款信息
           $charge = $this->model()->findOrFail($record->charge_id);
           $charge->unverify_amount += $record->amount;
-          $charge->verify_amount -= $record->amount;
+          $charge->verify_amount   -= $record->amount;
           $charge->status = ChargeEnum::chargeUnVerify;
           $charge->save();
 
+          // 更新应收费用收款信息
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
           $billDetail->receive_amount -= $record->amount;
           $billDetail->updated_at = nowYmd();
-          $billDetail->status = 0; // 未结清
+          $billDetail->status = AppEnum::feeStatusUnReceive; // 未结清
           $billDetail->save();
+          // 删除核销记录
           $record->delete();
         }
       }, 2);
@@ -424,7 +425,7 @@ class ChargeService
     try {
       $charge = $this->model()->findOrFail($chargeId);
 
-      if ($charge->verify_amount === 0) {
+      if ($charge->verify_amount == 0) {
         return $charge->delete();
       }
 
