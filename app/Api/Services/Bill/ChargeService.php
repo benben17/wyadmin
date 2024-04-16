@@ -111,14 +111,14 @@ class ChargeService
         $charge = $this->model()->find($chargeBill['id']);
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt == $verifyAmt) {
-          $detail_bill_data['receive_amount'] = numFormat($verifyAmt + $detailBill['receive_amount']);
-          $detail_bill_data['status'] = 1;
+          $detail_bill_data['receive_amount'] = bcadd($verifyAmt, $detailBill['receive_amount'], 2);
+          $detail_bill_data['status'] = ChargeEnum::chargeVerify;
         } else if ($unreceiveAmt > $verifyAmt) {
-          $detail_bill_data['receive_amount'] = $detailBill['receive_amount'] + $verifyAmt;
-          $detail_bill_data['status'] = 0;
+          $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
+          $detail_bill_data['status'] = ChargeEnum::chargeUnVerify;
         }
-        $charge->unverify_amount = numFormat($chargeBill['unverify_amount'] - $verifyAmt);
-        $charge->verify_amount = $chargeBill['verify_amount'] + $verifyAmt;
+        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
+        $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
         if ($chargeBill['unverify_amount'] == 0) {
           $charge->status = ChargeEnum::chargeVerify;
         }
@@ -126,7 +126,7 @@ class ChargeService
         $charge->save();
         //更新 收款
 
-        $billRecord['amount'] = $verifyAmt;
+        $billRecord['amount']             = $verifyAmt;
         $detail_bill_data['receive_date'] = $verifyDate;
         $billRecord['charge_id']          = $chargeBill['id'];
         $billRecord['bill_detail_id']     = $detailBill['id'];
@@ -138,7 +138,7 @@ class ChargeService
         $billService->billDetailModel()->where('id', $detailBill)->update($detail_bill_data); // 更新费用信息
 
         $this->chargeBillRecordSave($billRecord, $user); // 更新核销记录表
-      }, 3);
+      }, 2);
       return true;
     } catch (Exception $th) {
       Log::error("核销失败" . $th);

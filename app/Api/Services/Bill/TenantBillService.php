@@ -3,6 +3,8 @@
 namespace App\Api\Services\Bill;
 
 use Exception;
+use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
 use Illuminate\Support\Facades\Log;
@@ -485,7 +487,11 @@ class TenantBillService
 						foreach ($chargeRecordList as $record) {
 							// 收入增加金额
 							$charge = ChargeBill::find($record['charge_id']);
-							$charge->amount = $charge->amount + $record['amount'];
+							$charge->verify_amount = bcsub($$charge->verify_amount, $record['amount'], 2);
+							$charge->unverify_amount = bcadd($charge->unverify_amount, $record['amount'], 2);
+							if ($charge->status == ChargeEnum::chargeVerify) {
+								$charge->status = ChargeEnum::chargeUnVerify;
+							}
 							$charge->save();
 							// 删除 核销记录
 							ChargeBillRecord::find($record['id'])->delete();
@@ -518,6 +524,10 @@ class TenantBillService
 		foreach ($feeList as &$bill) {
 			$bill->is_valid = 0;
 			$billDate = str2Array($bill->bill_date, "至");
+			if (sizeof($billDate) != 2) {
+				$bill->is_valid = 1;
+				break;
+			}
 			$billStartTime = strtotime($billDate[0]);
 			$billEndTime = strtotime($billDate[1]);
 			if ($leasebackDate > $billEndTime) {

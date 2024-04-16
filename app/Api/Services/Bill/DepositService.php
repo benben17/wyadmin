@@ -51,8 +51,7 @@ class DepositService
         $dRecord->proj_id        = $deposit['proj_id'];
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
-        $dRecord->tocharge_data  = $DA['tocharge_data'] ?? nowYmd();
-        $dRecord->receive_date   = $DA['receive_date'] ?? nowYmd();
+        $dRecord->common_date    = $DA['common_date'] ?? nowYmd();
         $dRecord->type           = $DA['type'];
         $dRecord->bank_id        = $deposit['bank_id'];
         $dRecord->remark         = isset($DA['remark']) ? $DA['remark'] : "";
@@ -117,6 +116,9 @@ class DepositService
   public function depositStat(array $list): array
   {
     $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'discount_amt' => 0.00];
+    if (empty($list)) {
+      return $stat;
+    }
     foreach ($list as $k => $v) {
       $stat['total_amt'] += $v['amount'];
       $stat['discount_amt'] += $v['discount_amount'];

@@ -358,8 +358,8 @@ class BillController extends BaseController
       'audit_status' => 'required|in:1,2', // 1 审核通过 2 审核不通过
     ], [
       'audit_status.in' => '审核状态错误',
-      'id.gt' => '账单id错误',
-      'id.required' => '账单id不能为空',
+      'billIds.array' => '账单ID格式错误',
+      'billIds.required' => '账单ID不能为空',
     ]);
     $status = $request->audit_status == 1 ? AppEnum::statusAudit : AppEnum::statusUnAudit;
     $updateData = array(

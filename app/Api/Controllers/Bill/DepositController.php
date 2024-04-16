@@ -126,7 +126,7 @@ class DepositController extends BaseController
 			$v1 = $v1 + $record;
 		}
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
-		// $data['stat'] = $this->depositService->depositStat($list);
+		$data['stat'] = $this->depositService->depositStat($list);
 		return $this->success($data);
 	}
 
@@ -261,9 +261,10 @@ class DepositController extends BaseController
 		if (!$data) {
 			return $this->error((object)[]);
 		}
+		$data = $data->toArray();
 		// return response()->json(DB::getQueryLog());
 		$recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);
-		$data = $data->toArray() + $recordSum;
+		$data += $recordSum;
 		// $data = array_merge($data + $info);
 		return $this->success($data);
 	}
@@ -363,10 +364,9 @@ class DepositController extends BaseController
 					$remark = "押金转收入";
 				}
 				$DA['remark'] = $remark;
-				$DA['tocharge_date']  = $DA['tocharge_date'] ?? nowYmd();
 				$this->depositService->saveDepositRecord($deposit, $DA, $user);
 				// 押金转收入 写入到charge  收支表
-				$deposit['charge_date'] = $DA['tocharge_date'];
+				$deposit['charge_date'] = $DA['common_date'];
 				$this->chargeService->depositToCharge($deposit, $DA, $user);
 				if ($availableAmt == $DA['amount']) {
 					$updateData['status'] = DepositEnum::Clear;
@@ -440,9 +440,8 @@ class DepositController extends BaseController
 				if ($depositFee['amount'] == $totalReceiveAmt) {
 					$updateData['status'] = DepositEnum::Received;
 				}
-				$updateData['receive_date'] = $DA['receive_date'] ?? nowYmd();
+				$updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
 				// 保存押金流水记录
-				$DA['receive_date'] = $DA['receive_date'] ?? nowYmd();
 				$this->depositService->saveDepositRecord($depositFee, $DA, $user);
 				// 更新 押金信息 【状态，收款金额】
 				$this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
@@ -576,10 +575,10 @@ class DepositController extends BaseController
 		DB::enableQueryLog();
 		$data = $this->depositService->recordModel()
 			->where(function ($q) use ($request) {
-				$request->start_date && $q->where('operate_date', '>=', $request->start_date);
-				$request->end_date && $q->where('operate_date', '<=', $request->end_date);
+				$request->start_date && $q->where('common_date', '>=', $request->start_date);
+				$request->end_date && $q->where('common_date', '<=', $request->end_date);
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-				$request->year && $q->whereYear('operate_date', $request->year);
+				$request->year && $q->whereYear('common_date', $request->year);
 				$request->types && $q->whereIn('type', $request->types);
 			})
 			->whereHas('billDetail', function ($q) use ($request) {

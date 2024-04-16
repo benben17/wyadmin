@@ -216,6 +216,11 @@ class BillDetailController extends BaseController
 		if (!$chargeBill) {
 			return $this->error("未发现充值数据！");
 		}
+
+		if ($chargeBill->bank_id != $billDetail->bank_id) {
+			return $this->error("收款账户不一致！");
+		}
+
 		$unreceiveAmt = $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
 		if ($unreceiveAmt < $request->verify_amount) {
 			return $this->error("核销金额大于未收款金额！");
