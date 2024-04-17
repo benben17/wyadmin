@@ -92,25 +92,30 @@ class BillDetailController extends BaseController
 		$pageQuery->with('tenant:id,name');
 		$data = $this->pageData($pageQuery, $request);
 		// return response()->json(DB::getQueryLog());
-		$feeStat = FeeType::selectRaw('fee_name,id,type')
-			->where('type', AppEnum::feeType)
-			->whereIn('company_id', getCompanyIds($this->uid))->get();
-		// 统计每种类型费用的应收/实收/未收
-		foreach ($feeStat as $k => &$v) {
-			$count = $subQuery
-				->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-				->where('fee_type', $v['id'])
-				->groupBy('fee_type')->first();
-			$v['total_amt']     = $count['total_amt'] ?? 0.00;
-			$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
-			$v['unreceive_amt'] = $v['total_amt'] - $v['receive_amt'];
-		}
+		// $feeStat = FeeType::selectRaw('fee_name,id,type')
+		// 	->where('type', AppEnum::feeType)
+		// 	->whereIn('company_id', getCompanyIds($this->uid))->get();
+		// // 统计每种类型费用的应收/实收/未收
+		// foreach ($feeStat as $k => &$v) {
+		// 	$count = $subQuery
+		// 		->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+		// 		->where('fee_type', $v['id'])
+		// 		->groupBy('fee_type')->first();
+		// 	$v['total_amt']     = $count['total_amt'] ?? 0.00;
+		// 	$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
+		// 	$v['unreceive_amt'] = bcsub($v['total_amt'], $v['receive_amt'], 2);
+		// }
 
 		foreach ($data['result'] as $k => &$v) {
 			$v['tenant_name'] = $v['tenant']['name'];
 			unset($v['tenant']);
 		}
-		$data['stat'] = $feeStat;
+		$statData = $subQuery
+			->selectRaw('sum(amount) total_amt,sum(discount_amount) as discount_amt,
+									sum(receive_amount) receive_amt,
+									sum(amount - receive_amount - discount_amount) unreceive_amt')
+			->first();
+		$data['stat'] = $statData;
 		return $this->success($data);
 	}
 
@@ -221,7 +226,7 @@ class BillDetailController extends BaseController
 			return $this->error("收款账户不一致！");
 		}
 
-		$unreceiveAmt = $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
+		$unreceiveAmt = bcsub(bcsub($billDetail['amount'], $billDetail['receive_amount'], 2), $billDetail['discount_amount'], 2);
 		if ($unreceiveAmt < $request->verify_amount) {
 			return $this->error("核销金额大于未收款金额！");
 		}

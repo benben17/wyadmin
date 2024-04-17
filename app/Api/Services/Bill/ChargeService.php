@@ -465,24 +465,27 @@ class ChargeService
    *
    * @return boolean
    */
-  public function chargeRefund($chargeId, $refundAmt,  $user): bool
+  public function chargeRefund($DA,  $user): bool
   {
     try {
-      DB::transaction(function () use ($chargeId, $refundAmt,  $user) {
-        $charge = $this->model()->findOrFail($chargeId);
-        $charge->unverify_amount -= $refundAmt;
+      DB::transaction(function () use ($DA,  $user) {
+        $charge = $this->model()->findOrFail($DA['id']);
+        $charge->unverify_amount = bcsub($charge->unverify_amount, $DA['refund_amt'], 2);
         if ($charge->unverify_amount == 0) {
-          $charge->status = 1;
+          $charge->status = ChargeEnum::chargeVerify;
         }
         $charge->save();
-        $charge->id = 0;
-        $charge->charge_id = $chargeId;
-        $charge->type = ChargeEnum::Refund;
-        $charge->amount = $refundAmt;
-        $charge->status = 1;
-        $charge->charge_date = nowYmd();
-        $charge->category     = ChargeEnum::CategoryRefund; // 收入退款;
-        $this->save($charge->toArray(), $user);
+        $refund = [
+          'id'          => 0,
+          'charge_id'   => $DA['id'],
+          'type'        => ChargeEnum::Refund,
+          'amount'      => $DA['refund_amt'],
+          'status'      => ChargeEnum::chargeVerify,
+          'charge_date' => nowYmd(),
+          'category'    => ChargeEnum::CategoryRefund,   // 收入退款;
+          'remark'      => $DA['remark']
+        ];
+        $this->save($refund, $user);
       }, 2);
       return true;
     } catch (Exception $e) {
@@ -498,17 +501,19 @@ class ChargeService
    * @param mixed $query 
    * @return array 
    */
-  public function listStat($query)
+  public function listStat($query, &$data)
   {
-    $statSelect = 'ifnull(sum(amount),0.00) as amount, ifnull(sum(verify_amount),0.00) as verify_amount, 
-		ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
+    $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
+                  ifnull(sum(verify_amount),0.00) as verify_amount, 
+		              ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
     $statData = $query->selectRaw($statSelect)->first();
     $currStartYmd = date('Y-m-01');
-    $currEndYmd = date('Y-m-t');
-    $currMonth = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
+    $currEndYmd   = date('Y-m-t');
+    $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
       ->selectRaw($statSelect)
       ->first();
-    return [
+
+    $data['title'] = [
       ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
       ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
       ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
@@ -516,5 +521,7 @@ class ChargeService
       ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
       ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
     ];
+    $data['stat'] = $statData;
+    return $stat;
   }
 }

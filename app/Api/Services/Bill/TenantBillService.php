@@ -174,35 +174,38 @@ class TenantBillService
 				if (!$billDetail) {
 					throw new Exception("费用不存在");
 				}
-				$oldAmt = $billDetail->amount;
+				// 原有的应收金额
+				$DA['old_amount']          = $billDetail->amount;
+				$DA['old_discount_amount'] = $billDetail->discount_amount;
+				// 已有收款不允许编辑
 				if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
-					throw new Exception("已有收款不允许编辑");
+					throw new Exception("已有收款不允许编辑!");
 				}
-				if ($billDetail->amount <= $billDetail->discount_amount) {
-					throw new Exception("收款金额不允许小于等于优惠金额");
-				}
+				// 收款区间
 				$billDates = str2Array($billDetail->bill_date, "至");
 				if (sizeof($billDates) != 2) {
-					throw new Exception("收款区间格式错误");
+					throw new Exception("收款区间格式错误!");
 					if (strtotime($billDates[0]) >= strtotime($billDates[1])) {
-						throw new Exception("收款区间开始时间不能大于结束时间");
+						throw new Exception("收款区间开始时间不能大于结束时间!");
 					}
 				}
+				// 优惠金额不能大于应收金额
+				if ($DA['discount_amount'] > $DA['amount']) {
+					throw new Exception("优惠金额不能大于收款金额!");
+				}
 
-				$billDetail->u_uid = $user['id'];
-				$billDetail->charge_date = $DA['charge_date'] ?? $billDetail->charge_date;
-				$billDetail->amount = $DA['amount'];
+				$billDetail->u_uid           = $user['id'];
+				$billDetail->charge_date     = $DA['charge_date'] ?? $billDetail->charge_date;
+				$billDetail->amount          = $DA['amount'];
 				$billDetail->discount_amount = $DA['discount_amount'] ?? $billDetail->discount_amount;
-				// $billDetail->fee_type = $billDetail['fee_type'];
 				if ($billDetail->bank_id == 0) {
 					$billDetail->bank_id = getBankIdByFeeType($billDetail->fee_type, $billDetail->proj_id);
 				}
 
 				$billDetail->save();
-				$DA['old_amount'] = $oldAmt;
+
 				// 保存日志
-				// 保存
-				$this->saveBillDetailLog($billDetail, $DA, $user);
+				$this->saveBillDetailLog($DA, $user);
 			}, 2);
 			return true;
 		} catch (Exception $th) {
@@ -211,14 +214,14 @@ class TenantBillService
 		}
 	}
 
-	public function saveBillDetailLog($billDetail, $DA, $user)
+	public function saveBillDetailLog($DA, $user)
 	{
 		try {
 			$detailLogModel                       = new TenantBillDetailLog;
 			$detailLogModel->company_id           = $user['company_id'];
 			$detailLogModel->amount               = $DA['old_amount'];
 			$detailLogModel->edit_amount          = $DA['amount'];
-			$detailLogModel->discount_amount      = $billDetail['discount_amount'] ?? 0;
+			$detailLogModel->discount_amount      = $DA['old_discount_amount'] ?? 0;
 			$detailLogModel->edit_discount_amount = $DA['discount_amount'] ?? 0;
 			$detailLogModel->edit_reason          = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
 			$detailLogModel->bill_detail_id       = $DA['id'];
@@ -226,8 +229,8 @@ class TenantBillService
 			$detailLogModel->c_uid                = $user->id;
 			$detailLogModel->save();
 		} catch (Exception $e) {
-			Log::error("费用修改失败:" . $e);
-			throw new Exception($e);
+			Log::error("费用调整日志保存失败:" . $e);
+			throw new Exception("费用调整日志保存失败");
 		}
 	}
 	/**
@@ -452,7 +455,7 @@ class TenantBillService
 			->selectRaw('bank_id,sum(amount) amount,status,
 									sum(discount_amount) discount_amount,
 									sum(receive_amount) receive_amount,
-									sum(amount -receive_amount-discount_amount) unreceive_amount')
+									sum(amount - receive_amount-discount_amount) unreceive_amount')
 			->where('bill_id', $billId)
 			->groupBy('bank_id')->get();
 
@@ -524,16 +527,24 @@ class TenantBillService
 		$leasebackDate = strtotime($leasebackDate);
 		foreach ($feeList as &$bill) {
 			$is_valid = 1;
+			// $is_valid_label = "有效";
 			$billDate = str2Array($bill['bill_date'], "至");
 			if (count($billDate) != 2) {
 				continue;
 			}
-			// $billStartTime = strtotime($billDate[0]);
+			$billStartTime = strtotime($billDate[0]);
 			$billEndTime = strtotime($billDate[1]);
-			if ($billEndTime >= $leasebackDate) { // 退租日期小于账单开始日期
+			// 判断  退租的日期 小于账单开始时间
+			if ($leasebackDate < $billStartTime) {
 				$is_valid = 0;
+				// $is_valid_label = "系统删除";
 			}
+			// 退租日期大于账单开始时间时间 并且小于账单结束时间
+			// else if ($leasebackDate > $billStartTime && $leasebackDate < $billEndTime) {
+			// 	$is_valid = 1;
+			// }
 			$bill['is_valid'] = $is_valid;
+			// $bill['is_valid_label'] = $is_valid_label;
 		}
 		return $feeList;
 	}
