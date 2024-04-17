@@ -513,7 +513,7 @@ class ChargeService
       ->selectRaw($statSelect)
       ->first();
 
-    $data['title'] = [
+    $data['stat'] = [
       ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
       ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
       ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
@@ -521,6 +521,6 @@ class ChargeService
       ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
       ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
     ];
-    $data['stat'] = $statData;
+    $data['total'] = $statData;
   }
 }
