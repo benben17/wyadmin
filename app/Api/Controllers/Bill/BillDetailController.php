@@ -92,19 +92,19 @@ class BillDetailController extends BaseController
 		$pageQuery->with('tenant:id,name');
 		$data = $this->pageData($pageQuery, $request);
 		// return response()->json(DB::getQueryLog());
-		// $feeStat = FeeType::selectRaw('fee_name,id,type')
-		// 	->where('type', AppEnum::feeType)
-		// 	->whereIn('company_id', getCompanyIds($this->uid))->get();
-		// // 统计每种类型费用的应收/实收/未收
-		// foreach ($feeStat as $k => &$v) {
-		// 	$count = $subQuery
-		// 		->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-		// 		->where('fee_type', $v['id'])
-		// 		->groupBy('fee_type')->first();
-		// 	$v['total_amt']     = $count['total_amt'] ?? 0.00;
-		// 	$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
-		// 	$v['unreceive_amt'] = bcsub($v['total_amt'], $v['receive_amt'], 2);
-		// }
+		$feeStat = FeeType::selectRaw('fee_name,id,type')
+			->where('type', AppEnum::feeType)
+			->whereIn('company_id', getCompanyIds($this->uid))->get();
+		// 统计每种类型费用的应收/实收/未收
+		foreach ($feeStat as $k => &$v) {
+			$count = $subQuery
+				->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
+				->where('fee_type', $v['id'])
+				->groupBy('fee_type')->first();
+			$v['total_amt']     = $count['total_amt'] ?? 0.00;
+			$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
+			$v['unreceive_amt'] = bcsub($v['total_amt'], $v['receive_amt'], 2);
+		}
 
 		foreach ($data['result'] as $k => &$v) {
 			$v['tenant_name'] = $v['tenant']['name'];
@@ -115,7 +115,8 @@ class BillDetailController extends BaseController
 									sum(receive_amount) receive_amt,
 									sum(amount - receive_amount - discount_amount) unreceive_amt')
 			->first();
-		$data['stat'] = $statData;
+		$data['total'] = $statData;
+		$data['stat'] = $feeStat;
 		return $this->success($data);
 	}
 
