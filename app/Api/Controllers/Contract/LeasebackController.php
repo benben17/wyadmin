@@ -270,6 +270,7 @@ class LeasebackController extends BaseController
 
         $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
         $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
+        return $this->success($data);
     }
 
 

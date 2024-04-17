@@ -74,13 +74,12 @@ class LeasebackService
 
         if ($contractCount == 0) {
           $data['on_rent'] = 0;
-          $data['status'] = AppEnum::Leaseback;
+          $data['status'] = AppEnum::TenantLeaseback;
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
         }
         // 处理租户应收
-        if (!empty($DA['fee_list'])) {
-          $this->processTenantFee($DA['fee_list']);
-        }
+
+        $this->processTenantFee($DA['fee_list']);
 
         // $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
@@ -101,11 +100,21 @@ class LeasebackService
   // 处理退租租户应收
   public function processTenantFee($feeList)
   {
-    $tenantBillService = new TenantBillService;
-    foreach ($feeList as $fee) {
-      if ($fee['is_valid'] == 0) {
-        $tenantBillService->billDetailModel()->where('id', $fee['id'])->delete();
-      }
+
+    if (!$feeList || empty($feeList)) {
+      return;
+    }
+    try {
+      DB::transaction(function () use ($feeList) {
+        $tenantBillService = new TenantBillService;
+        foreach ($feeList as $fee) {
+          if ($fee['is_valid'] == 0)
+            $tenantBillService->billDetailModel()->destroy($fee['id']);
+        }
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("退租账单处理失败" . $e->getMessage());
+      throw new Exception("退租账单处理失败" . $e->getMessage());
     }
   }
 

@@ -520,23 +520,20 @@ class TenantBillService
 		if (!$leasebackDate) {
 			return $feeList;
 		}
+		$feeList = $feeList->toArray();
 		$leasebackDate = strtotime($leasebackDate);
 		foreach ($feeList as &$bill) {
-			$bill->is_valid = 0;
-			$billDate = str2Array($bill->bill_date, "至");
-			if (sizeof($billDate) != 2) {
-				$bill->is_valid = 1;
-				break;
+			$is_valid = 1;
+			$billDate = str2Array($bill['bill_date'], "至");
+			if (count($billDate) != 2) {
+				continue;
 			}
-			$billStartTime = strtotime($billDate[0]);
+			// $billStartTime = strtotime($billDate[0]);
 			$billEndTime = strtotime($billDate[1]);
-			if ($leasebackDate > $billEndTime) {
-				$bill->is_valid = 1;
-				break;
-			} else if ($leasebackDate >= $billStartTime && $leasebackDate <= $billEndTime) {
-				$bill->is_valid = 1;
-				break;
+			if ($billEndTime >= $leasebackDate) { // 退租日期小于账单开始日期
+				$is_valid = 0;
 			}
+			$bill['is_valid'] = $is_valid;
 		}
 		return $feeList;
 	}

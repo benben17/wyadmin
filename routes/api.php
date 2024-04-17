@@ -406,6 +406,7 @@ Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
     Route::post('/add', '\App\Api\Controllers\Contract\LeasebackController@store');
     Route::post('/edit', '\App\Api\Controllers\Contract\LeasebackController@update');
     Route::post('/show', '\App\Api\Controllers\Contract\LeasebackController@show');
+    Route::post('/bill', '\App\Api\Controllers\Contract\LeasebackController@leasebackBill');
 });
 
 //租户账单
