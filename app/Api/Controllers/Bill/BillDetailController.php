@@ -114,9 +114,9 @@ class BillDetailController extends BaseController
 					break;
 				}
 			}
-			$statData['total_amt'] += $fee['total_amt'];
-			$statData['receive_amt'] += $fee['receive_amt'];
-			$statData['discount_amt'] += $fee['discount_amt'];
+			$statData['total_amt']     += $fee['total_amt'];
+			$statData['receive_amt']   += $fee['receive_amt'];
+			$statData['discount_amt']  += $fee['discount_amt'];
 			$statData['unreceive_amt'] += $fee['unreceive_amt'];
 		}
 

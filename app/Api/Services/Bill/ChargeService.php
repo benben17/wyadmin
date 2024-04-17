@@ -522,6 +522,5 @@ class ChargeService
       ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
     ];
     $data['stat'] = $statData;
-    return $stat;
   }
 }
