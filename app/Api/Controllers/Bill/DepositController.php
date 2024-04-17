@@ -366,7 +366,7 @@ class DepositController extends BaseController
 				$DA['remark'] = $remark;
 				$this->depositService->saveDepositRecord($deposit, $DA, $user);
 				// 押金转收入 写入到charge  收支表
-				$deposit['charge_date'] = $DA['common_date'];
+				$deposit['charge_date'] = $DA['common_date'] ?? nowYmd();
 				$this->chargeService->depositToCharge($deposit, $DA, $user);
 				if ($availableAmt == $DA['amount']) {
 					$updateData['status'] = DepositEnum::Clear;
@@ -376,7 +376,7 @@ class DepositController extends BaseController
 			return $this->success("押金转收入成功");
 		} catch (Exception $e) {
 			Log::error("押金转收入失败" . $e->getMessage());
-			return $this->error("押金转收入失败!" . $e->getMessage());
+			return $this->error("押金转收入失败!");
 		}
 	}
 

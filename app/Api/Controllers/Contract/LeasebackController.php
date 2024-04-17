@@ -217,7 +217,65 @@ class LeasebackController extends BaseController
      */
     public function show(Request $request)
     {
-        $validatedData = $request->validate([
+
+        $this->showValidate($request);
+        $contractService = new ContractService;
+        $data = $contractService->model()
+            ->with('contractRoom')->find($request->contract_id);
+        return $this->success($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/leaseback/bill",
+     *     tags={"租户退租"},
+     *     summary="租户退租账单",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id","leaseback_date"},
+     *      @OA\Property(property="contract_id",type="int",description="合同id"),
+     *      @OA\Property(property="leaseback_date",type="String",description="退租日期"),
+     *     ),
+     *       example={"contract_id":"合同id","leaseback_date":"2021-01-01"}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function leasebackBill(Request $request)
+    {
+
+        $this->showValidate($request);
+        $request->validate([
+            'leaseback_date'         => 'required|date',
+        ], [
+            'leaseback_date.required' => '退租日期不能为空',
+            'leaseback_date.date'     => '退租日期格式不正确'
+        ]);
+        $tenantService = new TenantBillService;
+        $feeBills = $tenantService->billDetailModel()
+            ->where('contract_id', $request->contract_id)
+            ->where('type', '!=', AppEnum::depositFeeType)
+            ->where('status', AppEnum::feeStatusUnReceive)->get();
+
+        $depositBills = $tenantService->billDetailModel()
+            ->where('contract_id', $request->contract_id)
+            ->where('type', AppEnum::depositFeeType)->get();
+
+        $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
+        $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
+    }
+
+
+    private function showValidate($request)
+    {
+        return $request->validate([
             'contract_id'            => 'required|gt:0',
             // 'leaseback_date'         => 'required|date',
         ], [
@@ -226,23 +284,5 @@ class LeasebackController extends BaseController
             'contract_id.gt'          => '合同id不能为空',
             'contract_id.required'    => '合同id不能为空',
         ]);
-        $contractService = new ContractService;
-        $tenantService = new TenantBillService;
-        $data = $contractService->model()
-            ->with('contractRoom')->find($request->contract_id);
-
-        $feeBills = $tenantService->billDetailModel()
-            ->where('contract_id', $request->contract_id)
-            ->where('type', '!=', AppEnum::depositFeeType)
-            ->where('status', AppEnum::feeStatusUnReceive)->get();
-
-        $depositBills = $tenantService->billDetailModel()
-            ->where('contract_id', $request->contract_id)
-            ->where('type', AppEnum::depositFeeType)
-            ->where('status', AppEnum::feeStatusUnReceive)->get();
-
-        $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
-        $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
-        return $this->success($data);
     }
 }
