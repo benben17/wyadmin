@@ -111,8 +111,8 @@ class DepositController extends BaseController
 				}
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
-			})
-			->with('depositRecord');
+			})->with('depositRecord');
+
 		$pageQuery = clone $subQuery;
 
 		$data = $this->pageData($pageQuery->with('bankAccount'), $request);

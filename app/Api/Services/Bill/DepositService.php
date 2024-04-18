@@ -124,22 +124,21 @@ class DepositService
 
     $feeCount = $query->selectRaw('ifnull(sum(fee_amount),0.00) fee_amt,
         ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
-        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type,id')
+        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type,GROUP_CONCAT(id) as detail_ids')
       ->groupBy('fee_type')->get()
       ->keyBy('fee_type');
-
-    $data['fee_count'] = $feeCount;
+    // $data['aaa'] = $feeCount;
     $emptyFee = [
       "total_amt" => 0.00,
       "receive_amt" => 0.00,
       "discount_amt" => 0.00,
       "unreceive_amt" => 0.00,
-      "fee_amt" => 0.00,
       'charge_amt' => 0.00,
       'refund_amt' => 0.00,
     ];
     $total = $emptyFee;
 
+    $detail_ids = "";
     foreach ($feeStat as $k => &$fee) {
       $fee = array_merge($fee, $emptyFee);
       if (isset($feeCount[$fee['id']])) {
@@ -148,25 +147,24 @@ class DepositService
         $fee['receive_amt']    = $v1->receive_amt;
         $fee['discount_amt']   = $v1->discount_amt;
         $fee['unreceive_amt']  = bcsub(bcsub($fee['total_amt'], $fee['receive_amt'], 2), $fee['discount_amt'], 2);
-
-        if (is_object($v1)) {
-          $v1 = $v1->toArray();
-        }
-        $record = $this->formatDepositRecord($v1['deposit_record'] ?? []);
-
-        $fee['charge_amt'] = $record['charge_amt'];
-        $fee['refund_amt'] = $record['refund_amt'] ?? 0.00;
+        $detail_ids .= $v1->detail_ids . ",";
       }
       $fee['label'] = $fee['fee_name'];
       $fee['amount'] = $fee['total_amt'];
 
-      $total['total_amt']     += $fee['total_amt'];
-      $total['receive_amt']   += $fee['receive_amt'];
-      $total['discount_amt']  += $fee['discount_amt'];
-      $total['unreceive_amt'] += $fee['unreceive_amt'];
-      $total['charge_amt']   += $fee['charge_amt'];
-      $total['refund_amt']   += $fee['refund_amt'];
+      $total['total_amt']     = bcadd($total['total_amt'], $fee['total_amt'], 2);
+      $total['receive_amt']   = bcadd($total['receive_amt'], $fee['receive_amt'], 2);
+      $total['discount_amt']  = bcadd($total['discount_amt'], $fee['discount_amt'], 2);
+      $total['unreceive_amt'] = bcadd($total['unreceive_amt'], $fee['unreceive_amt'], 2);
+      // $total['charge_amt']    = bcadd($total['charge_amt'], $fee['charge_amt'], 2);
+      // $total['refund_amt']    = bcadd($total['refund_amt'], $fee['refund_amt'], 2);
     }
+    $totalRecord = $this->recordModel()
+      ->selectRaw('ifnull(sum(case type when 2 then amount else 0 end),0.00) charge_amt,
+                ifnull(sum(case type when 3 then amount else 0 end),0.00) refund_amt')
+      ->whereIn('bill_detail_id', explode(",", $detail_ids))->first();
+    $total['charge_amt'] = $totalRecord->charge_amt;
+    $total['refund_amt'] = $totalRecord->refund_amt;
     $data['total'] = $total;
     $data['stat']  = $feeStat;
   }
