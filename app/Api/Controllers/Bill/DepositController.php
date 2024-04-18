@@ -117,8 +117,6 @@ class DepositController extends BaseController
 
 		$data = $this->pageData($pageQuery->with('bankAccount'), $request);
 
-		$list = $subQuery->get()->toArray();
-
 		foreach ($data['result'] as $k => &$v1) {
 			$record = $this->depositService->formatDepositRecord($v1['deposit_record']);
 			$v1['bank_name'] = $v1['bank_account']['account_name'] ?? "";
@@ -126,7 +124,7 @@ class DepositController extends BaseController
 			$v1 = array_merge($v1, $record);
 		}
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
-		$data['stat'] = $this->depositService->depositStat($list);
+		$this->depositService->depositStat($subQuery, $data, $this->uid);
 		return $this->success($data);
 	}
 
