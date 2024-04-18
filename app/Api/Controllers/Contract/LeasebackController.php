@@ -92,13 +92,18 @@ class LeasebackController extends BaseController
             })
             ->with('tenant:id,tenant_no,name,proj_id,on_rent')
             ->with('contract:id,contract_no,start_date,end_date')
+            ->whereHas('contract', function ($q) use ($request) {
+                if ($request->sign_start_date && $request->sign_end_date) {
+                    $q->whereBetween('sign_date', [$request->sign_start_date, $request->sign_end_date]);
+                }
+            })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as &$v) {
-            $v  = $v + $v['contract'];
+            $v  = array_merge($v, $v['contract']);
             unset($v['contract']);
         }
         return $this->success($data);

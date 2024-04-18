@@ -462,7 +462,7 @@ class ChargeController extends BaseController
 				if ($request->charge_start_date) {
 					$startDate = $request->charge_start_date;
 					$endDate = $request->charge_end_date;
-					$q->whereIn('charge_date', [$startDate, $endDate]);
+					$q->whereBetween('charge_date', [$startDate, $endDate]);
 				}
 			})
 			->with(['billDetail:tenant_name,tenant_id,id,status,bill_date'])
