@@ -282,11 +282,15 @@ class WorkOrderService
       $stat[] = array('label' => $v, 'value' => $statData[$k] ?? 0, 'status' => $k);
     }
     $stat[] = array('label' => "总计", 'value' => $statData['total_count'], 'status' => 'all');
-    $stat[] = array(
+    $avgTime = 0;
+    if (isset($statData['time_used'], $statData['4']) && $statData['4'] != 0) {
+      $avgTime = $statData['time_used'] / $statData['4'];
+    }
+    $stat[] = [
       'label' => "平均用时",
-      'value' => numFormat($statData['time_used'] / $statData['4']) . '小时',
+      'value' => numFormat($avgTime, 2) . '小时',
       'status' => 'time_used'
-    );
+    ];
     return $stat;
   }
 }
