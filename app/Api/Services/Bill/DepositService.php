@@ -5,7 +5,6 @@ namespace App\Api\Services\Bill;
 use Exception;
 use App\Enums\AppEnum;
 use App\Enums\DepositEnum;
-use function PHPSTORM_META\type;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;

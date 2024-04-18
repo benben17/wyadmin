@@ -457,6 +457,14 @@ class ChargeController extends BaseController
 				$request->year && $q->whereYear('verify_date', $request->year);
 			})
 			->with('charge:id,amount,charge_date,flow_no')
+			->whereHas('charge', function ($q) use ($request) {
+
+				if ($request->charge_start_date) {
+					$startDate = $request->charge_start_date;
+					$endDate = $request->charge_end_date;
+					$q->whereIn('charge_date', [$startDate, $endDate]);
+				}
+			})
 			->with(['billDetail:tenant_name,tenant_id,id,status,bill_date'])
 			->whereHas('billDetail', function ($query) use ($request) {
 				$request->tenant_id && $query->where('tenant_id', $request->tenant_id);
@@ -476,7 +484,6 @@ class ChargeController extends BaseController
 			$item['flow_no']     = $item['charge']['flow_no'] ?? '';
 			unset($item['charge']);
 		}
-		// $data['stat'] = $subQuery->selectRaw('sum(amount) as total_amount,sum()')->first();
 		return $this->success($data);
 	}
 
