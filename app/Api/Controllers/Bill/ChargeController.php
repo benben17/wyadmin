@@ -101,6 +101,7 @@ class ChargeController extends BaseController
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->category && $q->where('category', $request->category);
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
+				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id == 0 ? 0 : '>', 0);
 			});
 
 		$pageSubQuery = clone $subQuery;
