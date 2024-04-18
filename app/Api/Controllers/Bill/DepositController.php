@@ -407,7 +407,7 @@ class DepositController extends BaseController
 	{
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
-			'amount' => 'required|gt:0',
+			'amount' => 'required|float|gt:0',
 			'common_date' => 'required|date',
 		], [
 			'id' => '押金应收id是必填的',

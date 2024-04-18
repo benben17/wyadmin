@@ -88,17 +88,17 @@ class DepositService
       foreach ($recordList as $v1) {
         switch ($v1['type']) {
           case DepositEnum::RecordReceive: // 押金收入
-            $BA['receive_amt'] += $v1['amount'];
+            $BA['receive_amt'] = bcadd($BA['receive_amt'], $v1['amount'], 2);
             break;
           case DepositEnum::RecordRefund: // 押金退款
-            $BA['refund_amt'] +=  $v1['amount'];
+            $BA['refund_amt'] =  bcadd($BA['refund_amt'], $v1['amount'], 2);
             break;
           case DepositEnum::RecordToCharge: // 转收款
-            $BA['charge_amt'] +=  $v1['amount'];
+            $BA['charge_amt'] =  bcadd($BA['charge_amt'], $v1['amount'], 2);
             break;
         }
       }
-      $BA['available_amt'] = $BA['receive_amt'] - $BA['refund_amt'] - $BA['charge_amt'];
+      $BA['available_amt'] = bcsub(bcsub($BA['receive_amt'], $BA['refund_amt'],), $BA['charge_amt'], 2);
     }
     return $BA;
   }
