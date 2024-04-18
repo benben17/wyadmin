@@ -164,6 +164,7 @@ class DepositService
       ->whereIn('bill_detail_id', explode(",", $detail_ids))->first();
     $total['charge_amt'] = $totalRecord->charge_amt;
     $total['refund_amt'] = $totalRecord->refund_amt;
+    $total['available_amt'] = bcsub(bcsub($total['receive_amt'], $total['refund_amt'], 2), $total['charge_amt'], 2);
     $data['total'] = $total;
     $data['stat']  = $feeStat;
   }
