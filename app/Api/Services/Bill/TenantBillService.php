@@ -7,6 +7,7 @@ use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
+use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
@@ -95,6 +96,7 @@ class TenantBillService
 				} else {
 					$billDetail = $this->billDetailModel();
 					$billDetail->c_uid = $user['id'];
+					$billDetail->fee_amount = $DA['amount'];
 				}
 				$billDetail->company_id  = $user['company_id'];
 				$billDetail->proj_id     = $DA['proj_id'];
@@ -373,26 +375,27 @@ class TenantBillService
 					if ($v['amount'] == 0) {
 						continue;
 					}
-					$data[$k]['company_id'] = $user['company_id'];
-					$data[$k]['proj_id'] = $projId === 0 ? $v['proj_id'] : $projId;
-					$data[$k]['contract_id'] = $v['contract_id'];
-					$data[$k]['tenant_id'] = $v['tenant_id'];
+					$data[$k]['company_id']       = $user['company_id'];
+					$data[$k]['proj_id']          = $projId === 0 ? $v['proj_id'] : $projId;
+					$data[$k]['contract_id']      = $v['contract_id'];
+					$data[$k]['tenant_id']        = $v['tenant_id'];
 					$data[$k]['contract_bill_id'] = $v['id'];
-					$data[$k]['bank_id'] = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
+					$data[$k]['bank_id']          = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
 					if (!isset($v['tenant_name']) || !$v['tenant_name']) {
 						$tenantName = getTenantNameById($v['tenant_id']);
 					} else {
 						$tenantName = $v['tenant_name'];
 					}
 					$data[$k]['tenant_name'] = $tenantName;
-					$data[$k]['type'] = $v['type']; // 1 费用 2 押金
-					$data[$k]['fee_type'] = $v['fee_type']; // 费用类型
-					$data[$k]['amount'] = $v['amount'];
+					$data[$k]['type']        = $v['type'];             // 1 费用 2 押金
+					$data[$k]['fee_type']    = $v['fee_type'];         // 费用类型
+					$data[$k]['fee_amount']  = $v['amount']; // 费用金额只做展示
+					$data[$k]['amount']      = $v['amount'];
 					$data[$k]['charge_date'] = $v['charge_date'];
-					$data[$k]['c_uid'] = $user['id'];
-					$data[$k]['bill_date'] = isset($v['bill_date']) ? $v['bill_date'] : ""; // 收款区间
-					$data[$k]['remark'] = isset($v['remark']) ? $v['remark'] : "";
-					$data[$k]['created_at'] = nowTime();
+					$data[$k]['c_uid']       = $user['id'];
+					$data[$k]['bill_date']   = isset($v['bill_date']) ? $v['bill_date'] : "";  // 收款区间
+					$data[$k]['remark']      = isset($v['remark']) ? $v['remark'] : "";
+					$data[$k]['created_at']  = nowTime();
 				}
 			}
 			return $data;
@@ -548,5 +551,51 @@ class TenantBillService
 			// $bill['is_valid_label'] = $is_valid_label;
 		}
 		return $feeList;
+	}
+
+
+	/**
+	 * 应收list 统计
+	 * @Author leezhua
+	 * @Date 2024-04-18
+	 * @param mixed $subQuery 
+	 * @param mixed $data 
+	 * @param mixed $uid 
+	 * @return void 
+	 */
+	public function detailListStat($subQuery, &$data, $uid)
+	{
+		$feeStat = FeeType::selectRaw('fee_name,id,type')
+			->where('type', AppEnum::feeType)
+			->whereIn('company_id', getCompanyIds($uid))->get()->toArray();
+
+		$feeCount = $subQuery
+			->selectRaw('ifnull(sum(fee_amount),0.00) fee_amt,
+        ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
+        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type')
+			->groupBy('fee_type')->get()
+			->keyBy('fee_type');
+
+		$emptyFee = ["total_amt" => 0.00, "receive_amt" => 0.00, "discount_amt" => 0.00, "unreceive_amt" => 0.00, "fee_amt" => 0.00, "fee_type" => 0];
+		$statData = $emptyFee;
+
+		foreach ($feeStat as $k => &$fee) {
+			$fee = array_merge($fee, $emptyFee);
+			if (isset($feeCount[$fee['id']])) {
+				$v1 = $feeCount[$fee['id']];
+				$fee['fee_amt']        = $v1->fee_amt;
+				$fee['total_amt']      = $v1->total_amt;
+				$fee['receive_amt']    = $v1->receive_amt;
+				$fee['discount_amt']   = $v1->discount_amt;
+				$fee['unreceive_amt']  = bcsub(bcsub($fee['total_amt'], $fee['receive_amt'], 2), $fee['discount_amt'], 2);
+			}
+			$statData['fee_amt']       += $fee['fee_amt'];
+			$statData['total_amt']     += $fee['total_amt'];
+			$statData['receive_amt']   += $fee['receive_amt'];
+			$statData['discount_amt']  += $fee['discount_amt'];
+			$statData['unreceive_amt'] += $fee['unreceive_amt'];
+		}
+		$data['total'] = $statData;
+		$data['stat']  = $feeStat;
 	}
 }

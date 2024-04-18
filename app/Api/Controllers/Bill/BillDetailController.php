@@ -53,7 +53,6 @@ class BillDetailController extends BaseController
 
 	public function list(Request $request)
 	{
-		$pagesize = $this->setPagesize($request);
 
 		$map = array();
 		if ($request->tenant_id) {
@@ -91,42 +90,12 @@ class BillDetailController extends BaseController
 		$pageQuery = clone $subQuery;
 		$pageQuery->with('tenant:id,name');
 		$data = $this->pageData($pageQuery, $request);
-		// return response()->json(DB::getQueryLog());
-		$feeStat = FeeType::selectRaw('fee_name,id,type')
-			->where('type', AppEnum::feeType)
-			->whereIn('company_id', getCompanyIds($this->uid))->get()->toArray();
-		// 统计每种类型费用的应收/实收/未收
-		$feeSubQuery = clone $subQuery;
-		$feeCount = $feeSubQuery
-			->selectRaw('ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
-			ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type')
-			->groupBy('fee_type')->get();
-		$emptyFee = ["total_amt" => 0.00, "receive_amt" => 0.00, "discount_amt" => 0.00, "unreceive_amt" => 0.00, "fee_type" => 0];
-		$statData = $emptyFee;
-		foreach ($feeStat as $k => &$fee) {
-			$fee = array_merge($fee, $emptyFee);
-			foreach ($feeCount as $k1 => $v1) {
-				if ($fee['id'] == $v1->fee_type) {
-					$fee['total_amt']     = $v1->total_amt;
-					$fee['receive_amt']   = $v1->receive_amt;
-					$fee['discount_amt']  = $v1->discount_amt;
-					$fee['unreceive_amt'] = bcsub($fee['total_amt'], $fee['receive_amt'], 2) - $fee['discount_amt'];
-					break;
-				}
-			}
-			$statData['total_amt']     += $fee['total_amt'];
-			$statData['receive_amt']   += $fee['receive_amt'];
-			$statData['discount_amt']  += $fee['discount_amt'];
-			$statData['unreceive_amt'] += $fee['unreceive_amt'];
-		}
-
 		foreach ($data['result'] as $k => &$v) {
 			$v['tenant_name'] = $v['tenant']['name'];
 			unset($v['tenant']);
 		}
+		$this->billService->detailListStat($subQuery, $data, $this->uid);
 
-		$data['total'] = $statData;
-		$data['stat'] = $feeStat;
 		return $this->success($data);
 	}
 
