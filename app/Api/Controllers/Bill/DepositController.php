@@ -420,18 +420,18 @@ class DepositController extends BaseController
 		$DA['type'] = DepositEnum::RecordReceive;
 
 		$depositFee = $this->depositService->depositBillModel()->find($request->id);
-		$unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
+		$unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount'], 2);
 		$unreceiveAmt = bcsub($unreceiveAmt, $depositFee['discount_amount'], 2);
 		if ($depositFee['status'] != 0 || $unreceiveAmt == 0) {
 			return $this->error("此押金已经收款结清!");
 		}
-
+		Log::alert($unreceiveAmt . "未收金额");
 		try {
 			$user = $this->user;
 			DB::transaction(function () use ($depositFee, $DA, $unreceiveAmt, $user) {
 				// 已收款金额+ 本次收款金额
 				$receiveAmt = $DA['amount'];
-				$totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt);
+				$totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt, 2);
 				// $unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
 				$updateData['receive_amount'] = $totalReceiveAmt;
 				// 收款金额大于未收金额
