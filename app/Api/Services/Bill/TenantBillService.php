@@ -190,7 +190,7 @@ class TenantBillService
 					}
 				}
 				// 优惠金额不能大于应收金额
-				$$DA['discount_amount'] = $DA['discount_amount'] ?? $billDetail->discount_amount;
+				$DA['discount_amount'] = $DA['discount_amount'] ?? $billDetail->discount_amount;
 				if ($DA['discount_amount'] > $DA['amount']) {
 					throw new Exception("优惠金额不能大于收款金额!");
 				}
