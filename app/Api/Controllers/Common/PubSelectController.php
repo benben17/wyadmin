@@ -416,8 +416,8 @@ class PubSelectController extends BaseController
 	 *           mediaType="application/json",
 	 *       @OA\Schema(
 	 *          schema="UserModel",
-	 *          required={},
-	 *
+	 *          required={"proj_ids"},
+	 *				@OA\Property(property="proj_ids",type="String",description="项目ID，多个用逗号隔开"),
 	 *     ),
 	 *       example={
 	 *
@@ -432,6 +432,9 @@ class PubSelectController extends BaseController
 	 */
 	public function cusList(Request $request)
 	{
+		$request->validate([
+			'proj_ids' => 'required',
+		], ['proj_ids.required' => '项目ID不能为空']);
 		$data = Tenant::select('id', 'name', 'industry', 'type', 'business_id')
 			->where(function ($q) use ($request) {
 				if ($request->type == 1) {
@@ -527,23 +530,8 @@ class PubSelectController extends BaseController
 
 		$data = \App\Api\Models\Tenant\Tenant::select('id', 'name', 'industry', 'level', 'proj_id', 'on_rent', 'state')
 			->where(function ($q) use ($request) {
-				// $q->where('parent_id', 0);
+				$q->where('parent_id', 0);
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-				if ($request->type == 1) {
-					$q->where('type', "!=", AppEnum::TenantType);
-					if (!$this->user['is_admin']) {
-						if ($request->depart_id) {
-							$departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-							$q->whereIn('depart_id', $departIds);
-						}
-						if ($this->user['is_manager']) {
-							$departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-							$q->whereIn('depart_id', $departIds);
-						} else if (!$request->depart_id) {
-							$q->where('belong_uid', $this->uid);
-						}
-					}
-				}
 				if ($request->type == 2) {
 					$q->where('type', AppEnum::TenantType);
 				}

@@ -65,6 +65,27 @@ class InvoiceService
     }
   }
 
+
+  public function updateTenantInvoice($invoiceRecord)
+  {
+    try {
+      DB::transaction(function () use ($invoiceRecord) {
+        $invoice = $this->invoiceModel()->find($invoiceRecord->tenant_id);
+        $invoice->title         = isset($DA['title']) ? $DA['title'] : "";
+        $invoice->tax_number    = isset($DA['tax_number']) ? $DA['tax_number'] : "";
+        $invoice->bank_name     = isset($DA['bank_name']) ? $DA['bank_name'] : "";
+        $invoice->account_name  = isset($DA['account_name']) ? $DA['account_name'] : "";
+        $invoice->addr          = isset($DA['addr']) ? $DA['addr'] : "";
+        $invoice->tel_number    = isset($DA['tel_number']) ? $DA['tel_number'] : "";
+        $invoice->invoice_type  = isset($DA['invoice_type']) ? $DA['invoice_type'] : "";
+      });
+      return true;
+    } catch (Exception $th) {
+      Log::error('更新费用发票信息失败.' . $th);
+      return false;
+    }
+  }
+
   /**
    * 发票作废
    *
@@ -74,16 +95,15 @@ class InvoiceService
    *
    * @return void
    */
-  public function cancelInvoice($recordId)
+  public function cancelInvoice($invoiceRecordId)
   {
     try {
-      DB::transaction(function () use ($recordId) {
-        $record = $this->invoiceRecordModel()->find($recordId);
+      DB::transaction(function () use ($invoiceRecordId) {
+        $record = $this->invoiceRecordModel()->find($invoiceRecordId);
         $record->status = 3;
-        $billService = new TenantBillService;
-        // Log::error(str2Array($record['bill_detail_id']));
-        $billService->billDetailModel()
-          ->whereIn('id', str2Array($record['bill_detail_id']))
+        $chargeService = new ChargeService;
+        $chargeService->model()
+          ->where('invoice_id', $invoiceRecordId)
           ->update(['invoice_id' => 0]);
         $record->save();
       });

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\InvoiceService;
 use App\Api\Services\Bill\TenantBillService;
 
@@ -20,10 +21,12 @@ class InvoiceController extends BaseController
 {
 
 	private $invoiceService;
+	private $chargeService;
 	function __construct()
 	{
 		parent::__construct();
 		$this->invoiceService = new InvoiceService;
+		$this->chargeService = new ChargeService;
 	}
 
 	/**
@@ -53,7 +56,6 @@ class InvoiceController extends BaseController
 	 */
 	public function list(Request $request)
 	{
-		$pagesize = $this->setPagesize($request);
 		$map = array();
 
 		// 排序字段
@@ -83,11 +85,8 @@ class InvoiceController extends BaseController
 				$request->end_date && $q->where('invoice_date', '<=', $request->end_date);
 			})
 			->where($map);
-		$data = $subQuery->orderBy($orderBy, $order)
-			->paginate($pagesize)->toArray();
+		$data = $this->pageData($subQuery, $request);
 		// return response()->json(DB::getQueryLog());
-
-		$data = $this->handleBackData($data);
 		return $this->success($data);
 	}
 	/**
@@ -125,15 +124,15 @@ class InvoiceController extends BaseController
 			'status' => 'required|in:1,2,3',
 			'amount' => 'required',
 			'proj_id' => 'required|numeric|gt:0',
-			'bill_detail_id' => 'required|String',
+			'charge_ids' => 'required|array',
 		]);
 		try {
 			$DA = $request->toArray();
 			DB::transaction(function () use ($DA) {
 				$invoiceRecord = $this->invoiceService->invoiceRecordSave($DA, $this->user);
-				$billService = new TenantBillService;
-				$billService->billDetailModel()
-					->whereIn('id', str2Array($DA['bill_detail_id']))
+
+				$this->chargeService->model()
+					->whereIn('id', str2Array($DA['charge_ids']))
 					->update(['invoice_id' => $invoiceRecord->id]);
 			});
 			return $this->success("发票保存成功.");
@@ -180,11 +179,11 @@ class InvoiceController extends BaseController
 			'status' => 'required|in:1,2,3',
 			'amount' => 'required',
 			'proj_id' => 'required|numeric|gt:0',
-			'bill_detail_id' => 'required|String',
+			'charge_ids' => 'required|array',
 		]);
 		try {
 			$DA = $request->toArray();
-			$res = $this->invoiceService->invoiceModel()->find($DA['id']);
+			$res = $this->invoiceService->invoiceRecordModel()->find($DA['id']);
 			if ($res['status'] == 3) {
 				return $this->error("已取消，不可编辑!");
 			}
@@ -229,11 +228,8 @@ class InvoiceController extends BaseController
 			// $DA = $request->toArray();
 			$data = $this->invoiceService->invoiceRecordModel()->find($request->id);
 			if ($data) {
-				$billService = new TenantBillService;
-				$billDetail = $billService->billDetailModel()->whereIn('id', str2Array($data['bill_detail_id']))->get();
-				$data['bill_detail'] = $billDetail;
-			} else {
-				$data['bill_detail'] = [];
+				$charge = $this->chargeService->model()->where('invoice_id', $request->id)->get();
+				$data['charge'] = $charge ? $charge->toArray() : [];
 			}
 			return $this->success($data);
 		} catch (Exception $th) {
@@ -269,7 +265,12 @@ class InvoiceController extends BaseController
 		$validatedData = $request->validate([
 			'id' => 'required|numeric',
 		]);
+
+		$invoice = $this->invoiceService->invoiceRecordModel()->find($request->id);
+		if ($invoice['status'] == 3) {
+			return $this->error("已取消，不可重复取消!");
+		}
 		$res = $this->invoiceService->cancelInvoice($request->id);
-		return $res ? $this->success("发票取消成功") : $this->error("发票取消失败!");
+		return $res  ? $this->success("发票取消成功") : $this->error("发票取消失败");
 	}
 }
