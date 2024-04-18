@@ -439,8 +439,8 @@ class DepositController extends BaseController
 					throw new Exception("收款金额不允许大于未收金额!");
 				}
 				// 应收和实际收款 相等时
-				$unreceive_amt = bcsub($unreceiveAmt, $totalReceiveAmt, 2);
-				if ($unreceive_amt == 0) {
+				$totalAmt = bcsub($depositFee['amount'], $depositFee['discount_amount'], 2);
+				if ($totalAmt == $totalReceiveAmt) {
 					$updateData['status'] = DepositEnum::Received;
 				}
 				$updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
