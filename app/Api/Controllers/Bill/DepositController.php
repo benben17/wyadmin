@@ -408,13 +408,13 @@ class DepositController extends BaseController
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
 			'amount' => 'required|gt:0',
-			'receive_date' => 'required|date',
+			'common_date' => 'required|date',
 		], [
 			'id' => '押金应收id是必填的',
 			'amount.required' => '金额字段是必填的。',
 			'amount.gt' => '金额必须大于0。',
-			'receive_date.required' => '收款日期字段是必填的。',
-			'receive_date.date' => '收款日期必须是有效的日期。',
+			'common_date.required' => '收款日期字段是必填的。',
+			'common_date.date' => '收款日期必须是有效的日期。',
 		]);
 		$DA = $request->toArray();
 		$DA['type'] = DepositEnum::RecordReceive;
