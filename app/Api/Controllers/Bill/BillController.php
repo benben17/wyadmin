@@ -93,11 +93,11 @@ class BillController extends BaseController
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
-      $v['amount']     = $billCount['totalAmt'];
+      $v['amount']           = $billCount['totalAmt'];
       $v['discount_amount']  = $billCount['disAmt'];
       $v['receive_amount']   = $billCount['receiveAmt'];
       $v['unreceive_amount'] = $v['amount'] - $v['discount_amount'] - $v['receive_amount'];
-      $v['bill_label']  = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
+      $v['bill_label']       = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
     }
     return $this->success($data);
   }

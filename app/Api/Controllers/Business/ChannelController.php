@@ -112,8 +112,8 @@ class ChannelController extends BaseController
                 $request->policy_name && $q->where('name', 'like', '%' . $request->policy_name . '%');
             });
 
-
-        $data = $subQuery->with(['channelPolicy:id,name', 'channelContact'])
+        $pageQuery = clone $subQuery;
+        $data = $pageQuery->with(['channelPolicy:id,name', 'channelContact'])
             ->withCount('customer')
             ->withCount([
                 'customer as cus_deal_count' => function ($q) {
