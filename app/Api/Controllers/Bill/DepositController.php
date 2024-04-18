@@ -420,24 +420,27 @@ class DepositController extends BaseController
 		$DA['type'] = DepositEnum::RecordReceive;
 
 		$depositFee = $this->depositService->depositBillModel()->find($request->id);
-		if ($depositFee['status'] != 0) {
+		$unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
+		$unreceiveAmt = bcsub($unreceiveAmt, $depositFee['discount_amount'], 2);
+		if ($depositFee['status'] != 0 || $unreceiveAmt == 0) {
 			return $this->error("此押金已经收款结清!");
 		}
 
 		try {
 			$user = $this->user;
-			DB::transaction(function () use ($depositFee, $DA, $user) {
+			DB::transaction(function () use ($depositFee, $DA, $unreceiveAmt, $user) {
 				// 已收款金额+ 本次收款金额
 				$receiveAmt = $DA['amount'];
-				$totalReceiveAmt = $depositFee['receive_amount'] + $receiveAmt;
-				$unreceiveAmt = $depositFee['amount'] - $depositFee['receive_amount'];
+				$totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt);
+				// $unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
 				$updateData['receive_amount'] = $totalReceiveAmt;
 				// 收款金额大于未收金额
 				if ($receiveAmt > $unreceiveAmt) {
 					throw new Exception("收款金额不允许大于未收金额!");
 				}
 				// 应收和实际收款 相等时
-				if ($depositFee['amount'] == $totalReceiveAmt) {
+				$unreceive_amt = bcsub($unreceiveAmt, $totalReceiveAmt, 2);
+				if ($unreceive_amt == 0) {
 					$updateData['status'] = DepositEnum::Received;
 				}
 				$updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
@@ -584,14 +587,18 @@ class DepositController extends BaseController
 			->whereHas('billDetail', function ($q) use ($request) {
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
 				$request->bill_detail_id && $q->where('id', $request->bill_detail_id);
-			})->with('billDetail:id,tenant_id,tenant_name')
+				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+			})->with('billDetail:id,tenant_id,tenant_name,bill_date,fee_type')
 			->orderBy($orderBy, $order)
 			->paginate($pagesize)->toArray();
 
 		// return response()->json(DB::getQueryLog());
 		$data = $this->handleBackData($data);
 		foreach ($data['result'] as $k => &$v1) {
-			$v1['tenant_name'] = $v1['bill_detail']['tenant_name'] ?? "";
+			$v1['tenant_name']    = $v1['bill_detail']['tenant_name'] ?? "";
+			$v1['bill_date']      = $v1['bill_detail']['bill_date'] ?? "";
+			$v1['fee_type_label'] = $v1['bill_detail']['fee_type_label'] ?? "";
+			$v1['fee_type']       = $v1['bill_detail']['fee_type'] ?? "";
 			unset($v1['bill_detail']);
 		}
 		return $this->success($data);
