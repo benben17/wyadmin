@@ -455,6 +455,7 @@ Route::group(['prefix' => 'operation/tenant/invoice'], function () {
     Route::post('edit', '\App\Api\Controllers\Bill\InvoiceController@edit');
     Route::post('show', '\App\Api\Controllers\Bill\InvoiceController@show');
     Route::post('cancel', '\App\Api\Controllers\Bill\InvoiceController@cancel');
+    Route::post('title', '\App\Api\Controllers\Bill\InvoiceController@invoiceByTenant');
 });
 
 // 设备设施

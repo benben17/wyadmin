@@ -273,4 +273,15 @@ class InvoiceController extends BaseController
 		$res = $this->invoiceService->cancelInvoice($request->id);
 		return $res  ? $this->success("发票取消成功") : $this->error("发票取消失败");
 	}
+
+
+	public function invoiceByTenant(Request $request)
+	{
+		$validatedData = $request->validate([
+			'tenant_id' => 'required|numeric',
+		]);
+		$tenant_id = $request->tenant_id;
+		$invoice = $this->invoiceService->invoiceModel()->where('tenant_id', $tenant_id)->first();
+		return $this->success($invoice);
+	}
 }
