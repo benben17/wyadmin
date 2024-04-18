@@ -123,7 +123,7 @@ class DepositController extends BaseController
 			$record = $this->depositService->formatDepositRecord($v1['deposit_record']);
 			$v1['bank_name'] = $v1['bank_account']['account_name'] ?? "";
 			unset($v1['bank_account']);
-			$v1 = $v1 + $record;
+			$v1 = array_merge($v1, $record);
 		}
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
 		$data['stat'] = $this->depositService->depositStat($list);

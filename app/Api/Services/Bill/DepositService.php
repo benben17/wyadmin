@@ -98,7 +98,7 @@ class DepositService
             break;
         }
       }
-      $BA['available_amt'] = bcsub(bcsub($BA['receive_amt'], $BA['refund_amt'],), $BA['charge_amt'], 2);
+      $BA['available_amt'] = bcsub(bcsub($BA['receive_amt'], $BA['refund_amt'], 2), $BA['charge_amt'], 2);
     }
     return $BA;
   }
