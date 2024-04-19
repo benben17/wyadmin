@@ -602,7 +602,7 @@ class ChargeController extends BaseController
 			return $this->error("退款金额不能大于可用金额");
 		}
 		$DA = $request->toArray();
-		$DA['remark'] = $request->remark . "|" . $request->remark;
+		$DA['remark'] = $charge->remark . "|" . $request->remark;
 		$res = $this->chargeService->chargeRefund($DA, $this->user);
 		return $res ? $this->success("退款成功") : $this->error("退款失败");
 	}
