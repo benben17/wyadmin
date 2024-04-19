@@ -76,11 +76,11 @@ class ChargeService
       }
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
-      $charge->bank_id    = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
+      $charge->bank_id     = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
       $charge->charge_date = $BA['charge_date'];
       $charge->status      = isset($BA['status']) ? $BA['status'] : 0;
       $charge->remark      = isset($BA['remark']) ? $BA['remark'] : "";
-      $charge->charge_id      = $BA['charge_id'] ?? 0;
+      $charge->charge_id   = $BA['charge_id'] ?? 0;
       $chargeRes = $charge->save();
       // });
       return $chargeRes ? $charge : false;
@@ -118,11 +118,11 @@ class ChargeService
           $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
           $detail_bill_data['status'] = ChargeEnum::chargeUnVerify;
         }
-        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
-        $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
 
+        $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
+        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $chargeBill['refund_amount'], 2);
         // 未核销金额 = 充值未核销金额 - 核销金额 - 退款金额
-        $unverifyAmt = bcsub($charge->unverify_amount, $chargeBill['refund_amount'], 2);
+        $unverifyAmt = bcsub($charge->unverify_amount, $verifyAmt, 2);
         if ($unverifyAmt == 0 || $unverifyAmt === 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
@@ -241,7 +241,6 @@ class ChargeService
   //  *
   //  * @return void
   //  */
-
 
   // public function detailBillListWriteOffOne(array $detailBill, array $chargeBill, $verifyDate, $user)
   // {
