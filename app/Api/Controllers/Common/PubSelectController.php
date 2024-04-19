@@ -799,7 +799,7 @@ class PubSelectController extends BaseController
 			}])
 			->where($where)->get();
 		foreach ($data as $k => &$v) {
-			$v['available_amount'] = bcsub($v['unverify_amount'], $v['refund_amount'], 2);
+			$v['available_amt'] = bcsub($v['unverify_amount'], $v['refund_amount'], 2);
 		}
 		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
