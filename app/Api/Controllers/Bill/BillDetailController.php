@@ -208,15 +208,15 @@ class BillDetailController extends BaseController
 		if ($chargeBill->bank_id != $billDetail->bank_id) {
 			return $this->error("收款账户不一致！");
 		}
-		$refundedAmt = $chargeService->model()->where('charge_id', $request->charge_id)
-			->where('type', ChargeEnum::Refund)
-			->sum('amount');
+		$availableAmt = bcsub(bcsub($chargeBill->amount, $chargeBill->verify_amount, 2), $chargeBill->refund_amount, 2);
+		if ($request->verify_amount > $availableAmt) {
+			return $this->error("核销金额大于收款可用金额！");
+		}
 		$unreceiveAmt = bcsub(bcsub($billDetail['amount'], $billDetail['receive_amount'], 2), $billDetail['discount_amount'], 2);
-		$unreceiveAmt = bcsub($unreceiveAmt, $refundedAmt, 2);
+
 		if ($unreceiveAmt < $request->verify_amount) {
 			return $this->error("核销金额大于未收款金额！");
 		}
-		$chargeBill['refund_amount'] = $refundedAmt;
 		$verifyDate = $request->verify_date ?? nowYmd();
 		$chargeService = new ChargeService;
 		$res = $chargeService->detailBillVerify($billDetail->toArray(), $chargeBill->toArray(), $request->verify_amount, $verifyDate, $this->user);

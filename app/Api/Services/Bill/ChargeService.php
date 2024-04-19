@@ -508,7 +508,6 @@ class ChargeService
    */
   public function listStat($query, &$data)
   {
-    DB::enableQueryLog();
     $statQuery = clone $query;
     $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
                   ifnull(sum(verify_amount),0.00) as verify_amount,
