@@ -285,7 +285,7 @@ class ChargeController extends BaseController
 		$data['bank'] = BankAccount::find($data->bank_id);
 		$data['refund_list'] = $this->chargeService->model()->where('charge_id', $request->id)->get();
 		$data['refund_amount'] = $this->chargeService->model()->where('charge_id', $data['id'])->sum('amount');
-		$data['available_amount'] = bcsub(bcsub($data['amount'], $data['verify_amount'], 2), $data['refund_amt'], 2);
+		$data['available_amount'] = bcsub(bcsub($data['amount'], $data['verify_amount'], 2), $data['refund_amount'], 2);
 		return $this->success($data);
 	}
 
