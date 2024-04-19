@@ -479,10 +479,11 @@ class ChargeService
         $refund = [
           'id'          => 0,
           'charge_id'   => $DA['id'],
+          'tenant_id'   => $charge['tenant_id'],
           'type'        => ChargeEnum::Refund,
           'amount'      => $DA['refund_amt'],
           'status'      => ChargeEnum::chargeVerify,
-          'charge_date' => nowYmd(),
+          'charge_date' => $DA['common_date'] ?? nowYmd(),
           'category'    => ChargeEnum::CategoryRefund,   // 收入退款;
           'remark'      => $DA['remark']
         ];
