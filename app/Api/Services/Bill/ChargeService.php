@@ -511,38 +511,14 @@ class ChargeService
     DB::enableQueryLog();
     $statQuery = clone $query;
     $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
-                  ifnull(sum(verify_amount),0.00) as verify_amount';
+                  ifnull(sum(verify_amount),0.00) as verify_amount,
+                  ifnull(sum(refund_amount),0.00) as refund_amount';
     $statData = $statQuery->selectRaw($statSelect)->first();
-    // Log::alert(json_encode(DB::getQueryLog()));
-    // $currStartYmd = date('Y-m-01');
-    // $currEndYmd   = date('Y-m-t');
-    // $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
-    //   ->selectRaw($statSelect)
-    //   ->first();
     $total['total_amt'] = $statData['amount'] ?? 0.00;
     $total['verify_amt'] = $statData['verify_amount'] ?? 0.00;
-    $unverifyAmt = bcsub($total['total_amt'], $total['verify_amt'], 2);
-    // $records = $query->get();
-    $total['refund_amt'] = 0.00;
-    $query->chunk(600, function ($records) use (&$total) {
-      foreach ($records as $record) {
-        $total['refund_amt'] = bcadd($total['refund_amt'], $record->refund_amt ?? 0.00, 2);
-      }
-    });
-    $total['available_amt'] = bcsub($unverifyAmt, $total['refund_amt'], 2);
-    // $stat = [
-    //   ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
-    //   ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
-    //   ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
-    //   ['amount' => $statData['amount'] ?? 0.00, 'label' => '总金额'],
-    //   ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
-    //   ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
-    // ];
-    // foreach ($data['stat'] as &$value) {
-    //   $value['amount'] = ($value['amount']);
-    // }
+    $total['refund_amt'] = $statData['refund_amount'] ?? 0.00;
+    $total['available_amt'] = bcsub(bcsub($total['total_amt'], $total['refund_amt'], 2), $total['verify_amt'], 2);
 
-    // $data['stat'] = num_format($stat);
     $data['total'] = num_format($total);
   }
 }
