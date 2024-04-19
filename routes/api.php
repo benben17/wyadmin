@@ -532,7 +532,7 @@ Route::group(['prefix' => 'operation/charge'], function () {
     // 核销 多条应收
     Route::post('/writeOff', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOff');
     // 核销单条
-    Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
+    // Route::post('/writeOffOne', '\App\Api\Controllers\Bill\ChargeController@chargeWriteOffOne');
     Route::post('/record/list', '\App\Api\Controllers\Bill\ChargeController@recordList');
     Route::post('/record/delete', '\App\Api\Controllers\Bill\ChargeController@deleteRecord');
     Route::post('/refund', '\App\Api\Controllers\Bill\ChargeController@chargeRefund');

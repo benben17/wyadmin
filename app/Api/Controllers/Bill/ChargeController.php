@@ -356,51 +356,51 @@ class ChargeController extends BaseController
 		}
 	}
 
-	/**
-	 * 单个核销
-	 *
-	 * @Author leezhua
-	 * @DateTime 2024-03-05
-	 * @param Request $request
-	 *
-	 * @return void
-	 */
-	public function chargeWriteOffOne(Request $request)
-	{
-		try {
-			$validatedData = $request->validate([
-				'id' => 'required',
-				'bill_detail_id' => 'required|gt:0',
-			]);
+	// /**
+	//  * 单个核销
+	//  *
+	//  * @Author leezhua
+	//  * @DateTime 2024-03-05
+	//  * @param Request $request
+	//  *
+	//  * @return void
+	//  */
+	// public function chargeWriteOffOne(Request $request)
+	// {
+	// 	try {
+	// 		$validatedData = $request->validate([
+	// 			'id' => 'required',
+	// 			'bill_detail_id' => 'required|gt:0',
+	// 		]);
 
-			$verifyDate = $request->verify_date ?? nowYmd();
+	// 		$verifyDate = $request->verify_date ?? nowYmd();
 
-			$charge = $this->chargeService->model()
-				->where('id', $request->id)
-				->where('status', ChargeEnum::chargeUnVerify)
-				->firstOrFail();
+	// 		$charge = $this->chargeService->model()
+	// 			->where('id', $request->id)
+	// 			->where('status', ChargeEnum::chargeUnVerify)
+	// 			->firstOrFail();
 
-			$billDetailService = new TenantBillService;
-			$billDetail = $billDetailService->billDetailModel()
-				->where('id', $request->bill_detail_id)
-				->where('status', ChargeEnum::chargeUnVerify)
-				->first();
+	// 		$billDetailService = new TenantBillService;
+	// 		$billDetail = $billDetailService->billDetailModel()
+	// 			->where('id', $request->bill_detail_id)
+	// 			->where('status', ChargeEnum::chargeUnVerify)
+	// 			->first();
 
-			if ($billDetail->isEmpty()) {
-				return $this->error("未找到应收记录");
-			}
+	// 		if ($billDetail->isEmpty()) {
+	// 			return $this->error("未找到应收记录");
+	// 		}
 
-			$writeOffRes = $this->chargeService->detailBillListWriteOffOne($billDetail, $charge, $verifyDate, $this->user);
+	// 		$writeOffRes = $this->chargeService->detailBillListWriteOffOne($billDetail, $charge, $verifyDate, $this->user);
 
-			return $writeOffRes
-				? $this->success("核销成功")
-				: $this->error("核销失败");
-		} catch (ValidationException $e) {
-			return $this->error($e->validator->errors()->first());
-		} catch (\Exception $e) {
-			return $this->error("发生错误：" . $e->getMessage());
-		}
-	}
+	// 		return $writeOffRes
+	// 			? $this->success("核销成功")
+	// 			: $this->error("核销失败");
+	// 	} catch (ValidationException $e) {
+	// 		return $this->error($e->validator->errors()->first());
+	// 	} catch (\Exception $e) {
+	// 		return $this->error("发生错误：" . $e->getMessage());
+	// 	}
+	// }
 
 	/**
 	 * @OA\Post(

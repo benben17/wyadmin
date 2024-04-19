@@ -85,7 +85,12 @@ class DepositService
    */
   public function formatDepositRecord(array $recordList): array
   {
-    $BA = ['receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'available_amt' => 0.00];
+    $BA = [
+      'receive_amt' => 0.00,
+      'refund_amt' => 0.00,
+      'charge_amt' => 0.00,
+      'available_amt' => 0.00
+    ];
     if (!empty($recordList)) {
       foreach ($recordList as $v1) {
         switch ($v1['type']) {
