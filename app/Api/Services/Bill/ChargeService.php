@@ -512,15 +512,15 @@ class ChargeService
   public function listStat($query, &$data)
   {
     $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
-                  ifnull(sum(verify_amount),0.00) as verify_amount, 
-		              ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
+                  ifnull(sum(verify_amount),0.00) as verify_amount';
     $statData = $query->selectRaw($statSelect)->first()->toArray();
     $currStartYmd = date('Y-m-01');
     $currEndYmd   = date('Y-m-t');
     $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
       ->selectRaw($statSelect)
       ->first();
-
+    $refundAmt = $query->where('charge_id', '>', 0)->where('type', 2)->sum('amount');
+    $statData['unverify_amount'] = bcsub($statData['amount'], $statData['verify_amount'], 2);
     $stat = [
       ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
       ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
@@ -532,6 +532,7 @@ class ChargeService
     // foreach ($data['stat'] as &$value) {
     //   $value['amount'] = ($value['amount']);
     // }
+    $data['refund_amount'] = $refundAmt;
     $data['stat'] = num_format($stat);
     $data['total'] = num_format($statData);
   }
