@@ -479,6 +479,7 @@ class ChargeService
         $charge->save();
         $refund = [
           'id'          => 0,
+          'source'      => 1, // 1 费用
           'proj_id'     => $charge['proj_id'],
           'charge_id'   => $DA['id'],
           'tenant_id'   => $charge['tenant_id'],
@@ -493,8 +494,8 @@ class ChargeService
       }, 2);
       return true;
     } catch (Exception $e) {
-      throw new Exception("退款失败");
       Log::error($e);
+      throw new Exception("退款失败");
     }
     return false;
   }
