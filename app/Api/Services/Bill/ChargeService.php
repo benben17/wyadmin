@@ -86,6 +86,7 @@ class ChargeService
       return $chargeRes ? $charge : false;
     } catch (Exception $e) {
       Log::error("保存收款失败:" . $e);
+      throw new Exception("保存收款/退款失败");
       return false;
     }
   }
@@ -478,6 +479,7 @@ class ChargeService
         $charge->save();
         $refund = [
           'id'          => 0,
+          'proj_id'     => $charge['proj_id'],
           'charge_id'   => $DA['id'],
           'tenant_id'   => $charge['tenant_id'],
           'type'        => ChargeEnum::Refund,
@@ -491,7 +493,8 @@ class ChargeService
       }, 2);
       return true;
     } catch (Exception $e) {
-      Log::error("收款退款失败" . $e);
+      throw new Exception("退款失败");
+      Log::error($e);
     }
     return false;
   }
