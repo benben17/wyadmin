@@ -288,6 +288,7 @@ class ChargeController extends BaseController
 		$data['bank'] = BankAccount::find($data->bank_id);
 		$data['refund_list'] = $this->chargeService->model()->where('charge_id', $request->id)->get();
 		$data['refund_amt'] = $this->chargeService->model()->where('charge_id', $data['id'])->sum('amount');
+		$data['available_amt'] = bcsub(bcsub($data['amount'], $data['verify_amount'], 2), $data['refund_amt'], 2);
 		return $this->success($data);
 	}
 
@@ -596,7 +597,7 @@ class ChargeController extends BaseController
 		if ($charge->type == ChargeEnum::Refund) {
 			return $this->error("已退款，支出不允许退款");
 		}
-		$unusedAmt = bcsub($charge->amount, $charge->verify_amount, 2);
+		$$unusedAmt = bcsub($charge->amount, $charge->verify_amount, 2);
 		if ($unusedAmt < $request->refund_amt) {
 			return $this->error("退款金额不能大于可用金额");
 		}
