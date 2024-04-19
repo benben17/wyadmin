@@ -6,10 +6,8 @@ use JWTAuth;
 //use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\BuildingRoomExcel;
-use App\Api\Models\Building as BuildingModel;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Contract\ContractService;
@@ -309,30 +307,29 @@ class StationController extends BaseController
         }
         if ($type == 1) {
             $station = new RoomModel;
-            $station->c_uid = $this->uid;
+            $station->c_uid      = $this->uid;
             $station->company_id = $this->company_id;
-            $station->room_area = 1;   // 工位面积默认为1 不显示，合同处理单价的时候做处理
+            $station->room_area  = 1;                  // 工位面积默认为1 不显示，合同处理单价的时候做处理
         } else {
             $station = RoomModel::find($DA['id']);
             $station->u_uid = $this->uid;
         }
 
-        $station->build_id = $DA['build_id'];
-        $station->floor_id = $DA['floor_id'];
-        $station->room_no = $DA['room_no'];
-        $station->room_state = $DA['room_state'];
-        $station->room_type = 2;   // 工位2 房源1
-        $station->station_no = isset($DA['station_no']) ? $DA['station_no'] : 0;
-        $station->room_measure_area = isset($DA['room_measure_area']) ? $DA['room_measure_area'] : 0;
-        $station->room_trim_state = isset($DA['room_trim_state']) ? $DA['room_trim_state'] : "";
-        $station->room_price = isset($DA['room_price']) ? $DA['room_price'] : 0.00;
-        $station->room_tags = isset($DA['room_tags']) ? $DA['room_tags'] : "";
-        $station->channel_state = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
-        Log::error($DA['rentable_date'] . "000000");
+        $station->build_id          = $DA['build_id'];
+        $station->floor_id          = $DA['floor_id'];
+        $station->room_no           = $DA['room_no'];
+        $station->room_state        = $DA['room_state'];
+        $station->room_type         = 2;                              // 工位2 房源1
+        $station->station_no        = $DA['station_no'] ?? 0;
+        $station->room_measure_area = $DA['room_measure_area'] ?? 0;
+        $station->room_trim_state   = $DA['room_trim_state'] ?? "";
+        $station->room_price        = $DA['room_price'] ?? 0.00;
+        $station->room_tags         = $DA['room_tags'] ?? "";
+        $station->channel_state     = $DA['channel_state'] ?? 0;
         if (isset($DA['rentable_date']) && isDate($DA['rentable_date'])) {
             $station->rentable_date = $DA['rentable_date'];
         }
-        $station->remark = isset($DA['remark']) ? $DA['remark'] : "";
+        $station->remark = $DA['remark'] ?? "";
         $res = $station->save();
         return $res;
     }
