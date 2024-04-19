@@ -476,8 +476,9 @@ class ChargeService
     try {
       DB::transaction(function () use ($DA,  $user) {
         $charge = $this->model()->findOrFail($DA['id']);
-        $charge->unverify_amount = bcsub($charge->unverify_amount, $DA['refund_amt'], 2);
-        if ($charge->unverify_amount == 0) {
+        $refundedAmt = $this->model()->where('charge_id', $charge->id)->sum('amount');
+        $availableAmt = bcsub(bcsub($charge->unverify_amount, $refundedAmt, 2), $DA['refund_amt'], 2);
+        if ($availableAmt == 0 || $availableAmt == 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
         $charge->save();

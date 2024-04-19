@@ -791,15 +791,17 @@ class PubSelectController extends BaseController
 		$data = $chargeService->model()
 			->where(function ($q) use ($request) {
 				$request->type && $q->where('type', $request->type);
+				$request->bank_id && $q->where('bank_id', $request->bank_id);
 				if (isset($request->status)) {
 					$q->where('status', $request->status);
 				}
 			})->withCount(['refund as refund_amount' => function ($q) {
-				$q->selectRaw('sum(refund_amt)');
+				$q->select(DB::Raw('sum(amount) refund_amount'));
 			}])
 			->where($where)->get();
 		foreach ($data as $k => &$v) {
-			$v['available_amt'] = bcsub($v['unverify_amount'], $v['refund_amount'], 2);
+			$unreceiveAmt = bcsub($v['amount'], $v['received_amount'], 2);
+			$v['available_amt'] = bcsub($unreceiveAmt, $v['refund_amount'], 2);
 		}
 		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
