@@ -481,6 +481,7 @@ class ChargeService
           'id'          => 0,
           'source'      => 1, // 1 费用
           'proj_id'     => $charge['proj_id'],
+          'pay_method'  => $charge['pay_method'],
           'charge_id'   => $DA['id'],
           'tenant_id'   => $charge['tenant_id'],
           'type'        => ChargeEnum::Refund,
@@ -488,6 +489,7 @@ class ChargeService
           'status'      => ChargeEnum::chargeVerify,
           'charge_date' => $DA['common_date'] ?? nowYmd(),
           'category'    => ChargeEnum::CategoryRefund,   // 收入退款;
+          'bank_id'     => $charge['bank_id'],
           'remark'      => $DA['remark']
         ];
         $this->save($refund, $user);
