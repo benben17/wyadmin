@@ -520,8 +520,9 @@ class ChargeService
       ->selectRaw($statSelect)
       ->first();
     $refundAmt = $query->where('charge_id', '>', 0)->where('type', 2)->sum('amount');
-    $statData['unverify_amount'] = bcsub($statData['amount'], $statData['verify_amount'], 2);
+
     $statData['refund_amount'] = $refundAmt;
+    $statData['unverify_amount'] = bcsub(bcsub($statData['amount'], $statData['verify_amount'], 2), $refundAmt, 2);
     $stat = [
       ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
       ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
