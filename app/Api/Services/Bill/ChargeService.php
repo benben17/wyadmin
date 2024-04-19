@@ -507,14 +507,14 @@ class ChargeService
     $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
                   ifnull(sum(verify_amount),0.00) as verify_amount, 
 		              ifnull(sum(amount - verify_amount),0.00) as unverify_amount';
-    $statData = $query->selectRaw($statSelect)->first();
+    $statData = $query->selectRaw($statSelect)->first()->toArray();
     $currStartYmd = date('Y-m-01');
     $currEndYmd   = date('Y-m-t');
     $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
       ->selectRaw($statSelect)
       ->first();
 
-    $data['stat'] = [
+    $stat = [
       ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
       ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
       ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
@@ -522,7 +522,10 @@ class ChargeService
       ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
       ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
     ];
-    $data['stat'] = num_format($data['stat']);
+    // foreach ($data['stat'] as &$value) {
+    //   $value['amount'] = ($value['amount']);
+    // }
+    $data['stat'] = num_format($stat);
     $data['total'] = num_format($statData);
   }
 }

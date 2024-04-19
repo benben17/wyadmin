@@ -116,7 +116,7 @@ class ChargeController extends BaseController
 			unset($v['bank_account']);
 		}
 
-		$data['stat'] = $this->chargeService->listStat($subQuery, $data);
+		$this->chargeService->listStat($subQuery, $data);
 		return $this->success($data);
 	}
 
