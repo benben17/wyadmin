@@ -79,11 +79,11 @@ class BillDetailController extends BaseController
 				$request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->year && $q->whereYear('charge_date', $request->year);
-				if (!$request->start_date && !$request->end_date) {
-					$startDate = dateFormat('Y-01-01', nowYmd());
-					$endDate = dateFormat('Y-m-t', nowYmd());
-					$q->whereBetween('charge_date', [$startDate, $endDate]);
-				}
+				// if (!$request->start_date && !$request->end_date) {
+				// 	$startDate = dateFormat('Y-01-01', nowYmd());
+				// 	$endDate = dateFormat('Y-m-t', nowYmd());
+				// 	$q->whereBetween('charge_date', [$startDate, $endDate]);
+				// }
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
