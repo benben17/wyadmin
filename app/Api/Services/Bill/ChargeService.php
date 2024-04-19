@@ -106,17 +106,15 @@ class ChargeService
         $charge = $this->model()->find($chargeBill['id']);
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt == $verifyAmt) {
-          $detail_bill_data['receive_amount'] = bcadd($verifyAmt, $detailBill['receive_amount'], 2);
           $detail_bill_data['status'] = ChargeEnum::chargeVerify;
         } else if ($unreceiveAmt > $verifyAmt) {
-          $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
           $detail_bill_data['status'] = ChargeEnum::chargeUnVerify;
-        };
-        // $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
-        $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
+        }
+        $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
+        $charge->verify_amount   = bcadd($charge->verify_amount, $verifyAmt, 2);
 
         // 未核销金额 = 充值未核销金额 - 核销金额 - 退款金额
-        $availableAmt = bcsub(bcsub($charge->amount, $charge->verify_amount, 2), $chargeBill['refund_amount'], 2);
+        $availableAmt = bcsub(bcsub($charge->amount, $charge->verify_amount, 2), $charge->refund_amount, 2);
         if ($availableAmt == 0 || $availableAmt == 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
@@ -171,10 +169,10 @@ class ChargeService
           if ($availableAmt == 0 || $charge->status == ChargeEnum::chargeVerify) { // 充值金额已经核销完毕
             break; // 跳出循环
           }
-          $receivableAmt = bcsub(bcsub($detailBill['amount'], $detailBill['receive_amount'], 2), $detailBill['discount_amount'], 2);
-          if ($receivableAmt <= $availableAmt) { // 应收金额小于等于充值金额
-            $availableAmt = bcsub($availableAmt, $receivableAmt, 2);  // 充值金额减去应收金额
-            $verifyAmt = $receivableAmt;  // 核销金额
+          $unreceiveAmt = bcsub(bcsub($detailBill['amount'], $detailBill['receive_amount'], 2), $detailBill['discount_amount'], 2);
+          if ($unreceiveAmt <= $availableAmt) { // 应收金额小于等于充值金额
+            $availableAmt = bcsub($availableAmt, $unreceiveAmt, 2);  // 充值金额减去应收金额
+            $verifyAmt = $unreceiveAmt;  // 核销金额
             $feeStatus = AppEnum::feeStatusReceived;           // 应收状态
           } else { // 应收金额大于充值金额
             $verifyAmt = $availableAmt;   // 核销金额

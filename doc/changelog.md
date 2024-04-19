@@ -2,6 +2,11 @@
 
 ## Release Notes
 
+### 2024-04-19
+
+1. 收款删除unverfiy——amount 转成 refund——amount
+2. 核销bug 处理
+
 ### 2024-04-14
 
 1. 合同变更，根据规则处理老账单

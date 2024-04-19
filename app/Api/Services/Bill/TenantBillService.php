@@ -495,7 +495,6 @@ class TenantBillService
 							// 收入增加金额
 							$charge = ChargeBill::find($record['charge_id']);
 							$charge->verify_amount = bcsub($$charge->verify_amount, $record['amount'], 2);
-							$charge->unverify_amount = bcadd($charge->unverify_amount, $record['amount'], 2);
 							if ($charge->status == ChargeEnum::chargeVerify) {
 								$charge->status = ChargeEnum::chargeUnVerify;
 							}

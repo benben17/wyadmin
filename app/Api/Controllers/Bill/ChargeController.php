@@ -594,10 +594,8 @@ class ChargeController extends BaseController
 		if ($charge->type == ChargeEnum::Refund) {
 			return $this->error("已退款，支出不允许退款");
 		}
-		// 已退款金额
-		$refundedAmt = $this->chargeService->model()->where('charge_id', $request->id)
-			->where('type', ChargeEnum::Refund)->sum('amount');
-		$availableAmt = bcsub(bcsub($charge->amount, $charge->verify_amount, 2), $refundedAmt, 2);
+
+		$availableAmt = bcsub(bcsub($charge->amount, $charge->verify_amount, 2), $charge->refund_amount, 2);
 		if ($availableAmt < $request->refund_amt) {
 			return $this->error("退款金额不能大于可用金额");
 		}
