@@ -524,15 +524,15 @@ class ChargeService
     //   ->first();
     $total['total_amt'] = $statData['amount'] ?? 0.00;
     $total['verify_amt'] = $statData['verify_amount'] ?? 0.00;
-    $total['unverify_amt'] = bcsub($total['total_amt'], $total['verify_amt'], 2);
+    $unverifyAmt = bcsub($total['total_amt'], $total['verify_amt'], 2);
     // $records = $query->get();
     $total['refund_amt'] = 0.00;
-    $query->chunk(200, function ($records) use (&$total) {
+    $query->chunk(600, function ($records) use (&$total) {
       foreach ($records as $record) {
-        $total['refund_amt'] = bcadd($total['refund_amt'], $record->refund_amt, 2);
+        $total['refund_amt'] = bcadd($total['refund_amt'], $record->refund_amt ?? 0.00, 2);
       }
     });
-    $total['available_amt'] = bcsub($total['unverify_amt'], $total['refund_amt'], 2);
+    $total['available_amt'] = bcsub($unverifyAmt, $total['refund_amt'], 2);
     // $stat = [
     //   ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
     //   ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
