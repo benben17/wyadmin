@@ -111,7 +111,7 @@ class ChargeController extends BaseController
 		foreach ($data['result'] as &$v) {
 			$v['bank_name']     = $v['bank_account']['account_name'] ?? '';
 			$v['pay_person']    = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
-			$v['available_amt'] = bcsub(bcsub($v['amount'], $v['verify_amount'], 2), $v['refund_amount'] ?? 0.00, 2);
+			$v['available_amount'] = bcsub(bcsub($v['amount'], $v['verify_amount'], 2), $v['refund_amount'] ?? 0.00, 2);
 			unset($v['bank_account']);
 		}
 
