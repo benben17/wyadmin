@@ -53,12 +53,10 @@ class ChargeService
       // DB::transaction(function () use ($user, $BA) {
       if (isset($BA['id']) && $BA['id'] > 0) {
         $charge         = $this->model()->where('id', $BA['id'])->first();
-        $charge->unverify_amount =  $BA['unverify_amount'] ?? 0.00;
         $charge->u_uid  = $user['id'];
       } else {
         $charge         = $this->model();
         $charge->c_uid  = $user['id'];
-        $charge->unverify_amount = $BA['amount'];
         $charge->flow_no = $this->getChargeNo($BA['type']);
       }
       $charge->pay_person  = $BA['pay_person'] ?? "";
@@ -71,9 +69,6 @@ class ChargeService
       $charge->source      = $BA['source'];
       $charge->pay_method  = $BA['pay_method'] ?? 0;
       $charge->verify_amount =  isset($BA['verify_amount']) ? $BA['verify_amount'] : "0.00";
-      if ($BA['type'] == ChargeEnum::Income) {
-        $charge->unverify_amount = $BA['amount'];
-      }
       $charge->tenant_name = isset($BA['tenant_name']) ? $BA['tenant_name'] : "";
       $charge->fee_type    = isset($BA['fee_type']) ? $BA['fee_type'] : 0;
       $charge->bank_id     = isset($BA['bank_id']) ? $BA['bank_id'] : 0;
@@ -118,11 +113,11 @@ class ChargeService
           $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
           $detail_bill_data['status'] = ChargeEnum::chargeUnVerify;
         }
-
+        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
         $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
-        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $chargeBill['refund_amount'], 2);
+
         // 未核销金额 = 充值未核销金额 - 核销金额 - 退款金额
-        $unverifyAmt = bcsub($charge->unverify_amount, $verifyAmt, 2);
+        $unverifyAmt = bcsub($charge->unverify_amount, $chargeBill['refund_amount'], 2);
         if ($unverifyAmt == 0 || $unverifyAmt === 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
@@ -170,25 +165,24 @@ class ChargeService
       DB::transaction(function () use ($detailBillList, $chargeId, $verifyDate, $user) {
         $billService = new TenantBillService;
         $charge = $this->model()->findOrFail($chargeId);
-        $refundedAmt = $this->chargeRecord()->where('charge_id', $chargeId)->sum('amount'); // 已退款金额
-        $unverifyAmt = bcsub($charge->amount, $charge->verify_amount, 2); // 充值未核销金额
-        $chargeAmt = bcsub($unverifyAmt, $refundedAmt, 2);  //  充值未核销金额
+
+        $availableAmt = bcsub($charge->amount, $charge->refund_amount, 2);  //  充值未核销金额
         foreach ($detailBillList as $detailBill) {
           $verifyAmt = 0;
-          if ($chargeAmt == 0 || $charge->status == ChargeEnum::chargeVerify) { // 充值金额已经核销完毕
+          if ($availableAmt == 0 || $charge->status == ChargeEnum::chargeVerify) { // 充值金额已经核销完毕
             break; // 跳出循环
           }
           $receivableAmt = bcsub(bcsub($detailBill['amount'], $detailBill['receive_amount'], 2), $detailBill['discount_amount'], 2);
-          if ($receivableAmt <= $chargeAmt) { // 应收金额小于等于充值金额
-            $chargeAmt = bcsub($chargeAmt, $receivableAmt, 2);  // 充值金额减去应收金额
+          if ($receivableAmt <= $availableAmt) { // 应收金额小于等于充值金额
+            $availableAmt = bcsub($availableAmt, $receivableAmt, 2);  // 充值金额减去应收金额
             $verifyAmt = $receivableAmt;  // 核销金额
             $feeStatus = AppEnum::feeStatusReceived;           // 应收状态
           } else { // 应收金额大于充值金额
-            $verifyAmt = $chargeAmt;   // 核销金额
-            $chargeAmt = 0;         // 充值金额为0
+            $verifyAmt = $availableAmt;   // 核销金额
+            $availableAmt = 0;         // 充值金额为0
             $feeStatus = AppEnum::feeStatusUnReceive; // 应收 未结清
           }
-          if ($chargeAmt == 0 || $chargeAmt === 0.00) {
+          if ($availableAmt == 0 || $availableAmt === 0.00) {
             $charge->status = ChargeEnum::chargeVerify;
           }
 
@@ -213,7 +207,6 @@ class ChargeService
           $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
           $this->chargeBillRecordSave($billRecord, $user);
           // 更新充值信息
-          $charge->unverify_amount = $chargeAmt;
           $charge->verify_amount   = bcadd($charge->verify_amount, $verifyAmt, 2);
         }
         $charge->save();
@@ -393,14 +386,13 @@ class ChargeService
         if ($record->type == 1) {
           // 更新收款信息
           $charge = $this->model()->findOrFail($record->charge_id);
-          $charge->unverify_amount += $record->amount;
-          $charge->verify_amount   -= $record->amount;
+          $charge->verify_amount = bcsub($charge->verify_amount, $record->amount, 2);
           $charge->status = ChargeEnum::chargeUnVerify;
           $charge->save();
 
           // 更新应收费用收款信息
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
-          $billDetail->receive_amount -= $record->amount;
+          $billDetail->receive_amount = bcsub($billDetail->receive_amount, $record->amount, 2);
           $billDetail->updated_at = nowYmd();
           $billDetail->status = AppEnum::feeStatusUnReceive; // 未结清
           $billDetail->save();
@@ -476,9 +468,9 @@ class ChargeService
     try {
       DB::transaction(function () use ($DA,  $user) {
         $charge = $this->model()->findOrFail($DA['id']);
-        $refundedAmt = $this->model()->where('charge_id', $charge->id)->sum('amount');
-        $unverifyAmt = bcsub($charge->amount, $charge->verify_amount, 2);
-        $availableAmt = bcsub(bcsub($unverifyAmt, $refundedAmt, 2), $DA['refund_amt'], 2);
+        $availableAmt = bcsub($charge->amount, $charge->verify_amount, 2);
+        $availableAmt = bcsub(bcsub($availableAmt, $charge->refund_amount, 2), $DA['refund_amt'], 2);
+        $charge->refund_amount = $DA['refund_amt'];
         if ($availableAmt == 0 || $availableAmt == 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
