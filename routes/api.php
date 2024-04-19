@@ -406,6 +406,7 @@ Route::group(['prefix' => 'operation/tenant/leaseback'], function () {
     Route::post('/add', '\App\Api\Controllers\Contract\LeasebackController@store');
     Route::post('/edit', '\App\Api\Controllers\Contract\LeasebackController@update');
     Route::post('/show', '\App\Api\Controllers\Contract\LeasebackController@show');
+    Route::post('/bill', '\App\Api\Controllers\Contract\LeasebackController@leasebackBill');
 });
 
 //租户账单
@@ -454,6 +455,7 @@ Route::group(['prefix' => 'operation/tenant/invoice'], function () {
     Route::post('edit', '\App\Api\Controllers\Bill\InvoiceController@edit');
     Route::post('show', '\App\Api\Controllers\Bill\InvoiceController@show');
     Route::post('cancel', '\App\Api\Controllers\Bill\InvoiceController@cancel');
+    Route::post('title', '\App\Api\Controllers\Bill\InvoiceController@invoiceByTenant');
 });
 
 // 设备设施

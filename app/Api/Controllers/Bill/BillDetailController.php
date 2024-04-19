@@ -53,7 +53,6 @@ class BillDetailController extends BaseController
 
 	public function list(Request $request)
 	{
-		$pagesize = $this->setPagesize($request);
 
 		$map = array();
 		if ($request->tenant_id) {
@@ -71,6 +70,7 @@ class BillDetailController extends BaseController
 		if (isset($request->status) && $request->status != "") {
 			$map['status'] = $request->status;
 		}
+
 		DB::enableQueryLog();
 		// $map['type'] =  AppEnum::feeType;
 		$subQuery = $this->billService->billDetailModel()
@@ -79,6 +79,11 @@ class BillDetailController extends BaseController
 				$request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->year && $q->whereYear('charge_date', $request->year);
+				if (!$request->start_date && !$request->end_date) {
+					$startDate = dateFormat('Y-01-01', nowYmd());
+					$endDate = dateFormat('Y-m-t', nowYmd());
+					$q->whereBetween('charge_date', [$startDate, $endDate]);
+				}
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
@@ -91,26 +96,12 @@ class BillDetailController extends BaseController
 		$pageQuery = clone $subQuery;
 		$pageQuery->with('tenant:id,name');
 		$data = $this->pageData($pageQuery, $request);
-		// return response()->json(DB::getQueryLog());
-		$feeStat = FeeType::selectRaw('fee_name,id,type')
-			->where('type', AppEnum::feeType)
-			->whereIn('company_id', getCompanyIds($this->uid))->get();
-		// 统计每种类型费用的应收/实收/未收
-		foreach ($feeStat as $k => &$v) {
-			$count = $subQuery
-				->selectRaw('sum(amount) total_amt,sum(receive_amount) receive_amt,fee_type')
-				->where('fee_type', $v['id'])
-				->groupBy('fee_type')->first();
-			$v['total_amt']     = $count['total_amt'] ?? 0.00;
-			$v['receive_amt']   = $count['receive_amt'] ?? 0.00;
-			$v['unreceive_amt'] = $v['total_amt'] - $v['receive_amt'];
-		}
-
 		foreach ($data['result'] as $k => &$v) {
 			$v['tenant_name'] = $v['tenant']['name'];
 			unset($v['tenant']);
 		}
-		$data['stat'] = $feeStat;
+		$this->billService->detailListStat($subQuery, $data, $this->uid);
+
 		return $this->success($data);
 	}
 
@@ -216,7 +207,12 @@ class BillDetailController extends BaseController
 		if (!$chargeBill) {
 			return $this->error("未发现充值数据！");
 		}
-		$unreceiveAmt = $billDetail['amount'] - $billDetail['receive_amount'] - $billDetail['discount_amount'];
+
+		if ($chargeBill->bank_id != $billDetail->bank_id) {
+			return $this->error("收款账户不一致！");
+		}
+
+		$unreceiveAmt = bcsub(bcsub($billDetail['amount'], $billDetail['receive_amount'], 2), $billDetail['discount_amount'], 2);
 		if ($unreceiveAmt < $request->verify_amount) {
 			return $this->error("核销金额大于未收款金额！");
 		}

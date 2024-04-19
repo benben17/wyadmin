@@ -92,13 +92,18 @@ class LeasebackController extends BaseController
             })
             ->with('tenant:id,tenant_no,name,proj_id,on_rent')
             ->with('contract:id,contract_no,start_date,end_date')
+            ->whereHas('contract', function ($q) use ($request) {
+                if ($request->sign_start_date && $request->sign_end_date) {
+                    $q->whereBetween('sign_date', [$request->sign_start_date, $request->sign_end_date]);
+                }
+            })
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
         // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as &$v) {
-            $v  = $v + $v['contract'];
+            $v  = array_merge($v, $v['contract']);
             unset($v['contract']);
         }
         return $this->success($data);
@@ -194,7 +199,7 @@ class LeasebackController extends BaseController
     }
     /**
      * @OA\Post(
-     *     path="/api/operation/contract/leaseback/show",
+     *     path="/api/operation/tenant/leaseback/show",
      *     tags={"租户退租"},
      *     summary="租户退租",
      *    @OA\RequestBody(
@@ -217,20 +222,48 @@ class LeasebackController extends BaseController
      */
     public function show(Request $request)
     {
-        $validatedData = $request->validate([
-            'contract_id'            => 'required|gt:0',
+
+        $this->showValidate($request);
+        $contractService = new ContractService;
+        $data = $contractService->model()
+            ->with('contractRoom')->find($request->contract_id);
+        return $this->success($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/leaseback/bill",
+     *     tags={"租户退租"},
+     *     summary="租户退租账单",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id","leaseback_date"},
+     *      @OA\Property(property="contract_id",type="int",description="合同id"),
+     *      @OA\Property(property="leaseback_date",type="String",description="退租日期"),
+     *     ),
+     *       example={"contract_id":"合同id","leaseback_date":"2021-01-01"}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function leasebackBill(Request $request)
+    {
+
+        $this->showValidate($request);
+        $request->validate([
             'leaseback_date'         => 'required|date',
         ], [
             'leaseback_date.required' => '退租日期不能为空',
-            'leaseback_date.date'     => '退租日期格式不正确',
-            'contract_id.gt'          => '合同id不能为空',
-            'contract_id.required'    => '合同id不能为空',
+            'leaseback_date.date'     => '退租日期格式不正确'
         ]);
-        $contractService = new ContractService;
         $tenantService = new TenantBillService;
-        $data = $contractService->model()
-            ->with('contractRoom')->find($request->contract_id);
-
         $feeBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
             ->where('type', '!=', AppEnum::depositFeeType)
@@ -238,11 +271,24 @@ class LeasebackController extends BaseController
 
         $depositBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
-            ->where('type', AppEnum::depositFeeType)
-            ->where('status', AppEnum::feeStatusUnReceive)->get();
+            ->where('type', AppEnum::depositFeeType)->get();
 
         $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
         $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
         return $this->success($data);
+    }
+
+
+    private function showValidate($request)
+    {
+        return $request->validate([
+            'contract_id'            => 'required|gt:0',
+            // 'leaseback_date'         => 'required|date',
+        ], [
+            // 'leaseback_date.required' => '退租日期不能为空',
+            // 'leaseback_date.date'     => '退租日期格式不正确',
+            'contract_id.gt'          => '合同id不能为空',
+            'contract_id.required'    => '合同id不能为空',
+        ]);
     }
 }

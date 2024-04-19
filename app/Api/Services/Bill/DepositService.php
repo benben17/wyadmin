@@ -6,8 +6,10 @@ use Exception;
 use App\Enums\AppEnum;
 use App\Enums\DepositEnum;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Bill\DepositRecord;
+
 use App\Api\Models\Bill\TenantBillDetail;
 
 /**
@@ -51,6 +53,7 @@ class DepositService
         $dRecord->proj_id        = $deposit['proj_id'];
         $dRecord->bill_detail_id = $DA['id'];
         $dRecord->amount         = $DA['amount'];
+        $dRecord->common_date    = $DA['common_date'] ?? nowYmd();
         $dRecord->type           = $DA['type'];
         $dRecord->bank_id        = $deposit['bank_id'];
         $dRecord->remark         = isset($DA['remark']) ? $DA['remark'] : "";
@@ -87,17 +90,17 @@ class DepositService
       foreach ($recordList as $v1) {
         switch ($v1['type']) {
           case DepositEnum::RecordReceive: // 押金收入
-            $BA['receive_amt'] += $v1['amount'];
+            $BA['receive_amt'] = bcadd($BA['receive_amt'], $v1['amount'], 2);
             break;
           case DepositEnum::RecordRefund: // 押金退款
-            $BA['refund_amt'] +=  $v1['amount'];
+            $BA['refund_amt'] =  bcadd($BA['refund_amt'], $v1['amount'], 2);
             break;
           case DepositEnum::RecordToCharge: // 转收款
-            $BA['charge_amt'] +=  $v1['amount'];
+            $BA['charge_amt'] =  bcadd($BA['charge_amt'], $v1['amount'], 2);
             break;
         }
       }
-      $BA['available_amt'] = $BA['receive_amt'] - $BA['refund_amt'] - $BA['charge_amt'];
+      $BA['available_amt'] = bcsub(bcsub($BA['receive_amt'], $BA['refund_amt'], 2), $BA['charge_amt'], 2);
     }
     return $BA;
   }
@@ -112,28 +115,57 @@ class DepositService
    *
    * @return array
    */
-  public function depositStat(array $list): array
+  public function depositStat($query, &$data, $uid)
   {
-    $stat = ['total_amt' => 0.00, 'receive_amt' => 0.00, 'refund_amt' => 0.00, 'charge_amt' => 0.00, 'discount_amt' => 0.00];
-    foreach ($list as $k => $v) {
-      $stat['total_amt'] += $v['amount'];
-      $stat['discount_amt'] += $v['discount_amount'];
-      $record = $this->formatDepositRecord($v['deposit_record']);
-      $stat['refund_amt'] += $record['refund_amt'];
-      $stat['charge_amt'] += $record['charge_amt'];
-      $stat['receive_amt'] += $v['receive_amount'];
-      $stat['available_amt'] = $stat['receive_amt'] - $stat['refund_amt'] - $stat['charge_amt'];
+    $feeStat = FeeType::select('fee_name', 'id', 'type')
+      ->where('type', AppEnum::depositFeeType)
+      ->whereIn('company_id', getCompanyIds($uid))->get()->toArray();
+
+    $feeCount = $query->selectRaw('ifnull(sum(fee_amount),0.00) fee_amt,
+        ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
+        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type,GROUP_CONCAT(id) as detail_ids')
+      ->groupBy('fee_type')->get()
+      ->keyBy('fee_type');
+    // $data['aaa'] = $feeCount;
+    $emptyFee = [
+      "total_amt" => 0.00,
+      "receive_amt" => 0.00,
+      "discount_amt" => 0.00,
+      "unreceive_amt" => 0.00,
+      'charge_amt' => 0.00,
+      'refund_amt' => 0.00,
+    ];
+    $total = $emptyFee;
+
+    $detail_ids = "";
+    foreach ($feeStat as $k => &$fee) {
+      $fee = array_merge($fee, $emptyFee);
+      if (isset($feeCount[$fee['id']])) {
+        $v1 = $feeCount[$fee['id']];
+        $fee['total_amt']      = $v1->total_amt;
+        $fee['receive_amt']    = $v1->receive_amt;
+        $fee['discount_amt']   = $v1->discount_amt;
+        $fee['unreceive_amt']  = bcsub(bcsub($fee['total_amt'], $fee['receive_amt'], 2), $fee['discount_amt'], 2);
+        $detail_ids .= $v1->detail_ids . ",";
+      }
+      $fee['label'] = $fee['fee_name'];
+      $fee['amount'] = $fee['total_amt'];
+
+      $total['total_amt']     = bcadd($total['total_amt'], $fee['total_amt'], 2);
+      $total['receive_amt']   = bcadd($total['receive_amt'], $fee['receive_amt'], 2);
+      $total['discount_amt']  = bcadd($total['discount_amt'], $fee['discount_amt'], 2);
+      $total['unreceive_amt'] = bcadd($total['unreceive_amt'], $fee['unreceive_amt'], 2);
+      // $total['charge_amt']    = bcadd($total['charge_amt'], $fee['charge_amt'], 2);
+      // $total['refund_amt']    = bcadd($total['refund_amt'], $fee['refund_amt'], 2);
     }
-    $statData = array(
-      ["label" => '总应收金额', "amount" =>  $stat['total_amt'], 'remark' => '押金账单总金额'],
-      ["label" => '总已收金额', "amount" => $stat['receive_amt'], 'remark' => '押金账单总收款金额'],
-      ["label" => '退款金额', "amount" => $stat['refund_amt'], 'remark' => '押金账单总退款金额'],
-      ["label" => '转收入金额', "amount" => $stat['charge_amt'], 'remark' => '押金账单总转收入金额'],
-      ["label" => '押金余额', "amount" => $stat['available_amt'], 'remark' => '押金总可用金额，总收入-退款-转收入'],
-    );
-    foreach ($statData as &$v) {
-      $v['amount'] = number_format($v['amount'], 2);
-    }
-    return $statData;
+    $totalRecord = $this->recordModel()
+      ->selectRaw('ifnull(sum(case type when 2 then amount else 0 end),0.00) charge_amt,
+                ifnull(sum(case type when 3 then amount else 0 end),0.00) refund_amt')
+      ->whereIn('bill_detail_id', explode(",", $detail_ids))->first();
+    $total['charge_amt'] = $totalRecord->charge_amt;
+    $total['refund_amt'] = $totalRecord->refund_amt;
+    $total['available_amt'] = bcsub(bcsub($total['receive_amt'], $total['refund_amt'], 2), $total['charge_amt'], 2);
+    $data['total'] = $total;
+    $data['stat']  = $feeStat;
   }
 }

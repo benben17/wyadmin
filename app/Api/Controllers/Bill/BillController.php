@@ -93,11 +93,11 @@ class BillController extends BaseController
       $billCount = $this->billService->billDetailModel()
         ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
         ->where('bill_id', $v['id'])->first();
-      $v['amount']     = $billCount['totalAmt'];
+      $v['amount']           = $billCount['totalAmt'];
       $v['discount_amount']  = $billCount['disAmt'];
       $v['receive_amount']   = $billCount['receiveAmt'];
       $v['unreceive_amount'] = $v['amount'] - $v['discount_amount'] - $v['receive_amount'];
-      $v['bill_label']  = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
+      $v['bill_label']       = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
     }
     return $this->success($data);
   }
@@ -358,8 +358,8 @@ class BillController extends BaseController
       'audit_status' => 'required|in:1,2', // 1 审核通过 2 审核不通过
     ], [
       'audit_status.in' => '审核状态错误',
-      'id.gt' => '账单id错误',
-      'id.required' => '账单id不能为空',
+      'billIds.array' => '账单ID格式错误',
+      'billIds.required' => '账单ID不能为空',
     ]);
     $status = $request->audit_status == 1 ? AppEnum::statusAudit : AppEnum::statusUnAudit;
     $updateData = array(

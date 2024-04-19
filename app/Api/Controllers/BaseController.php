@@ -2,12 +2,13 @@
 
 namespace App\Api\Controllers;
 
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use function PHPSTORM_META\type;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
@@ -34,6 +35,7 @@ class BaseController extends Controller
     protected $uid;
     protected $company_id;
     protected $user;
+    protected $sortType = ['asc', 'desc'];
     public function __construct()
     {
         $this->uid  = auth()->payload()->get('sub');
@@ -134,7 +136,9 @@ class BaseController extends Controller
         $order = $request->orderBy ?? 'created_at';
         // 排序方式
         $sort = $request->order ?? 'desc';
-
+        if (!in_array($sort, $this->sortType)) {
+            $sort = 'desc';
+        }
         $data = $query->orderBy($order, $sort)->paginate($pagesize)->toArray();
         // 返回数据并格式化
         return $this->handleBackData($data);

@@ -101,25 +101,30 @@ class DepositController extends BaseController
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->year && $q->whereYear('charge_date', $request->year);
-				$request->status && $q->whereIn('status', $request->status);
+				if ($request->status) {
+					$status = array_filter(str2Array($request->status), function ($v) {
+						is_numeric($v);
+					});
+					if (!empty($status) > 0) {
+						$q->whereIn('status', $status);
+					}
+				}
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
-			})
-			->with('depositRecord');
+			})->with('depositRecord');
+
 		$pageQuery = clone $subQuery;
 
 		$data = $this->pageData($pageQuery->with('bankAccount'), $request);
-
-		$list = $subQuery->get()->toArray();
 
 		foreach ($data['result'] as $k => &$v1) {
 			$record = $this->depositService->formatDepositRecord($v1['deposit_record']);
 			$v1['bank_name'] = $v1['bank_account']['account_name'] ?? "";
 			unset($v1['bank_account']);
-			$v1 = $v1 + $record;
+			$v1 = array_merge($v1, $record);
 		}
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
-		$data['stat'] = $this->depositService->depositStat($list);
+		$this->depositService->depositStat($subQuery, $data, $this->uid);
 		return $this->success($data);
 	}
 
@@ -250,10 +255,14 @@ class DepositController extends BaseController
 		$data = $this->depositService->depositBillModel()
 			->with('depositRecord')
 			->with('billDetailLog')
-			->find($request->id)->toArray();
+			->find($request->id);
+		if (!$data) {
+			return $this->error((object)[]);
+		}
+		$data = $data->toArray();
 		// return response()->json(DB::getQueryLog());
 		$recordSum = $this->depositService->formatDepositRecord($data['deposit_record']);
-		$data = $data + $recordSum;
+		$data += $recordSum;
 		// $data = array_merge($data + $info);
 		return $this->success($data);
 	}
@@ -340,7 +349,7 @@ class DepositController extends BaseController
 					->with('depositRecord')
 					->find($DA['id'])->toArray();
 				if (!$deposit) {
-					return $this->error("未找到押金信息");
+					throw new Exception("未找到押金信息");
 				}
 
 				$record = $this->depositService->formatDepositRecord($deposit['deposit_record']);
@@ -355,6 +364,7 @@ class DepositController extends BaseController
 				$DA['remark'] = $remark;
 				$this->depositService->saveDepositRecord($deposit, $DA, $user);
 				// 押金转收入 写入到charge  收支表
+				$deposit['charge_date'] = $DA['common_date'] ?? nowYmd();
 				$this->chargeService->depositToCharge($deposit, $DA, $user);
 				if ($availableAmt == $DA['amount']) {
 					$updateData['status'] = DepositEnum::Clear;
@@ -364,7 +374,7 @@ class DepositController extends BaseController
 			return $this->success("押金转收入成功");
 		} catch (Exception $e) {
 			Log::error("押金转收入失败" . $e->getMessage());
-			return $this->error("押金转收入失败!" . $e->getMessage());
+			return $this->error("押金转收入失败!");
 		}
 	}
 
@@ -396,39 +406,42 @@ class DepositController extends BaseController
 		$validatedData = $request->validate([
 			'id' => 'required|gt:0',
 			'amount' => 'required|gt:0',
-			'receive_date' => 'required|date',
+			'common_date' => 'required|date',
 		], [
 			'id' => '押金应收id是必填的',
 			'amount.required' => '金额字段是必填的。',
 			'amount.gt' => '金额必须大于0。',
-			'receive_date.required' => '收款日期字段是必填的。',
-			'receive_date.date' => '收款日期必须是有效的日期。',
+			'common_date.required' => '收款日期字段是必填的。',
+			'common_date.date' => '收款日期必须是有效的日期。',
 		]);
 		$DA = $request->toArray();
 		$DA['type'] = DepositEnum::RecordReceive;
 
 		$depositFee = $this->depositService->depositBillModel()->find($request->id);
-		if ($depositFee['status'] != 0) {
+		$unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount'], 2);
+		$unreceiveAmt = bcsub($unreceiveAmt, $depositFee['discount_amount'], 2);
+		if ($depositFee['status'] != 0 || $unreceiveAmt == 0) {
 			return $this->error("此押金已经收款结清!");
 		}
-
+		Log::alert($unreceiveAmt . "未收金额");
 		try {
 			$user = $this->user;
-			DB::transaction(function () use ($depositFee, $DA, $user) {
+			DB::transaction(function () use ($depositFee, $DA, $unreceiveAmt, $user) {
 				// 已收款金额+ 本次收款金额
 				$receiveAmt = $DA['amount'];
-				$totalReceiveAmt = $depositFee['receive_amount'] + $receiveAmt;
-				$unreceiveAmt = $depositFee['amount'] - $depositFee['receive_amount'];
+				$totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt, 2);
+				// $unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
 				$updateData['receive_amount'] = $totalReceiveAmt;
 				// 收款金额大于未收金额
 				if ($receiveAmt > $unreceiveAmt) {
 					throw new Exception("收款金额不允许大于未收金额!");
 				}
 				// 应收和实际收款 相等时
-				if ($depositFee['amount'] == $totalReceiveAmt) {
+				$totalAmt = bcsub($depositFee['amount'], $depositFee['discount_amount'], 2);
+				if ($totalAmt == $totalReceiveAmt) {
 					$updateData['status'] = DepositEnum::Received;
 				}
-				$updateData['receive_date'] = $DA['receive_date'] ?? nowYmd();
+				$updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
 				// 保存押金流水记录
 				$this->depositService->saveDepositRecord($depositFee, $DA, $user);
 				// 更新 押金信息 【状态，收款金额】
@@ -563,23 +576,27 @@ class DepositController extends BaseController
 		DB::enableQueryLog();
 		$data = $this->depositService->recordModel()
 			->where(function ($q) use ($request) {
-				$request->start_date && $q->where('operate_date', '>=', $request->start_date);
-				$request->end_date && $q->where('operate_date', '<=', $request->end_date);
+				$request->start_date && $q->where('common_date', '>=', $request->start_date);
+				$request->end_date && $q->where('common_date', '<=', $request->end_date);
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-				$request->year && $q->whereYear('operate_date', $request->year);
+				$request->year && $q->whereYear('common_date', $request->year);
 				$request->types && $q->whereIn('type', $request->types);
 			})
 			->whereHas('billDetail', function ($q) use ($request) {
 				$request->tenant_id && $q->where('tenant_id', $request->tenant_id);
 				$request->bill_detail_id && $q->where('id', $request->bill_detail_id);
-			})->with('billDetail:id,tenant_id,tenant_name')
+				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
+			})->with('billDetail:id,tenant_id,tenant_name,bill_date,fee_type')
 			->orderBy($orderBy, $order)
 			->paginate($pagesize)->toArray();
 
 		// return response()->json(DB::getQueryLog());
 		$data = $this->handleBackData($data);
 		foreach ($data['result'] as $k => &$v1) {
-			$v1['tenant_name'] = $v1['bill_detail']['tenant_name'] ?? "";
+			$v1['tenant_name']    = $v1['bill_detail']['tenant_name'] ?? "";
+			$v1['bill_date']      = $v1['bill_detail']['bill_date'] ?? "";
+			$v1['fee_type_label'] = $v1['bill_detail']['fee_type_label'] ?? "";
+			$v1['fee_type']       = $v1['bill_detail']['fee_type'] ?? "";
 			unset($v1['bill_detail']);
 		}
 		return $this->success($data);

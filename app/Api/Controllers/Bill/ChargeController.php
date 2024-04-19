@@ -6,6 +6,7 @@ use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Bill\ChargeService;
@@ -89,6 +90,7 @@ class ChargeController extends BaseController
 			$request->order = 'desc';
 		}
 		$map['source'] = $request->source;
+		DB::enableQueryLog();
 		$subQuery = $this->chargeService->model()
 			->where($map)
 			->where(function ($q) use ($request) {
@@ -99,20 +101,22 @@ class ChargeController extends BaseController
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				$request->category && $q->where('category', $request->category);
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
+				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id == 0 ? 0 : '>', 0);
 			});
 
 		$pageSubQuery = clone $subQuery;
 		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name'])
 			->withCount('chargeBillRecord');
 		$data = $this->pageData($pageSubQuery, $request);
+		// return DB::getQueryLog();
 		foreach ($data['result'] as &$v) {
 			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
-			unset($v['bank_account']);
 			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
+			$v['pay_person'] = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
+			unset($v['bank_account']);
 		}
 
-		DB::enableQueryLog();
-		$data['stat'] = $this->chargeService->listStat($subQuery);
+		$data['stat'] = $this->chargeService->listStat($subQuery, $data);
 		return $this->success($data);
 	}
 
@@ -453,21 +457,34 @@ class ChargeController extends BaseController
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 				$request->year && $q->whereYear('verify_date', $request->year);
 			})
+			->with('charge:id,amount,charge_date,flow_no')
+			->whereHas('charge', function ($q) use ($request) {
+
+				if ($request->charge_start_date) {
+					$startDate = $request->charge_start_date;
+					$endDate = $request->charge_end_date;
+					$q->whereBetween('charge_date', [$startDate, $endDate]);
+				}
+			})
 			->with(['billDetail:tenant_name,tenant_id,id,status,bill_date'])
 			->whereHas('billDetail', function ($query) use ($request) {
 				$request->tenant_id && $query->where('tenant_id', $request->tenant_id);
 				$request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 			});
 		// return response()->json(DB::getQueryLog());
-		$totalAmt = 0.00;
+		// $pageSubQuery = clone $subQuery;
 		$data = $this->pageData($subQuery, $request);
 		// return $data;
 		foreach ($data['result'] as &$item) {
 			$item['tenant_name'] = getTenantNameById($item['bill_detail']['tenant_id'] ?? 0);
-			$totalAmt += $item['type'] == 1 ? $item['amount'] : -$item['amount'];
-			$item['bill_date'] = $item['bill_detail']['bill_date'] ?? '';
+			// $amount = $item['type'] == 1 ? $item['amount'] : bcmul($item['amount'], '-1');
+			// $totalAmt = bcadd($totalAmt, $amount, 2);
+			$item['bill_date']   = $item['bill_detail']['bill_date'] ?? '';
+			$item['charge_amount']      = $item['charge']['amount'];
+			$item['charge_date'] = $item['charge']['charge_date'] ?? '';
+			$item['flow_no']     = $item['charge']['flow_no'] ?? '';
+			unset($item['charge']);
 		}
-		$data['total_amount'] = $totalAmt;
 		return $this->success($data);
 	}
 
@@ -533,7 +550,7 @@ class ChargeController extends BaseController
 			'id' => 'required|numeric|gt:0',
 		], $msg);
 		$exists = $this->chargeService->chargeRecord()->where('id', $request->id)->exists();
-		if ($exists) {
+		if (!$exists) {
 			return $this->error("核销记录不存在或者已删除");
 		}
 		$res = $this->chargeService->deleteChargeRecord(($request->id));
@@ -580,12 +597,13 @@ class ChargeController extends BaseController
 		if ($charge->type == ChargeEnum::Refund) {
 			return $this->error("已退款，支出不允许退款");
 		}
-		$unusedAmt = $charge->amount - $charge->verify_amount;
+		$unusedAmt = bcsub($charge->amount, $charge->verify_amount, 2);
 		if ($unusedAmt < $request->refund_amt) {
 			return $this->error("退款金额不能大于可用金额");
 		}
-		$charge->remark = $request->remark ?? $charge->remark;
-		$res = $this->chargeService->chargeRefund($charge->id, $request->refund_amt, $this->user);
+		$DA = $request->toArray();
+		$DA['remark'] = $request->remark . "|" . $request->remark;
+		$res = $this->chargeService->chargeRefund($DA, $this->user);
 		return $res ? $this->success("退款成功") : $this->error("退款失败");
 	}
 }

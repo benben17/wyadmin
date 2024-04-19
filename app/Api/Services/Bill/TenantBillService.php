@@ -3,8 +3,11 @@
 namespace App\Api\Services\Bill;
 
 use Exception;
+use App\Enums\AppEnum;
+use App\Enums\ChargeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
+use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
@@ -93,20 +96,21 @@ class TenantBillService
 				} else {
 					$billDetail = $this->billDetailModel();
 					$billDetail->c_uid = $user['id'];
+					$billDetail->fee_amount = $DA['amount'];
 				}
-				$billDetail->company_id = $user['company_id'];
-				$billDetail->proj_id = $DA['proj_id'];
+				$billDetail->company_id  = $user['company_id'];
+				$billDetail->proj_id     = $DA['proj_id'];
 				$billDetail->contract_id = $DA['contract_id'] ?? 0;
-				$billDetail->tenant_id = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+				$billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
 				$billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
-				$billDetail->type = isset($DA['type']) ? $DA['type'] : 1;
-				$billDetail->bill_type = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
-				$billDetail->fee_type = $DA['fee_type']; // 费用类型
-				$billDetail->amount = $DA['amount'];
-				$billDetail->bank_id = $DA['bank_id'] ?? 0;
-				if ($billDetail->bank_id == 0) {
-					$billDetail->bank_id = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
-				}
+				$billDetail->type        = isset($DA['type']) ? $DA['type'] : 1;
+				$billDetail->bill_type   = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
+				$billDetail->fee_type    = $DA['fee_type'];                                 // 费用类型
+				$billDetail->amount      = $DA['amount'];
+				// $billDetail->bank_id = $DA['bank_id'] ?? 0;
+				// if ($billDetail->bank_id == 0) {
+				$billDetail->bank_id = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
+				// }
 
 				if (isset($DA['charge_date'])) {
 					$billDetail->charge_date = $DA['charge_date']; //账单日期
@@ -172,35 +176,39 @@ class TenantBillService
 				if (!$billDetail) {
 					throw new Exception("费用不存在");
 				}
-				$oldAmt = $billDetail->amount;
+				// 原有的应收金额
+				$DA['old_amount']          = $billDetail->amount;
+				$DA['old_discount_amount'] = $billDetail->discount_amount;
+				// 已有收款不允许编辑
 				if ($billDetail->receive_amount > 0 && $billDetail->receive_date) {
-					throw new Exception("已有收款不允许编辑");
+					throw new Exception("已有收款不允许编辑!");
 				}
-				if ($billDetail->amount <= $billDetail->discount_amount) {
-					throw new Exception("收款金额不允许小于等于优惠金额");
-				}
+				// 收款区间
 				$billDates = str2Array($billDetail->bill_date, "至");
 				if (sizeof($billDates) != 2) {
-					throw new Exception("收款区间格式错误");
+					throw new Exception("收款区间格式错误!");
 					if (strtotime($billDates[0]) >= strtotime($billDates[1])) {
-						throw new Exception("收款区间开始时间不能大于结束时间");
+						throw new Exception("收款区间开始时间不能大于结束时间!");
 					}
 				}
+				// 优惠金额不能大于应收金额
+				$DA['discount_amount'] = $DA['discount_amount'] ?? $billDetail->discount_amount;
+				if ($DA['discount_amount'] > $DA['amount']) {
+					throw new Exception("优惠金额不能大于收款金额!");
+				}
 
-				$billDetail->u_uid = $user['id'];
-				$billDetail->charge_date = $DA['charge_date'] ?? $billDetail->charge_date;
-				$billDetail->amount = $DA['amount'];
+				$billDetail->u_uid           = $user['id'];
+				$billDetail->charge_date     = $DA['charge_date'] ?? $billDetail->charge_date;
+				$billDetail->amount          = $DA['amount'];
 				$billDetail->discount_amount = $DA['discount_amount'] ?? $billDetail->discount_amount;
-				// $billDetail->fee_type = $billDetail['fee_type'];
 				if ($billDetail->bank_id == 0) {
 					$billDetail->bank_id = getBankIdByFeeType($billDetail->fee_type, $billDetail->proj_id);
 				}
 
 				$billDetail->save();
-				$DA['old_amount'] = $oldAmt;
+
 				// 保存日志
-				// 保存
-				$this->saveBillDetailLog($billDetail, $DA, $user);
+				$this->saveBillDetailLog($DA, $user);
 			}, 2);
 			return true;
 		} catch (Exception $th) {
@@ -209,14 +217,14 @@ class TenantBillService
 		}
 	}
 
-	public function saveBillDetailLog($billDetail, $DA, $user)
+	public function saveBillDetailLog($DA, $user)
 	{
 		try {
 			$detailLogModel                       = new TenantBillDetailLog;
 			$detailLogModel->company_id           = $user['company_id'];
 			$detailLogModel->amount               = $DA['old_amount'];
 			$detailLogModel->edit_amount          = $DA['amount'];
-			$detailLogModel->discount_amount      = $billDetail['discount_amount'] ?? 0;
+			$detailLogModel->discount_amount      = $DA['old_discount_amount'] ?? 0;
 			$detailLogModel->edit_discount_amount = $DA['discount_amount'] ?? 0;
 			$detailLogModel->edit_reason          = isset($DA['edit_reason']) ? $DA['edit_reason'] : $DA['remark'];
 			$detailLogModel->bill_detail_id       = $DA['id'];
@@ -224,8 +232,8 @@ class TenantBillService
 			$detailLogModel->c_uid                = $user->id;
 			$detailLogModel->save();
 		} catch (Exception $e) {
-			Log::error("费用修改失败:" . $e);
-			throw new Exception($e);
+			Log::error("费用调整日志保存失败:" . $e);
+			throw new Exception("费用调整日志保存失败");
 		}
 	}
 	/**
@@ -367,26 +375,27 @@ class TenantBillService
 					if ($v['amount'] == 0) {
 						continue;
 					}
-					$data[$k]['company_id'] = $user['company_id'];
-					$data[$k]['proj_id'] = $projId === 0 ? $v['proj_id'] : $projId;
-					$data[$k]['contract_id'] = $v['contract_id'];
-					$data[$k]['tenant_id'] = $v['tenant_id'];
+					$data[$k]['company_id']       = $user['company_id'];
+					$data[$k]['proj_id']          = $projId === 0 ? $v['proj_id'] : $projId;
+					$data[$k]['contract_id']      = $v['contract_id'];
+					$data[$k]['tenant_id']        = $v['tenant_id'];
 					$data[$k]['contract_bill_id'] = $v['id'];
-					$data[$k]['bank_id'] = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
+					$data[$k]['bank_id']          = getBankIdByFeeType($v['fee_type'], $v['proj_id']);
 					if (!isset($v['tenant_name']) || !$v['tenant_name']) {
 						$tenantName = getTenantNameById($v['tenant_id']);
 					} else {
 						$tenantName = $v['tenant_name'];
 					}
 					$data[$k]['tenant_name'] = $tenantName;
-					$data[$k]['type'] = $v['type']; // 1 费用 2 押金
-					$data[$k]['fee_type'] = $v['fee_type']; // 费用类型
-					$data[$k]['amount'] = $v['amount'];
+					$data[$k]['type']        = $v['type'];             // 1 费用 2 押金
+					$data[$k]['fee_type']    = $v['fee_type'];         // 费用类型
+					$data[$k]['fee_amount']  = $v['amount']; // 费用金额只做展示
+					$data[$k]['amount']      = $v['amount'];
 					$data[$k]['charge_date'] = $v['charge_date'];
-					$data[$k]['c_uid'] = $user['id'];
-					$data[$k]['bill_date'] = isset($v['bill_date']) ? $v['bill_date'] : ""; // 收款区间
-					$data[$k]['remark'] = isset($v['remark']) ? $v['remark'] : "";
-					$data[$k]['created_at'] = nowTime();
+					$data[$k]['c_uid']       = $user['id'];
+					$data[$k]['bill_date']   = isset($v['bill_date']) ? $v['bill_date'] : "";  // 收款区间
+					$data[$k]['remark']      = isset($v['remark']) ? $v['remark'] : "";
+					$data[$k]['created_at']  = nowTime();
 				}
 			}
 			return $data;
@@ -450,7 +459,7 @@ class TenantBillService
 			->selectRaw('bank_id,sum(amount) amount,status,
 									sum(discount_amount) discount_amount,
 									sum(receive_amount) receive_amount,
-									sum(amount -receive_amount-discount_amount) unreceive_amount')
+									sum(amount - receive_amount-discount_amount) unreceive_amount')
 			->where('bill_id', $billId)
 			->groupBy('bank_id')->get();
 
@@ -485,7 +494,11 @@ class TenantBillService
 						foreach ($chargeRecordList as $record) {
 							// 收入增加金额
 							$charge = ChargeBill::find($record['charge_id']);
-							$charge->amount = $charge->amount + $record['amount'];
+							$charge->verify_amount = bcsub($$charge->verify_amount, $record['amount'], 2);
+							$charge->unverify_amount = bcadd($charge->unverify_amount, $record['amount'], 2);
+							if ($charge->status == ChargeEnum::chargeVerify) {
+								$charge->status = ChargeEnum::chargeUnVerify;
+							}
 							$charge->save();
 							// 删除 核销记录
 							ChargeBillRecord::find($record['id'])->delete();
@@ -511,20 +524,78 @@ class TenantBillService
 	 */
 	public function processLeaseBackFee($feeList, $leasebackDate)
 	{
+		if (!$leasebackDate) {
+			return $feeList;
+		}
+		$feeList = $feeList->toArray();
 		$leasebackDate = strtotime($leasebackDate);
 		foreach ($feeList as &$bill) {
-			$bill->is_valid = 0;
-			$billDate = str2Array($bill->bill_date, "至");
+			$is_valid = 1;
+			// $is_valid_label = "有效";
+			$billDate = str2Array($bill['bill_date'], "至");
+			if (count($billDate) != 2) {
+				continue;
+			}
 			$billStartTime = strtotime($billDate[0]);
 			$billEndTime = strtotime($billDate[1]);
-			if ($leasebackDate > $billEndTime) {
-				$bill->is_valid = 1;
-				break;
-			} else if ($leasebackDate >= $billStartTime && $leasebackDate <= $billEndTime) {
-				$bill->is_valid = 1;
-				break;
+			// 判断  退租的日期 小于账单开始时间
+			if ($leasebackDate < $billStartTime) {
+				$is_valid = 0;
+				// $is_valid_label = "系统删除";
 			}
+			// 退租日期大于账单开始时间时间 并且小于账单结束时间
+			// else if ($leasebackDate > $billStartTime && $leasebackDate < $billEndTime) {
+			// 	$is_valid = 1;
+			// }
+			$bill['is_valid'] = $is_valid;
+			// $bill['is_valid_label'] = $is_valid_label;
 		}
 		return $feeList;
+	}
+
+
+	/**
+	 * 应收list 统计
+	 * @Author leezhua
+	 * @Date 2024-04-18
+	 * @param mixed $subQuery 
+	 * @param mixed $data 
+	 * @param mixed $uid 
+	 * @return void 
+	 */
+	public function detailListStat($subQuery, &$data, $uid)
+	{
+		$feeStat = FeeType::selectRaw('fee_name,id,type')
+			->where('type', AppEnum::feeType)
+			->whereIn('company_id', getCompanyIds($uid))->get()->toArray();
+
+		$feeCount = $subQuery
+			->selectRaw('ifnull(sum(fee_amount),0.00) fee_amt,
+        ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
+        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type')
+			->groupBy('fee_type')->get()
+			->keyBy('fee_type');
+
+		$emptyFee = ["total_amt" => 0.00, "receive_amt" => 0.00, "discount_amt" => 0.00, "unreceive_amt" => 0.00, "fee_amt" => 0.00, "fee_type" => 0];
+		$statData = $emptyFee;
+
+		foreach ($feeStat as $k => &$fee) {
+			$fee = array_merge($fee, $emptyFee);
+			if (isset($feeCount[$fee['id']])) {
+				$v1 = $feeCount[$fee['id']];
+				$fee['fee_amt']        = $v1->fee_amt;
+				$fee['total_amt']      = $v1->total_amt;
+				$fee['receive_amt']    = $v1->receive_amt;
+				$fee['discount_amt']   = $v1->discount_amt;
+				$fee['unreceive_amt']  = bcsub(bcsub($fee['total_amt'], $fee['receive_amt'], 2), $fee['discount_amt'], 2);
+			}
+			$statData['fee_amt']       += $fee['fee_amt'];
+			$statData['total_amt']     += $fee['total_amt'];
+			$statData['receive_amt']   += $fee['receive_amt'];
+			$statData['discount_amt']  += $fee['discount_amt'];
+			$statData['unreceive_amt'] += $fee['unreceive_amt'];
+		}
+		$data['total'] = $statData;
+		$data['stat']  = $feeStat;
 	}
 }

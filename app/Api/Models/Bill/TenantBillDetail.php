@@ -43,7 +43,7 @@ class TenantBillDetail extends Model
   public function getUnreceiveAmountAttribute()
   {
     if (isset($this->attributes['amount']) && isset($this->attributes['receive_amount']) && isset($this->attributes['discount_amount'])) {
-      return numFormat($this->attributes['amount'] - $this->attributes['receive_amount'] - $this->attributes['discount_amount']);
+      return bcsub(bcsub($this->attributes['amount'], $this->attributes['receive_amount'], 2),  $this->attributes['discount_amount'], 2);
     } else {
       return 0.00;
     }
@@ -55,7 +55,7 @@ class TenantBillDetail extends Model
   {
     if (isset($this->attributes['amount']) && isset($this->attributes['discount_amount'])) {
       // Log::error("aaa" . numFormat($this->attributes['amount'] - $this->attributes['discount_amount']));
-      return numFormat($this->attributes['amount'] - $this->attributes['discount_amount'] - $this->attributes['receive_amount']);
+      return bcsub(bcsub($this->attributes['amount'], $this->attributes['receive_amount'], 2),  $this->attributes['discount_amount'], 2);
     } else {
       return 0.00;
     }

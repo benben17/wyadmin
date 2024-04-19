@@ -121,8 +121,8 @@ class BuildingController extends BaseController
                 $q->where($subMap);
                 $q->where('room_state', 1);
             }]);
-
-        $data = $this->pageData($subQuery, $request);
+        $pageQuery = clone $subQuery;
+        $data = $this->pageData($pageQuery, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
