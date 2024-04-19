@@ -40,7 +40,7 @@ class InvoiceService
       $invoiceRecord->tenant_id      = $DA['tenant_id'];
       $invoiceRecord->amount         = $DA['amount'];
       $invoiceRecord->invoice_no     = $DA['invoice_no'] ?? "";
-      $invoiceRecord->bill_detail_id = $DA['bill_detail_id'];
+      // $invoiceRecord->bill_detail_id = $DA['charge_id'];
       $invoiceRecord->tax_rate       = $DA['tax_rate'];
       $invoiceRecord->invoice_type   = $DA['invoice_type'] ?? "";
       $invoiceRecord->invoice_date   = $DA['invoice_date'] ?? nowYmd();
