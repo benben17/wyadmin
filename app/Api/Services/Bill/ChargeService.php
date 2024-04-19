@@ -218,7 +218,6 @@ class ChargeService
       return false;
     }
   }
-
   /**
    *  核销一条应收
    * 共计3种情况
@@ -426,7 +425,7 @@ class ChargeService
     try {
       $charge = $this->model()->findOrFail($chargeId);
 
-      if ($charge->verify_amount === 0) {
+      if ($charge->verify_amount == 0) {
         return $charge->delete();
       }
 
