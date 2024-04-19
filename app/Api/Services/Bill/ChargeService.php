@@ -103,7 +103,6 @@ class ChargeService
 
     try {
       DB::transaction(function () use ($detailBill,  $chargeBill, $verifyAmt, $verifyDate, $user) {
-
         $charge = $this->model()->find($chargeBill['id']);
         $unreceiveAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
         if ($unreceiveAmt == $verifyAmt) {
@@ -112,13 +111,13 @@ class ChargeService
         } else if ($unreceiveAmt > $verifyAmt) {
           $detail_bill_data['receive_amount'] = bcadd($detailBill['receive_amount'], $verifyAmt, 2);
           $detail_bill_data['status'] = ChargeEnum::chargeUnVerify;
-        }
-        $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
+        };
+        // $charge->unverify_amount = bcsub($chargeBill['unverify_amount'], $verifyAmt, 2);
         $charge->verify_amount   = bcadd($chargeBill['verify_amount'], $verifyAmt, 2);
 
         // 未核销金额 = 充值未核销金额 - 核销金额 - 退款金额
-        $unverifyAmt = bcsub($charge->unverify_amount, $chargeBill['refund_amount'], 2);
-        if ($unverifyAmt == 0 || $unverifyAmt === 0.00) {
+        $availableAmt = bcsub(bcsub($charge->amount, $charge->verify_amount, 2), $chargeBill['refund_amount'], 2);
+        if ($availableAmt == 0 || $availableAmt == 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
 
