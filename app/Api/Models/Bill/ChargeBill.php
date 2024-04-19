@@ -45,6 +45,8 @@ class ChargeBill extends Model
     }
   }
 
+
+
   /**
    * 获取类别标签属性
    * 
@@ -77,6 +79,12 @@ class ChargeBill extends Model
   public function chargeBillRecord()
   {
     return $this->hasMany(ChargeBillRecord::class, 'charge_id', 'id');
+  }
+
+
+  public function refund()
+  {
+    return $this->hasMany(ChargeBill::class, 'charge_id', 'id');
   }
 
   protected static function boot()

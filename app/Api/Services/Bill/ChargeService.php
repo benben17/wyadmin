@@ -511,31 +511,39 @@ class ChargeService
    */
   public function listStat($query, &$data)
   {
+    DB::enableQueryLog();
+    $statQuery = clone $query;
     $statSelect = 'count(id) count,ifnull(sum(amount),0.00) as amount, 
                   ifnull(sum(verify_amount),0.00) as verify_amount';
-    $statData = $query->selectRaw($statSelect)->first()->toArray();
-    $currStartYmd = date('Y-m-01');
-    $currEndYmd   = date('Y-m-t');
-    $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
-      ->selectRaw($statSelect)
-      ->first();
-    $refundAmt = $query->where('charge_id', '>', 0)->where('type', 2)->sum('amount');
-
-    $statData['refund_amount'] = $refundAmt;
-    $statData['unverify_amount'] = bcsub(bcsub($statData['amount'], $statData['verify_amount'], 2), $refundAmt, 2);
-    $stat = [
-      ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
-      ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
-      ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
-      ['amount' => $statData['amount'] ?? 0.00, 'label' => '总金额'],
-      ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
-      ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
-    ];
+    $statData = $statQuery->selectRaw($statSelect)->first();
+    // Log::alert(json_encode(DB::getQueryLog()));
+    // $currStartYmd = date('Y-m-01');
+    // $currEndYmd   = date('Y-m-t');
+    // $currMonth    = $query->whereBetween('charge_date', [$currStartYmd, $currEndYmd])
+    //   ->selectRaw($statSelect)
+    //   ->first();
+    $total['total_amt'] = $statData['amount'] ?? 0.00;
+    $total['verify_amt'] = $statData['verify_amount'] ?? 0.00;
+    $total['unverify_amt'] = bcsub($total['total_amt'], $total['verify_amt'], 2);
+    $records = $query->get();
+    $total['refund_amt'] = 0.00;
+    foreach ($records as $record) {
+      $total['refund_amt'] = bcadd($total['refund_amt'], $record->refund_amt, 2);
+    }
+    $total['available_amt'] = bcsub($total['unverify_amt'], $total['refund_amt'], 2);
+    // $stat = [
+    //   ['amount' => $currMonth['amount'] ?? 0.00, 'label' => '本月金额'],
+    //   ['amount' => $currMonth['verify_amount'] ?? 0.00, 'label' => '本月已核金额'],
+    //   ['amount' => $currMonth['unverify_amount'] ?? 0.00, 'label' => '本月未核金额'],
+    //   ['amount' => $statData['amount'] ?? 0.00, 'label' => '总金额'],
+    //   ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
+    //   ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
+    // ];
     // foreach ($data['stat'] as &$value) {
     //   $value['amount'] = ($value['amount']);
     // }
 
-    $data['stat'] = num_format($stat);
-    $data['total'] = num_format($statData);
+    // $data['stat'] = num_format($stat);
+    $data['total'] = $total;
   }
 }

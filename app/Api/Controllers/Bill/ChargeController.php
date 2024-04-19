@@ -102,7 +102,10 @@ class ChargeController extends BaseController
 				$request->category && $q->where('category', $request->category);
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
 				isset($request->invoice_id) && $q->where('invoice_id', $request->invoice_id == 0 ? 0 : '>', 0);
-			});
+			})
+			->withCount(['refund as refund_amt' => function ($q) {
+				$q->select(DB::raw('sum(amount) as refund_amt'));
+			}]);
 
 		$pageSubQuery = clone $subQuery;
 		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name'])
@@ -111,8 +114,8 @@ class ChargeController extends BaseController
 		// return DB::getQueryLog();
 		foreach ($data['result'] as &$v) {
 			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
-			$v['refund_amt'] = $this->chargeService->model()->where('charge_id', $v['id'])->sum('amount');
 			$v['pay_person'] = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
+			$v['available_amt'] = bcsub(bcsub($v['amount'], $v['verify_amount'], 2), $v['refund_amt'] ?? 0.00, 2);
 			unset($v['bank_account']);
 		}
 
