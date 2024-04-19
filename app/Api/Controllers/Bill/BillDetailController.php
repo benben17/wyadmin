@@ -195,16 +195,11 @@ class BillDetailController extends BaseController
 		if (!$billDetail) {
 			return $this->error("未发账单现数据！");
 		}
-		// 未生成账单不允许核销
-		if ($billDetail->bill_id > 0) {
-			return $this->error("此费用未生成账单，不能核销！");
-		}
 
 		$chargeService = new ChargeService;
 		$chargeBill = $chargeService->model()
 			->where('status', ChargeEnum::chargeUnVerify)
 			->findOrFail($request->charge_id);
-
 
 		if (!$chargeBill) {
 			return $this->error("未发现充值数据！");
