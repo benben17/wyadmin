@@ -469,7 +469,7 @@ class ChargeService
         $charge = $this->model()->findOrFail($DA['id']);
         $availableAmt = bcsub($charge->amount, $charge->verify_amount, 2);
         $availableAmt = bcsub(bcsub($availableAmt, $charge->refund_amount, 2), $DA['refund_amt'], 2);
-        $charge->refund_amount = $DA['refund_amt'];
+        $charge->refund_amount = bcadd($charge->refund_amount, $DA['refund_amt'], 2);
         if ($availableAmt == 0 || $availableAmt == 0.00) {
           $charge->status = ChargeEnum::chargeVerify;
         }
