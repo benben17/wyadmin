@@ -427,7 +427,7 @@ class ChargeService
     try {
       $charge = $this->model()->findOrFail($chargeId);
 
-      if ($charge->verify_amount === 0) {
+      if ($charge->verify_amount == 0) {
         return $charge->delete();
       }
 
