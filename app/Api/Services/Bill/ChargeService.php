@@ -53,7 +53,7 @@ class ChargeService
       // DB::transaction(function () use ($user, $BA) {
       if (isset($BA['id']) && $BA['id'] > 0) {
         $charge         = $this->model()->where('id', $BA['id'])->first();
-        $charge->unverify_amount = isset($BA['unverify_amount']) ? $BA['unverify_amount'] : 0.00;
+        $charge->unverify_amount =  $BA['unverify_amount'] ?? 0.00;
         $charge->u_uid  = $user['id'];
       } else {
         $charge         = $this->model();
@@ -171,7 +171,8 @@ class ChargeService
         $billService = new TenantBillService;
         $charge = $this->model()->findOrFail($chargeId);
         $refundedAmt = $this->chargeRecord()->where('charge_id', $chargeId)->sum('amount'); // 已退款金额
-        $chargeAmt = bcsub($charge->unverify_amount, $refundedAmt, 2);  //  充值未核销金额
+        $unverifyAmt = bcsub($charge->amount, $charge->verify_amount, 2); // 充值未核销金额
+        $chargeAmt = bcsub($unverifyAmt, $refundedAmt, 2);  //  充值未核销金额
         foreach ($detailBillList as $detailBill) {
           $verifyAmt = 0;
           if ($chargeAmt == 0 || $charge->status == ChargeEnum::chargeVerify) { // 充值金额已经核销完毕
@@ -502,7 +503,7 @@ class ChargeService
       }, 2);
       return true;
     } catch (Exception $e) {
-      Log::error($e);
+      Log::error("退款失败" . $e);
       throw new Exception("退款失败");
     }
     return false;
