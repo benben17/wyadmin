@@ -108,8 +108,7 @@ class ChargeController extends BaseController
 			}]);
 
 		$pageSubQuery = clone $subQuery;
-		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name'])
-			->withCount('chargeBillRecord');
+		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name']);
 		$data = $this->pageData($pageSubQuery, $request);
 		// return DB::getQueryLog();
 		foreach ($data['result'] as &$v) {
