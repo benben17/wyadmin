@@ -546,6 +546,6 @@ class ChargeService
     // }
 
     // $data['stat'] = num_format($stat);
-    $data['total'] = $total;
+    $data['total'] = num_format($total);
   }
 }

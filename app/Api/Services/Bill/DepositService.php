@@ -128,8 +128,10 @@ class DepositService
       ->whereIn('company_id', getCompanyIds($uid))->get()->toArray();
 
     $feeCount = $query->selectRaw('ifnull(sum(fee_amount),0.00) fee_amt,
-        ifnull(sum(amount),0.00) total_amt,ifnull(sum(receive_amount),0.00) receive_amt,
-        ifnull(sum(discount_amount),0.00) as discount_amt ,fee_type,GROUP_CONCAT(id) as detail_ids')
+        ifnull(sum(amount),0.00) total_amt,
+        ifnull(sum(receive_amount),0.00) receive_amt,
+        ifnull(sum(discount_amount),0.00) as discount_amt ,
+        fee_type,GROUP_CONCAT(id) as detail_ids')
       ->groupBy('fee_type')->get()
       ->keyBy('fee_type');
     // $data['aaa'] = $feeCount;
@@ -168,13 +170,9 @@ class DepositService
       ->selectRaw('ifnull(sum(case type when 2 then amount else 0 end),0.00) charge_amt,
                 ifnull(sum(case type when 3 then amount else 0 end),0.00) refund_amt')
       ->whereIn('bill_detail_id', explode(",", $detail_ids))->first();
-    $total['charge_amt'] = $totalRecord->charge_amt;
+    $total['charge_amt'] = $totalRecord->charge_amt; // 转收款金额
     $total['refund_amt'] = $totalRecord->refund_amt;
     $total['available_amt'] = bcsub(bcsub($total['receive_amt'], $total['refund_amt'], 2), $total['charge_amt'], 2);
-    // foreach ($total as  &$v) {
-    //   $v = number_format($v, 2);
-    // }
-
 
     $data['total'] = num_format($total);
     $data['stat']  = num_format($feeStat);

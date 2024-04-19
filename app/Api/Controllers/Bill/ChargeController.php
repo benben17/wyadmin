@@ -110,10 +110,10 @@ class ChargeController extends BaseController
 		$pageSubQuery = clone $subQuery;
 		$pageSubQuery = $pageSubQuery->with(['bankAccount:id,account_name']);
 		$data = $this->pageData($pageSubQuery, $request);
-		// return DB::getQueryLog();
+
 		foreach ($data['result'] as &$v) {
-			$v['bank_name'] = $v['bank_account']['account_name'] ?? '';
-			$v['pay_person'] = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
+			$v['bank_name']     = $v['bank_account']['account_name'] ?? '';
+			$v['pay_person']    = empty($v['pay_person'])  ? $v['tenant_name'] : $v['pay_person'];
 			$v['available_amt'] = bcsub(bcsub($v['amount'], $v['verify_amount'], 2), $v['refund_amt'] ?? 0.00, 2);
 			unset($v['bank_account']);
 		}
@@ -461,7 +461,6 @@ class ChargeController extends BaseController
 			})
 			->with('charge:id,amount,charge_date,flow_no')
 			->whereHas('charge', function ($q) use ($request) {
-
 				if ($request->charge_start_date) {
 					$startDate = $request->charge_start_date;
 					$endDate = $request->charge_end_date;
@@ -479,10 +478,8 @@ class ChargeController extends BaseController
 		// return $data;
 		foreach ($data['result'] as &$item) {
 			$item['tenant_name'] = getTenantNameById($item['bill_detail']['tenant_id'] ?? 0);
-			// $amount = $item['type'] == 1 ? $item['amount'] : bcmul($item['amount'], '-1');
-			// $totalAmt = bcadd($totalAmt, $amount, 2);
 			$item['bill_date']   = $item['bill_detail']['bill_date'] ?? '';
-			$item['charge_amount']      = $item['charge']['amount'];
+			$item['charge_amount'] = $item['charge']['amount'];
 			$item['charge_date'] = $item['charge']['charge_date'] ?? '';
 			$item['flow_no']     = $item['charge']['flow_no'] ?? '';
 			unset($item['charge']);
