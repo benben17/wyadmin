@@ -5,11 +5,12 @@ namespace App\Api\Services\Bill;
 use Exception;
 use App\Enums\AppEnum;
 use App\Enums\DepositEnum;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;
-use App\Api\Models\Bill\DepositRecord;
 
+use App\Api\Models\Bill\DepositRecord;
 use App\Api\Models\Bill\TenantBillDetail;
 
 /**
@@ -170,7 +171,12 @@ class DepositService
     $total['charge_amt'] = $totalRecord->charge_amt;
     $total['refund_amt'] = $totalRecord->refund_amt;
     $total['available_amt'] = bcsub(bcsub($total['receive_amt'], $total['refund_amt'], 2), $total['charge_amt'], 2);
-    $data['total'] = $total;
-    $data['stat']  = $feeStat;
+    // foreach ($total as  &$v) {
+    //   $v = number_format($v, 2);
+    // }
+
+
+    $data['total'] = num_format($total);
+    $data['stat']  = num_format($feeStat);
   }
 }

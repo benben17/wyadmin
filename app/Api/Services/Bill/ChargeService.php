@@ -522,6 +522,9 @@ class ChargeService
       ['amount' => $statData['verify_amount'] ?? 0.00, 'label' => '已核总金额'],
       ['amount' => $statData['unverify_amount'] ?? 0.00, 'label' => '未核总金额'],
     ];
+    foreach ($data['stat'] as &$value) {
+      $value['amount'] = numFormat($value['amount']);
+    }
     $data['total'] = $statData;
   }
 }

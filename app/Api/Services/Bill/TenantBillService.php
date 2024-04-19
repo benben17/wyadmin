@@ -589,11 +589,11 @@ class TenantBillService
 				$fee['discount_amt']   = $v1->discount_amt;
 				$fee['unreceive_amt']  = bcsub(bcsub($fee['total_amt'], $fee['receive_amt'], 2), $fee['discount_amt'], 2);
 			}
-			$statData['fee_amt']       += $fee['fee_amt'];
-			$statData['total_amt']     += $fee['total_amt'];
-			$statData['receive_amt']   += $fee['receive_amt'];
-			$statData['discount_amt']  += $fee['discount_amt'];
-			$statData['unreceive_amt'] += $fee['unreceive_amt'];
+			$statData['fee_amt']       = number_format($statData['fee_amt'] + $fee['fee_amt'], 2);
+			$statData['total_amt']     = number_format($statData['total_amt'] + $fee['total_amt'], 2);
+			$statData['receive_amt']   = number_format($statData['receive_amt'] + $fee['receive_amt'], 2);
+			$statData['discount_amt']  = number_format($statData['discount_amt'] + $fee['discount_amt'], 2);
+			$statData['unreceive_amt'] = number_format($statData['unreceive_amt'] + $fee['unreceive_amt'], 2);
 		}
 		$data['total'] = $statData;
 		$data['stat']  = $feeStat;

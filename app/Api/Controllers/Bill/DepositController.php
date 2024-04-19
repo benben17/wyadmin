@@ -75,18 +75,6 @@ class DepositController extends BaseController
 		// ]);
 		// $pagesize = $this->setPagesize($request);
 		$map = array();
-		// 排序字段
-		if ($request->input('orderBy')) {
-			$orderBy = $request->input('orderBy');
-		} else {
-			$orderBy = 'created_at';
-		}
-		// 排序方式desc 倒叙 asc 正序
-		if ($request->input('order')) {
-			$order = $request->input('order');
-		} else {
-			$order = 'desc';
-		}
 
 		if ($request->bill_detail_id) {
 			$map['bill_detail_id'] = $request->bill_detail_id;
@@ -123,6 +111,7 @@ class DepositController extends BaseController
 			unset($v1['bank_account']);
 			$v1 = array_merge($v1, $record);
 		}
+
 		// // 统计每种类型费用的应收/实收/ 退款/ 转收入
 		$this->depositService->depositStat($subQuery, $data, $this->uid);
 		return $this->success($data);
