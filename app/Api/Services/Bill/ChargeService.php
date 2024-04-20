@@ -389,6 +389,9 @@ class ChargeService
 
           // 更新应收费用收款信息
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
+          if ($billDetail->receive_amount < $record->amount) {
+            throw new Exception("核销金额大于应收金额");
+          }
           $billDetail->receive_amount = bcsub($billDetail->receive_amount, $record->amount, 2);
           $billDetail->updated_at = nowYmd();
           $billDetail->status = AppEnum::feeStatusUnReceive; // 未结清
