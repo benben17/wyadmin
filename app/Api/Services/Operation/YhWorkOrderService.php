@@ -2,15 +2,15 @@
 
 namespace App\Api\Services\Operation;
 
+use Exception;
+use App\Enums\AppEnum;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Api\Services\Common\SmsService;
+use App\Api\Services\Common\MessageService;
 use App\Api\Models\Operation\YhWorkOrder as YhWorkOrderModel;
 use App\Api\Models\Operation\WorkOrderLog as WorkOrderLogModel;
-use App\Api\Services\Common\MessageService;
-use App\Api\Services\Common\SmsService;
-use App\Enums\AppEnum;
-use Exception;
 
 /**
  * 工单服务
@@ -150,13 +150,12 @@ class YhWorkOrderService
   public function delWorkorder(int $orderId)
   {
     try {
-      $order = $this->yhWorkModel()->find($orderId);
-
-      $order->delete();
+      $this->yhWorkModel()->find($orderId)->delete();
       // 删除日志
       WorkOrderLogModel::where('yh_order_id', $orderId)->delete();
       return true;
     } catch (Exception $e) {
+      Log::error("隐患工单删除" . $e->getMessage());
       return false;
     }
   }

@@ -218,9 +218,8 @@ class YhWorkOrderController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
-
     ]);
-    if ($this->user['is_manager']) {
+    if ($this->user['is_manager'] || $this->user['is_admin']) {
       $res = $this->workService->delWorkorder($request->id);
       return $res ? $this->success('工单删除成功。') : $this->error('工单删除失败！');
     } else {
