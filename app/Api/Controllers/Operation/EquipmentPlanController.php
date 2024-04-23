@@ -57,8 +57,9 @@ class EquipmentPlanController extends BaseController
         $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
         $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
-        if ($request->start_time && $request->end_time) {
-          $q->whereBetween('plan_date', [$request->start_time, $request->end_time]);
+        $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
+        if ($request->start_date && $request->end_date) {
+          $q->whereBetween('plan_date', [$request->start_date, $request->end_date]);
         }
         $request->year && $q->whereYear('plan_date', $request->year);
         !$request->year && $q->whereYear('plan_date', date('Y')); // 默认查询当前年份
@@ -66,8 +67,8 @@ class EquipmentPlanController extends BaseController
       })
       // ->where('year', $request->year)
       ->withCount(['maintain' => function ($q) use ($request) {
-        if ($request->start_time && $request->end_time) {
-          $q->whereBetween('maintain_date', [$request->start_time, $request->end_time]);
+        if ($request->start_date && $request->end_date) {
+          $q->whereBetween('maintain_date', [$request->start_date, $request->end_date]);
         }
         $request->year && $q->whereYear('maintain_date', $request->year);
       }]);
