@@ -455,12 +455,10 @@ class EquipmentController extends BaseController
     $DA = $request->toArray();
     try {
       $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-      $updatePlanRes = $this->equipment->updateMaintainPlan($maintainId);
+      $this->equipment->updateMaintainPlan($maintainId);
       return $this->success('设备维护保存成功。');
     } catch (Exception $e) {
-      if (!$updatePlanRes) {
-        return $this->error('设备维护保存失败！' . $e->getMessage());
-      }
+      return $this->error('设备维护保存失败！' . $e->getMessage());
     }
   }
 
