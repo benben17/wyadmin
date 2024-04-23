@@ -74,7 +74,7 @@ class YhWorkOrder extends Model
 
   public function tenant()
   {
-    return $this->hasOne(Tenant::class, 'tenant_id', 'id');
+    return $this->hasOne(Tenant::class, 'id', 'tenant_id');
   }
 
   public function remarks()
