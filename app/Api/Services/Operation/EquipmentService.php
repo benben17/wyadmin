@@ -148,7 +148,7 @@ class EquipmentService
     // 'maintain_period' => $equipment['maintain_period'],
     $plan->equipment_id    = $maintainPlan['equipment_id'];
     $plan->equipment_type  = $maintainPlan['equipment_type'];
-    $plan->quantity        = $equipment['quantity'];
+    // $plan->quantity        = $equipment['quantity'];
     $plan->plan_quantity   = $maintainPlan['plan_quantity'];
     return $plan->save();
   }

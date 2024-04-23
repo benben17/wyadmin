@@ -4,9 +4,10 @@ namespace App\Api\Controllers\Operation;
 
 use JWTAuth;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Operation\EquipmentService;
@@ -70,6 +71,7 @@ class EquipmentController extends BaseController
         $request->device_name && $q->where('device_name', 'like', columnLike($request->device_name));
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
         $request->system_name && $q->where('system_name', 'like', columnLike($request->system_name));
+        isset($request->is_valid) && $q->where('is_valid', $request->is_valid);
       })
       // ->where('year', $request->year)
       ->withCount(['maintainPlan' => function ($q) use ($request) {
@@ -294,6 +296,44 @@ class EquipmentController extends BaseController
       Log::error("设备删除失败！" . $e->getMessage());
       return $this->error('设备删除失败！');
     }
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/enable",
+   *     tags={"设备"},
+   *     summary="设备启用停用",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"Ids","is_valid"},
+   *       @OA\Property(property="Ids",type="list",description="设备ID"),
+   *       @OA\Property(property="is_valid",type="int",description="启用停用")
+   *     ),
+   *       example={"Ids":"","is_valid":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function enable(Request $request)
+  {
+    $request->validate([
+      'Ids' => 'required|array',
+      'is_valid' => 'required|numeric|in:0,1'
+    ]);
+    $res = $this->equipment->MaintainPlanModel()
+      ->whereIn('id', $request->Ids)->update(['status' => AppEnum::invalid]);
+    $msg = $request->is_valid == 1 ? '设备启用' : '设备停用';
+    if ($res) {
+      return $this->success($msg . "成功。");
+    }
+    return $this->error($msg . '失败！');
   }
 
   /**

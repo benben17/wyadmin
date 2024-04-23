@@ -2,9 +2,9 @@
 
 namespace App\Api\Models\Equipment;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  *  设备
@@ -40,9 +40,9 @@ class Equipment extends Model
 
   public function getProjNameAttribute()
   {
-    $projId = $this->attributes['proj_id'];
+    $projId = $this->attributes['proj_id'] ?? 0;
     $proj = \App\Api\Models\Project::select('proj_name')->find($projId);
-    return $proj['proj_name'];
+    return $proj['proj_name'] ?? "";
   }
 
   public function getMaintainPeriodLabelAttribute()

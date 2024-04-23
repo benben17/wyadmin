@@ -2,6 +2,7 @@
 
 namespace App\Api\Controllers\Operation;
 
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
@@ -61,11 +62,15 @@ class EquipmentPlanController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('plan_date', [$request->start_date, $request->end_date]);
         }
+
         $request->year && $q->whereYear('plan_date', $request->year);
         !$request->year && $q->whereYear('plan_date', date('Y')); // 默认查询当前年份
         isset($request->completed) &&  $q->where('status', $request->completed);
       })
-      // ->where('year', $request->year)
+      ->with('equipment:id,maintain_period')
+      ->whereHas('equipment', function ($q) use ($request) {
+        $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
+      })
       ->withCount(['maintain' => function ($q) use ($request) {
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('maintain_date', [$request->start_date, $request->end_date]);
@@ -77,10 +82,36 @@ class EquipmentPlanController extends BaseController
     foreach ($data['result'] as $k => &$v) {
       $v['completed']       = $v['status'] === 1 ? 1 : 0;
       $v['completed_label'] = $v['status'] === 1 ? "是" : "否";
+      $v['maintain_period'] = $v['equipment']['maintain_period'];
+      $v['maintain_period_label'] = $v['equipment']['maintain_period_label'];
     }
     return $this->success($data);
   }
 
+  /**
+   * @OA\Post(
+   *     path="/api/operation/equipment/plan/store",
+   *     tags={"设备计划"},
+   *     summary="设备维护计划保存",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"equipment_id","plan_date","plan_quantity"},
+   *       @OA\Property(property="equipment_id",type="int",description="设备ID"),
+   *       @OA\Property(property="plan_date",type="date",description="计划日期"),
+   *       @OA\Property(property="plan_quantity",type="int",description="计划数量"),
+   *     ),
+   *       example={"equipment_id":"1","plan_date":"2024-01-01","plan_quantity":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
   public function store(Request $request)
   {
     $request->validate([
@@ -228,6 +259,7 @@ class EquipmentPlanController extends BaseController
 
 
 
+
   /**
    * @OA\Post(
    *     path="/api/operation/equipment/plan/generate",
@@ -268,12 +300,15 @@ class EquipmentPlanController extends BaseController
     $planNum = 0;
 
     foreach ($request->equipment_ids as $equipmentId) {
-      $planCount = $this->equipment->MaintainPlanModel()->where('equipment_id', $equipmentId)->count();
+      $planCount = $this->equipment->MaintainPlanModel()
+        ->where('equipment_id', $equipmentId)
+        ->count();
 
       if ($planCount > 0) {
         continue; // Fixing the typo here
       }
-      $equipment = $this->equipment->equipmentModel()->find($equipmentId);
+      $equipment = $this->equipment->equipmentModel()->where('is_valid', AppEnum::valid)
+        ->where('id', $equipmentId)->first();
       if ($equipment) {
         $period = $equipment['maintain_period'];
         $this->equipment->saveBatchMaintainPlan($equipmentId, $period, $this->user, $request->year);

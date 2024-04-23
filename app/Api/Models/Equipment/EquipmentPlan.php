@@ -28,6 +28,10 @@ class EquipmentPlan extends Model
     return $this->hasMany(EquipmentMaintain::class, 'plan_id', 'id');
   }
 
+  public function equipment()
+  {
+    return $this->belongsTo(Equipment::class,  'equipment_id', 'id');
+  }
   public function addAll($data)
   {
     $res = DB::table($this->getTable())->insert($data);
