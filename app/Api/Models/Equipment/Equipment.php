@@ -20,7 +20,7 @@ class Equipment extends Model
   protected $table = 'bse_equipment';
   protected $fillable = [];
   protected $hidden = [];
-  protected $appends = ['maintain_period_label', 'proj_name', 'third_party_label'];
+  protected $appends = ['maintain_period_label', 'proj_name', 'third_party_label', 'is_valid_label'];
 
   public function maintain()
   {
@@ -38,6 +38,11 @@ class Equipment extends Model
     return $thirdParty == 1 ?  "本单位维护" : "第三方维护";
   }
 
+  public function getIsValidLabelAttribute()
+  {
+    $isValid = $this->attributes['is_valid'] ?? 1;
+    return $isValid == 1 ?  "有效" : "无效";
+  }
   public function getProjNameAttribute()
   {
     $projId = $this->attributes['proj_id'] ?? 0;
