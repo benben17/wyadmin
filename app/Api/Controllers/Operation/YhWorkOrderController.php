@@ -75,13 +75,14 @@ class YhWorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
+        isset($request->tenant_id) && $q->where('tenant_id', $request->tenant_id);
         $request->hazard_level && $q->where('hazard_level', $request->hazard_level);
         $request->check_type && $q->where('check_type', $request->check_type);
         $request->process_person  && $q->where('process_person', 'like', '%' . $request->process_person . '%');
         $request->order_no  && $q->where('order_no', 'like', '%' . $request->order_no . '%');
       });
     $pageQuery = clone $subQuery;
-    $data = $this->pageData($pageQuery, $request);
+    $data = $this->pageData($pageQuery->with('tenant:id,name'), $request);
     // 统计
     $stat = $subQuery->selectRaw('status, COUNT(*) as count')
       ->groupBy('status')
@@ -102,6 +103,9 @@ class YhWorkOrderController extends BaseController
         'status' => $k
       ];
       $totalCount += $value;
+    }
+    foreach ($data['result'] as $k => &$v) {
+      $v['tenant_name'] = $v['tenant']['name'] ?? '公区';
     }
     $data['stat'][] = array('label' => "总计", 'value' => $totalCount, 'status' => '');
     return $this->success($data);

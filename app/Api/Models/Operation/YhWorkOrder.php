@@ -3,8 +3,9 @@
 namespace App\Api\Models\Operation;
 
 use App\Enums\AppEnum;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Api\Models\Tenant\Tenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -70,6 +71,11 @@ class YhWorkOrder extends Model
     ];
   }
 
+
+  public function tenant()
+  {
+    return $this->hasOne(Tenant::class, 'tenant_id', 'id');
+  }
 
   public function remarks()
   {
