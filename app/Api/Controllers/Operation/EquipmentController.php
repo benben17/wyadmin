@@ -328,12 +328,10 @@ class EquipmentController extends BaseController
       'is_valid' => 'required|numeric|in:0,1'
     ]);
     $res = $this->equipment->MaintainPlanModel()
-      ->whereIn('id', $request->Ids)->update(['status' => AppEnum::invalid]);
+      ->whereIn('id', $request->Ids)->update(['status' => $request->is_valid]);
     $msg = $request->is_valid == 1 ? '设备启用' : '设备停用';
-    if ($res) {
-      return $this->success($msg . "成功。");
-    }
-    return $this->error($msg . '失败！');
+
+    return $this->success($msg . "成功。");
   }
 
   /**
