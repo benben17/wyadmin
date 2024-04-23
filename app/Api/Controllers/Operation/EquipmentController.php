@@ -390,9 +390,10 @@ class EquipmentController extends BaseController
         $request->end_date && $q->where('maintain_date', '<=', $request->end_date);
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->year && $q->whereYear('maintain_date', $request->year);
+        $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
-      ->with('maintainPlan:id,plan_date,plan_quantity')
+      ->with('maintainPlan')
       ->orderBy($orderBy, $order)
       ->paginate($pagesize)
       ->toArray();

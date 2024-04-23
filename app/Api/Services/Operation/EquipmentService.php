@@ -97,11 +97,10 @@ class EquipmentService
         'c_username'      => $user['realname'],
         'plan_date'       => $date,
         'proj_id'         => $equipment['proj_id'],
-        'device_name'     => $equipment['device_name'],
-        'model'           => $equipment['model'],
-        'major'           => $equipment['major'],
-        'position'        => $equipment['position'],
-        'model'           => $equipment['model'],
+        // 'device_name'     => $equipment['device_name'],
+        // 'model'           => $equipment['model'],
+        // 'major'           => $equipment['major'],
+        // 'position'        => $equipment['position'],
         'equipment_id'    => $equipment['id'],
         'equipment_type'  => $equipment['equipment_type'] ?? "",
         'plan_quantity'   => $equipment['quantity'],
@@ -292,11 +291,12 @@ class EquipmentService
       $planModel->equipment_id    = $plan['equipment_id'];
       $planModel->equipment_type  = $equipment['equipment_type'];
       $planModel->plan_quantity   = $plan['plan_quantity'];
-      $res = $planModel->save();
-      return $res;
+      $planModel->save();
+      return $planModel;
     } catch (Exception $e) {
-      throw new Exception($e);
       Log::error($e->getMessage());
+      throw new Exception($e->getMessage());
+
       return false;
     }
   }

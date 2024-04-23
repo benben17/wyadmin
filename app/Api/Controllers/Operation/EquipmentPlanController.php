@@ -54,11 +54,7 @@ class EquipmentPlanController extends BaseController
     DB::enableQueryLog();
     $subQuery = $this->equipment->MaintainPlanModel()
       ->where(function ($q) use ($request) {
-        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
-        $request->major && $q->where('major', 'like', '%' . $request->major . '%');
-        $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
-        $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
+
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('plan_date', [$request->start_date, $request->end_date]);
         }
@@ -67,8 +63,13 @@ class EquipmentPlanController extends BaseController
         !$request->year && $q->whereYear('plan_date', date('Y')); // 默认查询当前年份
         isset($request->completed) &&  $q->where('status', $request->completed);
       })
-      ->with('equipment:id,maintain_period')
+      ->with('equipment')
       ->whereHas('equipment', function ($q) use ($request) {
+        $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
+        $request->major && $q->where('major', 'like', '%' . $request->major . '%');
+        $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
+        $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
         $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
       ->withCount(['maintain' => function ($q) use ($request) {
@@ -80,10 +81,10 @@ class EquipmentPlanController extends BaseController
     // return response()->json(DB::getQueryLog());
     $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
+      $v = array_merge($v, $v['equipment']);
+      unset($v['equipment']);
       $v['completed']       = $v['status'] === 1 ? 1 : 0;
       $v['completed_label'] = $v['status'] === 1 ? "是" : "否";
-      $v['maintain_period'] = $v['equipment']['maintain_period'];
-      $v['maintain_period_label'] = $v['equipment']['maintain_period_label'];
     }
     return $this->success($data);
   }
