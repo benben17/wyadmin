@@ -34,22 +34,22 @@ class YhWorkOrderService
         $order->company_id = $user['company_id'];
         $order->c_uid = $user['id'];
       }
-      $order->order_no = $DA['order_no'] ?? $this->yhWorkorderNo();
-      $order->proj_id = $DA['proj_id'];
-      $order->hazard_type = $DA['hazard_type'] ?? "";
-      $order->hazard_level = $DA['hazard_level'] ?? "";
-      $order->tenant_id = $DA['tenant_id'] ?? 0;
-      $order->tenant_name = $DA['tenant_name'] ?? "";
-      $order->process_type = $DA['process_type'] ?? "立即整改";
-      $order->deadline_time = $DA['deadline_time'] ?? "";
-      $order->position = $DA['position'] ?? "";
-      $order->open_person = $DA['open_person'] ?? "";
-      $order->check_type = $DA['check_type'] ?? "";
+      $order->order_no       = $DA['order_no'] ?? $this->yhWorkorderNo();
+      $order->proj_id        = $DA['proj_id'];
+      $order->hazard_type    = $DA['hazard_type'] ?? "";
+      $order->hazard_level   = $DA['hazard_level'] ?? "";
+      $order->tenant_id      = $DA['tenant_id'] ?? 0;
+      $order->tenant_name    = $DA['tenant_name'] ?? "";
+      $order->process_type   = $DA['process_type'] ?? "立即整改";
+      $order->deadline_time  = $DA['deadline_time'] ?? "";
+      $order->position       = $DA['position'] ?? "";
+      $order->open_person    = $DA['open_person'] ?? "";
+      $order->check_type     = $DA['check_type'] ?? "";
       $order->user_in_charge = $DA['user_in_charge'] ?? "";
-      $order->open_phone = $DA['open_phone'] ?? "";
-      $order->open_time = $DA['open_time'] ?? nowTime();
-      $order->hazard_issues = $DA['hazard_issues'] ?? "";
-      $order->pic = $DA['pic'] ?? "";
+      $order->open_phone     = $DA['open_phone'] ?? "";
+      $order->open_time      = $DA['open_time'] ?? nowTime();
+      $order->hazard_issues  = $DA['hazard_issues'] ?? "";
+      $order->pic            = $DA['pic'] ?? "";
       if (isset($DA['deadline_time'])) {
         $order->deadline_time   = $DA['deadline_time'];
       }
@@ -60,7 +60,7 @@ class YhWorkOrderService
       if ($res) {
         $msg = new MessageService;
         $DA['title']    = '报修工单消息通知';
-        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个隐患工单,请及时处理！</br>' . $DA['repair_content'];
+        $DA['content']  = $order->open_person . ' ' . nowTime() . ' 提交了一个隐患工单,请及时处理！</br>' . $DA['hazard_issues'];
         $DA['role_id']  = '-1';
         $msg->sendMsg($DA, $user, 2);
         // 写入日志

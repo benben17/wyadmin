@@ -54,7 +54,7 @@ class EquipmentPlanController extends BaseController
     $subQuery = $this->equipment->MaintainPlanModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
         $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
         if ($request->start_time && $request->end_time) {
