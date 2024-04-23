@@ -249,16 +249,13 @@ class EquipmentPlanController extends BaseController
     ]);
     $data = $this->equipment->MaintainPlanModel()
       ->withCount('maintain')
+      ->with('equipment:id,maintain_period,maintain_content')
       // ->where('year', $request->year)
       ->with('maintain')->find($request->id);
     $data['equipment_quantity'] = $this->equipment->equipmentModel()
       ->find($data['equipment_id'])->pluck('quantity')->first();
     return $this->success($data);
   }
-
-
-
-
 
   /**
    * @OA\Post(
