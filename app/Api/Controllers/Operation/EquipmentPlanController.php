@@ -81,6 +81,7 @@ class EquipmentPlanController extends BaseController
     // return response()->json(DB::getQueryLog());
     $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
+      unset($v['equipment']['id']);
       $v = array_merge($v, $v['equipment']);
       unset($v['equipment']);
       $v['completed']       = $v['status'] === 1 ? 1 : 0;
@@ -248,13 +249,15 @@ class EquipmentPlanController extends BaseController
     $request->validate([
       'id' => 'required',
     ]);
+    DB::enableQueryLog();
     $data = $this->equipment->MaintainPlanModel()
       ->withCount('maintain')
       ->with('equipment:id,maintain_period,maintain_content')
       // ->where('year', $request->year)
       ->with('maintain')->find($request->id);
-    $data['equipment_quantity'] = $this->equipment->equipmentModel()
-      ->find($data['equipment_id'])->pluck('quantity')->first();
+    $equipment = $this->equipment->equipmentModel()
+      ->find($data['equipment_id'])->first();
+    $data['equipment_quantity'] = $equipment->quantity;
     return $this->success($data);
   }
 

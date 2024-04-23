@@ -75,6 +75,7 @@ class YhWorkOrderController extends BaseController
         if ($request->start_date && $request->end_date) {
           $q->whereBetween('open_time', [$request->start_date, $request->end_date]);
         }
+        $request->hazard_type && $q->where('hazard_type', $request->hazard_type);
         isset($request->tenant_id) && $q->where('tenant_id', $request->tenant_id);
         $request->hazard_level && $q->where('hazard_level', $request->hazard_level);
         $request->check_type && $q->where('check_type', $request->check_type);
