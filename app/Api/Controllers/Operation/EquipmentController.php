@@ -366,22 +366,10 @@ class EquipmentController extends BaseController
    */
   public function maintainList(Request $request)
   {
-    $pagesize = $this->setPagesize($request);
-    // 排序字段
-    if ($request->input('orderBy')) {
-      $orderBy = $request->input('orderBy');
-    } else {
-      $orderBy = 'created_at';
-    }
-    // 排序方式desc 倒叙 asc 正序
-    if ($request->input('order')) {
-      $order = $request->input('order');
-    } else {
-      $order = 'desc';
-    }
+
 
     DB::enableQueryLog();
-    $data = $this->equipment->maintainModel()
+    $subQuery = $this->equipment->maintainModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
         $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
@@ -391,14 +379,13 @@ class EquipmentController extends BaseController
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->year && $q->whereYear('maintain_date', $request->year);
         $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
+        $request->plan_id && $q->where('plan_id', $request->plan_id);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
-      ->with('maintainPlan')
-      ->orderBy($orderBy, $order)
-      ->paginate($pagesize)
-      ->toArray();
+      ->with('maintainPlan');
+
     // return response()->json(DB::getQueryLog());
-    $data = $this->handleBackData($data);
+    $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
       $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
       $v['plan_quantity'] = $v['maintain_plan']['plan_quantity'] ?? 0;
