@@ -213,9 +213,9 @@ class YhWorkOrderService
 
         $yhWorkOrder->dispatch_time = $DA['dispatch_time'] ?? nowTime();
         $yhWorkOrder->dispatch_user = $DA['dispatch_user'] ?? $user->name;
-        $yhWorkOrder->pick_user_id     = $DA['pick_user_id'];
-        $yhWorkOrder->pick_user  = $DA['pick_user'];
-        $yhWorkOrder->status = AppEnum::workorderTake;
+        $yhWorkOrder->pick_user_id  = $DA['pick_user_id'];
+        $yhWorkOrder->pick_user     = $DA['pick_user'];
+        $yhWorkOrder->status        = AppEnum::workorderTake;
 
         $yhWorkOrder->save();
         // 写入日志

@@ -268,7 +268,7 @@ class YhWorkOrderController extends BaseController
       'id' => 'required|numeric|gt:0',
       // 'dispatch_time' => 'required|date',
       // 'dispatch_user' => 'required|string',
-      'pick_user_id' => 'required|numeric|gt:0',
+      'pick_user_id' => 'required|String',
       'pick_user' => 'required|string',
     ]);
     $DA = $request->toArray();
