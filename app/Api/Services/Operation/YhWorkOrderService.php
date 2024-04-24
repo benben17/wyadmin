@@ -66,10 +66,11 @@ class YhWorkOrderService
         // 写入日志
         $this->saveYhOrderLog($order->id, 1, $user);
       }
+      return true;
     } catch (Exception $e) {
+      throw new Exception("隐患工单开单失败");
       Log::error($e->getMessage());
     }
-    return $res;
   }
 
 
