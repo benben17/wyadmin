@@ -264,13 +264,22 @@ class YhWorkOrderController extends BaseController
 
   public function orderDispatch(Request $request)
   {
-    $request->validate([
-      'id' => 'required|numeric|gt:0',
-      // 'dispatch_time' => 'required|date',
-      // 'dispatch_user' => 'required|string',
-      'pick_user_id' => 'required|String',
-      'pick_user' => 'required|string',
-    ]);
+    $request->validate(
+      [
+        'id' => 'required|numeric|gt:0',
+        // 'dispatch_time' => 'required|date',
+        // 'dispatch_user' => 'required|string',
+        // 'pick_user_id' => 'required|String',
+        'pick_user' => 'required|string',
+      ],
+      [
+        'id.required' => 'ID 字段是必需的。',
+        'id.numeric' => 'ID 必须是数字。',
+        'id.gt' => 'ID 必须大于 0。',
+        'dispatch_time.required' => '派单时间字段是必需的。',
+        'pick_user.required' => '接单人字段是必需的。'
+      ]
+    );
     $DA = $request->toArray();
     $yhWorkOrder = $this->workService->yhWorkModel()->find($DA['id']);
     if (compareTime($yhWorkOrder->open_time, nowTime())) {
