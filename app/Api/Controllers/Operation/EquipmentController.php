@@ -575,7 +575,7 @@ class EquipmentController extends BaseController
     ]);
     $DA = $request->toArray();
     foreach ($DA['Ids'] as $maintainId) {
-      $res = $this->equipment->maintainModel()->deleteMaintain($maintainId);
+      $res = $this->equipment->deleteMaintain($maintainId);
     }
 
     if ($res) {

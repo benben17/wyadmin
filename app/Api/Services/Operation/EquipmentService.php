@@ -333,6 +333,7 @@ class EquipmentService
       });
       return true;
     } catch (Exception $e) {
+      throw new Exception($e->getMessage());
       Log::error("设备维护删除错误：" . $e->getMessage());
       return false;
     }
