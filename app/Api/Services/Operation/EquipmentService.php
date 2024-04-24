@@ -119,20 +119,27 @@ class EquipmentService
    */
   public function updateMaintainPlan($maintainId)
   {
-    $maintain = $this->maintainModel()->find($maintainId);
-    $maintainPlan = $this->MaintainPlanModel()->find($maintain['plan_id']);
-    if (!$maintainPlan) {
+    try {
+      DB::transaction(function () use ($maintainId) {
+        $maintain = $this->maintainModel()->find($maintainId);
+        $maintainPlan = $this->MaintainPlanModel()->find($maintain['plan_id']);
+        if (!$maintainPlan) {
+          throw new Exception("维护计划不存在");
+        }
+        $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
+        if ($maintainPlan->maintain_quantity == $maintainPlan->plan_quantity) {
+          $maintainPlan->status = 1;
+        }
+        if ($maintainPlan->maintain_quantity > $maintainPlan->plan_quantity) {
+          throw new Exception("维护数量不能大于计划维护数量");
+        }
+        $maintainPlan->save();
+      });
+    } catch (Exception $e) {
+      throw new Exception($e->getMessage());
+      Log::error($e->getMessage());
       return false;
     }
-    $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
-    if ($maintainPlan->maintain_quantity == $maintainPlan->plan_quantity) {
-      $maintainPlan->status = 1;
-    }
-    if ($maintainPlan->maintain_quantity > $maintainPlan->plan_quantity) {
-      throw new Exception("维护数量不能大于计划维护数量");
-    }
-    $maintainPlan->save();
-    return true;
   }
 
   public function editMaintainPlan($maintainPlan)
@@ -192,6 +199,10 @@ class EquipmentService
       $maintain->maintain_type     = $DA['maintain_type'];
       $maintain->pic               = isset($DA['pic']) ? $DA['pic'] : $equipment['pic'];
       $maintain->save();
+      // 更新维护计划
+      if (isset($DA['id']) && $DA['id'] > 0) {
+        $this->updateMaintainPlan($DA['id']);
+      }
       return $maintain->id;
     } catch (Exception $e) {
       Log::error($e->getMessage());

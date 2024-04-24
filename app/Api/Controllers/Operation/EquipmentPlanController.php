@@ -252,12 +252,11 @@ class EquipmentPlanController extends BaseController
     DB::enableQueryLog();
     $data = $this->equipment->MaintainPlanModel()
       ->withCount('maintain')
-      ->with('equipment:id,maintain_period,maintain_content')
+      ->with('equipment:id,maintain_period,maintain_content,quantity')
       // ->where('year', $request->year)
       ->with('maintain')->find($request->id);
-    $equipment = $this->equipment->equipmentModel()
-      ->find($data['equipment_id'])->first();
-    $data['equipment_quantity'] = $equipment->quantity;
+
+    $data['equipment_quantity'] = $data->equipment->quantity;
     return $this->success($data);
   }
 
