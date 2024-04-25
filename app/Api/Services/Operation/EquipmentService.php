@@ -47,6 +47,7 @@ class EquipmentService
     try {
       if (isset($DA['id']) && $DA['id'] > 0) {
         $equipment = $this->equipmentModel()->find($DA['id']);
+
         $equipment->u_uid = $user['id'];
       } else {
         $equipment = $this->equipmentModel();
@@ -117,16 +118,17 @@ class EquipmentService
   /** 
    * 当维护 数量和 计划中数量相等的时候  更新维护数量和 维护计划状态
    */
-  public function updateMaintainPlan($maintainId)
+  public function updateMaintainPlan($maintainId, $oldMaintainQuantity = 0)
   {
     try {
-      DB::transaction(function () use ($maintainId) {
+      DB::transaction(function () use ($maintainId, $oldMaintainQuantity) {
         $maintain = $this->maintainModel()->find($maintainId);
+
         $maintainPlan = $this->MaintainPlanModel()->find($maintain['plan_id']);
         if (!$maintainPlan) {
           throw new Exception("维护计划不存在");
         }
-        $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'];
+        $maintainPlan->maintain_quantity = $maintainPlan->maintain_quantity + $maintain['maintain_quantity'] - $oldMaintainQuantity;
         if ($maintainPlan->maintain_quantity == $maintainPlan->plan_quantity) {
           $maintainPlan->status = 1;
         }
@@ -176,6 +178,7 @@ class EquipmentService
       }
       if (isset($DA['id']) && $DA['id'] > 0) {
         $maintain = $this->maintainModel()->find($DA['id']);
+        $oldQuantity = $maintain->maintain_quantity;
         $maintain->u_uid = $user['id'];
       } else {
         $maintain = $this->maintainModel();
@@ -201,7 +204,7 @@ class EquipmentService
       $maintain->save();
       // 更新维护计划
       if (isset($DA['id']) && $DA['id'] > 0) {
-        $this->updateMaintainPlan($DA['id']);
+        $this->updateMaintainPlan($DA['id'], $oldQuantity);
       }
       return $maintain->id;
     } catch (Exception $e) {

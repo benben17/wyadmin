@@ -78,8 +78,9 @@ class EquipmentPlanController extends BaseController
         }
         $request->year && $q->whereYear('maintain_date', $request->year);
       }]);
-    // return response()->json(DB::getQueryLog());
+
     $data = $this->pageData($subQuery, $request);
+    // return response()->json(DB::getQueryLog());
     foreach ($data['result'] as $k => &$v) {
       unset($v['equipment']['id']);
       $v = array_merge($v, $v['equipment']);

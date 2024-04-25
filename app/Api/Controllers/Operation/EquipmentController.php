@@ -243,7 +243,8 @@ class EquipmentController extends BaseController
       ->find($DA['id'])->toArray();
     if ($data) {
       DB::enableQueryLog();
-      $planData = $this->equipment->MaintainPlanModel()->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
+      $planData = $this->equipment->MaintainPlanModel()
+        ->selectRaw('COUNT(*) as total_count, IFNULL(sum(status = 1),0) as maintain_count')
         ->where('equipment_id', $DA['id'])
         ->whereYear('plan_date', $year)
         ->first();
@@ -488,12 +489,13 @@ class EquipmentController extends BaseController
       'maintain_content'   => 'required|String',
       'maintain_person'   => 'required|String', // 可多选
     ]);
-    $DA = $request->toArray();
-    $res = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-    if (!$res) {
-      return $this->error('设备维护更新失败！');
+    try {
+      $DA = $request->toArray();
+      $res = $this->equipment->saveEquipmentMaintain($DA, $this->user);
+      return $this->success('设备维护更新成功。');
+    } catch (Exception $e) {
+      return $this->error('设备维护更新失败！' . $e->getMessage());
     }
-    return $this->success('设备维护更新成功。');
   }
 
   /**
