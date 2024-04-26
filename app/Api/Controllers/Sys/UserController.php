@@ -215,6 +215,10 @@ class UserController extends BaseController
             'group_id' => 'required|numeric'
         ]);
         $userinfo = auth('api')->user();
+        $checkName = UserModel::where('name', $request->input('name'))->where('id', '!=', $request->input('id'))->exists();
+        if ($checkName) {
+            return $this->error("用户名[" . $request->name . "]已存在！");
+        }
         $user = UserModel::find($request->input('id'));
         $user->realname = $request->input('realname');
         $user->phone = $request->input('phone');
