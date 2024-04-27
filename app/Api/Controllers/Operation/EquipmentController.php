@@ -388,7 +388,11 @@ class EquipmentController extends BaseController
       ->whereHas('equipment', function ($q) use ($request) {
         $request->third_party && $q->where('third_party', $request->third_party);
       })
-      ->with('maintainPlan');
+      ->with('maintainPlan')
+      ->whereHas('maintainPlan', function ($q) use ($request) {
+        $request->plan_start_date && $q->where('plan_date', $request->plan_start_date);
+        $request->plan_end_date && $q->where('plan_date', $request->plan_end_date);
+      });
 
     // return response()->json(DB::getQueryLog());
     $data = $this->pageData($subQuery, $request);
