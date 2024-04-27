@@ -390,8 +390,8 @@ class EquipmentController extends BaseController
       })
       ->with('maintainPlan')
       ->whereHas('maintainPlan', function ($q) use ($request) {
-        $request->plan_start_date && $q->where('plan_date', $request->plan_start_date);
-        $request->plan_end_date && $q->where('plan_date', $request->plan_end_date);
+        $request->plan_start_date && $q->where('plan_date', '>=', $request->plan_start_date);
+        $request->plan_end_date && $q->where('plan_date', '<=', $request->plan_end_date);
       });
 
     // return response()->json(DB::getQueryLog());
