@@ -72,6 +72,7 @@ class EquipmentController extends BaseController
         $request->major && $q->where('major', 'like', '%' . $request->major . '%');
         $request->system_name && $q->where('system_name', 'like', columnLike($request->system_name));
         isset($request->is_valid) && $q->where('is_valid', $request->is_valid);
+        $request->third_party && $q->where('third_party', $request->third_party);
       })
       // ->where('year', $request->year)
       ->withCount(['maintainPlan' => function ($q) use ($request) {
@@ -383,6 +384,10 @@ class EquipmentController extends BaseController
         $request->plan_id && $q->where('plan_id', $request->plan_id);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
+      ->with('equipment:id,third_party,maintain_period')
+      ->whereHas('equipment', function ($q) use ($request) {
+        $request->third_party && $q->where('third_party', $request->third_party);
+      })
       ->with('maintainPlan');
 
     // return response()->json(DB::getQueryLog());
@@ -390,6 +395,8 @@ class EquipmentController extends BaseController
     foreach ($data['result'] as $k => &$v) {
       $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
       $v['plan_quantity'] = $v['maintain_plan']['plan_quantity'] ?? 0;
+      $v['third_party_label'] = $v['equipment']['third_party_label'] ?? "";
+      $v['maintain_period_label'] = $v['equipment']['maintain_period_label'] ?? "";
       unset($v['maintain_plan']);
     }
     return $this->success($data);

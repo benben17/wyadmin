@@ -38,6 +38,11 @@ class EquipmentMaintain extends Model
     return $this->belongsTo(EquipmentPlan::class,  'plan_id', 'id');
   }
 
+  public function equipment()
+  {
+    return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
+  }
+
 
   public function getProjNameAttribute()
   {

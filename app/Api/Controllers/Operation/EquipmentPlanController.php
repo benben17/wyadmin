@@ -71,6 +71,7 @@ class EquipmentPlanController extends BaseController
         $request->equipment_id && $q->where('equipment_id', $request->equipment_id);
         $request->system_name && $q->where('system_name', 'like', '%' . $request->system_name . '%');
         $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
+        $request->third_party && $q->where('third_party', $request->third_party);
       })
       ->withCount(['maintain' => function ($q) use ($request) {
         if ($request->start_date && $request->end_date) {
