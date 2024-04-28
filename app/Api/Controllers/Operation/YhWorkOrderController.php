@@ -467,6 +467,9 @@ class YhWorkOrderController extends BaseController
       ->with('orderLogs')
       ->with('remarks')
       ->find($request->id);
+    if ($data) {
+      $data->tenant_name = getTenantNameById($data->tenant_id);
+    }
     return $this->success($data);
   }
 
