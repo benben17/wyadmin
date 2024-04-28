@@ -350,7 +350,7 @@ class ChargeService
       $charge->category    = ChargeEnum::CategoryDeposit;      // 押金转收入;
       $charge->source      = 1;                                // 费用
       $charge->verify_amount = 0.00;
-      $charge->unverify_amount = 0.00;
+      // $charge->unverify_amount = 0.00;
 
       // $charge->fee_type    =  0;
       $charge->bank_id     =  $billDetail['bank_id'] ?? 0;
