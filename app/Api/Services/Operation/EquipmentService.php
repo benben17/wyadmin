@@ -187,6 +187,7 @@ class EquipmentService
         $maintain->c_username   = $user['realname'];
       }
       $maintain->proj_id           = $equipment['proj_id'];
+      $maintain->tenant_id         = $equipment['tenant_id'];
       $maintain->device_name       = $equipment['device_name'];
       $maintain->model             = $equipment['model'];
       $maintain->major             = $equipment['major'];

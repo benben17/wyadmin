@@ -20,7 +20,7 @@ class Equipment extends Model
   protected $table = 'bse_equipment';
   protected $fillable = [];
   protected $hidden = [];
-  protected $appends = ['maintain_period_label', 'proj_name', 'third_party_label', 'is_valid_label'];
+  protected $appends = ['maintain_period_label', 'proj_name', 'third_party_label', 'is_valid_label', 'tenant_name'];
 
   public function maintain()
   {
@@ -48,6 +48,12 @@ class Equipment extends Model
     $projId = $this->attributes['proj_id'] ?? 0;
     $proj = \App\Api\Models\Project::select('proj_name')->find($projId);
     return $proj['proj_name'] ?? "";
+  }
+
+  public function getTenantNameAttribute()
+  {
+    $tenantId = $this->attributes['tenant_id'] ?? 0;
+    return getTenantNameById($tenantId);
   }
 
   public function getMaintainPeriodLabelAttribute()

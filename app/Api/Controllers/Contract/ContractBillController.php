@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Contract\BillRuleService;
 use App\Api\Services\Contract\ContractService;
-use Illuminate\Contracts\Validation\Validator;
 use App\Api\Services\Contract\ContractBillService;
 
 /**
@@ -167,11 +166,16 @@ class ContractBillController extends BaseController
       'contract_room' => 'array',
       'free_list' => 'array',
     ], $this->errorMsg);
-    $contract = $request->toArray();
-    $this->billRuleService->validateIncrease($contract['bill_rule']);
+    try {
+      $contract = $request->toArray();
+      $this->billRuleService->validateIncrease($contract['bill_rule']);
 
-    $data = $this->billService->generateBill($contract, $this->uid);
-    return $this->success($data);
+      $data = $this->billService->generateBill($contract, $this->uid);
+      return $this->success($data);
+    } catch (\Exception $th) {
+      Log::error("合同账单生成失败." . $th->getMessage());
+      return $this->error("合同账单生成失败:" . $th->getMessage());
+    }
   }
 
 

@@ -73,6 +73,7 @@ class EquipmentController extends BaseController
         $request->system_name && $q->where('system_name', 'like', columnLike($request->system_name));
         isset($request->is_valid) && $q->where('is_valid', $request->is_valid);
         $request->third_party && $q->where('third_party', $request->third_party);
+        isset($request->tenant_id) && $q->where('tenant_id', $request->tenant_id);
       })
       // ->where('year', $request->year)
       ->withCount(['maintainPlan' => function ($q) use ($request) {
@@ -384,9 +385,10 @@ class EquipmentController extends BaseController
         $request->plan_id && $q->where('plan_id', $request->plan_id);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
-      ->with('equipment:id,third_party,maintain_period')
+      ->with('equipment:id,third_party,maintain_period,tenant_id,tenant_id')
       ->whereHas('equipment', function ($q) use ($request) {
         $request->third_party && $q->where('third_party', $request->third_party);
+        isset($request->tenant_id) && $q->where('tenant_id', $request->tenant_id);
       })
       ->with('maintainPlan')
       ->whereHas('maintainPlan', function ($q) use ($request) {
@@ -539,6 +541,7 @@ class EquipmentController extends BaseController
     ]);
     $data = $this->equipment->maintainModel()
       ->with('maintainPlan')
+      ->with('equipment:id,third_party,maintain_period,tenant_id')
       ->find($request->id);
     // $data['maintain_type_label'] = getDictName($data['maintain_type']);
     return $this->success($data);
