@@ -18,6 +18,16 @@ class ActivityService
   {
     return new ActivityType;
   }
+
+  /**
+   * 保存活动
+   * @Author leezhua
+   * @Date 2024-05-05
+   * @param mixed $DA 
+   * @param mixed $user 
+   * @param int $type 
+   * @return void 
+   */
   public function saveActivity($DA, $user, $type = 1)
   {
     try {
@@ -44,12 +54,9 @@ class ActivityService
         $activity->is_hot         = $DA['is_hot'] ?? 1;
         $activity->is_top         = $DA['is_top'] ?? 1;
         $res = $activity->save();
-        if ($res) {
-          foreach ($DA['activity_type'] as $typeDA) {
-            $this->saveActivityType($typeDA, $user, $activity->id);
-          }
-        } else {
-          throw new Exception('保存活动失败');
+
+        foreach ($DA['activity_type'] as $typeDA) {
+          $this->saveActivityType($typeDA, $user, $activity->id);
         }
       }, 2);
     } catch (Exception $e) {
@@ -59,6 +66,15 @@ class ActivityService
   }
 
 
+  /**
+   * 保存活动类型
+   * @Author leezhua
+   * @Date 2024-05-05
+   * @param array $DA 
+   * @param array $user 
+   * @param int $activityId 
+   * @return void 
+   */
   private function saveActivityType(array $DA, array $user, int $activityId)
   {
     try {

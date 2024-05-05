@@ -195,9 +195,9 @@ class ActivityController extends BaseController
 		if (!$activity) {
 			return $this->error("活动不存在");
 		}
-		$startDate   = new DateTime($activity->start_date);
-		$endDate     = new DateTime($activity->end_date);
-		$currentDate = new DateTime();
+		$startDate   = strtotime($activity->start_date);
+		$endDate     = strtotime($activity->end_date);
+		$currentDate = strtotime(nowTime());
 
 		if ($startDate < $currentDate && $endDate > $currentDate) {
 			return $this->error("活动已开始，不能删除");
