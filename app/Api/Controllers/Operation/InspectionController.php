@@ -17,10 +17,18 @@ use App\Api\Services\Operation\InspectionService;
 class InspectionController extends BaseController
 {
   private $inspection;
+  private $errorMsg;
   public function __construct()
   {
     parent::__construct();
     $this->inspection = new InspectionService;
+    $this->errorMsg = [
+      'id.required' => 'ID不能为空',
+      'proj_id.required' => '项目ID不能为空',
+      'proj_id.gt' => '项目ID格式错误',
+      'device_name.required' => '设备名称不能为空',
+      'position.required' => '位置不能为空',
+    ];
   }
   /**
    * @OA\Post(
@@ -113,7 +121,7 @@ class InspectionController extends BaseController
       'proj_id'         => 'required|numeric|gt:0',
       'device_name'     => 'required|String',
       'position'        => 'required|String',
-    ]);
+    ], $this->errorMsg);
     $DA = $request->toArray();
 
     $res = $this->inspection->saveInspection($DA, $this->user);
@@ -153,12 +161,15 @@ class InspectionController extends BaseController
   public function update(Request $request)
   {
 
-    $validatedData = $request->validate([
-      'id'              => 'required|numeric',
-      'proj_id'         => 'required|numeric|gt:0',
-      'device_name'     => 'required|String',
-      'position'        => 'required|String',
-    ]);
+    $validatedData = $request->validate(
+      [
+        'id'              => 'required|numeric',
+        'proj_id'         => 'required|numeric|gt:0',
+        'device_name'     => 'required|String',
+        'position'        => 'required|String',
+      ],
+      $this->errorMsg
+    );
     $DA = $request->toArray();
 
     $res = $this->inspection->saveInspection($DA, $this->user);
@@ -195,7 +206,7 @@ class InspectionController extends BaseController
   {
     $validatedData = $request->validate([
       'id' => 'required|numeric|gt:0',
-    ]);
+    ], $this->errorMsg);
     $DA = $request->toArray();
     $data = $this->inspection->inspectionModel()
       ->find($DA['id'])->toArray();
@@ -283,7 +294,8 @@ class InspectionController extends BaseController
         $request->end_date && $q->where('created_at', '<=', $request->end_date);
         $request->c_uid && $q->where('c_uid', $request->uid);
         $request->inspection_id && $q->where('inspection_id', $request->inspection_id);
-      })->with('inspection:id,name,device_name,proj_id,check_cycle,position');
+      })
+      ->with('inspection:id,name,device_name,proj_id,check_cycle,position');
 
     $data = $this->pageData($subQuery, $request);
 
