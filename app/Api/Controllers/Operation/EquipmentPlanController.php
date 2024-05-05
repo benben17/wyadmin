@@ -301,6 +301,11 @@ class EquipmentPlanController extends BaseController
     ], $messages);
 
     $planNum = 0;
+    $validEquipments = $this->equipment->equipmentModel()
+      ->where('is_valid', AppEnum::valid)
+      ->whereIn('id', $request->equipment_ids)
+      ->get()
+      ->keyBy('id');
 
     foreach ($request->equipment_ids as $equipmentId) {
       $planCount = $this->equipment->MaintainPlanModel()
@@ -308,10 +313,9 @@ class EquipmentPlanController extends BaseController
         ->count();
 
       if ($planCount > 0) {
-        continue; // Fixing the typo here
+        continue;
       }
-      $equipment = $this->equipment->equipmentModel()->where('is_valid', AppEnum::valid)
-        ->where('id', $equipmentId)->first();
+      $equipment = $validEquipments->get($equipmentId);
       if ($equipment) {
         $period = $equipment['maintain_period'];
         $this->equipment->saveBatchMaintainPlan($equipmentId, $period, $this->user, $request->year);
