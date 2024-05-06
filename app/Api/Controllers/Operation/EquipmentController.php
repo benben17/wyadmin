@@ -385,7 +385,7 @@ class EquipmentController extends BaseController
         $request->plan_id && $q->where('plan_id', $request->plan_id);
         // $request->maintain_period && $q->where('maintain_period', $request->maintain_period);
       })
-      ->with('equipment:id,third_party,maintain_period,tenant_id,tenant_id')
+      ->with('equipment:id,third_party,maintain_period,tenant_id')
       ->whereHas('equipment', function ($q) use ($request) {
         $request->third_party && $q->where('third_party', $request->third_party);
         isset($request->tenant_id) && $q->where('tenant_id', $request->tenant_id);
@@ -403,6 +403,7 @@ class EquipmentController extends BaseController
       $v['plan_quantity'] = $v['maintain_plan']['plan_quantity'] ?? 0;
       $v['third_party_label'] = $v['equipment']['third_party_label'] ?? "";
       $v['maintain_period_label'] = $v['equipment']['maintain_period_label'] ?? "";
+      $v['tenant_name'] = $v['equipment']['tenant_name'] ?? "";
       unset($v['maintain_plan']);
     }
     return $this->success($data);
