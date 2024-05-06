@@ -410,8 +410,8 @@ class BillStatController extends BaseController
         'receive_amount'   => floatval($receiveAmount),
         'unreceive_amount' => floatval($unreceiveAmount),
       ];
-      $formattedData['total']['total_amt'] += $amount;
-      $formattedData['total']['total_receive_amt'] += $receiveAmount;
+      $formattedData['total']['total_amt']           += $amount;
+      $formattedData['total']['total_receive_amt']   += $receiveAmount;
       $formattedData['total']['total_unreceive_amt'] += $unreceiveAmount;
       $formattedData['total'][$ym] = array(
         'amount'           => $formattedData['total'][$ym]['amount'] + $amount,

@@ -103,9 +103,9 @@ class StatController extends BaseController
 
         foreach ($data as $v) {
             $room['manager_room_count'] += $v['manager_room_count'];
-            $room['free_room_count'] += $v['free_room_count'];
-            $room['manager_area'] += $v['manager_area'];
-            $room['free_area'] += $v['free_area'];
+            $room['free_room_count']    += $v['free_room_count'];
+            $room['manager_area']       += $v['manager_area'];
+            $room['free_area']          += $v['free_area'];
         }
 
         $room['rental_rate'] =  numFormat(($room['free_area'] / $room['manager_area']) * 100);

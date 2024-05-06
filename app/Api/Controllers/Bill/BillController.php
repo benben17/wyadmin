@@ -370,7 +370,7 @@ class BillController extends BaseController
     try {
       $this->billService->billModel()
         ->where('status', AppEnum::statusUnAudit)
-        ->where('id', $request->billIds)->update($updateData);
+        ->whereIn('id', $request->billIds)->update($updateData);
       return $this->success("账单审核成功");
     } catch (Exception $e) {
       Log::error("账单审核失败" . $e);

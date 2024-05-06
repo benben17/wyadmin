@@ -433,8 +433,8 @@ class ChargeService
 
         foreach ($chargeRecords as $record) {
           $billDetail = $this->billDetailModel()->findOrFail($record->bill_detail_id);
-          $billDetail->receive_amount -= $record->amount;
-          $billDetail->charge_date = nowYmd();
+          $billDetail->receive_amount = bcsub($billDetail->receive_amount, $record->amount, 2);
+          $billDetail->charge_date    = nowYmd();
           $billDetail->save();
         }
 
