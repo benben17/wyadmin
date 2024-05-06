@@ -139,7 +139,7 @@ class ContractBillService
       $bill[$i]['end_date'] = formatYmd($endDate);
 
       // 最后一期账单
-      if (strtotime($endDate) > strtotime($rule['end_date'])) {
+      if (strtotime($endDate) >= strtotime($rule['end_date'])) {
         // $days =  diffDays($startDate,  $rule['end_date']);
         $bill[$i]['end_date'] = formatYmd($rule['end_date']);
         // Log::error($days . "最后一期天数");
@@ -734,11 +734,11 @@ class ContractBillService
         throw new Exception("账单结束日期不能大于合同结束日期");
       }
 
-      if ($rule['fee_type'] == AppEnum::rentFeeType) {
+      if ($rule['fee_type'] == AppEnum::rentFeeType || $rule['fee_type'] == AppEnum::managerFeeType) {
         $feeList = $this->createBillByDelay($contract, $rule, $uid);
-      } else {
-        $feeList = $this->createBill($contract, $rule, $uid);
       }
+      // else {
+      //   $feeList = $this->createBill($contract, $rule, $uid);
       // }
       array_push($fee_list, $feeList);
     }
