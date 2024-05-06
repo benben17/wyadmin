@@ -95,19 +95,15 @@ class FeeTypeController extends BaseController
       'fee_name' => 'required|String|max:32',
       'type' => 'required|gt:0',
     ]);
-
-    $where['fee_name'] = $request->fee_name;
+    $feeName = $request->fee_name;
+    $where['fee_name'] = $feeName;
     $companyIds = getCompanyIds($this->uid);
-    $count = $this->feeService->model()->whereIn('company_id', $companyIds)->where($where)->count();
-    if ($count > 0) {
-      return $this->error('数据重复!');
+    $isExists = $this->feeService->model()->whereIn('company_id', $companyIds)->where($where)->exists();
+    if ($isExists) {
+      return $this->error('【' . $feeName . '】数据重复!');
     }
     $res = $this->feeService->save($request->toArray(), $this->user);
-    if ($res) {
-      return $this->success('数据添加成功');
-    } else {
-      return $this->error('数据添加失败');
-    }
+    return $res ? $this->success('【' . $feeName . '】添加成功') : $this->error('数据添加失败');
   }
 
   /**

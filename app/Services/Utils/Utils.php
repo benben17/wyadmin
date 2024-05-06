@@ -20,12 +20,27 @@ function picFullPath($pics): array
 }
 
 
+/**
+ * 字符串转数组
+ * @Author leezhua
+ * @Date 2024-04-01
+ * @param string $str 
+ * @param string $delimiter 
+ * @return string[] 
+ */
 function isEmptyObj($obj): bool
 {
   return empty(get_object_vars($obj));
 }
 
-
+/**
+ * 数字格式化，保留2位小数
+ * @Author leezhua
+ * @Date 2024-05-05
+ * @param mixed $data 
+ * @param int $decimals 
+ * @return mixed 
+ */
 function num_format(&$data, $decimals = 2)
 {
   if (is_array($data)) {

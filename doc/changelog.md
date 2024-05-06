@@ -4,7 +4,7 @@
 
 ### 2024-04-19
 
-1. 收款删除unverfiy——amount 转成 refund——amount
+1. 收款删除unverify_amount 转成 refund_amount
 2. 核销bug 处理
 
 ### 2024-04-14
