@@ -734,12 +734,11 @@ class ContractBillService
         throw new Exception("账单结束日期不能大于合同结束日期");
       }
 
-      if ($rule['fee_type'] == AppEnum::rentFeeType || $rule['fee_type'] == AppEnum::managerFeeType) {
+      if ($rule['fee_type'] == AppEnum::rentFeeType) { // || $rule['fee_type'] == AppEnum::managerFeeType)
         $feeList = $this->createBillByDelay($contract, $rule, $uid);
+      } else {
+        $feeList = $this->createBill($contract, $rule, $uid);
       }
-      // else {
-      //   $feeList = $this->createBill($contract, $rule, $uid);
-      // }
       array_push($fee_list, $feeList);
     }
     $data['fee_bill']  = $fee_list;
