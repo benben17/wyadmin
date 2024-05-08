@@ -4730,6 +4730,42 @@
                 }
             }
         },
+        "/api/common/contact/del": {
+            "post": {
+                "tags": [
+                    "联系人"
+                ],
+                "summary": "联系人删除",
+                "operationId": "bda4aca51ae24a3e776e5bea59e2010e",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "Ids"
+                                ],
+                                "properties": {
+                                    "Ids": {
+                                        "description": "联系人ID",
+                                        "type": "list"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "Ids": "[1,2]"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/common/maintain/list": {
             "post": {
                 "tags": [
@@ -5718,7 +5754,16 @@
                         "application/json": {
                             "schema": {
                                 "schema": "UserModel",
-                                "required": []
+                                "required": [
+                                    "proj_ids"
+                                ],
+                                "properties": {
+                                    "proj_ids": {
+                                        "description": "项目ID，多个用逗号隔开",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
                             },
                             "example": []
                         }
@@ -7271,6 +7316,54 @@
                 }
             }
         },
+        "/api/business/contract/bill/change": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同账单变更",
+                "operationId": "d46a66a623cd4461f3ee4b5f742f3112",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "bill_rule": "[]",
+                                "contract_room": "[]",
+                                "free_list": "[]",
+                                "contract_type": "1",
+                                "sign_date": "2020-01-01",
+                                "start_date": "2020-01-01",
+                                "end_date": "2020-01-01",
+                                "tenant_id": "1",
+                                "proj_id": "1",
+                                "tenant_legal_person": "张三",
+                                "sign_area": "100",
+                                "bill_day": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/contract/list": {
             "post": {
                 "tags": [
@@ -7666,6 +7759,253 @@
                 }
             }
         },
+        "/api/operation/tenant/leaseback/list": {
+            "post": {
+                "tags": [
+                    "租户退租"
+                ],
+                "summary": "退租租户信息列表",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "pagesize",
+                                    "orderBy",
+                                    "order"
+                                ],
+                                "properties": {
+                                    "cus_name": {
+                                        "description": "客户名称",
+                                        "type": "int"
+                                    },
+                                    "start_date": {
+                                        "description": "退租开始时间",
+                                        "type": "date"
+                                    },
+                                    "end_date": {
+                                        "description": "退租结束时间",
+                                        "type": "date"
+                                    },
+                                    "type": {
+                                        "description": "退租类型",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "cus_name": "",
+                                "start_date": "",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/leaseback/add": {
+            "post": {
+                "tags": [
+                    "租户退租"
+                ],
+                "summary": "租户退租新增",
+                "operationId": "44d308465a23dd536333c04662eb1ef4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "type",
+                                    "contract_id",
+                                    "leaseback_date",
+                                    "leaseback_reason"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "description": "退租原因1:正常退租2:提前退租",
+                                        "type": "int"
+                                    },
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    },
+                                    "leaseback_date": {
+                                        "description": "退租日期",
+                                        "type": "String"
+                                    },
+                                    "leaseback_reason": {
+                                        "description": "退租原因",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_name": "租户名称",
+                                "tenant_id": "1",
+                                "type": 1,
+                                "leaseback_date": "2021-01-01"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/leaseback/edit": {
+            "post": {
+                "tags": [
+                    "租户退租"
+                ],
+                "summary": "租户退租编辑",
+                "operationId": "7a0a9d72d5784abf3a76a95350c43699",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "type",
+                                    "tenant_name",
+                                    "tenant_id",
+                                    "leaseback_date",
+                                    "leaseback_reason"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "type": {
+                                        "description": "退租原因1、正常退租2提前退租",
+                                        "type": "int"
+                                    },
+                                    "tenant_name": {
+                                        "description": "租户名称",
+                                        "type": "String"
+                                    },
+                                    "tenant_id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    },
+                                    "leaseback_date": {
+                                        "description": "退租日期",
+                                        "type": "String"
+                                    },
+                                    "leaseback_reason": {
+                                        "description": "退租原因",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "tenant_name": "租户名称",
+                                "tenant_id": "1",
+                                "type": 1,
+                                "leaseback_date": "2021-01-01"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/leaseback/show": {
+            "post": {
+                "tags": [
+                    "租户退租"
+                ],
+                "summary": "租户退租",
+                "operationId": "0c25e54f72fe0f9d59c4e37d0e4388f7",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": "合同id"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/leaseback/bill": {
+            "post": {
+                "tags": [
+                    "租户退租"
+                ],
+                "summary": "租户退租账单",
+                "operationId": "c2d303d50e76c2e6728810501621912a",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id",
+                                    "leaseback_date"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    },
+                                    "leaseback_date": {
+                                        "description": "退租日期",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": "合同id",
+                                "leaseback_date": "2021-01-01"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/dashboard/index": {
             "get": {
                 "tags": [
@@ -7997,6 +8337,48 @@
                             },
                             "example": {
                                 "Ids": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/equipment/enable": {
+            "post": {
+                "tags": [
+                    "设备"
+                ],
+                "summary": "设备启用停用",
+                "operationId": "86193e6265187806812165a8ffc097fd",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "Ids",
+                                    "is_valid"
+                                ],
+                                "properties": {
+                                    "Ids": {
+                                        "description": "设备ID",
+                                        "type": "list"
+                                    },
+                                    "is_valid": {
+                                        "description": "启用停用",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "Ids": "",
+                                "is_valid": ""
                             }
                         }
                     }
@@ -8349,6 +8731,54 @@
                                 "equipment_id": "",
                                 "start_time": "",
                                 "end_time": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/equipment/plan/store": {
+            "post": {
+                "tags": [
+                    "设备计划"
+                ],
+                "summary": "设备维护计划保存",
+                "operationId": "ddc7a48e829eb75d22d0a2dda6a298ee",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "equipment_id",
+                                    "plan_date",
+                                    "plan_quantity"
+                                ],
+                                "properties": {
+                                    "equipment_id": {
+                                        "description": "设备ID",
+                                        "type": "int"
+                                    },
+                                    "plan_date": {
+                                        "description": "计划日期",
+                                        "type": "date"
+                                    },
+                                    "plan_quantity": {
+                                        "description": "计划数量",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "equipment_id": "1",
+                                "plan_date": "2024-01-01",
+                                "plan_quantity": "1"
                             }
                         }
                     }
@@ -8983,211 +9413,6 @@
                             },
                             "example": {
                                 "Ids": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/leaseback/list": {
-            "post": {
-                "tags": [
-                    "租户退租"
-                ],
-                "summary": "退租租户信息列表",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "pagesize",
-                                    "orderBy",
-                                    "order"
-                                ],
-                                "properties": {
-                                    "cus_name": {
-                                        "description": "客户名称",
-                                        "type": "int"
-                                    },
-                                    "start_date": {
-                                        "description": "退租开始时间",
-                                        "type": "date"
-                                    },
-                                    "end_date": {
-                                        "description": "退租结束时间",
-                                        "type": "date"
-                                    },
-                                    "type": {
-                                        "description": "退租类型",
-                                        "type": "date"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "cus_name": "",
-                                "start_date": "",
-                                "end_date": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/leaseback/add": {
-            "post": {
-                "tags": [
-                    "租户退租"
-                ],
-                "summary": "租户退租新增",
-                "operationId": "b263436ae9da04110fa8d33e4cb0d090",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "type",
-                                    "contract_id",
-                                    "leaseback_date",
-                                    "leaseback_reason"
-                                ],
-                                "properties": {
-                                    "type": {
-                                        "description": "退租原因1:正常退租2:提前退租",
-                                        "type": "int"
-                                    },
-                                    "contract_id": {
-                                        "description": "合同id",
-                                        "type": "int"
-                                    },
-                                    "leaseback_date": {
-                                        "description": "退租日期",
-                                        "type": "String"
-                                    },
-                                    "leaseback_reason": {
-                                        "description": "退租原因",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_name": "租户名称",
-                                "tenant_id": "1",
-                                "type": 1,
-                                "leaseback_date": "2021-01-01"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/leaseback/edit": {
-            "post": {
-                "tags": [
-                    "租户退租"
-                ],
-                "summary": "租户退租编辑",
-                "operationId": "f6c51d02614d5649435a488481262176",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "id",
-                                    "type",
-                                    "tenant_name",
-                                    "tenant_id",
-                                    "leaseback_date",
-                                    "leaseback_reason"
-                                ],
-                                "properties": {
-                                    "id": {
-                                        "description": "id",
-                                        "type": "int"
-                                    },
-                                    "type": {
-                                        "description": "退租原因1、正常退租2提前退租",
-                                        "type": "int"
-                                    },
-                                    "tenant_name": {
-                                        "description": "租户名称",
-                                        "type": "String"
-                                    },
-                                    "tenant_id": {
-                                        "description": "租户id",
-                                        "type": "int"
-                                    },
-                                    "leaseback_date": {
-                                        "description": "退租日期",
-                                        "type": "String"
-                                    },
-                                    "leaseback_reason": {
-                                        "description": "退租原因",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "tenant_name": "租户名称",
-                                "tenant_id": "1",
-                                "type": 1,
-                                "leaseback_date": "2021-01-01"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/operation/tenant/leaseback/show": {
-            "post": {
-                "tags": [
-                    "租户退租"
-                ],
-                "summary": "租户退租",
-                "operationId": "9665b756c2c245159bab37d3e0f00c26",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "contract_id"
-                                ],
-                                "properties": {
-                                    "contract_id": {
-                                        "description": "合同id",
-                                        "type": "int"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "contract_id": "合同id"
                             }
                         }
                     }
@@ -14192,7 +14417,7 @@
         },
         {
             "name": "合同",
-            "description": "合同管理"
+            "description": "合同账单"
         },
         {
             "name": "合同",

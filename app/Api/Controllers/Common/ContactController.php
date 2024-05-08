@@ -107,7 +107,30 @@ class ContactController extends BaseController
   }
 
 
-
+  /**
+   * @OA\Post(
+   *     path="/api/common/contact/del",
+   *     tags={"联系人"},
+   *     summary="联系人删除",
+   *     @OA\RequestBody(
+   *         @OA\MediaType(
+   *             mediaType="application/json",
+   *             @OA\Schema(
+   *                 schema="UserModel",
+   *                 required={"Ids"},
+   *                 @OA\Property(property="Ids", type="list", description="联系人ID")
+   *             ),
+   *             example={
+   *                 "Ids": "[1,2]"
+   *             }
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
   public function del(Request $request)
   {
     $validatedData = $request->validate([
