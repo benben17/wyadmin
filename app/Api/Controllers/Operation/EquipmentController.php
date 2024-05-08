@@ -375,7 +375,7 @@ class EquipmentController extends BaseController
     $subQuery = $this->equipment->maintainModel()
       ->where(function ($q) use ($request) {
         $request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-        $request->device_name && $q->where('device_name', 'like', '%' . $request->tenant_name . '%');
+        $request->device_name && $q->where('device_name', 'like', '%' . $request->device_name . '%');
         $request->major && $q->where('major', $request->major);
         $request->start_date && $q->where('maintain_date', '>=', $request->start_date);
         $request->end_date && $q->where('maintain_date', '<=', $request->end_date);
@@ -399,11 +399,11 @@ class EquipmentController extends BaseController
     // return response()->json(DB::getQueryLog());
     $data = $this->pageData($subQuery, $request);
     foreach ($data['result'] as $k => &$v) {
-      $v['plan_date'] = $v['maintain_plan']['plan_date'] ?? "";
-      $v['plan_quantity'] = $v['maintain_plan']['plan_quantity'] ?? 0;
-      $v['third_party_label'] = $v['equipment']['third_party_label'] ?? "";
+      $v['plan_date']             = $v['maintain_plan']['plan_date'] ?? "";
+      $v['plan_quantity']         = $v['maintain_plan']['plan_quantity'] ?? 0;
+      $v['third_party_label']     = $v['equipment']['third_party_label'] ?? "";
       $v['maintain_period_label'] = $v['equipment']['maintain_period_label'] ?? "";
-      $v['tenant_name'] = $v['equipment']['tenant_name'] ?? "";
+      $v['tenant_name']           = $v['equipment']['tenant_name'] ?? "";
       unset($v['maintain_plan']);
     }
     return $this->success($data);

@@ -310,6 +310,7 @@ class EquipmentPlanController extends BaseController
     foreach ($request->equipment_ids as $equipmentId) {
       $planCount = $this->equipment->MaintainPlanModel()
         ->where('equipment_id', $equipmentId)
+        ->whereBetween('plan_date', [$request->year . '-01-01', $request->year . '-12-31'])
         ->count();
 
       if ($planCount > 0) {
