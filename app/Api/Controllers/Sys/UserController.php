@@ -69,7 +69,7 @@ class UserController extends BaseController
             ->with('depart:id,name');
 
         $request->orderBy = $request->orderBy ?? 'name';
-        $request->order = $request->order ?? 'asc';
+        $request->order   = $request->order ?? 'asc';
         $data = $this->pageData($subQuery, $request);
         return $this->success($data);
     }

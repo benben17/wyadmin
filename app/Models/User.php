@@ -16,7 +16,7 @@ class User extends Model
      */
     protected $table = 'users';
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'deleted_at,', 'updated_at'];
     protected $appends = ['manager_label', 'c_user',];
 
     public function getCUserAttribute()
