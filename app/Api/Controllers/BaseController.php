@@ -4,11 +4,8 @@ namespace App\Api\Controllers;
 
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
-use function PHPSTORM_META\type;
-use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\Controller;
 
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
@@ -57,11 +54,9 @@ class BaseController extends Controller
     //成功返回
     public function success($data, $msg = "ok")
     {
-
         if (is_object($data)) {
             !isEmptyObj($data) && $data = $data->toArray();
         }
-
         $this->parseNull($data);
         $result = [
             "code"      => 200,

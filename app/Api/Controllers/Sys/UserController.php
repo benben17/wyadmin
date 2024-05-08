@@ -51,25 +51,26 @@ class UserController extends BaseController
 
     public function index(Request $request)
     {
-        $pagesize = $this->setPagesize($request);
 
         $user = auth('api')->user();
         // $result = UserModel::with("role:id,name")->where('company_id',$user->company_id)->paginate($pagesize);
         DB::enableQueryLog();
-        $result = UserModel::with("role:id,name")->with("group:id,name")->where(function ($query) use ($user, $request) {
-            $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
-            $request->input('realname') && $query->where('realname', 'like', '%' . $request->input('realname') . '%');
-            $query->where('company_id', '=', $user->company_id);
-            $user->is_admin || $query->where('is_admin', 0);
-        })
-            ->with('depart:id,name')
-            ->paginate($pagesize);
-        // return response()->json(DB::getQueryLog());
-        if (!$result) {
-            return $this->error('查询失败!');
-        }
+        $subQuery = UserModel::with("role:id,name")
+            ->with("group:id,name")
+            ->whereHas('group', function ($q) use ($request) {
+                $request->proj_id && $q->whereRaw('FIND_IN_SET(?,project_limit)', $request->proj_id);
+            })
+            ->where(function ($query) use ($user, $request) {
+                $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
+                $request->input('realname') && $query->where('realname', 'like', '%' . $request->input('realname') . '%');
+                $query->where('company_id', '=', $user->company_id);
+                $user->is_admin || $query->where('is_admin', 0);
+            })
+            ->with('depart:id,name');
 
-        $data = $this->handleBackData($result);
+        $request->orderBy = $request->orderBy ?? 'name';
+        $request->order = $request->order ?? 'asc';
+        $data = $this->pageData($subQuery, $request);
         return $this->success($data);
     }
     /**
