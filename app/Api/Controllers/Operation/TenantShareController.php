@@ -283,11 +283,11 @@ class TenantShareController extends BaseController
                     } else {
                         // 处理分摊租户
                         foreach ($share['fee_list'] as $k => &$v) {
-                            $v['tenant_id'] = $share['tenant_id'];
-                            $v['tenant_name'] = $share['tenant_name'];
-                            $v['amount'] = $v['share_amount'];
-                            $v['contract_id'] = $DA['contract_id'];
-                            $shareTenants[] = $v['tenant_name'];
+                            $v['tenant_id']     = $share['tenant_id'];
+                            $v['tenant_name']   = $share['tenant_name'];
+                            $v['amount']        = $v['share_amount'];
+                            $v['contract_id']   = $DA['contract_id'];
+                            $shareTenants[]     = $v['tenant_name'];
                         }
 
                         // Log::error(json_encode($share['fee_list']));

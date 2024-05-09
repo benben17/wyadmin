@@ -108,8 +108,7 @@ class MeterController extends BaseController
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value ?? 0;
       $v['last_date'] = $record->record_date ?? "";
-      $tenant = $this->meterService->getTenantByRoomId($v['room_id']);
-      $v['tenant_name'] = $tenant['tenant_name'];
+      $v['tenant_name'] = getTenantNameById($v['tenant_id']);
     }
     return $this->success($data);
   }
