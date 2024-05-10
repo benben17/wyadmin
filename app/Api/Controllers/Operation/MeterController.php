@@ -509,6 +509,7 @@ class MeterController extends BaseController
     }
 
     $DA = $request->toArray();
+
     DB::enableQueryLog();
     $query = $this->meterService->meterRecordModel()
       ->where($map)
@@ -516,6 +517,11 @@ class MeterController extends BaseController
         $q->where('type', $request->type);
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        if (isset($request->status) && $request->status == 1) {
+          $q->where('status', 1);
+        } else {
+          $q->where('status', 0);
+        }
       })
       ->where('status', 0) // 1为初始化
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id,tenant_id');
@@ -576,8 +582,11 @@ class MeterController extends BaseController
       if (!$record) {
         throw new Exception('记录不存在！');
       }
-      if ($record->audit_status == 1) {
-        throw new Exception('已审核的记录不能删除！');
+      // if ($record->audit_status == 1) {
+      //   throw new Exception('已审核的记录不能删除！');
+      // } 
+      if ($record->status == 1) {
+        throw new Exception('初始化的记录不能删除！');
       }
       $res = $record->delete();
 

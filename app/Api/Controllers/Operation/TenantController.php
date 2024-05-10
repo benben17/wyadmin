@@ -74,6 +74,7 @@ class TenantController extends BaseController
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                 isset($request->on_rent) && $q->where('on_rent', $request->on_rent);
+                $request->addr && $q->where('addr', 'like', '%' . $request->addr . '%');
                 $q->where('parent_id', 0);
             })
             ->withCount('maintain')

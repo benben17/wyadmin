@@ -3,14 +3,14 @@
 namespace App\Api\Services\Tenant;
 
 
+use Exception;
+use App\Enums\AppEnum;
+use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use App\Api\Models\Tenant\Tenant as TenantModel;
-use App\Api\Models\Tenant\Invoice;
 use App\Api\Models\Tenant\TenantLog;
 use App\Api\Services\Company\VariableService;
-use App\Enums\AppEnum;
+use App\Api\Models\Tenant\Tenant as TenantModel;
 
 /**
  *   租户服务
@@ -49,17 +49,18 @@ class TenantService
       $tenant->u_uid         = $user['id'];
       $tenant->name          = $DA['name'];
 
-      $tenant->parent_id     = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
-      $tenant->checkin_date  = isset($DA['checkin_date']) ? $DA['checkin_date'] : "";
-      $tenant->business_id   = isset($DA['business_id']) ? $DA['business_id'] : 0;  // 工商信息id
-      $tenant->industry      = isset($DA['industry']) ? $DA['industry'] : "";  // 行业
-      $tenant->level         = isset($DA['level']) ? $DA['level'] : "";  // 租户级别
-      $tenant->worker_num    = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
-      $tenant->nature        = isset($DA['nature']) ? $DA['nature'] : "";
-      $tenant->remark        = isset($DA['remark']) ? $DA['remark'] : "";
+      $tenant->parent_id    = isset($DA['parent_id']) ? $DA['parent_id'] : 0;
+      $tenant->checkin_date = isset($DA['checkin_date']) ? $DA['checkin_date'] : "";
+      $tenant->business_id  = isset($DA['business_id']) ? $DA['business_id'] : 0;     // 工商信息id
+      $tenant->industry     = isset($DA['industry']) ? $DA['industry'] : "";          // 行业
+      $tenant->level        = isset($DA['level']) ? $DA['level'] : "";                // 租户级别
+      $tenant->worker_num   = isset($DA['worker_num']) ? $DA['worker_num'] : 0;
+      $tenant->nature       = isset($DA['nature']) ? $DA['nature'] : "";
+      $tenant->remark       = isset($DA['remark']) ? $DA['remark'] : "";
       $tenant->shop_name    = $DA['shop_name'] ?? "";
-      $tenant->cpc_number    = $DA['cpc_number'] ?? 0;
-      $tenant->tags          = isset($DA['tags']) ? $DA['tags'] : "";
+      $tenant->cpc_number   = $DA['cpc_number'] ?? 0;
+      $tenant->tags         = isset($DA['tags']) ? $DA['tags'] : "";
+      $tenant->addr         = isset($DA['addr']) ? $DA['addr'] : "";
       $res = $tenant->save();
       if ($res) {
         return $tenant;

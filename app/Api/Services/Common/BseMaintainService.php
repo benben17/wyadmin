@@ -35,21 +35,23 @@ class BseMaintainService
         $times = $this->maintainModel()->where('parent_id', $DA['parent_id'])->count();
         try {
             $maintain = $this->maintainModel();
-            $maintain->parent_id    = $DA['parent_id'];
-            $maintain->proj_id    = $DA['proj_id'];
-            $maintain->parent_type   = $DA['parent_type'];
-            $maintain->maintain_date  = $DA['maintain_date'];
-            $maintain->maintain_user = $DA['maintain_user'];
-            $maintain->maintain_phone = isset($DA['maintain_phone']) ? $DA['maintain_phone'] : "";
-            $maintain->maintain_type = $DA['maintain_type'];
-            $maintain->maintain_record = $DA['maintain_record'];
-            $maintain->maintain_feedback = isset($DA['maintain_feedback']) ? $DA['maintain_feedback'] : "";
-            $maintain->c_uid = $user['id'];
-            $maintain->c_username = isset($DA['c_username']) ? $DA['c_username'] : $user['realname'];
-            $maintain->maintain_depart = isset($DA['maintain_depart']) ? $DA['maintain_depart'] : "";
-            $maintain->company_id = $user['company_id'];
-            $maintain->times = $times + 1;
-            $maintain->role_id = $user['role_id'];
+            $maintain->parent_id         = $DA['parent_id'];
+            $maintain->proj_id           = $DA['proj_id'];
+            $maintain->parent_type       = $DA['parent_type'];
+            $maintain->maintain_date     = $DA['maintain_date'];
+            $maintain->maintain_user     = $DA['maintain_user'];
+            $maintain->maintain_phone    = $DA['maintain_phone'] ?? "";
+            $maintain->maintain_type     = $DA['maintain_type'];
+            $maintain->maintain_record   = $DA['maintain_record'];
+            $maintain->maintain_feedback = $DA['maintain_feedback'] ?? "";
+            $maintain->c_uid           = $user['id'];
+            $maintain->c_username      = $DA['c_username'] ?? $user['realname'];
+            $maintain->maintain_depart = $DA['maintain_depart'] ?? "";
+            $maintain->company_id      = $user['company_id'];
+            $maintain->addr            = $DA['addr'] ?? "";
+            $maintain->shop_name       = $DA['shop_name'] ?? "";
+            $maintain->times           = $times + 1;
+            $maintain->role_id         = $user['role_id'];
             $maintain->save();
             return $maintain;
         } catch (Exception $e) {
@@ -144,10 +146,7 @@ class BseMaintainService
         } else if ($parentType == AppEnum::Tenant) {
             $res = TenantModel::select('name as name')->find($parentId);
         }
-        if ($res) {
-            return $res['name'];
-        }
-        return "";
+        return $res['name'] ?? "";
     }
 
     /**

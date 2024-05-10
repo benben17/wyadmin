@@ -158,7 +158,7 @@ class BillController extends BaseController
     }
 
     try {
-      $tenants = Tenant::where('on_rent', 1)->where(function ($q) use ($request) {
+      $tenants = Tenant::where(function ($q) use ($request) {
         $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
       })->get();
 
