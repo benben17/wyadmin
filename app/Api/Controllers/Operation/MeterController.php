@@ -99,6 +99,9 @@ class MeterController extends BaseController
         $request->build_id && $q->where('build_id',  $request->build_id);
         $request->floor_id && $q->where('floor_id',  $request->floor_id);
         $request->is_valid && $q->where('is_valid', $request->is_valid);
+        if (isset($request->tenant_id) && $request->tenant_id >= 0) {
+          $q->where('tenant_id', $request->tenant_id);
+        }
       })
       ->withCount(['meterRecord' => function ($q) {
         $q->where('record_date', '>', date('Y-m-01'));
@@ -517,6 +520,9 @@ class MeterController extends BaseController
         $q->where('type', $request->type);
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+        if (isset($request->tenant_id) && $request->tenant_id >= 0) {
+          $q->where('tenant_id', $request->tenant_id);
+        }
         if (isset($request->status) && $request->status == 1) {
           $q->where('status', 1);
         } else {
