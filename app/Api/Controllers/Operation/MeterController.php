@@ -518,14 +518,13 @@ class MeterController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       })
       ->where('status', 0) // 1为初始化
-      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id');
+      ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id,tenant_id');
     $data = $this->pageData($query, $request);
 
     foreach ($data['result'] as $k => &$v) {
       $v['meter_no']    = $v['meter']['meter_no'];
       $v['proj_name']   = $v['meter']['proj_name'];
-      $tenantInfo       = $this->meterService->getTenantByRoomId($v['meter']['room_id']);
-      $v['tenant_name'] = $tenantInfo['tenant_name'];
+      $v['tenant_name'] = getTenantNameById($v['meter']['tenant_id']);
       $v['is_virtual']  = $v['meter']['is_virtual'];
       $v['room_info']   = $v['meter']['build_no'] . "-" . $v['meter']['floor_no'] . "-" . $v['meter']['room_no'];
       if (empty($v['audit_user']) && $v['pre_used_value'] > 0) {
@@ -576,9 +575,11 @@ class MeterController extends BaseController
       $record = $this->meterService->meterRecordModel()->find($request->id);
       if (!$record) {
         throw new Exception('记录不存在！');
-      } else {
-        $res = $record->delete();
       }
+      if ($record->audit_status == 1) {
+        throw new Exception('已审核的记录不能删除！');
+      }
+      $res = $record->delete();
 
       return $res ? $this->success('删除成功！') : $this->error('删除失败！');
     } catch (Exception $e) {
