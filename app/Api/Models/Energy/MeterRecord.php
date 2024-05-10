@@ -31,7 +31,8 @@ class MeterRecord extends Model
 
   public function getAuditStatusLabelAttribute()
   {
-    return  $this->attributes['audit_status'] ? "已审核" : "未审核";
+    $auditStatus = $this->attributes['audit_status'] ?? 0;
+    return $auditStatus ? "已审核" : "未审核";
   }
 
   protected static function boot()
