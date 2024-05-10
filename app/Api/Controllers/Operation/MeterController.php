@@ -576,8 +576,6 @@ class MeterController extends BaseController
       $record = $this->meterService->meterRecordModel()->find($request->id);
       if (!$record) {
         throw new Exception('记录不存在！');
-      } else if ($record->audit_status == 1) {
-        throw new Exception('已审核的记录不能删除！');
       } else {
         $res = $record->delete();
       }
