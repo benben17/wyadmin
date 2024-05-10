@@ -733,8 +733,11 @@ class ContractService
   {
     $room = $this->contractRoomModel()->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')
       ->where('tenant_id', $tenantId)->groupBy('tenant_id')->first();
-
-    return $room['rooms'] ?? "";
+    if ($room) {
+      return $room['build_no'] . "-" . $room['floor_no'] . "-" . $room['rooms'];
+    } else {
+      return "";
+    }
   }
 
   // 合同退回 ,管理员权限才有
