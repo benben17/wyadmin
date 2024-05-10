@@ -70,6 +70,11 @@ class Meter extends Model
   }
 
 
+  public function initRecord()
+  {
+    return $this->hasOne(MeterRecord::class, 'meter_id', 'id')->where('status', 1);
+  }
+
   public function meterRecord()
   {
     return $this->hasMany(MeterRecord::class, 'meter_id', 'id');

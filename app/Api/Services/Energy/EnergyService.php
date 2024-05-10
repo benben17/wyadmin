@@ -357,7 +357,7 @@ class EnergyService
         foreach ($Ids as $k => $id) {
           $record = MeterRecordModel::whereId($id)->where('audit_status', $unAuditStatus)->first();
           if (!$record) {
-            Log::error("未查询到数据.meter_id:" . $id);
+            Log::error("未查询到数据:" . $id);
             continue;
           }
           $meter = $this->meterModel()->find($record['meter_id']);
@@ -369,7 +369,8 @@ class EnergyService
 
           $BA['amount']       = numFormat($meter['price'] * $record['used_value']);
           $BA['bill_date']    = $record['pre_date'] . "至" . $record['record_date'];
-          $BA['charge_date']  = date('Y-m-01', strtotime(getNextYmd($record['record_date'], 1)));
+          // $BA['charge_date']  = date('Y-m-01', strtotime(getNextYmd($record['record_date'], 1)));
+          $BA['charge_date']  = $record['record_date'];
           // Log::error(json_encode($BA));
           $contractRoom = ContractRoom::where('room_id', $meter['room_id'])->first();
           if ($contractRoom['contract_id'] > 0) {

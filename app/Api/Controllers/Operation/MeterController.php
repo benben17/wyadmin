@@ -285,6 +285,7 @@ class MeterController extends BaseController
         $request->id && $q->whereId($request->id);
         $request->meter_no && $q->whereId($request->meter_no);
       })
+      ->with('initRecord:id,meter_id,meter_value,record_date')
       ->with('remark')
       ->first();
     if ($data) {
@@ -292,6 +293,7 @@ class MeterController extends BaseController
       $record              = $this->meterService->getNewMeterRecord($request->id);
       $data['last_record'] = $record->meter_value ?? 0;
       $data['last_date']   = $record->record_date ?? "";
+      $data['init_value']  = $data->initRecord->meter_value ?? 0;
     }
 
     return $this->success($data);
