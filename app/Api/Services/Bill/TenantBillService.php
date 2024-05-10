@@ -184,12 +184,15 @@ class TenantBillService
 					throw new Exception("已有收款不允许编辑!");
 				}
 				// 收款区间
-				$billDates = str2Array($billDetail->bill_date, "至");
-				if (sizeof($billDates) != 2) {
-					throw new Exception("收款区间格式错误!");
-					if (strtotime($billDates[0]) >= strtotime($billDates[1])) {
-						throw new Exception("收款区间开始时间不能大于结束时间!");
+				if (isset($DA['bill_date']) && $DA['bill_date']) {
+					$billDates = str2Array($DA['bill_date'], "至");
+					if (sizeof($billDates) != 2) {
+						throw new Exception("收款区间格式错误!");
+						if (strtotime($billDates[0]) >= strtotime($billDates[1])) {
+							throw new Exception("收款区间开始时间不能大于结束时间!");
+						}
 					}
+					$billDetail->bill_date = $DA['bill_date'];
 				}
 				// 优惠金额不能大于应收金额
 				$DA['discount_amount'] = $DA['discount_amount'] ?? $billDetail->discount_amount;
