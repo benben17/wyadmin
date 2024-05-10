@@ -99,6 +99,7 @@ class MeterController extends BaseController
         $request->build_id && $q->where('build_id',  $request->build_id);
         $request->floor_id && $q->where('floor_id',  $request->floor_id);
         $request->is_valid && $q->where('is_valid', $request->is_valid);
+        $request->position && $q->where('position', columnLike($request->position));
         if (isset($request->tenant_id) && $request->tenant_id >= 0) {
           $q->where('tenant_id', $request->tenant_id);
         }
