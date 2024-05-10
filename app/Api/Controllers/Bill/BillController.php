@@ -146,14 +146,14 @@ class BillController extends BaseController
     $billDate = getMonthRange($DA['bill_month']);
     # 通过年月获取此月开始日期和结束日期
 
-    $meterCount = MeterRecord::whereBetween('record_date', $billDate)
+    $isExistsMeterRecordAudit = MeterRecord::whereBetween('record_date', $billDate)
       ->whereHas('meter', function ($q) use ($DA) {
         $q->where('proj_id', $DA['proj_id']);
         $q->whereIn('tenant_id', $DA['tenant_ids']);
       })
       ->where('audit_status', 0)
       ->where('status', 0)->exists();
-    if ($meterCount > 0) {
+    if ($isExistsMeterRecordAudit) {
       return $this->error($DA['bill_month'] . "有未审核的水费电费信息，请先审核后生成账单！");
     }
 
