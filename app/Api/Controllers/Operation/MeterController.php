@@ -530,7 +530,6 @@ class MeterController extends BaseController
           $q->where('status', 0);
         }
       })
-      ->where('status', 0) // 1为初始化
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id,tenant_id');
     $data = $this->pageData($query, $request);
 
