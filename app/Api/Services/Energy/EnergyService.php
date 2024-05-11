@@ -298,9 +298,7 @@ class EnergyService
     }
     $meterRecord->record_date = $DA['record_date'];
     $meterRecord->meter_id    = $DA['meter_id'];
-    $tenant = $this->getTenantByRoomId($meter['room_id']);
-    $meterRecord->tenant_name = $tenant['tenant_name'];
-    $meterRecord->tenant_id = $tenant['id'];
+    $meterRecord->tenant_id   = $meter['tenant_id'];
     $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
     $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
     $result = $meterRecord->save();
