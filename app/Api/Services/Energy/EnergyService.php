@@ -296,6 +296,7 @@ class EnergyService
       $res['msg'] = "使用数量不允许小于0！";   // 前端计算好传数据
       return $res;
     }
+    $meterRecord->amount = $DA['amount']  ?? $meterRecord->used_value * $meter['price'];
     $meterRecord->record_date = $DA['record_date'];
     $meterRecord->meter_id    = $DA['meter_id'];
     $meterRecord->tenant_id   = $meter['tenant_id'];
@@ -329,6 +330,7 @@ class EnergyService
     $meterRecord->meter_value = $DA['meter_value'];
     $meterRecord->used_value  = ($DA['meter_value'] - $meterRecord['pre_value']) * $meter['multiple'];
     $meterRecord->record_date = $DA['record_date'];
+    $meterRecord->amount = $DA['amount']  ?? $meterRecord->used_value * $meter['price'];
     // $meterRecord->used_value = $DA['used_value'];
     $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
     $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
