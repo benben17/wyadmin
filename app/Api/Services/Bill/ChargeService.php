@@ -163,7 +163,7 @@ class ChargeService
         $billService = new TenantBillService;
         $charge = $this->model()->findOrFail($chargeId);
 
-        $availableAmt = bcsub($charge->amount, $charge->refund_amount, 2);  //  充值未核销金额
+        $availableAmt = bcsub(bcsub($charge->amount, $charge->refund_amount, 2), $charge->verify_amount, 2);  //  充值未核销金额
         foreach ($detailBillList as $detailBill) {
           $verifyAmt = 0;
           if ($availableAmt == 0 || $charge->status == ChargeEnum::chargeVerify) { // 充值金额已经核销完毕
