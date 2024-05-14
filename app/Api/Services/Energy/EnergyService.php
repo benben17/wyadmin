@@ -132,7 +132,7 @@ class EnergyService
       $meterRecord->pre_value   = $DA['meter_value'] ?? 0;
       $meterRecord->meter_value = $DA['meter_value'] ?? 0;
       $meterRecord->used_value  = $DA['use_value'] ?? 0;
-      $meterRecord->record_date = $DA['record_date'] ?? nowYmd();
+      $meterRecord->record_date = $DA['init_date'] ?? nowYmd();
       $meterRecord->pic         = $DA['pic'] ?? "";
       $meterRecord->audit_user  = $DA['audit_user'] ?? "";
       if ($is_add) {
@@ -297,12 +297,12 @@ class EnergyService
       $res['msg'] = "使用数量不允许小于0！";   // 前端计算好传数据
       return $res;
     }
-    $meterRecord->amount = $DA['amount']  ?? $meterRecord->used_value * $meter['price'];
+    $meterRecord->amount      = $DA['amount']  ?? $meterRecord->used_value * $meter['price'];
     $meterRecord->record_date = $DA['record_date'];
     $meterRecord->meter_id    = $DA['meter_id'];
     $meterRecord->tenant_id   = $meter['tenant_id'];
-    $meterRecord->pic = isset($DA['pic']) ? $DA['pic'] : "";
-    $meterRecord->remark = isset($DA['remark']) ? $DA['remark'] : "";
+    $meterRecord->pic         = isset($DA['pic']) ? $DA['pic'] : "";
+    $meterRecord->remark      = isset($DA['remark']) ? $DA['remark'] : "";
     $result = $meterRecord->save();
     if ($result) {
       return $res;
@@ -363,7 +363,7 @@ class EnergyService
           }
           $meter = $this->meterModel()->find($record['meter_id']);
           $BA['proj_id']      = $meter['proj_id'];
-          $BA['tenant_id']    = $meter['tenant_id'];
+          $BA['tenant_id']    = $record['tenant_id'];
           $BA['tenant_name']  = $record['tenant_name'];
           // 1 水费 2 电费
           $BA['fee_type'] = $meter['type'] == 1 ? AppEnum::waterFeeType : AppEnum::electricFeeType;

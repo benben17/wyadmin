@@ -517,20 +517,23 @@ class MeterController extends BaseController
     DB::enableQueryLog();
     $query = $this->meterService->meterRecordModel()
       ->where($map)
+      ->where(function ($q) use ($request) {
+        if (isset($request->tenant_id) && $request->tenant_id >= 0) {
+          $q->where('tenant_id', $request->tenant_id);
+        }
+        $request->record_date_start && $q->where('record_date', '>=', $request->record_date_start);
+        $request->record_date_end && $q->where('record_date', '<=', $request->record_date_end);
+      })
       ->whereHas('meter', function ($q) use ($request) {
         $q->where('type', $request->type);
         $request->meter_no && $q->where('meter_no', $request->meter_no);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-        if (isset($request->tenant_id) && $request->tenant_id >= 0) {
-          $q->where('tenant_id', $request->tenant_id);
-        }
+
         if (isset($request->status) && $request->status == 1) {
           $q->where('status', 1);
         } else {
           $q->where('status', 0);
         }
-        $request->record_date_start && $q->where('record_date', '>=', $request->record_date_start);
-        $request->record_date_end && $q->where('record_date', '<=', $request->record_date_end);
       })
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id,tenant_id');
     $data = $this->pageData($query, $request);
