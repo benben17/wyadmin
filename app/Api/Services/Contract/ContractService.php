@@ -769,6 +769,30 @@ class ContractService
   }
 
 
+  // 合同完成
+  public function contractComplete($contractId, $user): bool
+  {
+    try {
+      DB::transaction(function () use ($contractId, $user) {
+        $contract = $this->model()->find($contractId);
+        $contract->contract_state = AppEnum::contractComplete;
+        $contract->save();
+        // 写入日志
+        $DA['id']             = $contractId;
+        $DA['c_uid']          = $user['id'];
+        $DA['c_username']     = $user['realname'];
+        $DA['title']          = "合同执行完成";
+        $DA['remark']         = "合同执行完成";
+        $DA['contract_state'] = 3;
+        $this->saveLog($DA);
+      }, 2);
+      return true;
+    } catch (Exception $e) {
+      Log::error("合同完成失败" . $e->getMessage());
+      throw new Exception("合同完成失败" . $e->getMessage());
+    }
+  }
+
 
   /**
    * 格式化合同并保存

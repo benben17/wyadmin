@@ -23,6 +23,7 @@ abstract class AppEnum extends BaseEnum
   const contractSave      = 0;  // 保存
   const contractAudit     = 1;  // 待审核状态
   const contractExecute   = 2;  // 正在执行
+  const contractComplete  = 3;  // 已完成
   const contractLeaseBack = 98; // 退租
   const contractCancel    = 99; // 取消
   /**

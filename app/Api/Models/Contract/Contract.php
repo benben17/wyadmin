@@ -77,7 +77,7 @@ class Contract extends Model
   // }
 
 
-
+  // 项目名称
   public function getProjNameAttribute()
   {
     if (isset($this->attributes['proj_id'])) {
@@ -85,28 +85,21 @@ class Contract extends Model
       return $proj['proj_name'];
     }
   }
+
+  // 合同状态
   public function getStateLabelAttribute()
   {
-    if (isset($this->attributes['contract_state'])) {
-      $value =  $this->attributes['contract_state'];
-      switch ($value) {
-        case '0':
-          return "待提交";
-          break;
-        case '1':
-          return "待审核";
-          break;
-        case '2':
-          return '正常执行';
-          break;
-        case '98':
-          return '退租合同';
-          break;
-        case '99':
-          return '作废合同';
-          break;
-      }
-    }
+    $contractState = $this->attributes['contract_state'] ?? 0;
+    $stateLabels = [
+      '0' => '待提交',
+      '1' => '待审核',
+      '2' => '正常执行',
+      '3' => '执行完成',
+      '98' => '退租合同',
+      '99' => '作废合同',
+    ];
+
+    return $stateLabels[$contractState] ?? '';
   }
 
   public function getRentalPriceAttribute()

@@ -149,15 +149,27 @@ class BillController extends BaseController
     $isExistsMeterRecordAudit = MeterRecord::whereBetween('record_date', $billDate)
       ->whereHas('meter', function ($q) use ($DA) {
         $q->where('proj_id', $DA['proj_id']);
-        $q->whereIn('tenant_id', $DA['tenant_ids']);
       })
-      ->whereIn('tenant_id', $DA['tenant_ids'])
+      ->where(function ($q) use ($DA) {
+        $DA['tenant_ids'] && $q->whereIn('tenant_id', $DA['tenant_ids']);
+      })
       ->where('audit_status', 0)
       ->where('status', 0)->exists();
     if ($isExistsMeterRecordAudit) {
       return $this->error($DA['bill_month'] . "有未审核的水费电费信息，请先审核后生成账单！");
     }
-
+    $existsBill = $this->billService->billModel()
+      ->selectRaw('group_concat(tenant_id) as tenant_ids')
+      ->whereBetween('charge_date', $billDate)
+      ->where(function ($q) use ($DA) {
+        $DA['tenant_ids'] && $q->whereIn('tenant_id', $DA['tenant_ids']);
+      })
+      ->first();
+    if ($existsBill && $existsBill['tenant_ids'] != "") {
+      $tenantIds = str2Array($existsBill['tenant_ids']);
+      $tenantNames = Tenant::whereIn('id', $tenantIds)->pluck('name')->toArray();
+      return $this->error("租户【" . implode(",", $tenantNames) . "】已生成账单，请勿重复生成！");
+    }
     try {
       $tenants = Tenant::where(function ($q) use ($request) {
         $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);

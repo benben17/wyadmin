@@ -708,6 +708,35 @@ class ContractController extends BaseController
         }
     }
 
+
+
+    /** 合同完成 */
+
+    public function complete(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required|numeric',
+        ], [
+            'id.required' => '合同ID是必须',
+            'id.numeric' => '合同ID必须是数字'
+        ]);
+        $DA = $request->toArray();
+        $contract = $this->contractService->model()->find($DA['id']);
+        if ($contract['contract_state'] != 2) {
+            return $this->error("合同状态不正确");
+        }
+        if ($contract['end_date'] < nowYmd()) {
+            return $this->error("合同未到期!");
+        }
+        $res = $this->contractService->contractComplete($DA['id'], $this->user);
+        if ($res) {
+            return $this->success('合同审核完成');
+        } else {
+            return $this->error('合同审核失败');
+        }
+    }
+
+
     /**
      * @OA\Post(
      *     path="/api/business/contract/return",
