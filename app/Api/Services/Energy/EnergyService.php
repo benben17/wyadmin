@@ -241,7 +241,8 @@ class EnergyService
   /** 获取最近一次的抄表记录 */
   public function getNewMeterRecord($meterId)
   {
-    return $this->meterRecordModel()->where('meter_id', $meterId)->orderBy('id', 'desc')->first();
+    return $this->meterRecordModel()->where('meter_id', $meterId)
+      ->orderBy('record_date', 'desc')->first();
   }
 
   // 通过租户ID 超表月份获取租户水电表信息

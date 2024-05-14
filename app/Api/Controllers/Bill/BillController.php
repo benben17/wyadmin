@@ -145,12 +145,13 @@ class BillController extends BaseController
 
     $billDate = getMonthRange($DA['bill_month']);
     # 通过年月获取此月开始日期和结束日期
-
+    // DB::enableQueryLog();
     $isExistsMeterRecordAudit = MeterRecord::whereBetween('record_date', $billDate)
       ->whereHas('meter', function ($q) use ($DA) {
         $q->where('proj_id', $DA['proj_id']);
         $q->whereIn('tenant_id', $DA['tenant_ids']);
       })
+      ->whereIn('tenant_id', $DA['tenant_ids'])
       ->where('audit_status', 0)
       ->where('status', 0)->exists();
     if ($isExistsMeterRecordAudit) {
