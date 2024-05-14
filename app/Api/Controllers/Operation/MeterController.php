@@ -279,11 +279,12 @@ class MeterController extends BaseController
   {
     $validator = \Validator::make($request->all(), [
       'id' => 'required|numeric|gt:0',
+    ], [
+      'id.required' => '表ID 必传',
+      'id.numeric' => '表ID 必须为数字',
+      'id.gt' => '表ID 必须大于0',
     ]);
 
-    if (!$request->id && !$request->meter_no) {
-      return $this->error('参数错误，id或者表编号至少有一个！');
-    }
     $data = $this->meterService->meterModel()
       ->where(function ($q) use ($request) {
         $request->id && $q->whereId($request->id);
