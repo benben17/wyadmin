@@ -298,6 +298,7 @@ class MeterController extends BaseController
       $data['last_record'] = $record->meter_value ?? 0;
       $data['last_date']   = $record->record_date ?? "";
       $data['init_value']  = $data->initRecord->meter_value ?? 0;
+      $data['init_date']   = $data->initRecord->record_date ?? "";
     }
 
     return $this->success($data);
