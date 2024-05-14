@@ -529,6 +529,8 @@ class MeterController extends BaseController
         } else {
           $q->where('status', 0);
         }
+        $request->record_date_start && $q->where('record_date', '>=', $request->record_date_start);
+        $request->record_date_end && $q->where('record_date', '<=', $request->record_date_end);
       })
       ->with('meter:id,meter_no,proj_id,parent_id,type,master_slave,build_no,floor_no,room_no,room_id,tenant_id');
     $data = $this->pageData($query, $request);
