@@ -262,7 +262,17 @@ class BillDetailController extends BaseController
 			'tenant_id' => 'required|gt:0',
 			'proj_id' => 'required|numeric|gt:0',
 			'amount' => 'required',
-			'fee_type' => 'required|in:1,2,3',
+			'fee_type' => 'required|in:' .
+				implode(',', FeeType::pluck('id')->toArray()),
+		], [
+			'fee_type.in' => '费用类型不存在',
+			'proj_id.gt' => '项目ID必须大于0',
+			'proj_id.required' => '项目ID不能为空',
+			'charge_date.date' => '收款日期格式错误',
+			'tenant_id.gt' => '租户ID必须大于0',
+			'tenant_id.required' => '租户ID不能为空',
+			'amount.required' => '收款金额不能为空',
+			'fee_type.required' => '费用类型不能为空',
 		]);
 
 		if (!$request->ignore) {
