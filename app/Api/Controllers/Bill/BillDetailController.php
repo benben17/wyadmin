@@ -263,7 +263,7 @@ class BillDetailController extends BaseController
 			'proj_id' => 'required|numeric|gt:0',
 			'amount' => 'required',
 			'fee_type' => 'required|in:' .
-				implode(',', FeeType::pluck('id')->toArray()),
+				implode(',', FeeType::get()->pluck('id')->toArray()),
 		], [
 			'fee_type.in' => '费用类型不存在',
 			'proj_id.gt' => '项目ID必须大于0',
