@@ -55,10 +55,10 @@ class EnergyService
           $is_add = true;
         }
         $meter->tenant_id    = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
-        if ($meter->tenant_id == 0) {
-          $tenant = $this->getTenantByRoomId($DA['room_id'] ?? 0);
-          $meter->tenant_id = $tenant['id'];
-        }
+        // if ($meter->tenant_id == 0) {
+        //   $tenant = $this->getTenantByRoomId($DA['room_id'] ?? 0);
+        //   $meter->tenant_id = $tenant['id'];
+        // }
         $meter->type         = $DA['type'];
         $meter->proj_id      = $DA['proj_id'];
         $meter->meter_no     = $DA['meter_no'];

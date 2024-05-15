@@ -280,7 +280,7 @@ class BillDetailController extends BaseController
 			$map['fee_type'] = $request->fee_type;
 			$billDetail = $this->billService->billDetailModel()->where($map)
 				->whereYear('charge_date', dateFormat("Y", $request->charge_date))
-				->whereMonth('charge_date', dateFormat("m", $request->charge_date))->first();
+				->whereMonth('charge_date', dateFormat("m", $request->charge_date))->exists();
 			if ($billDetail) {
 				return $this->error("此费用类型已存在，是否继续添加？");
 			}
