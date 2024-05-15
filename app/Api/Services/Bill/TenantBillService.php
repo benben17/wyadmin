@@ -94,14 +94,14 @@ class TenantBillService
 					$billDetail = $this->billDetailModel()->find($DA['id']);
 					$billDetail->u_uid = $user['id'];
 				} else {
-					$billDetail = $this->billDetailModel();
-					$billDetail->c_uid = $user['id'];
+					$billDetail             = $this->billDetailModel();
+					$billDetail->c_uid      = $user['id'];
 					$billDetail->fee_amount = $DA['amount'];
 				}
 				$billDetail->company_id  = $user['company_id'];
 				$billDetail->proj_id     = $DA['proj_id'];
 				$billDetail->contract_id = $DA['contract_id'] ?? 0;
-				$billDetail->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+				$billDetail->tenant_id   = $DA['tenant_id'];
 				$billDetail->tenant_name = getTenantNameById($billDetail->tenant_id);
 				$billDetail->type        = isset($DA['type']) ? $DA['type'] : 1;
 				$billDetail->bill_type   = isset($DA['bill_type']) ? $DA['bill_type'] : 1;
@@ -112,20 +112,16 @@ class TenantBillService
 				$billDetail->bank_id = getBankIdByFeeType($DA['fee_type'], $DA['proj_id']);
 				// }
 
-				if (isset($DA['charge_date'])) {
-					$billDetail->charge_date = $DA['charge_date']; //账单日期
-				}
-				// Log::error("billDetail-bank_id" . $billDetail->bank_id);
-				$billDetail->receive_amount = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
-				$billDetail->discount_amount = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
-				if (isset($DA['receive_date'])) {
-					$billDetail->receive_date = $DA['receive_date'];
-				}
+				$billDetail->charge_date = $DA['charge_date'] ?? "";  //账单日期
+
+				$billDetail->receive_amount   = isset($DA['receive_amount']) ? $DA['receive_amount'] : 0.00;
+				$billDetail->discount_amount  = isset($DA['discount_amount']) ? $DA['discount_amount'] : 0.00;
+				$billDetail->receive_date     = $DA['receive_date'] ?? "";
 				$billDetail->contract_bill_id = $DA['contract_bill_id'] ?? 0;
-				$billDetail->bill_date = $DA['bill_date'] ?? $DA['charge_date'];
-				$billDetail->status = isset($DA['status']) ? $DA['status'] : 0;
-				$billDetail->create_type = isset($DA['create_type']) ? $DA['create_type'] : 1;
-				$billDetail->remark = $DA['remark'] ?? "";
+				$billDetail->bill_date        = $DA['bill_date'] ?? $DA['charge_date'] . $DA['remark'] ?? "";
+				$billDetail->status           = isset($DA['status']) ? $DA['status'] : 0;
+				$billDetail->create_type      = isset($DA['create_type']) ? $DA['create_type'] : 1;
+				$billDetail->remark           = $DA['remark'] ?? "";
 				// if ($DA['amount'] == 0 || $DA['amount'] == 0.00) {
 				// }
 				$billDetail->save(); // 费用等于0，写入数据

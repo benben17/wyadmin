@@ -259,10 +259,10 @@ class BillDetailController extends BaseController
 	{
 		$request->validate([
 			'charge_date' => 'required|date',
-			'tenant_id' => 'required',
-			'proj_id' => 'required',
+			'tenant_id' => 'required|gt:0',
+			'proj_id' => 'required|numeric|gt:0',
 			'amount' => 'required',
-			'fee_type' => 'required',
+			'fee_type' => 'required|in:1,2,3',
 		]);
 
 		if (!$request->ignore) {

@@ -97,6 +97,57 @@ class LeasebackService
     }
   }
 
+
+
+  /**
+   * [撤销退租]
+   * 1、更新合同状态为执行中
+   * 2、删除退租信息
+   * 3、更新租户状态为租户
+   * @Author   leezhua
+   * @DateTime 2020-06-27
+   * @param    [type]     $contractId [description]
+   * @param    [type]     $remark     [description]
+   * @param    [type]     $user       [description]
+   * @return   [type]                 [description]
+   */
+  public function leasebackReturn($contractId, $remark, $user): bool
+  {
+    $contractService = new ContractService;
+    $contract = $contractService->model()->find($contractId);
+    $leaseback = $this->model()->where('contract_id', $contractId)->first();
+    if (!$leaseback) {
+      throw new Exception("未找到退租信息");
+    }
+    if (strtotime($leaseback->leaseback_date) >= $contract['end_date']) {
+      throw new Exception("退租日期不能大于或则等于合同结束日期");
+    }
+    try {
+      DB::transaction(function () use ($contract, $leaseback, $remark, $user) {
+        $contractService = new ContractService;
+        $contract->contract_state = AppEnum::contractExecute;
+        $contract->save();
+        $leaseback->delete();
+        $tenantService = new TenantService;
+        $tenantId = $contract->tenant_id;
+        $data['on_rent'] = 1;
+        $data['status'] = AppEnum::Tenant;
+        $tenantService->tenantModel()->where('id', $tenantId)->update($data);
+        $msgContent = $contract->tenant_name . "在" . nowYmd() . '撤销退租';
+        $this->sendMsg($contract->tenant_name . '租户撤销退租', $msgContent, $user);
+        // 保存日志
+        $title = $contract->tenant_name . '租户撤销退租' . $remark;
+        $logRemark = $contract->tenant_name . '在' . nowYmd() . '撤销退租';
+        $contractService->saveContractLog($contract, $user, $title, $logRemark);
+      });
+      return true;
+    } catch (Exception $e) {
+      Log::error("撤销退租失败" . $e);
+      throw new Exception("撤销退租失败" . $e->getMessage());
+      return false;
+    }
+  }
+
   // 处理退租租户应收
   public function processTenantFee($feeList)
   {

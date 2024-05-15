@@ -279,6 +279,32 @@ class LeasebackController extends BaseController
     }
 
 
+    public function leasebackReturn(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id' => 'required|numeric',
+        ], [
+            'id.required' => '合同ID是必须',
+            'remark.required' => '备注是必须'
+        ]);
+        if (!($this->user->role_id == 2 || $this->user->is_admin == 1)) {
+            return $this->error('您没有权限操作,请联系管理员处理！');
+        }
+        $contractService = new ContractService;
+        $contract = $contractService->model()->find($request->id);
+        if (!$contract) {
+            return $this->error('您所选合同不存在');
+        }
+        if ($contract->contract_state != AppEnum::contractLeaseBack) {
+
+            return $this->error('您所选合同不是退租合同!');
+        }
+
+        $res = $this->leasebackService->leasebackReturn($request->id, $request->remark, $this->user);
+        return $res ? $this->success('合同退回成功') : $this->error('合同退回失败');
+    }
+
+
     private function showValidate($request)
     {
         return $request->validate([
