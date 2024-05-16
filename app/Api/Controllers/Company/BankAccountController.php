@@ -2,13 +2,13 @@
 
 namespace App\Api\Controllers\Company;
 
-use App\Api\Controllers\BaseController;
 use JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Api\Models\Company\BankAccount as bankAccountModel;
 use App\Api\Models\Company\FeeType;
+use App\Api\Controllers\BaseController;
 use App\Api\Services\Company\FeeTypeService;
+use App\Api\Models\Company\BankAccount as bankAccountModel;
 
 /**
  *
@@ -140,7 +140,7 @@ class BankAccountController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'account_name' => 'required|String|unique:bse_bank_account',
+            'account_name' => 'required|String',
             'account_number' => 'required|String',
             'bank_name' => 'required|String|min:2',
             'fee_type_id' => 'required|array',
@@ -153,7 +153,13 @@ class BankAccountController extends BaseController
         if (!empty($existFeeType)) {
             return $this->error(" [$existFeeType] 已配置在其他银行账户");
         }
-
+        $map['account_name'] = $DA['account_name'];
+        $map['account_number'] = $DA['account_number'];
+        $map['proj_id'] = $DA['proj_id'];
+        $checkAccount = bankAccountModel::where($map)->exists();
+        if ($checkAccount) {
+            return $this->error('【' . $DA['account_name'] . '】银行名字重复!');
+        }
         $user = auth('api')->user();
         $bankAccount = new bankAccountModel;
         $bankAccount['account_name'] = $DA['account_name'];
@@ -166,6 +172,7 @@ class BankAccountController extends BaseController
         $bankAccount['is_valid']    = 1;
         $bankAccount['company_id']  = $user->company_id;
         $bankAccount['remark'] = isset($DA['remark']) ? $DA['remark'] : "";
+
         $res = $bankAccount->save();
         return $res ? $this->success('银行账户添加成功！') : $this->error('银行账户添加失败！');
     }
@@ -206,8 +213,9 @@ class BankAccountController extends BaseController
 
         $DA =  $request->toArray();
         $map['account_name'] = $DA['account_name'];
+        $map['account_number'] = $DA['account_number'];
+        $map['proj_id'] = $DA['proj_id'];
         $checkAccount =  bankAccountModel::where($map)
-            ->where('proj_id', $DA['proj_id'])
             ->where('id', '!=', $DA['id'])->exists();
         if ($checkAccount) {
             return $this->error('银行名字重复!');
