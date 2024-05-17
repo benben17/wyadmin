@@ -499,6 +499,16 @@ class BillController extends BaseController
 
     $billIds = $request->billIds;
     $bills = array();
+    if (sizeof($billIds) == 0) {
+      return $this->error("账单ID不能为空");
+    }
+    $auditBillCount = $this->billService->billModel()->whereIn('id', $billIds)
+      ->where('status', AppEnum::statusAudit)
+      ->whereHas('billDetail')->count();
+
+    if (sizeof($billIds) > 0 && $auditBillCount < sizeof($billIds)) {
+      return $this->error("所选账单有未审核的账单或者账单内无应收！");
+    }
     foreach ($billIds as $billId) {
       $billExists = $this->billService->billModel()->where('id', $billId)
         ->where('status', AppEnum::statusAudit)
