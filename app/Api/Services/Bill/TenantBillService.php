@@ -512,13 +512,67 @@ class TenantBillService
 		}
 	}
 
+
+	/**
+	 * @Desc: 催交单查看 查询当前账单应收日之前未收款的所有费用信息
+	 * @Author leezhua
+	 * @Date 2024-05-17
+	 * @param [type] $billId
+	 * @return void
+	 */
+	public function showReminderBill($billId)
+
+	{
+		$data = $this->billModel()
+			->select('id', 'tenant_id', 'bill_title', 'audit_user', 'bill_no', 'audit_date', 'is_print', 'status', 'proj_id', 'charge_date')
+			->with('tenant:id,shop_name,tenant_no,name')->find($billId);
+		if (!$data) {
+			return (object) [];
+		}
+		$contractService = new ContractService;
+		$data['room'] = $contractService->getContractRoomByTenantId($data['tenant_id']);
+		$project = getProjById($data['proj_id']);
+		$data['project'] = [
+			'bill_title'          => $project['bill_title'],
+			'bill_instruction'    => $project['bill_instruction'],
+			'operate_entity'      => $project['operate_entity'],
+			'bill_project' 				=> $project['bill_project'],
+		];
+
+		$billGroups = $this->billDetailModel()
+			->selectRaw('bank_id,sum(amount) amount,status,
+										sum(discount_amount) discount_amount,
+										sum(receive_amount) receive_amount,
+										sum(amount - receive_amount-discount_amount) unreceive_amount')
+			->where('tenant_id', $data['tenant_id'])
+			->where('status', 0)
+			->where('charge_date', '<', $data['charge_date'])
+			->groupBy('bank_id')->get();
+
+		if ($billGroups->isEmpty()) {
+			return $data;
+		}
+
+		foreach ($billGroups as $k => &$v) {
+			$v['bank_info'] = BankAccount::select('account_name', 'account_number', 'bank_name')->find($v['bank_id']);
+			$v['bill_detail'] = $this->billDetailModel()
+				->select('amount', 'discount_amount', 'receive_amount', 'fee_type', 'charge_date', 'remark', 'bill_date')
+				->where('tenant_id', $data['tenant_id'])
+				->where('status', 0)
+				->where('charge_date', '<', $data['charge_date'])
+				->where('bank_id', $v['bank_id'])->get();
+		}
+		$data['bills'] = $billGroups;
+		return $data;
+	}
+
 	/**
 	 * 处理退租的应收
 	 * @Author   leezhua
 	 * @DateTime 2020-06-27
-	 * @param    [type]     $feeList [费用列表]
-	 * @param    [type]     $leasebackDate [退租日期]
-	 * @return   [type]               [处理后的费用列表]
+	 * @param    [array]     	$feeList [费用列表]
+	 * @param    [date]     	$leasebackDate [退租日期]
+	 * @return   [	`]      [处理后的费用列表]
 	 */
 	public function processLeaseBackFee($feeList, $leasebackDate)
 	{

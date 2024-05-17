@@ -256,6 +256,41 @@ class BillController extends BaseController
     return $this->success($data);
   }
 
+  /**
+   * @OA\Post(
+   *     path="/api/operation/tenant/bill/reminder",
+   *     tags={"账单"},
+   *     summary="催缴账单",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="账单id")
+   *     ),
+   *       example={"id":""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function billReminder(Request $request)
+  {
+    $request->validate([
+      'id' => 'required'
+    ], [
+      'id.required' => '账单ID不能为空',
+    ]);
+
+    DB::enableQueryLog();
+    $data = $this->billService->showReminderBill($request->id);
+    return $this->success($data);
+  }
+
 
   /**
    * @OA\Post(
