@@ -365,6 +365,7 @@ Route::group(['prefix' => 'operation/workorder'], function () {
     Route::post('/order', '\App\Api\Controllers\Operation\WorkOrderController@order');
     Route::post('/process', '\App\Api\Controllers\Operation\WorkOrderController@process');
     Route::post('/close', '\App\Api\Controllers\Operation\WorkOrderController@close');
+    Route::post('/del', '\App\Api\Controllers\Operation\WorkOrderController@del');
 });
 
 // 隐患工单

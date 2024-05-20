@@ -212,6 +212,11 @@ class WorkOrderController extends BaseController
 
     ]);
     $DA = $request->toArray();
+    $order = $this->workService->workModel()->find($DA['id']);
+    if ($order->status >= 3) {
+      return $this->error('工单状态不允许取消！');
+    }
+
     $res = $this->workService->cancelWorkorder($request->id, $this->user);
     if (!$res) {
       return $this->error('工单取消失败！');
@@ -220,7 +225,47 @@ class WorkOrderController extends BaseController
   }
 
 
+  /**
+   * @OA\Post(
+   *     path="/api/operation/workorder/del",
+   *     tags={"保修工单"},
+   *     summary="保修工单删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="ID")
+   *
+   *     ),
+   *       example={"id":"1"}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function del(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
 
+    ]);
+    $DA = $request->toArray();
+    $order = $this->workService->workModel()->find($DA['id']);
+    if ($order->status != AppEnum::workorderOpen) {
+      return $this->error('工单状态不允许删除！');
+    }
+    $res = $order->delete();
+
+    if (!$res) {
+      return $this->error('工单删除失败！');
+    }
+    return $this->success('工单删除成功。');
+  }
 
   /**
    * @OA\Post(
