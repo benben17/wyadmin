@@ -51,9 +51,9 @@ class WorkOrderService
         $order->open_phone      = isset($DA['open_phone']) ? $DA['open_phone'] : $user['phone'];
         $order->repair_content  = isset($DA['repair_content']) ? $DA['repair_content'] : "";
         $order->pic             = $DA['pic'] ?? "";
-        if (isset($DA['deadline_time'])) {
-          $order->deadline_time   = $DA['deadline_time'];
-        }
+        // if (isset($DA['deadline_time'])) {
+        //   $order->deadline_time   = $DA['deadline_time'];
+        // }
         $order->order_source    = isset($DA['order_source']) ? $DA['order_source'] : "";
         $order->status          = AppEnum::workorderOpen;  // 开单
         $res = $order->save();
@@ -68,6 +68,7 @@ class WorkOrderService
           $this->saveOrderLog($order->id, 1, $user);
         }
       }, 2);
+      return true;
     } catch (Exception $e) {
       Log::error("工单保存失败" . $e->getMessage());
       throw new Exception("工单保存失败！" . $e->getMessage());

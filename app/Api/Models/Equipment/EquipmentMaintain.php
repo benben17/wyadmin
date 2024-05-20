@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Equipment;
 
+use App\Enums\AppEnum;
 use App\Api\Scopes\CompanyScope;
 // use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ class EquipmentMaintain extends Model
    * 关联到模型的数据表
    * @var string
    */
-
+  var $parentType = AppEnum::EquipmentMaintain;  // 维护时使用
   protected $table = 'bse_equipment_maintain';
   protected $fillable = [];
   protected $hidden = ['company_id'];
@@ -43,6 +44,12 @@ class EquipmentMaintain extends Model
     return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
   }
 
+
+  public function attachment()
+  {
+    return $this->hasMany('App\Api\Models\Common\Attachment', 'parent_id', 'id')
+      ->where('parent_type', $this->parentType);
+  }
 
   public function getProjNameAttribute()
   {

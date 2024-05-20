@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Api\Models\Equipment\Equipment;
 
 /**
  * 应用变量信息
@@ -18,6 +19,7 @@ abstract class AppEnum extends BaseEnum
   const Tenant       = 5;  // 租户
   const CusClue      = 6;  // 线索
   const YhWorkOrder  = 7;  // 隐患工单
+  const EquipmentMaintain    = 8;  // 设备维护
 
   // 招商合同状态
   const contractSave      = 0;  // 保存

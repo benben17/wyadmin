@@ -71,4 +71,15 @@ class AttachmentService
     }
     return $this->model()->destroy(str2Array($Ids));
   }
+
+
+  // 删除附件
+  public function deleteByParentId($parentId, $parentType)
+  {
+    try {
+      $this->model()->where('parent_id', $parentId)->where('parent_type', $parentType)->delete();
+    } catch (Exception $e) {
+      Log::warning('删除附件失败' . $e->getMessage());
+    }
+  }
 }

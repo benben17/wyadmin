@@ -2,12 +2,12 @@
 
 namespace App\Api\Models\Operation;
 
+use App\Enums\AppEnum;
+use App\Api\Scopes\CompanyScope;
+// use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Services\CompanyServices;
 use App\Api\Models\Common\Maintain;
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
-use App\Services\CompanyServices;
-use App\Enums\AppEnum;
 
 /**
  *公共关系
