@@ -538,15 +538,15 @@ class TenantBillService
 			'operate_entity'      => $project['operate_entity'],
 			'bill_project' 				=> $project['bill_project'],
 		];
-
+		$where['tenant_id'] = $data['tenant_id'];
+		$where['status'] = 0;
 		$billGroups = $this->billDetailModel()
 			->selectRaw('bank_id,sum(amount) amount,status,
 										sum(discount_amount) discount_amount,
 										sum(receive_amount) receive_amount,
 										sum(amount - receive_amount-discount_amount) unreceive_amount')
-			->where('tenant_id', $data['tenant_id'])
-			->where('status', 0)
-			->where('charge_date', '<', $data['charge_date'])
+			->where($where)
+			->where('charge_date', '<=', $data['charge_date'])
 			->groupBy('bank_id')->get();
 
 		if ($billGroups->isEmpty()) {
@@ -557,9 +557,8 @@ class TenantBillService
 			$v['bank_info'] = BankAccount::select('account_name', 'account_number', 'bank_name')->find($v['bank_id']);
 			$v['bill_detail'] = $this->billDetailModel()
 				->select('amount', 'discount_amount', 'receive_amount', 'fee_type', 'charge_date', 'remark', 'bill_date')
-				->where('tenant_id', $data['tenant_id'])
-				->where('status', 0)
-				->where('charge_date', '<', $data['charge_date'])
+				->where($where)
+				->where('charge_date', '<=', $data['charge_date'])
 				->where('bank_id', $v['bank_id'])->get();
 		}
 		$data['bills'] = $billGroups;
