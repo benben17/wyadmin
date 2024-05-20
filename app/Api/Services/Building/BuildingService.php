@@ -67,12 +67,12 @@ class BuildingService
     }
 
     return array(
-      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']}/" . AppEnum::squareMeterUnit],
-      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']}/" . AppEnum::squareMeterUnit],
+      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']} " . AppEnum::squareMeterUnit],
+      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']} " . AppEnum::squareMeterUnit],
       ['label' => '总房间数', 'value' => $DA['t_room_count']],
       ['label' => '可招商房间', 'value' => $DA['t_free_count']],
-      ['label' => '当前出租率', 'value' => "{$rentalRate}/" . AppEnum::percentUnit],
-      ['label' => '当前空闲率', 'value' => "{$freeRate}/" . AppEnum::percentUnit]
+      ['label' => '当前出租率', 'value' => "{$rentalRate} " . AppEnum::percentUnit],
+      ['label' => '当前空闲率', 'value' => "{$freeRate} " . AppEnum::percentUnit]
     );
   }
 
