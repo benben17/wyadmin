@@ -2,14 +2,23 @@
 
 namespace App\Api\Controllers\Dashboard;
 
+use Svg\Tag\Rect;
+use App\Models\Area;
 use App\Enums\AppEnum;
+use App\Api\Models\Project;
 use Illuminate\Http\Request;
 use App\Api\Models\BuildingRoom;
+use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Common\Maintain;
+use App\Api\Models\Tenant\ExtraInfo;
 use App\Api\Models\Contract\Contract;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Operation\WorkOrder;
 use App\Api\Models\Bill\TenantBillDetail;
+use App\Api\Models\Operation\YhWorkOrder;
+use App\Api\Models\Equipment\EquipmentMaintain;
 
 class DashboardController extends BaseController
 {
@@ -97,5 +106,270 @@ class DashboardController extends BaseController
       'currMonthReceive'             => $currMonthReceive['amt'],
       'currYearReceive'              => $currYearReceive['amt'],
     ]);
+  }
+
+  /**
+   * @OA\Get(
+   *      path="/api/dashboard/tenant",
+   *      operationId="tenant",
+   *      tags={"Dashboard"},
+   *      summary="租客数据",
+   *      description="租客数据",
+   *      @OA\Parameter(
+   *          name="proj_ids",
+   *          description="项目id",
+   *          required=true,
+   *          in="query",
+   *          @OA\Schema(
+   *              type="array",
+   *              @OA\Items(
+   *                  type="integer"
+   *              )
+   *          )
+   *      ),
+   *      @OA\Response(
+   *          response=200,
+   *          description="successful operation",
+   *          @OA\JsonContent()
+   *       ),
+   *      @OA\Response(response=400, description="Bad request"),
+   *      @OA\Response(response=401, description="Unauthorized"),
+   *      @OA\Response(response=403, description="Forbidden"),
+   *      @OA\Response(response=404, description="Resource Not Found"),
+   *      @OA\Response(response=500, description="Internal Server Error")
+   * )
+   */
+  public function tenantStat(Request $request)
+  {
+    // $request->validate([
+    //   'proj_ids' => 'required|array',
+
+    // ]);
+
+    // 租客数据
+    $tenantInfo = Tenant::selectRaw('count(*) as total,count(worker_num) worker_num,count(cpc_number) cpc_number')
+      ->where(function ($query) use ($request) {
+        return $this->query($query, $request);
+      })
+      ->first();
+
+    $tenantWorker = [
+      'total' => $tenantInfo['total'],
+      'worker_num' => $tenantInfo['worker_num'],
+      'cpc_number' => $tenantInfo['cpc_number'],
+      'cpc_rate' => $tenantInfo['worker_num'] == 0 ? 0 : round($tenantInfo['cpc_number'] / $tenantInfo['total'] * 100, 2),
+    ];
+    $data['tenant_worker'] = $tenantWorker;
+
+    // 租客级别数据
+    $tenantLevel = Tenant::selectRaw('count(*) as total,level')
+      ->where(function ($query) use ($request) {
+        return $this->query($query, $request);
+      })
+      ->groupBy('level')
+      ->get()->toArray();
+    $tenantLevelNull = 0;
+    $totalTenants = $tenantLevel ? array_sum(array_column($tenantLevel, 'total')) : 0;
+    $data['tenant_level'] = array_map(function ($item) use ($totalTenants, &$tenantLevelNull) {
+      if (empty($item['level'])) {
+        $tenantLevelNull += $item['total'];
+        return null;
+      }
+      $item['percentage'] = ($item['total'] / $totalTenants) * 100;
+      return $item;
+    }, $tenantLevel);
+    $data['tenant_level'][] = ['total' => $tenantLevelNull, 'level' => '未知', 'percentage' => ($tenantLevelNull / $totalTenants) * 100];
+    $data['tenant_level'] = array_values(array_filter($data['tenant_level']));
+    // 租客行业数据
+
+    $tenantIndustry = Tenant::selectRaw('count(*) as total,industry')
+      ->where(function ($query) use ($request) {
+        return $this->query($query, $request);
+      })
+      ->groupBy('industry')
+      ->get()->toArray();
+    $tenantIndustryNull = 0;
+    $data['tenant_industry'] = array_map(function ($item) use ($totalTenants, &$tenantIndustryNull) {
+      if (empty($item['industry']) || !$item['industry']) {
+        $tenantIndustryNull += $item['total'];
+        return null;
+      }
+      $item['percentage'] = ($item['total'] / $totalTenants) * 100;
+      return $item;
+    }, $tenantIndustry);
+    $data['tenant_industry'][] = ['total' => $tenantIndustryNull, 'industry' => '未知', 'percentage' => ($tenantIndustryNull / $totalTenants) * 100];
+    $data['tenant_industry'] = array_values(array_filter($data['tenant_industry']));
+
+
+    $tenantMaintain = Maintain::selectRaw('count(*) as total,parent_id as tenant_id')
+      ->where(function ($query) use ($request) {
+        $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+        $query->where('parent_type', AppEnum::Tenant);
+      })
+      ->limit(10)->get()->toArray();
+    $tenantMaintain = array_map(function ($item) {
+      $item['tenant_name'] = getTenantNameById($item['tenant_id']);
+      return $item;
+    }, $tenantMaintain);
+    $data['tenant_maintain'] = $tenantMaintain;
+    return $this->success($data);
+  }
+
+  private function query($query, Request $request)
+  {
+    $query->where('type', 2);
+    $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    return $query;
+  }
+
+
+
+  public function project(Request $request)
+  {
+
+    $projects = Project::selectRaw('count(*) as total,proj_city_id')
+      ->groupBy('proj_city_id')->get()->toArray();
+    // $total = array_sum(array_column($data, 'total'));
+    // $data[] = ['total' => $total, 'proj_city_id' => 0];
+
+    foreach ($projects as &$item) {
+      $city = Area::find($item['proj_city_id']);
+      if ($city) {
+        $item['city_code'] = $city->code;
+        $item['city_name'] = $city->name;
+      } else {
+        $item['city_code'] = '';
+        $item['city_name'] = '未知';
+      }
+    }
+    $data['yh_work_count'] = YhWorkOrder::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })->count();
+
+    $data['work_count'] = WorkOrder::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })->count();
+    $data['maintain_count'] = EquipmentMaintain::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })->count();
+    $data['project'] = $projects;
+    return $this->success($data);
+  }
+
+  /**
+   * @OA\Get(
+   *      path="/api/dashboard/customer",
+   *      operationId="customer",
+   *      tags={"Dashboard"},
+   *      summary="客户数据",
+   *      description="客户数据",
+   *      @OA\Parameter(
+   *          name="proj_ids",
+   *          description="项目id",
+   *          required=true,
+   *          in="query",
+   *          @OA\Schema(
+   *              type="array",
+   *              @OA\Items(
+   *                  type="integer"
+   *              )
+   *          )
+   *      ),
+   *      @OA\Response(
+   *          response=200,
+   *          description="successful operation",
+   *          @OA\JsonContent()
+   *       ),
+   *      @OA\Response(response=400, description="Bad request"),
+   *      @OA\Response(response=401, description="Unauthorized"),
+   *      @OA\Response(response=403, description="Forbidden"),
+   *      @OA\Response(response=404, description="Resource Not Found"),
+   *      @OA\Response(response=500, description="Internal Server Error")
+   * )
+   */
+  public function customer(Request $request)
+  {
+
+    $tenantIndustry = Tenant::selectRaw('count(*) as total,industry')
+      ->where(function ($query) use ($request) {
+        $query->where('type', 1);
+        $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+      })
+      ->groupBy('industry')
+      ->get()->toArray();
+
+    $tenantIndustryNull = 0;
+    $totalTenants = $tenantIndustry ? array_sum(array_column($tenantIndustry, 'total')) : 0;
+    $data['tenant_industry'] = array_map(function ($item) use ($totalTenants, &$tenantIndustryNull) {
+      if (empty($item['industry']) || !$item['industry']) {
+        $tenantIndustryNull += $item['total'];
+        return null;
+      }
+      $item['percentage'] = ($item['total'] / $totalTenants) * 100;
+      return $item;
+    }, $tenantIndustry);
+
+    $areaRequirement = ExtraInfo::selectRaw('count(*) as total,demand_area')
+      ->where(function ($query) use ($request) {
+        $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+      })
+      ->groupBy('demand_area')
+      ->get()->toArray();
+    $data['area_requirement'] = $areaRequirement;
+    $visit =  Follow::selectRaw('count(*) as total,follow_type as follow_type')
+      ->where(function ($query) use ($request) {
+        $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+      })
+      ->groupBy('follow_type')
+      ->get()->toArray();
+
+    $data['visit'] = $visit;
+    return $this->success($data);
+  }
+
+  /**
+   * @OA\Get(
+   *      path="/api/dashboard/workOrderData",
+   *      operationId="workOrderData",
+   *      tags={"Dashboard"},
+   *      summary="工单数据",
+   *      description="工单数据",
+   *      @OA\Parameter(
+   *          name="proj_ids",
+   *          description="项目id",
+   *          required=true,
+   *          in="query",
+   *          @OA\Schema(
+   *              type="array",
+   *              @OA\Items(
+   *                  type="integer"
+   *              )
+   *          )
+   *      ),
+   *      @OA\Response(
+   *          response=200,
+   *          description="successful operation",
+   *          @OA\JsonContent()
+   *       ),
+   *      @OA\Response(response=400, description="Bad request"),
+   *      @OA\Response(response=401, description="Unauthorized"),
+   *      @OA\Response(response=403, description="Forbidden"),
+   *      @OA\Response(response=404, description="Resource Not Found"),
+   *      @OA\Response(response=500, description="Internal Server Error")
+   * )
+   */
+  public function workOrderData(Request $request)
+  {
+    $workOrder = WorkOrder::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })
+      ->limit(20)->get()->toArray();
+    $equipmentMaintain = EquipmentMaintain::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })
+      ->limit(20)->get()->toArray();
+    $data['work_order'] = $workOrder;
+    $data['equipment_maintain'] = $equipmentMaintain;
+    return $this->success($data);
   }
 }

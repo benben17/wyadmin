@@ -28,6 +28,10 @@ Route::get('/login', 'AuthUserController@login');
 
 Route::group(['prefix' => 'dashboard'], function () {
     Route::post('index', '\App\Api\Controllers\Dashboard\DashboardController@index');
+    Route::post('tenant', '\App\Api\Controllers\Dashboard\DashboardController@tenantStat');
+    Route::post('project', '\App\Api\Controllers\Dashboard\DashboardController@project');
+    Route::post('customer', '\App\Api\Controllers\Dashboard\DashboardController@customer');
+    Route::post('workOrderData', '\App\Api\Controllers\Dashboard\DashboardController@workOrderData');
 });
 
 Route::group(['prefix' => 'auth'], function () {
@@ -548,6 +552,8 @@ Route::group(['prefix' => 'operation/stat'], function () {
     Route::post('/bill/year/report', '\App\Api\Controllers\Stat\BillStatController@bill_year_stat');
     Route::post('/charge/month/report', '\App\Api\Controllers\Stat\BillStatController@chargeStat');
 });
+
+
 
 
 Route::group(['prefix' => 'sys/excel'], function () {

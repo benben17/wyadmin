@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use App\Api\Services\Common\AttachmentService;
 use App\Api\Services\Operation\EquipmentService;
 
 /**
@@ -453,11 +454,24 @@ class EquipmentController extends BaseController
       'maintain_person'   => 'required|String', // 可多选
       'plan_id' => 'required|gt:0',
       'maintain_quantity' => 'required',
+      'attachment' => 'String',
     ]);
     $DA = $request->toArray();
     try {
       $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
       $this->equipment->updateMaintainPlan($maintainId);
+
+      if ($DA['attachment']) {
+        $attrService = new AttachmentService;
+        foreach (str2Array($DA['attachment']) as $attachment) {
+          $attrService->save([
+            'parent_id' => $maintainId,
+            'parent_type' => AppEnum::EquipmentMaintain,
+            'atta_type' => '附件',
+            'file_path' => $attachment,
+          ], $this->user);
+        }
+      }
       return $this->success('设备维护保存成功。');
     } catch (Exception $e) {
       return $this->error('设备维护保存失败！' . $e->getMessage());
@@ -505,7 +519,20 @@ class EquipmentController extends BaseController
     ]);
     try {
       $DA = $request->toArray();
-      $res = $this->equipment->saveEquipmentMaintain($DA, $this->user);
+      $this->equipment->saveEquipmentMaintain($DA, $this->user);
+
+      if ($DA['attachment']) {
+        $attrService = new AttachmentService;
+        $attrService->deleteByParentId($DA['id'], AppEnum::EquipmentMaintain);
+        foreach (str2Array($DA['attachment']) as $attachment) {
+          $attrService->save([
+            'parent_id' => $DA['id'],
+            'parent_type' => AppEnum::EquipmentMaintain,
+            'atta_type' => '附件',
+            'file_path' => $attachment,
+          ], $this->user);
+        }
+      }
       return $this->success('设备维护更新成功。');
     } catch (Exception $e) {
       return $this->error('设备维护更新失败！' . $e->getMessage());
@@ -542,9 +569,12 @@ class EquipmentController extends BaseController
     ]);
     $data = $this->equipment->maintainModel()
       ->with('maintainPlan')
+      ->with('attachment')
       ->with('equipment:id,third_party,maintain_period,tenant_id')
       ->find($request->id);
-    // $data['maintain_type_label'] = getDictName($data['maintain_type']);
+    if ($data && $data->attachment) {
+      $data->attachment = $data->attachment->pluck('file_path');
+    }
     return $this->success($data);
   }
 
