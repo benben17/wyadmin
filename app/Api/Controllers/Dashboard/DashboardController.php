@@ -227,17 +227,20 @@ class DashboardController extends BaseController
   public function project(Request $request)
   {
 
-    $projects = Project::selectRaw('count(*) as total,proj_city_id')
+    $projects = Project::selectRaw('count(*) as total,proj_city_id,proj_province_id')
       ->groupBy('proj_city_id')->get()->toArray();
     // $total = array_sum(array_column($data, 'total'));
     // $data[] = ['total' => $total, 'proj_city_id' => 0];
 
     foreach ($projects as &$item) {
       $city = Area::find($item['proj_city_id']);
+      $province = Area::find($item['proj_province_id']);
       if ($city) {
+        $item['province_name']  = $province->name;
         $item['city_code'] = $city->code;
         $item['city_name'] = $city->name;
       } else {
+        $item['province_name']  = '未知';
         $item['city_code'] = '';
         $item['city_name'] = '未知';
       }
