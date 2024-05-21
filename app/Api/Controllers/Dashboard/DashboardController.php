@@ -292,7 +292,7 @@ class DashboardController extends BaseController
    */
   public function customer(Request $request)
   {
-
+    DB::enableQueryLog();
     $tenantIndustry = Tenant::selectRaw('count(*) as total,industry')
       ->where(function ($query) use ($request) {
         $query->where('type', 1);
@@ -313,14 +313,14 @@ class DashboardController extends BaseController
     }, $tenantIndustry);
 
     $areaRequirement = ExtraInfo::selectRaw('count(*) as total,demand_area')
-      ->where('tenant', function ($query) use ($request) {
+      ->whereHas('tenant', function ($query) use ($request) {
         $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
       })
       ->groupBy('demand_area')
       ->get()->toArray();
     $data['area_requirement'] = $areaRequirement;
     $visit =  Follow::selectRaw('count(*) as total,follow_type as follow_type')
-      ->where('tenant', function ($query) use ($request) {
+      ->whereHas('tenant', function ($query) use ($request) {
         $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
       })
       ->groupBy('follow_type')
