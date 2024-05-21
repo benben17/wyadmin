@@ -351,7 +351,7 @@ class DashboardController extends BaseController
         'total' => $value[0]['total'] ?? 0,
       ];
     }
-    return $tenantFrom;
+    $data['tenant_source'] = $tenantFrom;
     return $this->success($data);
   }
 
