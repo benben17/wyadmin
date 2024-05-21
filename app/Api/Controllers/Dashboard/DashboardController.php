@@ -337,8 +337,7 @@ class DashboardController extends BaseController
       })
       ->groupBy('channel_id') // Group by channel_id
       ->get();
-
-    DB::enableQueryLog();
+    $tenantSourceCount = array_sum(array_column($tenantSource->toArray(), 'total'));
     // Eager load channel data after grouping
     $tenantSource->load('channel:id,channel_type');
     // Group by channel_type using Collection methods
@@ -346,9 +345,11 @@ class DashboardController extends BaseController
     $tenantFrom = [];
     foreach ($groupedResults as $key => $value) {
       $channelType = $value[0]['channel']['channel_type'] ?? "未知";
+      $total = $value[0]['total'] ?? 0;
       $tenantFrom[] = [
         'channel_type' => $channelType,
-        'total' => $value[0]['total'] ?? 0,
+        'total' => $total,
+        'percentage' => $tenantSourceCount == 0 ? 0 : round(($total / $tenantSourceCount) * 100, 2)
       ];
     }
     $data['tenant_source'] = $tenantFrom;
