@@ -295,7 +295,7 @@ class DashboardController extends BaseController
     DB::enableQueryLog();
     $tenantIndustry = Tenant::selectRaw('count(*) as total,industry')
       ->where(function ($query) use ($request) {
-        $query->where('type', 1);
+        // $query->where('type', 1);
         $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
       })
       ->groupBy('industry')
@@ -316,6 +316,7 @@ class DashboardController extends BaseController
       ->whereHas('tenant', function ($query) use ($request) {
         $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
       })
+      ->where('demand_area', '!=', "")
       ->groupBy('demand_area')
       ->get()->toArray();
     $data['area_requirement'] = $areaRequirement;
@@ -327,6 +328,30 @@ class DashboardController extends BaseController
       ->get()->toArray();
 
     $data['visit'] = $visit;
+
+    $tenantSource = Tenant::selectRaw('count(*) as total, channel_id')
+      ->where(function ($query) use ($request) {
+        if ($request->proj_ids) {
+          $query->whereIn('proj_id', $request->proj_ids);
+        }
+      })
+      ->groupBy('channel_id') // Group by channel_id
+      ->get();
+
+    DB::enableQueryLog();
+    // Eager load channel data after grouping
+    $tenantSource->load('channel:id,channel_type');
+    // Group by channel_type using Collection methods
+    $groupedResults = $tenantSource->groupBy('channel.channel_type')->toArray();
+    $tenantFrom = [];
+    foreach ($groupedResults as $key => $value) {
+      $channelType = $value[0]['channel']['channel_type'] ?? "未知";
+      $tenantFrom[] = [
+        'channel_type' => $channelType,
+        'total' => $value[0]['total'] ?? 0,
+      ];
+    }
+    return $tenantFrom;
     return $this->success($data);
   }
 
