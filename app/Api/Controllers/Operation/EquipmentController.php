@@ -573,7 +573,7 @@ class EquipmentController extends BaseController
       ->with('equipment:id,third_party,maintain_period,tenant_id')
       ->find($request->id);
     if ($data && $data->attachment) {
-      $data->attachment = $data->attachment->pluck('file_path');
+      $data->attachment = str2Array($data->attachment->pluck('file_path') ?? "");
     }
     return $this->success($data);
   }
