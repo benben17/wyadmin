@@ -124,6 +124,7 @@ class BillStatController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $q->where('charge_date', '<=', $endYmd);
         $q->where('type', 1);
+        $q->where('status', AppEnum::feeStatusUnReceive);
       })
       ->first();
 
