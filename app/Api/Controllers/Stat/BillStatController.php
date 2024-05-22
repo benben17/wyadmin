@@ -106,7 +106,6 @@ class BillStatController extends BaseController
         $stats[$key] = $query->where('fee_type', $feeType)->selectRaw($select)->first();
       }
     }
-    return $stats;
     $reAmt = $received = $unReceived = [];
     foreach ($stats as $key => $stat) {
       $reAmt[$key . 'Amt'] = $stat['amt'];
