@@ -76,9 +76,9 @@ class BillStatController extends BaseController
       $endYmd = date('Y-m-t');
     }
     DB::enableQueryLog();
-    $select = 'ifnull(sum(amount-discount_amount),"0.00") amt ,
-  ifnull(sum(discount_amount),0.00) discountAmt,
-  ifnull(sum(receive_amount),0.00) receiveAmt';
+    $select = 'ifnull(sum(amount-discount_amount),0.00) amt ,
+              ifnull(sum(discount_amount),0.00) discountAmt,
+              ifnull(sum(receive_amount),0.00) receiveAmt';
 
     $subQuery = $this->billService->billDetailModel()
       ->whereBetween('charge_date', [$startYmd, $endYmd])
@@ -88,9 +88,13 @@ class BillStatController extends BaseController
       });
     // 费用
     $totalStat = $subQuery->selectRaw($select)->first();
-    $rentalStat = clone $subQuery->where('fee_type', AppEnum::rentFeeType)->first();
-    $managerStat = clone $subQuery->where('fee_type', AppEnum::managerFeeType)->first();
-    $otherStat = clone $subQuery->whereNotIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType])->first();
+    $rentQuery = clone $subQuery;
+    $managerQuery = clone $subQuery;
+    $otherQuery = clone $subQuery;
+    $rentalStat = $rentQuery->where('fee_type', AppEnum::rentFeeType)->first();
+    $managerStat = $managerQuery->where('fee_type', AppEnum::managerFeeType)->first();
+    $otherStat = $otherQuery->whereNotIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType])->first();
+    // return DB::getQueryLog();
 
     $reAmt = [
       'totalAmt'   => $totalStat['amt'],
