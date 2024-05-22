@@ -87,34 +87,32 @@ class BillStatController extends BaseController
         $q->where('type', 1);
       });
     // 费用
-    $totalStat = $subQuery->selectRaw($select)->first();
-    $rentQuery = clone $subQuery;
-    $managerQuery = clone $subQuery;
-    $otherQuery = clone $subQuery;
-    $rentalStat = $rentQuery->where('fee_type', AppEnum::rentFeeType)->first();
-    $managerStat = $managerQuery->where('fee_type', AppEnum::managerFeeType)->first();
-    $otherStat = $otherQuery->whereNotIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType])->first();
-    // return DB::getQueryLog();
 
-    $reAmt = [
-      'totalAmt'   => $totalStat['amt'],
-      'rentalAmt'  => $rentalStat['amt'],
-      'managerAmt' => $managerStat['amt'],
-      'otherAmt'   => $otherStat['amt']
-    ];
-    $received = [
-      'totalAmt'   => $totalStat['receiveAmt'],
-      'rentalAmt'  => $rentalStat['receiveAmt'],
-      'managerAmt' => $managerStat['receiveAmt'],
-      'otherAmt'   => $otherStat['receiveAmt']
+    $feeTypes = [
+      'total' => null,
+      'rental' => AppEnum::rentFeeType,
+      'manager' => AppEnum::managerFeeType,
+      'other' => [AppEnum::rentFeeType, AppEnum::managerFeeType],
     ];
 
-    $unReceived = [
-      'totalAmt'   => $totalStat['amt'] - $totalStat['receiveAmt'],
-      'rentalAmt'  => $rentalStat['amt'] - $rentalStat['receiveAmt'],
-      'managerAmt' => $managerStat['amt'] - $managerStat['receiveAmt'],
-      'otherAmt'   => $otherStat['amt'] - $otherStat['receiveAmt']
-    ];
+    $stats = [];
+    foreach ($feeTypes as $key => $feeType) {
+      $query = clone $subQuery;
+      if ($key === 'other') {
+        $stats[$key] = $query->whereNotIn('fee_type', $feeType)->selectRaw($select)->first();
+      } else if ($key === 'total') {
+        $stats[$key] = $query->selectRaw($select)->first();
+      } else {
+        $stats[$key] = $query->where('fee_type', $feeType)->selectRaw($select)->first();
+      }
+    }
+    return $stats;
+    $reAmt = $received = $unReceived = [];
+    foreach ($stats as $key => $stat) {
+      $reAmt[$key . 'Amt'] = $stat['amt'];
+      $received[$key . 'Amt'] = $stat['receiveAmt'];
+      $unReceived[$key . 'Amt'] = $stat['amt'] - $stat['receiveAmt'];
+    }
 
     $overdueSelect = 'ifnull(sum(amount-discount_amount-receive_amount),0.00) totalAmt,
                 ifnull(sum(case when fee_type = 101 then amount-discount_amount-receive_amount end),0.00) rentalAmt,
