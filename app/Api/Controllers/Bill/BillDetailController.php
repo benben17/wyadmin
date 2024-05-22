@@ -81,8 +81,7 @@ class BillDetailController extends BaseController
 
 				$request->year && $q->whereYear('charge_date', $request->year);
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
-				$endDate = $request->end_date ? $request->end_date : date('Y-m-t');
-				$q->where('charge_date', '<=', $endDate);
+				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
 				if (!empty($request->is_bill)) {
