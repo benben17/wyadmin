@@ -8,10 +8,10 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\Validator;
 use App\Api\Services\Common\BseRemarkService;
+use App\Api\Services\Common\AttachmentService;
 use App\Api\Services\Operation\YhWorkOrderService;
 
 /**
@@ -395,6 +395,8 @@ class YhWorkOrderController extends BaseController
     }
 
     $res = $this->workService->processWorkOrder($DA, $this->user);
+    $attrService = new AttachmentService;
+    $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::YhWorkOrder, $this->user);
     return  $res ? $this->success('工单处理成功。') : $this->error('工单处理失败！');
   }
 
@@ -466,9 +468,15 @@ class YhWorkOrderController extends BaseController
     $data = $this->workService->yhWorkModel()
       ->with('orderLogs')
       ->with('remarks')
+      ->with('attachment')
       ->find($request->id);
     if ($data) {
       $data->tenant_name = getTenantNameById($data->tenant_id);
+      $attrs = $data->attachment->pluck('file_path')->toArray();
+      $data->attachment = $attrs;
+      $data->attachment_full = array_map(function ($v) {
+        return picFullPath($v);
+      }, $attrs);
     }
     return $this->success($data);
   }

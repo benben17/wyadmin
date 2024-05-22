@@ -82,4 +82,37 @@ class AttachmentService
       Log::warning('删除附件失败' . $e->getMessage());
     }
   }
+
+  /**
+   * 保存附件
+   * @Author   leezhua
+   * @DateTime 2020-06-25
+   * @param    [type]     $attachmentList [附件列表]
+   * @param    [type]     $parentId       [父id]
+   * @param    [type]     $parentType     [父类型]
+   * @param    [type]     $user           [用户信息]
+   * @param    string     $attaType       [附件类型]
+   * @param    boolean    $saveType       [是否保存]
+   * @return   [type]                     [description]
+   */
+  public function saveAttachment($attachmentList, $parentId, $parentType, $user, $attaType = '附件', $saveType = true)
+  {
+    try {
+
+      if (empty($attachmentList)) {
+        return;
+      }
+      $this->deleteByParentId($parentId, $parentType);
+      foreach (str2Array($attachmentList) as $attachment) {
+        $this->save([
+          'parent_id' => $parentId,
+          'parent_type' => $parentType,
+          'atta_type' => $attaType,
+          'file_path' => $attachment,
+        ], $user);
+      }
+    } catch (Exception $e) {
+      Log::warning('保存附件失败' . $e->getMessage());
+    }
+  }
 }

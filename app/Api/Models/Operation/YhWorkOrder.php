@@ -88,6 +88,13 @@ class YhWorkOrder extends Model
     return $this->hasMany(WorkOrderLog::class, 'yh_order_id', 'id')->orderBy('id', 'desc');
   }
 
+
+  public function attachment()
+  {
+    return $this->hasMany('App\Api\Models\Common\Attachment', 'parent_id', 'id')
+      ->where('parent_type', AppEnum::YhWorkOrder);
+  }
+
   protected static function boot()
   {
     parent::boot();

@@ -461,17 +461,10 @@ class EquipmentController extends BaseController
       $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
       $this->equipment->updateMaintainPlan($maintainId);
 
-      if ($DA['attachment']) {
-        $attrService = new AttachmentService;
-        foreach (str2Array($DA['attachment']) as $attachment) {
-          $attrService->save([
-            'parent_id' => $maintainId,
-            'parent_type' => AppEnum::EquipmentMaintain,
-            'atta_type' => '附件',
-            'file_path' => $attachment,
-          ], $this->user);
-        }
-      }
+
+      $attrService = new AttachmentService;
+
+      $attrService->saveAttachment($DA['attachment'], $maintainId, AppEnum::EquipmentMaintain, $this->user);
       return $this->success('设备维护保存成功。');
     } catch (Exception $e) {
       return $this->error('设备维护保存失败！' . $e->getMessage());
@@ -521,18 +514,8 @@ class EquipmentController extends BaseController
       $DA = $request->toArray();
       $this->equipment->saveEquipmentMaintain($DA, $this->user);
 
-      if ($DA['attachment']) {
-        $attrService = new AttachmentService;
-        $attrService->deleteByParentId($DA['id'], AppEnum::EquipmentMaintain);
-        foreach (str2Array($DA['attachment']) as $attachment) {
-          $attrService->save([
-            'parent_id' => $DA['id'],
-            'parent_type' => AppEnum::EquipmentMaintain,
-            'atta_type' => '附件',
-            'file_path' => $attachment,
-          ], $this->user);
-        }
-      }
+      $attrService = new AttachmentService;
+      $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::EquipmentMaintain, $this->user);
       return $this->success('设备维护更新成功。');
     } catch (Exception $e) {
       return $this->error('设备维护更新失败！' . $e->getMessage());
@@ -572,8 +555,13 @@ class EquipmentController extends BaseController
       ->with('attachment')
       ->with('equipment:id,third_party,maintain_period,tenant_id')
       ->find($request->id);
-    if ($data && $data->attachment) {
-      $data->attachment = str2Array($data->attachment->pluck('file_path') ?? "");
+    if ($data) {
+
+      $attrs = $data->attachment->pluck('file_path')->toArray();
+      $data->attachment = $attrs;
+      $data->attachment_full = array_map(function ($v) {
+        return picFullPath($v);
+      }, $attrs);
     }
     return $this->success($data);
   }
