@@ -72,7 +72,7 @@ class AttachmentController extends BaseController
     {
         $validatedData = $request->validate([
             'parent_id' => 'required|min:1',
-            'parent_type' => 'required|numeric|in:1,2,3,4,5',
+            'parent_type' => 'required|numeric',
             'name' => 'required|String|min:1',
             'file_path' => 'required|String|max:512',
         ]);
