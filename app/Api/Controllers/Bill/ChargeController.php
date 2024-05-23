@@ -5,6 +5,7 @@ namespace App\Api\Controllers\Bill;
 use App\Enums\ChargeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Company\FeeType;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Bill\ChargeService;
@@ -468,8 +469,9 @@ class ChargeController extends BaseController
 				$request->tenant_name && $query->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 			});
 		// return response()->json(DB::getQueryLog());
-		// $pageSubQuery = clone $subQuery;
-		$data = $this->pageData($subQuery, $request);
+		$pageSubQuery = clone $subQuery;
+		$statQuery = clone $subQuery;
+		$data = $this->pageData($pageSubQuery, $request);
 		// return $data;
 		foreach ($data['result'] as &$item) {
 			$item['tenant_name'] = getTenantNameById($item['bill_detail']['tenant_id'] ?? 0);
@@ -479,6 +481,19 @@ class ChargeController extends BaseController
 			$item['flow_no']     = $item['charge']['flow_no'] ?? '';
 			unset($item['charge']);
 		}
+		$statData = $statQuery->groupBy('fee_type')
+			->selectRaw('fee_type, sum(amount) as amount')
+			->get()
+			->keyBy('fee_type')
+			->toArray();
+		$feeList = FeeType::where('type', 1)->select('fee_name', 'id')->get()->toArray();
+
+		$stat = array_map(function ($v) use ($statData) {
+			$amount = $statData[$v['id']]['amount'] ?? '0.00';
+			$v['amount'] = number_format($amount);
+			return $v;
+		}, $feeList);
+		$data['stat'] = $stat;
 		return $this->success($data);
 	}
 

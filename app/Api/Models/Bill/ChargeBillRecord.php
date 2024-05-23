@@ -38,7 +38,7 @@ class ChargeBillRecord extends Model
   }
   public function getTypeLabelAttribute()
   {
-    $type = $this->attributes['type'];
+    $type = $this->attributes['type'] ?? 1;
     switch ($type) {
       case '1':
         return "收入";
