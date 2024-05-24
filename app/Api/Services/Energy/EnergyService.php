@@ -379,6 +379,10 @@ class EnergyService
           } else {
             $BA['contract_id'] = 0;
           }
+          // 判断水费是否为0，如果为0 为已结清的状态
+          if ($BA['amount'] == 0 || $BA['amount'] == 0.00) {
+            $BA['status'] = 1;
+          }
           // 插入水电费用到 租户费用表
           if ($record['status'] == 0) { // 不是初始化的数据，审核时产生的费用到租户费用列表
             $BA['bank_id'] = getBankIdByFeeType($BA['fee_type'], $BA['proj_id']);
