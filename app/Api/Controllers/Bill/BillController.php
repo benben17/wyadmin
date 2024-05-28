@@ -83,23 +83,44 @@ class BillController extends BaseController
         isset($request->status) && $q->where('status', $request->status);
         isset($request->is_print) && $q->where('is_print', $request->is_print);
       })
+      ->with('billDetail:id,bill_id,amount,discount_amount,receive_amount,charge_date')
       ->with('tenant:id,name');
 
-    $data = $this->pageData($subQuery, $request);
+    $data = $this->getData($subQuery, $request);
+    foreach ($data->items() as $k => &$item) {
+      $item['tenant_name'] = $item['tenant']['name'];
+      unset($item['tenant']);
+      $timestamp = strtotime($item['charge_date']);
+      $billMonth = [date('Y-m-01', $timestamp), date('Y-m-t', $timestamp)];
+      $thisBillDetail = $item->billDetail->whereBetween('charge_date', $billMonth);
 
-    foreach ($data['result'] as $k => &$v) {
-      $v['tenant_name'] = $v['tenant']['name'];
-      unset($v['tenant']);
-      $billCount = $this->billService->billDetailModel()
-        ->selectRaw('sum(amount) totalAmt,sum(discount_amount) disAmt,sum(receive_amount) receiveAmt')
-        ->where('bill_id', $v['id'])->first();
-      $v['amount']           = $billCount['totalAmt'];
-      $v['discount_amount']  = $billCount['disAmt'];
-      $v['receive_amount']   = $billCount['receiveAmt'];
-      $v['unreceive_amount'] = $v['amount'] - $v['discount_amount'] - $v['receive_amount'];
-      $v['bill_label']       = $v['unreceive_amount'] == 0 ? '已收清' : '未收清';
+      $item['amount']           = $thisBillDetail->sum('amount');
+      $item['discount_amount']  = $thisBillDetail->sum('discount_amount');
+      $item['receive_amount']   = $thisBillDetail->sum('receive_amount');
+      $item['unreceive_amount'] = $item['amount'] - $item['discount_amount'] - $item['receive_amount'];
+      $item['bill_label']       = $item['unreceive_amount'] == 0 ? '已收清' : '未收清';
+
+      $unreceive = $item->billDetail->where('charge_date', '<=', date('Y-m-t', strtotime($item['charge_date'])))
+        ->sum('unreceive_amount');
+      Log::info($unreceive);
+      $item['bill_reminder'] = $unreceive > 0 ? '1' : '0';
+      unset($item['billDetail']);
     }
-    return $this->success($data);
+    return $this->success($this->handleBackData($data));
+  }
+
+  private function getData($query, Request $request)
+  {
+    // 分页
+    $pagesize = $this->setPagesize($request);
+    // 排序
+    $order = $request->orderBy ?? 'created_at';
+    // 排序方式
+    $sort = $request->order ?? 'desc';
+    if (!in_array($sort, $this->sortType)) {
+      $sort = 'desc';
+    }
+    return $query->orderBy($order, $sort)->paginate($pagesize);
   }
 
   /**
