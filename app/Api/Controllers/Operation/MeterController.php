@@ -92,6 +92,7 @@ class MeterController extends BaseController
     }
     DB::enableQueryLog();
     $currentMonth = date('Y-m-01');
+    $currentMonthList = [$currentMonth, getNextYmd($currentMonth, 1)];
     $query = $this->meterService->meterModel()
       ->where($map)
       ->where(function ($q) use ($request) {
@@ -104,8 +105,11 @@ class MeterController extends BaseController
           $q->where('tenant_id', $request->tenant_id);
         }
       })
-      ->withCount(['meterRecord' => function ($q) {
-        $q->where('record_date', '>', date('Y-m-01'));
+      ->whereHas('meterRecord', function ($q) use ($currentMonthList, $request) {
+        $request->current_month_record == 1 &&  $q->whereBetween('record_date', $currentMonthList);
+      })
+      ->withCount(['meterRecord' => function ($q) use ($currentMonthList) {
+        $q->whereBetween('record_date', $currentMonthList);
       }]);
     $data = $this->pageData($query, $request);
     foreach ($data['result'] as $k => &$v) {
@@ -113,7 +117,7 @@ class MeterController extends BaseController
       $v['last_record']  = $record->meter_value ?? 0;
       $v['last_date'] = $record->record_date ?? "";
       // 比较2个日期的年月是否一致
-      $v['this_month_record'] = date('Y-m', strtotime($v['created_at'])) == date('Y-m', strtotime($v['last_date'])) ? "1" : "0";
+      $v['current_month_record'] = $v['meter_record_count'] == 1 ? "1" : "0";
       $v['tenant_name'] = getTenantNameById($v['tenant_id']);
     }
     return $this->success($data);
