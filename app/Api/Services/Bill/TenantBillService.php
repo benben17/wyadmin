@@ -545,7 +545,8 @@ class TenantBillService
 										sum(receive_amount) receive_amount,
 										sum(amount - receive_amount-discount_amount) unreceive_amount')
 			->where($where)
-			->where('charge_date', '<=', $data['charge_date'])
+			->whereYear('charge_date', date('Y', strtotime($data['charge_date'])))
+			->whereMonth('charge_date', date('m', strtotime($data['charge_date'])))
 			->groupBy('bank_id')->get();
 
 		if ($billGroups->isEmpty()) {
