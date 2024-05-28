@@ -112,6 +112,8 @@ class MeterController extends BaseController
       $record = $this->meterService->getNewMeterRecord($v['id']);
       $v['last_record']  = $record->meter_value ?? 0;
       $v['last_date'] = $record->record_date ?? "";
+      // 比较2个日期的年月是否一致
+      $v['this_month_record'] = date('Y-m', strtotime($v['created_at'])) == date('Y-m', strtotime($v['last_date'])) ? "1" : "0";
       $v['tenant_name'] = getTenantNameById($v['tenant_id']);
     }
     return $this->success($data);
