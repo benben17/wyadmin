@@ -557,7 +557,8 @@ class TenantBillService
 			$v['bill_detail'] = $this->billDetailModel()
 				->select('amount', 'discount_amount', 'receive_amount', 'fee_type', 'charge_date', 'remark', 'bill_date')
 				->where($where)
-				->where('charge_date', '<=', $data['charge_date'])
+				->whereYear('charge_date', date('Y', strtotime($data['charge_date'])))
+				->whereMonth('charge_date', date('m', strtotime($data['charge_date'])))
 				->where('bank_id', $v['bank_id'])->get();
 		}
 		$data['bills'] = $billGroups;
