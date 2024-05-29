@@ -95,7 +95,7 @@ class MeterController extends BaseController
     $currentMonthList = [$currentMonth, getNextYmd($currentMonth, 1)];
     $query = $this->meterService->meterModel()
       ->where($map)
-      ->where(function ($q) use ($request) {
+      ->where(function ($q) use ($request, $currentMonthList) {
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->build_id && $q->where('build_id',  $request->build_id);
         $request->floor_id && $q->where('floor_id',  $request->floor_id);
@@ -104,10 +104,17 @@ class MeterController extends BaseController
         if (isset($request->tenant_id) && $request->tenant_id >= 0) {
           $q->where('tenant_id', $request->tenant_id);
         }
+        if ($request->current_month_record == 1) {
+          $q->whereDoesntHave('meterRecord', function ($sub_query) use ($currentMonthList) {
+            $sub_query->whereBetween('record_date', $currentMonthList);
+          });
+        } else if ($request->current_month_record == 2) {
+          $q->whereHas('meterRecord', function ($sub_query) use ($currentMonthList) {
+            $sub_query->whereBetween('record_date', $currentMonthList);
+          });
+        }
       })
-      ->whereHas('meterRecord', function ($q) use ($currentMonthList, $request) {
-        $request->current_month_record == 1 &&  $q->whereBetween('record_date', $currentMonthList);
-      })
+
       ->withCount(['meterRecord' => function ($q) use ($currentMonthList) {
         $q->whereBetween('record_date', $currentMonthList);
       }]);
