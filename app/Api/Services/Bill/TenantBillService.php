@@ -322,6 +322,7 @@ class TenantBillService
 
 			DB::transaction(function () use ($tenant, $billDetails, $month, $billDay, $user) {
 
+				Log::info("生成账单开始" . $billDay);
 				foreach ($billDetails as $k => $v) {
 					// $tenantName = $v['tenant_name'] ?? getTenantNameById($v['tenant_id']);
 
@@ -329,7 +330,7 @@ class TenantBillService
 						// 'contract_id' => ,
 						'tenant_id'   => $v['tenant_id'],
 						'amount'      => $v['totalAmt'] - $v['discountAmt'],
-						'charge_date' => date('Y') . '-' . $month . '-' . $billDay,
+						'charge_date' => $billDay,
 						'proj_id'     => $tenant['proj_id'],
 						'tenant_name' => $tenant['name'],
 						'bill_no'     => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
