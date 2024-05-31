@@ -395,8 +395,8 @@ class YhWorkOrderController extends BaseController
     }
 
     $res = $this->workService->processWorkOrder($DA, $this->user);
-    $attrService = new AttachmentService;
-    $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::YhWorkOrder, $this->user);
+    // $attrService = new AttachmentService;
+    // $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::YhWorkOrder, $this->user);
     return  $res ? $this->success('工单处理成功。') : $this->error('工单处理失败！');
   }
 
