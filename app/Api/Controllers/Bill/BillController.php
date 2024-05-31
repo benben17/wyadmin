@@ -197,6 +197,10 @@ class BillController extends BaseController
       })->get();
 
       $billDay = $request->bill_month . '-' . $request->bill_day;
+      # 验证日期是否正确
+      if (!strtotime($billDay)) {
+        $billDay = date('Y-m-d', strtotime($request->bill_month . ($billDay - 5)));
+      }
       $billCount = 0;
       $msg = "";
 
