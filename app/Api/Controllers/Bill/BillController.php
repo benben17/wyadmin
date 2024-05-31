@@ -196,11 +196,9 @@ class BillController extends BaseController
         $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
       })->get();
 
-      $billDay = $request->bill_month . '-' . $request->bill_day;
-      # 验证日期是否正确
-      if (!strtotime($billDay)) {
-        $billDay = date('Y-m-d', strtotime($request->bill_month . ($billDay - 5)));
-      }
+      // 如果账单日大于28号，则取28号
+      $billDay = $request->bill_month . '-' . ($request->bill_day > 28 ? 28 : $request->bill_day);
+
       $billCount = 0;
       $msg = "";
 
