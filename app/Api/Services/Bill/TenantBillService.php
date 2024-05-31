@@ -329,7 +329,7 @@ class TenantBillService
 						// 'contract_id' => ,
 						'tenant_id'   => $v['tenant_id'],
 						'amount'      => $v['totalAmt'] - $v['discountAmt'],
-						'charge_date' => $billDay,
+						'charge_date' => date('Y') . '-' . $month . '-' . $billDay,
 						'proj_id'     => $tenant['proj_id'],
 						'tenant_name' => $tenant['name'],
 						'bill_no'     => date('Ymd', strtotime($billDay)) . mt_rand(1000, 9999),
