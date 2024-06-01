@@ -458,8 +458,8 @@ class EquipmentController extends BaseController
     ]);
     $DA = $request->toArray();
     try {
-      $maintainId = $this->equipment->saveEquipmentMaintain($DA, $this->user);
-      $this->equipment->updateMaintainPlan($maintainId);
+      $this->equipment->saveEquipmentMaintain($DA, $this->user);
+      // $this->equipment->updateMaintainPlan($maintainId);
 
 
       // $attrService = new AttachmentService;
@@ -513,8 +513,8 @@ class EquipmentController extends BaseController
       $DA = $request->toArray();
       $this->equipment->saveEquipmentMaintain($DA, $this->user);
 
-      $attrService = new AttachmentService;
-      $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::EquipmentMaintain, $this->user);
+      // $attrService = new AttachmentService;
+      // $attrService->saveAttachment($DA['attachment'], $DA['id'], AppEnum::EquipmentMaintain, $this->user);
       return $this->success('设备维护更新成功。');
     } catch (Exception $e) {
       return $this->error('设备维护更新失败！' . $e->getMessage());

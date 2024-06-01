@@ -122,7 +122,7 @@ class EquipmentService
   {
     try {
       DB::transaction(function () use ($maintainId, $oldMaintainQuantity) {
-        $maintain = $this->maintainModel()->find($maintainId);
+        $maintain = $this->maintainModel()->find($maintainId)->toArray();
 
         $maintainPlan = $this->MaintainPlanModel()->find($maintain['plan_id']);
         if (!$maintainPlan) {
@@ -176,6 +176,7 @@ class EquipmentService
       if (!$equipment) {
         return false;
       }
+      $oldQuantity = 0;
       if (isset($DA['id']) && $DA['id'] > 0) {
         $maintain = $this->maintainModel()->find($DA['id']);
         $oldQuantity = $maintain->maintain_quantity;
@@ -204,11 +205,12 @@ class EquipmentService
       $maintain->pic               = isset($DA['pic']) ? $DA['pic'] : $equipment['pic'];
       $maintain->save();
       // 更新维护计划
-      if (isset($DA['id']) && $DA['id'] > 0) {
-        $this->updateMaintainPlan($DA['id'], $oldQuantity);
-      }
+      $maintainId = $maintain->id;
+      $this->updateMaintainPlan($maintainId, $oldQuantity);
+
       return $maintain->id;
     } catch (Exception $e) {
+      throw new Exception($e->getMessage());
       Log::error($e->getMessage());
       return false;
     }
