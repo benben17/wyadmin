@@ -2,6 +2,7 @@
 
 namespace App\Api\Controllers\Bill;
 
+use Exception;
 use App\Enums\ChargeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -354,51 +355,41 @@ class ChargeController extends BaseController
 		}
 	}
 
-	// /**
-	//  * 单个核销
-	//  *
-	//  * @Author leezhua
-	//  * @DateTime 2024-03-05
-	//  * @param Request $request
-	//  *
-	//  * @return void
-	//  */
-	// public function chargeWriteOffOne(Request $request)
-	// {
-	// 	try {
-	// 		$validatedData = $request->validate([
-	// 			'id' => 'required',
-	// 			'bill_detail_id' => 'required|gt:0',
-	// 		]);
 
-	// 		$verifyDate = $request->verify_date ?? nowYmd();
+	public function incomeToDeposit(Request $request)
+	{
+		try {
+			$validatedData = $request->validate([
+				'id' => 'required',
+				'bill_detail_id' => 'required|gt:0',
+			]);
 
-	// 		$charge = $this->chargeService->model()
-	// 			->where('id', $request->id)
-	// 			->where('status', ChargeEnum::chargeUnVerify)
-	// 			->firstOrFail();
+			$toDepositDate = $request->toDate ?? nowYmd();
 
-	// 		$billDetailService = new TenantBillService;
-	// 		$billDetail = $billDetailService->billDetailModel()
-	// 			->where('id', $request->bill_detail_id)
-	// 			->where('status', ChargeEnum::chargeUnVerify)
-	// 			->first();
+			$charge = $this->chargeService->model()
+				->where('id', $request->id)
+				->where('status', ChargeEnum::chargeUnVerify)
+				->firstOrFail();
 
-	// 		if ($billDetail->isEmpty()) {
-	// 			return $this->error("未找到应收记录");
-	// 		}
+			$billDetailService = new TenantBillService;
+			$billDetail = $billDetailService->billDetailModel()
+				->where('id', $request->bill_detail_id)
+				->where('status', ChargeEnum::chargeUnVerify)
+				->first();
 
-	// 		$writeOffRes = $this->chargeService->detailBillListWriteOffOne($billDetail, $charge, $verifyDate, $this->user);
+			if ($billDetail->isEmpty()) {
+				return $this->error("未找到应收记录");
+			}
 
-	// 		return $writeOffRes
-	// 			? $this->success("核销成功")
-	// 			: $this->error("核销失败");
-	// 	} catch (ValidationException $e) {
-	// 		return $this->error($e->validator->errors()->first());
-	// 	} catch (\Exception $e) {
-	// 		return $this->error("发生错误：" . $e->getMessage());
-	// 	}
-	// }
+			$toDepositResult = $this->chargeService->incomeToDeposit($billDetail->toArray(), $charge->toArray(), $toDepositDate, $this->user);
+
+			return $toDepositResult
+				? $this->success("转押金成功")
+				: $this->error("转押金失败");
+		} catch (\Exception $e) {
+			return $this->error("发生错误：" . $e->getMessage());
+		}
+	}
 
 	/**
 	 * @OA\Post(

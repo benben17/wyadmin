@@ -412,31 +412,11 @@ class DepositController extends BaseController
 		if ($depositFee['status'] != 0 || $unreceiveAmt == 0) {
 			return $this->error("此押金已经收款结清!");
 		}
-		Log::alert($unreceiveAmt . "未收金额");
+		// Log::alert($unreceiveAmt . "未收金额");
 		try {
-			$user = $this->user;
-			DB::transaction(function () use ($depositFee, $DA, $unreceiveAmt, $user) {
-				// 已收款金额+ 本次收款金额
-				$receiveAmt = $DA['amount'];
-				$totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt, 2);
-				// $unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
-				$updateData['receive_amount'] = $totalReceiveAmt;
-				// 收款金额大于未收金额
-				if ($receiveAmt > $unreceiveAmt) {
-					throw new Exception("收款金额不允许大于未收金额!");
-				}
-				// 应收和实际收款 相等时
-				$totalAmt = bcsub($depositFee['amount'], $depositFee['discount_amount'], 2);
-				if ($totalAmt == $totalReceiveAmt) {
-					$updateData['status'] = DepositEnum::Received;
-				}
-				$updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
-				// 保存押金流水记录
-				$this->depositService->saveDepositRecord($depositFee, $DA, $user);
-				// 更新 押金信息 【状态，收款金额】
-				$this->depositService->depositBillModel()->whereId($DA['id'])->update($updateData);
-			}, 2);
 
+
+			$this->depositService->depositReceive($depositFee, $DA, $unreceiveAmt, $this->user);
 			return $this->success("押金收款【" . $DA['amount'] . "元】 成功.");
 		} catch (Exception $e) {
 			return $this->error("押金收款【" . $DA['amount'] . "元 】失败!" . $e->getMessage());
@@ -481,39 +461,58 @@ class DepositController extends BaseController
 		]);
 		$DA = $request->toArray();
 		DB::enableQueryLog();
-		$depositBill = $this->depositService->depositBillModel()
+		$depositFee = $this->depositService->depositBillModel()
 			->with('depositRecord')->find($request->id)->toArray();
 
-		if ($depositBill['status'] == 3) {
+		if ($depositFee['status'] == 3) {
 			return $this->error("已结清");
 		}
 		$DA['type'] = DepositEnum::RecordRefund;
 
 		try {
-			$user = $this->user;
-			DB::transaction(function () use ($depositBill, $DA, $user) {
-				$record = $this->depositService->formatDepositRecord($depositBill['deposit_record']);
-
-				$availableAmt = $record['available_amt'];
-				Log::error($availableAmt);
-
-				if ($availableAmt < $DA['amount']) {
-					throw new Exception("此押金可用余额小于退款金额，不可操作!");
-				}
-				if ($availableAmt > $DA['amount']) {
-					$updateData['status'] = DepositEnum::Refund; // 退款
-				} else {
-					$updateData['status'] = DepositEnum::Clear; // 已结清
-				}
-				// 插入记录
-				$this->depositService->saveDepositRecord($depositBill, $DA, $user);
-				// 更新押金信息
-				$this->depositService->depositBillModel()->where('id', $DA['id'])->update($updateData);
-			}, 2);
+			$this->depositService->depositRefund($depositFee, $DA, $this->user);
 			return $this->success("押金退款成功.");
 		} catch (Exception $e) {
 
 			return $this->error("押金退款失败！" . $e->getMessage());
+		}
+	}
+
+
+	/**
+	 * @OA\Post(
+	 *     path="/api/operation/tenant/deposit/receive/del",
+	 *     tags={"押金管理"},
+	 *     summary="押金管理收款删除",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"receiveId"},
+	 *       @OA\Property(property="receiveId",type="int",description="收款id")
+	 *     ),
+	 *       example={"receiveId":"1"}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function receiveRecordDel(Request $request)
+	{
+		$validatedData = $request->validate([
+			'receiveId' => 'required|gt:0',
+		]);
+		$receiveId = $request->receiveId;
+
+		try {
+			$this->depositService->depositReceiveDel($receiveId);
+			return $this->success("收款记录删除成功");
+		} catch (Exception $e) {
+			return $this->error($e->getMessage());
 		}
 	}
 

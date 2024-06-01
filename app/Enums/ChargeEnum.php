@@ -1,8 +1,10 @@
 <?php
 
-use FontLib\Table\Type\name;
+use Petstore30\Category;
 
 namespace App\Enums;
+
+use FontLib\Table\Type\name;
 
 class ChargeEnum extends BaseEnum
 {
@@ -12,6 +14,7 @@ class ChargeEnum extends BaseEnum
   const CategoryFee     = 1;  //费用
   const CategoryDeposit = 2;  // 押金转收入
   const CategoryRefund  = 3;  // 收入退款
+  const CategoryIncomeToDeposit  = 4;  // 收入转押金
 
 
   const chargeVerify   = 1;  //  已核销

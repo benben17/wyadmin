@@ -177,4 +177,119 @@ class DepositService
     $data['total'] = num_format($total);
     $data['stat']  = num_format($feeStat);
   }
+
+
+  /**
+   * 押金收款
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-07
+   * @param [type] $depositFee
+   * @param [type] $DA
+   * @param [type] $unreceiveAmt
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function depositReceive($depositFee, $DA, $unreceiveAmt, $user)
+  {
+    try {
+      DB::transaction(function () use ($depositFee, $DA, $unreceiveAmt, $user) {
+        // 已收款金额+ 本次收款金额
+        $receiveAmt = $DA['amount'];
+        $totalReceiveAmt = bcadd($depositFee['receive_amount'], $receiveAmt, 2);
+        // $unreceiveAmt = bcsub($depositFee['amount'], $depositFee['receive_amount']);
+        $updateData['receive_amount'] = $totalReceiveAmt;
+        // 收款金额大于未收金额
+        if ($receiveAmt > $unreceiveAmt) {
+          throw new Exception("收款金额不允许大于未收金额!");
+        }
+        // 应收和实际收款 相等时
+        $totalAmt = bcsub($depositFee['amount'], $depositFee['discount_amount'], 2);
+        if ($totalAmt == $totalReceiveAmt) {
+          $updateData['status'] = DepositEnum::Received;
+        }
+        $updateData['receive_date'] = $DA['common_date'] ?? nowYmd();
+        // 保存押金流水记录
+        $this->saveDepositRecord($depositFee, $DA, $user);
+        // 更新 押金信息 【状态，收款金额】
+        $this->depositBillModel()->whereId($DA['id'])->update($updateData);
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("押金收款失败." . $e);
+      throw new Exception("押金收款失败");
+    }
+  }
+
+  /**
+   * 押金退款
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-07
+   * @param [type] $depositFee
+   * @param [type] $DA
+   * @param [type] $user
+   *
+   * @return void
+   */
+  public function depositRefund($depositFee, $DA, $user)
+  {
+    try {
+      DB::transaction(function () use ($depositFee, $DA, $user) {
+        $record = $this->formatDepositRecord($depositFee['deposit_record']);
+        $availableAmt = $record['available_amt'];
+        // Log::error($availableAmt);
+
+        if ($availableAmt < $DA['amount']) {
+          throw new Exception("此押金可用余额小于退款金额，不可操作!");
+        }
+        if ($availableAmt > $DA['amount']) {
+          $updateData['status'] = DepositEnum::Refund; // 退款
+        } else {
+          $updateData['status'] = DepositEnum::Clear; // 已结清
+        }
+        // 插入记录
+        $this->saveDepositRecord($depositFee, $DA, $user);
+        // 更新押金信息
+        $this->depositBillModel()->where('id', $DA['id'])->update($updateData);
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("押金退款失败." . $e);
+      throw new Exception("押金退款失败");
+    }
+  }
+
+  /**
+   * 押金收款删除
+   *
+   * @Author leezhua
+   * @DateTime 2024-03-07
+   * @param [type] $receiveId
+   *
+   * @return void
+   */
+  public function depositReceiveDel($receiveId)
+  {
+    try {
+      DB::transaction(function () use ($receiveId) {
+        $record = $this->recordModel()->find($receiveId);
+        if (empty($record)) {
+          throw new Exception("收款记录不存在");
+        }
+        $DA = $this->depositBillModel()->find($record->bill_detail_id);
+        if (empty($DA)) {
+          throw new Exception("押金信息不存在");
+        }
+        $updateData = [
+          'receive_amount' => bcsub($DA->receive_amount, $record->amount, 2),
+          'status' => DepositEnum::UnReceive
+        ];
+        $this->depositBillModel()->where('id', $record->bill_detail_id)->update($updateData);
+        $record->delete();
+      }, 2);
+    } catch (Exception $e) {
+      Log::error("押金收款删除失败." . $e);
+      throw new Exception("押金收款删除失败");
+    }
+  }
 }

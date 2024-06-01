@@ -5,6 +5,7 @@ namespace App\Api\Services\Bill;
 use Exception;
 use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
+use App\Enums\DepositEnum;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\TenantBill;
@@ -215,75 +216,79 @@ class ChargeService
     }
   }
 
-  // /**
-  //  *  核销一条应收
-  //  * 共计3种情况
-  //  * 收款金额小于 应收 
-  //  * 收款金额等于应收
-  //  * 收款金额 大于应收 
-  //  *
-  //  * @Author leezhua
-  //  * @DateTime 2024-01-29
-  //  * @param array $detailBill
-  //  * @param array $chargeBill
-  //  * @param [type] $verifyDate
-  //  * @param [type] $user
-  //  *
-  //  * @return void
-  //  */
+  /**
+   * @Desc: 收入转押金
+   * @Author leezhua
+   * @Date 2024-05-31
+   * @param array $chargeBill
+   * @param array $deposit
+   * @param [type] $toDate
+   * @param [type] $user
+   * @return void
+   */
+  public function incomeToDeposit(array $chargeBill, array $deposit, $toDepositDate, $user)
+  {
+    try {
+      DB::transaction(function () use ($chargeBill, $toDepositDate, $deposit, $user) {
 
-  // public function detailBillListWriteOffOne(array $detailBill, array $chargeBill, $verifyDate, $user)
-  // {
+        $depositService = new DepositService;
+        $depositUnReceiveAmt = bcsub($deposit['amount'], $deposit['receive_amount'], 2);
+        $chargeToDepositAmt = 0;
+        $availableAmt = bcsub(bcsub($chargeBill['amount'], $chargeBill['verify_amount'], 2), $chargeBill['refund_amount'], 2);
+        if ($availableAmt >= $depositUnReceiveAmt) {
+          $$depositData['status'] = ChargeEnum::chargeVerify;
+          $chargeToDepositAmt = $depositUnReceiveAmt;
+          if ($availableAmt == $depositUnReceiveAmt) {
+            $chargeBill['status'] = ChargeEnum::chargeVerify;
+          }
+        } else {
+          $depositData['status'] = 1;
+          $chargeToDepositAmt = $chargeBill['unverify_amount'];
+          $chargeBill['status'] = ChargeEnum::chargeVerify;
+        }
+        $chargeBill['refund_amount'] = bcadd($chargeBill['verify_amount'], $chargeToDepositAmt, 2);
+        // 更新收款信息
+        $this->model()->where('id', $chargeBill['id'])->update($chargeBill);
+        // 更新押金应收
+        $depositData = [
+          'receive_amount' => $chargeToDepositAmt,
+          'receive_date'   => $toDepositDate,
+        ];
+        $billService = new TenantBillService;
+        $billService->billDetailModel()->where('id', $deposit['id'])->update($depositData);
+        // 收款转押金支出 记录
+        $chargeDeposit  = [
+          'source'      => 1, // 1 费用
+          'proj_id'     => $chargeBill['proj_id'],
+          'pay_method'  => $chargeBill['pay_method'],
+          'charge_id'   => $chargeBill['id'],
+          'tenant_id'   => $chargeBill['tenant_id'],
+          'type'        => ChargeEnum::Refund, // 支出
+          'amount'      => $chargeToDepositAmt, // 实际转出金额
+          'status'      => ChargeEnum::chargeVerify, // 已结清
+          'charge_date' => $toDepositDate, // 转出时间
+          'category'    => ChargeEnum::CategoryIncomeToDeposit,   // 收入退款;
+          'bank_id'     => $chargeBill['bank_id'],
+          'remark'      => "收入转押金"
+        ];
+        $this->save($chargeDeposit, $user);
+        // 押金收款记录
+        $depositRecord = [
+          'common_date' => $toDepositDate,
+          'amount'      => $chargeToDepositAmt,
+          'type'        => DepositEnum::RecordReceive,
+          'remark'      => "收入转押金",
+        ];
+        $depositService->saveDepositRecord($deposit, $depositRecord, $user);
+        $this->save($chargeBill, $user);
+      }, 3);
 
-
-  //   try {
-  //     DB::transaction(function () use ($detailBill, $chargeBill, $verifyDate, $user) {
-  //       $verifyAmt = $detailBill['amount'] - $detailBill['receive_amount'] - $detailBill['discount_amount'];
-
-  //       $detailBillData = [
-
-  //         'receive_date' => $verifyDate,
-  //       ];
-  //       if ($chargeBill['unverify_amount'] >= $verifyAmt) {
-  //         $detailBillData['status'] = 1;
-  //         $actVerifyAmt = $verifyAmt;
-  //         $chargeBill['unverify_amount'] = numFormat($chargeBill['unverify_amount'] - $actVerifyAmt);
-  //       } else {
-  //         $actVerifyAmt = $chargeBill['unverify_amount'];
-  //         $chargeBill['unverify_amount'] = 0;
-  //       }
-  //       // 充值账单剩余金额
-
-
-  //       $billRecord = [
-  //         'amount'      => $actVerifyAmt,
-  //         'charge_id'   => $chargeBill['id'],
-  //         'bill_detail_id' => $detailBill['id'],
-  //         'type'        => $chargeBill['type'],
-  //         'fee_type'    => $detailBill['fee_type'],
-  //         'proj_id'     => $detailBill['proj_id'],
-  //         'verify_date' => $verifyDate,
-  //       ];
-
-  //       $billService = new TenantBillService;
-  //       $billService->billDetailModel()->where('id', $detailBill['id'])->update($detailBillData);
-
-  //       $this->chargeBillRecordSave($billRecord, $user);
-
-  //       $chargeBill['verify_amount'] = $chargeBill['verify_amount'] + $actVerifyAmt;
-
-  //       if ($chargeBill['unverify_amount'] == 0) {
-  //         $chargeBill['status'] = ChargeEnum::chargeVerify;
-  //       }
-  //       $this->save($chargeBill, $user);
-  //     }, 3);
-
-  //     return true;
-  //   } catch (\Exception $e) {
-  //     Log::error("核销失败: " . $e->getMessage());
-  //     return false;
-  //   }
-  // }
+      return true;
+    } catch (\Exception $e) {
+      Log::error("核销失败: " . $e->getMessage());
+      return false;
+    }
+  }
 
 
   /**

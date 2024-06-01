@@ -453,6 +453,8 @@ Route::group(['prefix' => 'operation/tenant'], function () {
     Route::post('deposit/refund', '\App\Api\Controllers\Bill\DepositController@refund');
 
     Route::post('deposit/record/list', '\App\Api\Controllers\Bill\DepositController@recordList');
+    // 押金收款记录删除
+    Route::post('deposit/record/del', '\App\Api\Controllers\Bill\DepositController@receiveRecordDel');
 });
 //发票
 Route::group(['prefix' => 'operation/tenant/invoice'], function () {

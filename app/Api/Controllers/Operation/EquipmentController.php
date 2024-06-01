@@ -462,9 +462,8 @@ class EquipmentController extends BaseController
       $this->equipment->updateMaintainPlan($maintainId);
 
 
-      $attrService = new AttachmentService;
-
-      $attrService->saveAttachment($DA['attachment'], $maintainId, AppEnum::EquipmentMaintain, $this->user);
+      // $attrService = new AttachmentService;
+      // $attrService->saveAttachment($DA['attachment'], $maintainId, AppEnum::EquipmentMaintain, $this->user);
       return $this->success('设备维护保存成功。');
     } catch (Exception $e) {
       return $this->error('设备维护保存失败！' . $e->getMessage());
