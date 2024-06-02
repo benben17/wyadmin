@@ -107,26 +107,33 @@ class WxStatController extends BaseController
         if (!$request->type) {
             $request->type = [1, 3]; // 1 客户列表 2 在租户 3 退租租户
         }
-        DB::enableQueryLog();
-        $resultQuery = $this->customerService->tenantModel()
-            ->where(function ($q) use ($request) {
-                $request->type && $q->whereIn('type', $request->type);
-                $request->name && $q->where('name', 'like', '%' . $request->name . '%');
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
-                $request->room_type && $q->where('room_type', $request->room_type);
-                $request->state && $q->where('state', $request->state);
-            })
-            ->with('contacts')
-            ->with('extraInfo')
-            ->has('extraInfo', function ($q) use ($request) {
-                $request->demand_area && $q->where('demand_area', $request->demand_area);
-            })
-            // ->with('customerRoom')
-            ->withCount('follow');
-        $data = $this->pageData($resultQuery, $request);
+        try {
+            DB::enableQueryLog();
 
-        return $this->success($data);
+            $resultQuery = $this->customerService->tenantModel()
+                ->where(function ($q) use ($request) {
+                    $request->type && $q->whereIn('type', $request->type);
+                    $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+                    $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                    $request->belong_uid && $q->where('belong_uid', $request->belong_uid);
+                    $request->room_type && $q->where('room_type', $request->room_type);
+                    $request->state && $q->where('state', $request->state);
+                })
+
+                ->with('contacts')
+                ->with('extraInfo')
+                ->whereHas('extraInfo', function ($q) use ($request) {
+                    $request->demand_area && $q->where('demand_area', $request->demand_area);
+                })
+                // ->with('customerRoom')
+                ->withCount('follow');
+
+            $data = $this->pageData($resultQuery, $request);
+
+            return $this->success($data);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
     /**

@@ -236,17 +236,17 @@ class ChargeService
         $chargeToDepositAmt = 0;
         $availableAmt = bcsub(bcsub($chargeBill['amount'], $chargeBill['verify_amount'], 2), $chargeBill['refund_amount'], 2);
         if ($availableAmt >= $depositUnReceiveAmt) {
-          $$depositData['status'] = ChargeEnum::chargeVerify;
-          $chargeToDepositAmt = $depositUnReceiveAmt;
+          $depositData['status'] = ChargeEnum::chargeVerify;  //押金状态
+          $chargeToDepositAmt = $depositUnReceiveAmt;  // 实际核销金额
           if ($availableAmt == $depositUnReceiveAmt) {
-            $chargeBill['status'] = ChargeEnum::chargeVerify;
+            $chargeBill['status'] = ChargeEnum::chargeVerify; // 收款状态
           }
         } else {
-          $depositData['status'] = 1;
-          $chargeToDepositAmt = $chargeBill['unverify_amount'];
-          $chargeBill['status'] = ChargeEnum::chargeVerify;
+          $depositData['status'] = ChargeEnum::chargeUnVerify; // 应收押金未结清
+          $chargeToDepositAmt = $availableAmt; // 实际核销金额
+          $chargeBill['status'] = ChargeEnum::chargeVerify;   // 收款状态
         }
-        $chargeBill['refund_amount'] = bcadd($chargeBill['verify_amount'], $chargeToDepositAmt, 2);
+        $chargeBill['refund_amount'] = bcadd($chargeBill['refund_amount'], $chargeToDepositAmt, 2);
         // 更新收款信息
         $this->model()->where('id', $chargeBill['id'])->update($chargeBill);
         // 更新押金应收
@@ -280,7 +280,6 @@ class ChargeService
           'remark'      => "收入转押金",
         ];
         $depositService->saveDepositRecord($deposit, $depositRecord, $user);
-        $this->save($chargeBill, $user);
       }, 3);
 
       return true;

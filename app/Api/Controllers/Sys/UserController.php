@@ -63,7 +63,9 @@ class UserController extends BaseController
             ->where(function ($query) use ($user, $request) {
                 $request->input('name') && $query->where('name', 'like', '%' . $request->input('name') . '%');
                 $request->input('realname') && $query->where('realname', 'like', '%' . $request->input('realname') . '%');
-                $query->where('company_id', '=', $user->company_id);
+                $query->where('company_id', $user->company_id);
+                $request->input('is_vaild') && $query->where('is_vaild', $request->input('is_vaild'));
+                $request->depart_id && $query->where('depart_id', $request->depart_id);
                 $user->is_admin || $query->where('is_admin', 0);
             })
             ->with('depart:id,name');

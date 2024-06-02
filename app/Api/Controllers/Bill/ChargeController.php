@@ -355,7 +355,30 @@ class ChargeController extends BaseController
 		}
 	}
 
-
+	/**
+	 * @OA\Post(
+	 *     path="/api/operation/charge/incomeToDeposit",
+	 *     tags={"收支"},
+	 *     summary="收款转押金-支出转押金",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"id","bill_detail_id"},
+	 *       @OA\Property(property="id",type="int",description="id"),
+	 *       @OA\Property(property="bill_detail_id",type="int",description="应收费用id"),
+	 *       @OA\Property(property="toDate",type="date",description="转押金日期"),
+	 *     ),
+	 *       example={"id":"1","bill_detail_id":"1","toDate":""}
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
 	public function incomeToDeposit(Request $request)
 	{
 		try {
