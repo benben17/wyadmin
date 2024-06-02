@@ -103,7 +103,7 @@ class ChannelController extends BaseController
                 $request->channel_name && $q->where('channel_name', 'like', '%' . $request->channel_name . '%');
                 $request->channel_type && $q->where('channel_type', $request->channel_type);
                 if ($request->proj_ids) {
-                    $q->whereRaw(" (proj_ids = '' or find_in_set('" . $request->proj_ids . "',proj_ids))");
+                    $q->whereRaw(" (proj_ids = '' or find_in_set(?,proj_ids))", $request->proj_ids);
                 }
                 $request->c_uid && $q->where('c_uid', $request->c_uid);
                 $request->start_time && $q->where('created_at', '>=', $request->start_time);
