@@ -213,7 +213,7 @@ class BuildingRoomController extends BaseController
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            // 'proj_id' =>'required|min:1',
+            'proj_id' => 'required|min:1',
             'build_id' => 'required|numeric|gt:0',
             'floor_id' => 'required|numeric|gt:0',
             'room_no' => 'required|String|min:1',
