@@ -367,7 +367,7 @@ class ChannelController extends BaseController
             DB::transaction(function () use ($request) {
                 $channelId = $request->id;
                 $channelData = $request->toArray();
-                // $userInfo = $this->user;
+                $userInfo = $this->user;
                 $userInfo['parent_type'] = AppEnum::Channel;
                 $channel = $this->channelService->formatChannel($channelData, $userInfo, 2); //编辑传入值
                 //更新渠道
