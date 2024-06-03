@@ -38,15 +38,15 @@ class CusClueService
 			$cusClue->company_id = $user->company_id;
 			$cusClue->c_uid = $user->id;
 		}
-		$cusClue->proj_id = isset($DA['proj_id']) ? $DA['proj_id'] : 0;
-		$cusClue->tenant_id = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
-		$cusClue->name = isset($DA['name']) ? $DA['name'] : "";
-		$cusClue->clue_type = $DA['clue_type'];
-		$cusClue->clue_time = isset($DA['clue_time']) ? $DA['clue_time'] : nowTime();
-		$cusClue->phone = isset($DA['phone']) ? $DA['phone'] : "";
+		$cusClue->proj_id     = isset($DA['proj_id']) ? $DA['proj_id'] : 0;
+		$cusClue->tenant_id   = isset($DA['tenant_id']) ? $DA['tenant_id'] : 0;
+		$cusClue->name        = isset($DA['name']) ? $DA['name'] : "";
+		$cusClue->clue_type   = $DA['clue_type'];
+		$cusClue->clue_time   = isset($DA['clue_time']) ? $DA['clue_time'] : nowTime();
+		$cusClue->phone       = isset($DA['phone']) ? $DA['phone'] : "";
 		$cusClue->demand_area = isset($DA['demand_area']) ? $DA['demand_area'] : "";
-		$cusClue->status = isset($DA['status']) ? $DA['status'] : 1;
-		$cusClue->remark = isset($DA['remark']) ? $DA['remark'] : "";
+		$cusClue->status      = isset($DA['status']) ? $DA['status'] : 1;
+		$cusClue->remark      = isset($DA['remark']) ? $DA['remark'] : "";
 		$res = $cusClue->save();
 		return $res;
 	}
