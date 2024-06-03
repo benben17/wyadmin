@@ -354,12 +354,12 @@ class BuildingRoomController extends BaseController
     {
         $validatedData = $request->validate([
             'Ids' => 'required|array',
-            'is_vaild' => 'required|numeric|in:0,1',
+            'is_valid' => 'required|numeric|in:0,1',
         ], [
             'Ids.required' => '房源ID不能为空',
-            'is_vaild.required' => '启用禁用状态不能为空',
+            'is_valid.required' => '启用禁用状态不能为空',
         ]);
-        $data['is_vaild'] = $request->is_vaild;
+        $data['is_valid'] = $request->is_valid;
         $res = $this->buildRoomService->buildingRoomModel()->whereIn('id', $request->Ids)->update($data);
         if ($res) {
             return $this->success('房源删除成功');
