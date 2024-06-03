@@ -64,7 +64,7 @@ class BuildingRoomController extends BaseController
 
         if ($request->build_id) {
             $map['build_id'] = $request->build_id;
-            if ($request->build_floor_id) {
+            if ($request->floor_id) {
                 $map['floor_id'] = $request->floor_id;
             }
         }
@@ -96,6 +96,7 @@ class BuildingRoomController extends BaseController
             })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no');
+
 
         $data = $this->pageData($subQuery, $request);
         if ($request->export) {
