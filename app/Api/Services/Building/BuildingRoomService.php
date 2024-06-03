@@ -29,6 +29,7 @@ class BuildingRoomService
     }
     $BA['room_type']         = 1;
     $BA['company_id']        = $user['company_id'];
+    $BA['proj_id']           = $DA['proj_id'];
     $BA['build_id']          = $DA['build_id'];
     $BA['floor_id']          = $DA['floor_id'];
     $BA['room_no']           = $DA['room_no'];
