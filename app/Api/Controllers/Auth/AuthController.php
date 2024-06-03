@@ -80,6 +80,7 @@ class AuthController extends BaseController
             'username' => $user->name,
             'is_admin' => $user->is_admin,
             'phone'    => $user->phone,
+            'realname' => $user->realname,
             'is_bind'  => $isBind,
             'role_id'  => $user->role_id
         ];
