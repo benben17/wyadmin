@@ -90,6 +90,7 @@ class CustomerController extends BaseController
                 $request->room_type && $q->where('room_type', $request->room_type);
                 $request->source_type && $q->where('source_type', $request->source_type);
                 $request->industry && $q->where('industry', $request->industry);
+                $request->channel_type && $q->where('channel_type', $request->channel_type);
                 $q->where('parent_id', 0);
                 $request->state && $q->where('state', $request->state);
                 $visitTimes = $request->visit_time;

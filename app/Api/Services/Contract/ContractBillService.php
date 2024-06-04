@@ -256,7 +256,7 @@ class ContractBillService
     // $startDate = $DA['startDate'];
     $freeType = $DA['free_type'];
     $ceil = ceil($rule['lease_term'] / $period);
-    Log::error($ceil . "aaa" . $DA['lease_term']);
+    // Log::error($ceil . "aaa" . $DA['lease_term']);
     $bill = array();
     $remark = "";
     for ($i = 0; $i <= $ceil; $i++) {
