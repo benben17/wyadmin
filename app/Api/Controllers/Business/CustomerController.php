@@ -106,8 +106,8 @@ class CustomerController extends BaseController
 
                 return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
             });
-        $result = $subQuery
-            ->with('channel:channel_name,channel_type,id')
+        $resultQuery = clone $subQuery;
+        $result = $resultQuery->with('channel:channel_name,channel_type,id')
             // ->with('contacts')
             ->with('contactInfo')
             ->with('extraInfo')
