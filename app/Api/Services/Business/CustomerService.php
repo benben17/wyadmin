@@ -244,13 +244,13 @@ class CustomerService
         $tenant->c_uid = $user->id;
         $tenant->state = $DA['state'];
         $tenant->company_id = $user['company_id'];
+        $tenant->depart_id  = getDepartIdByUid($user['id']);
         $tenant->type = 1;
       } else {
         $tenant = $this->tenantModel()->find($DA['id']);
         $tenant->u_uid = $user->uid;
       }
       $tenant->name            = $DA['name'];
-      $tenant->depart_id       = getDepartIdByUid($user['id']);
       $tenant->source_type     = isset($DA['source_type']) ? $DA['source_type'] : "";
       $tenant->room_type       = isset($DA['room_type']) ? $DA['room_type'] : 1;
       $tenant->proj_id         = isset($DA['proj_id']) ? $DA['proj_id'] : 0;
