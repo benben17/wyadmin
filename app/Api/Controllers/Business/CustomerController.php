@@ -484,7 +484,7 @@ class CustomerController extends BaseController
         $data['business_info'] = $businessInfo;
         $data['source_type_label'] = getDictName($data['source_type']);
         $data['channel_name'] = $data['channel']['channel_name'] ?? "";
-        $data['channel_type'] = $data['channel']['channel_type'] ?? "";
+        // $data['channel_type'] = $data['channel']['channel_type'] ?? "";
         return $this->success($data);
     }
 
