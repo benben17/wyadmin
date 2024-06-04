@@ -107,17 +107,17 @@ class CustomerService
           $follow->company_id = $user['company_id'];
           $follow->tenant_id = $DA['tenant_id'];
         }
-        $follow->depart_id = getDepartIdByUid($user['id']);
-        $follow->proj_id = $DA['proj_id'];
-        $follow->follow_type = $DA['follow_type'];
-        $follow->state = $DA['state'];
-        $follow->follow_record = $DA['follow_record'];
-        $follow->follow_time = $DA['follow_time'];
-        $follow->contact_id = isset($DA['contact_id']) ? $DA['contact_id'] : 0;
-        $follow->contact_user = isset($DA['contact_user']) ? $DA['contact_user'] : "";
-        $follow->contact_phone = isset($DA['contact_phone']) ? $DA['contact_phone'] : "";
-        $follow->loss_reason = isset($DA['loss_reason']) ? $DA['loss_reason'] : "";
-        $follow->c_uid = $user['id'];
+        $follow->depart_id       = getDepartIdByUid($user['id']);
+        $follow->proj_id         = $DA['proj_id'];
+        $follow->follow_type     = $DA['follow_type'];
+        $follow->state           = $DA['state'];
+        $follow->follow_record   = $DA['follow_record'];
+        $follow->follow_time     = $DA['follow_time'];
+        $follow->contact_id      = isset($DA['contact_id']) ? $DA['contact_id'] : 0;
+        $follow->contact_user    = isset($DA['contact_user']) ? $DA['contact_user'] : "";
+        $follow->contact_phone   = isset($DA['contact_phone']) ? $DA['contact_phone'] : "";
+        $follow->loss_reason     = isset($DA['loss_reason']) ? $DA['loss_reason'] : "";
+        $follow->c_uid           = $user['id'];
         $follow->follow_username = $user['realname'];
         if (isset($DA['next_date']) && $DA['next_date']) {
           $follow->next_date = $DA['next_date'];
@@ -138,6 +138,24 @@ class CustomerService
     } catch (Exception $e) {
       Log::error($e->getMessage());
       return false;
+    }
+  }
+
+
+  public function customerSaveFollowSave($customer, $user)
+  {
+    try {
+      $BA['tenant_id']  = $customer['id'];
+      $BA['company_id'] = $customer['company_id'];
+      $BA['proj_id']    = $customer['proj_id'];
+      $BA['follow_type'] = $customer['follow_type'];
+      $BA['follow_type'] = AppEnum::followVisit;
+      $BA['state'] = $customer['state'];
+      $BA['follow_record'] = "首访";
+      $BA['follow_time'] = $customer['created_at'];
+      $this->saveFollow($BA, $user);
+    } catch (\Throwable $th) {
+      throw new Exception($th->getMessage());
     }
   }
 

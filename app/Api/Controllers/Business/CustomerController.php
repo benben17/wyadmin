@@ -7,6 +7,7 @@ use JWTAuth;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Follow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Business\CusClue;
@@ -198,9 +199,10 @@ class CustomerController extends BaseController
             DB::transaction(function () use ($DA) {
                 $user = auth('api')->user();
                 // DB::enableQueryLog();
-                $res = $this->customerService->saveTenant($DA, $user);
+                $customer = $this->customerService->saveTenant($DA, $user);
+
                 //写入联系人
-                $parent_id = $res->id;
+                $parent_id = $customer->id;
                 $cusExtra = $this->customerService->formatCusExtra($DA['extra_info']);
                 $cusExtra['tenant_id'] = $parent_id;
                 $cusExtra['c_uid'] = $this->uid;
@@ -242,9 +244,9 @@ class CustomerController extends BaseController
                     $clueService = new CusClueService;
                     $clueService->changeStatus($DA['clue_id'], 2, $parent_id);
                 }
-
+                $this->customerService->customerSaveFollowSave($customer, $user);
                 //插入日志
-                $cusLog['content'] = $user['realname'] . "创建客户【" . $res->name . '】';
+                $cusLog['content'] = $user['realname'] . "创建客户【" . $customer->name . '】';
                 $cusLog['tenant_id'] = $parent_id;
                 $this->customerService->saveTenantLog($cusLog, $user);
             });
