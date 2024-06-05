@@ -181,7 +181,7 @@ class CustomerController extends BaseController
         $validatedData = $request->validate([
             'type' => 'required|in:1,2',
             'name' => 'required|String|max:64',
-            'channel_id' => 'required|numeric|gt:0',
+            // 'channel_id' => 'required|numeric|gt:0',
             'contacts' => 'array',
             'extra_info' => 'array',
             'tenant_rooms' => 'array'
