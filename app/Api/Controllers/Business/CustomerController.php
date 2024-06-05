@@ -18,6 +18,7 @@ use App\Api\Controllers\BaseController;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Business\CusClueService;
 use App\Api\Services\Business\CustomerService;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Models\Common\Contact as ContactModel;
 
 /**
@@ -618,7 +619,9 @@ class CustomerController extends BaseController
         if ($count > 0) {
             return $this->error('请先删除子客户');
         }
-        $contractCount = $this->customerService->tenantModel()->where('tenant_id', $id)->count();
+        $contractService = new ContractService;
+        $contractCount = $contractService->model()->where('tenant_id', $id)
+            ->where('contract_state', '!=', AppEnum::contractCancel)->count();
         if ($contractCount > 0) {
             return $this->error('客户有合同，不能删除');
         }
