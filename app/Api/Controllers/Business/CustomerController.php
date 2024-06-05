@@ -218,7 +218,7 @@ class CustomerController extends BaseController
                 }
                 // 房间
                 if (!empty($DA['tenant_rooms']) && $DA['tenant_rooms']) {
-                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $res->id, $DA['room_type']);
+                    $roomList = $this->customerService->formatCustomerRoom($DA['tenant_rooms'], $customer->id, $DA['room_type']);
                     $rooms = new TenantRoom;
                     $rooms->addAll($roomList);
                 }
