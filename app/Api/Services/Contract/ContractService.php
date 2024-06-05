@@ -568,6 +568,21 @@ class ContractService
     }
   }
 
+  // 退租处理 更新房源信息
+  public function roomUpdateLeaseBack(int $contractId)
+  {
+    try {
+      $contractRoomIds = $this->contractRoomModel()->where('contract_id', $contractId)->pluck('room_id')->toArray();
+      $roomService = new BuildingService;
+      $roomIds = [];
+      if (sizeof($contractRoomIds) > 0) {
+        $roomService->updateRoomState($roomIds, 1);
+      }
+    } catch (Exception $e) {
+      Log::error("更新房间状态失败，详细信息：" . $e->getMessage());
+      throw new Exception("更新房间状态失败");
+    }
+  }
 
   /**
    * 合同变更老账单处理 处理合同中的费用账单以及 租户表中的账单信息

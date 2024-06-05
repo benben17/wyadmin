@@ -4,6 +4,7 @@ namespace App\Api\Services\Tenant;
 
 use Exception;
 use App\Enums\AppEnum;
+use App\Api\Models\BuildingRoom;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
@@ -47,6 +48,8 @@ class LeasebackService
         }
         // 更新租户状态
         $contractService = new ContractService;
+        // 更新房源信息
+        $contractService->roomUpdateLeaseBack($contract->id);
         // $data['on_rent'] = 0;
         $tenantService = new TenantService;
         // 更新合同状态
@@ -78,9 +81,9 @@ class LeasebackService
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
         }
         // 处理租户应收
+        $this->processTenantFee($DA['fee_list']);∂
 
-        $this->processTenantFee($DA['fee_list']);
-
+        
         // $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
         $this->sendMsg($contract->tenant_name . '租户退租', $msgContent, $user);

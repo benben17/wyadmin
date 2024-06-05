@@ -6,6 +6,7 @@ use JWTAuth;
 use Exception;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
+use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -357,5 +358,58 @@ class TenantController extends BaseController
                 ->where('parent_id', $data['id'])->get();
         }
         return $this->success($data);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/customer/del",
+     *     tags={"租户"},
+     *     summary="删除客户",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *       @OA\Property(property="id",type="int",description="客户id")
+     *     ),
+     *       example={"id":1}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function delete(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|numeric|min:1',
+        ]);
+        $id = $request->id;
+        $tenant = $this->tenantService->tenantModel()->find($id);
+        if (!$tenant) {
+            return $this->error('客户不存在');
+        }
+        if ($tenant->on_rent == 1) {
+            return $this->error('客户在租中，不能删除');
+        }
+        $count = $this->tenantService->tenantModel()->where('parent_id', $id)->count();
+        if ($count > 0) {
+            return $this->error('请先删除子客户');
+        }
+        $contractCount = $this->contractService->model()->where('tenant_id', $id)->count;
+        if ($contractCount > 0) {
+            return $this->error('客户有合同，不能删除');
+        }
+        try {
+            $this->tenantService->tenantModel()->where('id', $id)->delete();
+            Follow::where('parent_id', $id)->delete();
+            return $this->success('客户删除成功');
+        } catch (Exception $e) {
+            Log::error("删除客户失败" . $e);
+            return $this->error('客户删除失败');
+        }
     }
 }
