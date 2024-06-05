@@ -618,7 +618,7 @@ class CustomerController extends BaseController
         if ($count > 0) {
             return $this->error('请先删除子客户');
         }
-        $contractCount = $this->customerService->tenantModel()->where('tenant_id', $id)->count;
+        $contractCount = $this->customerService->tenantModel()->where('tenant_id', $id)->count();
         if ($contractCount > 0) {
             return $this->error('客户有合同，不能删除');
         }
