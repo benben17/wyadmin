@@ -284,4 +284,38 @@ class CusFollowController extends BaseController
     $data = $this->customerService->followModel()->find($request->id);
     return $this->success($data);
   }
+
+  /**
+   * @OA\Post(
+   *     path="/api/business/customer/follow/del",
+   *     tags={"客户"},
+   *     summary="跟进记录删除",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"id"},
+   *       @OA\Property(property="id",type="int",description="跟进记录ID")
+   *     ),
+   *       example={"id": ""}
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function delete(Request $request)
+  {
+    $validatedData = $request->validate([
+      'id' => 'required|numeric|gt:0',
+    ]);
+    $res = $this->customerService->followModel()->whereId($request->id)->delete();
+    if ($res) {
+      return $this->success('跟进记录删除成功。');
+    }
+    return $this->error('跟进记录删除失败');
+  }
 }

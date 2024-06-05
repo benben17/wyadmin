@@ -215,6 +215,7 @@ Route::group(['prefix' => 'business/customer'], function () {
     Route::post('follow/add', '\App\Api\Controllers\Business\CusFollowController@store');
     Route::post('follow/edit', '\App\Api\Controllers\Business\CusFollowController@update');
     Route::post('follow/show', '\App\Api\Controllers\Business\CusFollowController@show');
+    Route::post('follow/del', '\App\Api\Controllers\Business\CusFollowController@delete');
 });
 // 招商合同管理
 Route::group(['prefix' => 'business/contract'], function () {
