@@ -577,4 +577,58 @@ class CustomerController extends BaseController
         }
         return $this->error('公司工商信息编辑失败！');
     }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/business/customer/del",
+     *     tags={"租户"},
+     *     summary="删除客户",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *       @OA\Property(property="id",type="int",description="客户id")
+     *     ),
+     *       example={"id":1}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function delete(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|numeric|min:1',
+        ]);
+        $id = $request->id;
+        $tenant = $this->customerService->tenantModel()->find($id);
+        if (!$tenant) {
+            return $this->error('客户不存在');
+        }
+        if ($tenant->on_rent == 1) {
+            return $this->error('客户在租中，不能删除');
+        }
+        $count = $this->customerService->tenantModel()->where('parent_id', $id)->count();
+        if ($count > 0) {
+            return $this->error('请先删除子客户');
+        }
+        $contractCount = $this->customerService->tenantModel()->where('tenant_id', $id)->count;
+        if ($contractCount > 0) {
+            return $this->error('客户有合同，不能删除');
+        }
+        try {
+            $this->customerService->tenantModel()->where('id', $id)->delete();
+            Follow::where('parent_id', $id)->delete();
+            return $this->success('客户删除成功');
+        } catch (Exception $e) {
+            Log::error("删除客户失败" . $e);
+            return $this->error('客户删除失败');
+        }
+    }
 }

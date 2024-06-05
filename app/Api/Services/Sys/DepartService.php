@@ -2,11 +2,11 @@
 
 namespace App\Api\Services\Sys;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Exception;
-use App\Models\Depart;
 use App\Models\User;
+use App\Models\Depart;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 部门管理
@@ -125,10 +125,13 @@ class DepartService
     foreach ($data as $k => &$v) {
       $v['id'] = $v['id'];
       $v['label'] = $v['name'];
+      $v['title'] = $v['name'];
       $children = $this->getDepartSelect($v['id']);
       if (!$children) {
+        $v['expand'] = false;
         continue;
       }
+      $v['expand'] = true;
       $v['children'] = $children;
     }
     return $data;
