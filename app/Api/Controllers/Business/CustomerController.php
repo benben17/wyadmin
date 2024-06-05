@@ -627,7 +627,7 @@ class CustomerController extends BaseController
         }
         try {
             $this->customerService->tenantModel()->where('id', $id)->delete();
-            Follow::where('parent_id', $id)->delete();
+            Follow::where('tenant_id', $id)->delete();
             return $this->success('客户删除成功');
         } catch (Exception $e) {
             Log::error("删除客户失败" . $e);
