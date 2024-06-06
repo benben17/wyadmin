@@ -230,7 +230,7 @@ class BuildingRoomController extends BaseController
         }
         $checkRoom = $this->buildRoomService->buildingRoomModel()->where($map)->exists();
         if ($checkRoom) {
-            return $this->error('房源重复');
+            return $this->error('【' . $request->room_no . '】房源重复');
         }
         $data = $request->toArray();
         $room = $this->buildRoomService->formatRoom($data, $this->user);
@@ -305,7 +305,7 @@ class BuildingRoomController extends BaseController
             ->where('id', '!=', $request->id)
             ->exists();
         if ($checkRoom) {
-            return $this->error('房源重复');
+            return $this->error('【' . $request->room_no . '】房源重复');
         }
         $data = $request->toArray();
         $room = $this->buildRoomService->formatRoom($data, $this->user, 2);
