@@ -362,8 +362,9 @@ class BuildingRoomController extends BaseController
         $data['is_valid'] = $request->is_valid;
         $res = $this->buildRoomService->buildingRoomModel()->whereIn('id', $request->Ids)->update($data);
         if ($res) {
-            return $this->success('房源删除成功');
+
+            return $this->success('房源启用禁用成功');
         }
-        return $this->error('房源删除失败');
+        return $this->error('房源启用禁用');
     }
 }
