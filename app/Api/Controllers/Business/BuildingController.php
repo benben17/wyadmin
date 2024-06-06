@@ -558,8 +558,14 @@ class BuildingController extends BaseController
         // $map['company_id'] = $this->company_id;
 
         $data = FloorModel::with('building')
-            ->withCount('floorRoom')
-            ->with('floorRoom')
+            ->withCount(['floorRoom' => function ($q) {
+                $q->where('room_type', 1);
+                $q->where('is_valid', 1);
+            }])
+            ->with(['floorRoom' => function ($q) {
+                $q->where('room_type', 1);
+                $q->where('is_valid', 1);
+            }])
             ->where(function ($q) use ($request) {
                 $request->floor_no && $q->where('floor_no', 'like', $request->floor_no);
             })
