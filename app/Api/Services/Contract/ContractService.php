@@ -414,6 +414,23 @@ class ContractService
     // }
   }
 
+  public function getTenantNameFromRoomId($roomId)
+  {
+    $data = ContractModel::select('tenant_id')
+      ->whereHas('contractRoom', function ($q) use ($roomId) {
+        $q->where('room_id', $roomId);
+        $q->where('contract_state', AppEnum::contractExecute);
+      })
+      ->with(['tenant' => function ($query) {
+        $query->select('id', 'name');
+      }])
+      ->first();
+    if ($data) {
+      return $data->tenant->name ?? "";
+    } else {
+      return "";
+    }
+  }
 
   /** 发送通知消息 */
   private function sendMsg($title, $content, $user, $receiveUid = 0)
