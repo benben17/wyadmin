@@ -97,8 +97,8 @@ class BuildingRoomController extends BaseController
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no');
 
-
-        $data = $this->pageData($subQuery, $request);
+        $pageQuery = clone $subQuery;
+        $data = $this->pageData($pageQuery, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
@@ -221,7 +221,7 @@ class BuildingRoomController extends BaseController
         ], $this->errorMsg);
         // $map['proj_id'] = $request->proj_id;
         $map['build_id'] = $request->build_id;
-        $map['room_no'] = $request->build_room_no;
+        $map['room_no'] = $request->room_no;
         $map['floor_id'] = $request->floor_id;
 
         $building = $this->buildRoomService->buildingModel()->whereId($request->build_id)->exists();
@@ -297,7 +297,7 @@ class BuildingRoomController extends BaseController
 
         // $map['proj_id'] = $request->proj_id;
         $map['build_id'] = $request->build_id;
-        $map['room_no'] = $request->build_room_no;
+        $map['room_no'] = $request->room_no;
         $map['floor_id'] = $request->floor_id;
         $map['room_type'] = $request->room_type;
 
