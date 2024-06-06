@@ -83,7 +83,7 @@ class BuildingRoomController extends BaseController
         if ($request->room_trim_state) {
             $map['room_trim_state'] = $request->room_trim_state;
         }
-        $map['is_valid'] = 1;
+
 
         DB::enableQueryLog();
         $subQuery = $this->buildRoomService->buildingRoomModel()->where($map)
