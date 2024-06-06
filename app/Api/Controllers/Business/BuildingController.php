@@ -588,7 +588,7 @@ class BuildingController extends BaseController
                 ];
 
                 if ($v1->room_state === 0) {
-                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->first();
+                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->groupBy('created_at')->first();
                     $room_list['tenant_name'] = $contractRoom->contract->tenant_name ?? "";
                 }
 
