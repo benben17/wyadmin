@@ -48,12 +48,15 @@ class LeasebackService
         }
         // 更新租户状态
         $contractService = new ContractService;
-        // 更新房源信息
-        $contractService->roomUpdateLeaseBack($contract->id);
+
         // $data['on_rent'] = 0;
         $tenantService = new TenantService;
         // 更新合同状态
         $contract = $contractService->model()->find($DA['contract_id']);
+
+        // 更新房源信息
+        $contractService->roomUpdateLeaseBack($contract->id);
+
         $tenantId = $contract->tenant_id;
         $leaseback->tenant_id            = $tenantId;
         $leaseback->contract_id          = $DA['contract_id'];
