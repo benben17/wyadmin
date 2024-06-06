@@ -81,9 +81,7 @@ class LeasebackService
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
         }
         // 处理租户应收
-        $this->processTenantFee($DA['fee_list']);∂
-
-        
+        $this->processTenantFee($DA['fee_list']);
         // $shareService->model()->where('contract_id', $DA['contract_id'])->delete();
         $msgContent = $contract->tenant_name . "在" . $DA['leaseback_date'] . '完成退租';
         $this->sendMsg($contract->tenant_name . '租户退租', $msgContent, $user);
