@@ -43,55 +43,24 @@ class BuildingService
   }
 
   /**
-   * 获取楼宇统计信息
-   * @Author leezhua
-   * @Date 2024-03-31
-   * @param mixed $data 
-   * @return array 
-   */
-  public function getBuildingAllStat($data)
-  {
-    $DA = array('t_manager_area' => 0, 't_free_are' => 0, 't_room_count' => 0, 't_free_count' => 0);
-    foreach ($data as $k => $v) {
-      $DA['t_manager_area'] += $v['total_area'];
-      $DA['t_free_are']     += $v['free_area'];
-      $DA['t_room_count']   += $v['build_room_count'];
-      $DA['t_free_count']   += $v['free_room_count'];
-    }
-
-    $rentalRate = 0.00;
-    $freeRate = 0.00;
-    if ($DA['t_manager_area']) {
-      $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
-      $freeRate   = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
-    }
-
-    return array(
-      ['label' => '招商面积', 'value' => "{$DA['t_manager_area']} " . AppEnum::squareMeterUnit],
-      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']} " . AppEnum::squareMeterUnit],
-      ['label' => '总房间数', 'value' => $DA['t_room_count']],
-      ['label' => '可招商房间', 'value' => $DA['t_free_count']],
-      ['label' => '当前出租率', 'value' => "{$rentalRate} " . AppEnum::percentUnit],
-      ['label' => '当前空闲率', 'value' => "{$freeRate} " . AppEnum::percentUnit]
-    );
-  }
-
-  /**
-   * 通过项目 楼的信息查询管理面积信息
+   * 通过项目 楼的信息 查询租赁信息
    * @Author   leezhua
    * @DateTime 2020-07-04
    * @param    array      $buildingWhere [description]
    * @param    array      $projWhere     [description]
    * @return   [type]                    [description]
    */
-  public function areaStat($buildingWhere = array(), $projWhere = array(), $buildIds = array())
+  public function areaStatAll(array $projIds, $buildIds)
   {
-    $room = BuildingRoomModel::where(function ($q) use ($buildingWhere, $buildIds) {
-      $buildingWhere && $q->where($buildingWhere);
+    $map['is_valid'] = 1; // 启用房间
+    $map['room_type'] = 1; // 房间
+    $room = BuildingRoomModel::where(function ($q) use ($buildIds, $map) {
+      // $buildingWhere && $q->where($buildingWhere);
       $buildIds && $q->whereIn('build_id', $buildIds);
+      $q->where($map);
     })
-      ->whereHas('building', function ($q) use ($projWhere) {
-        $projWhere && $q->whereIn('proj_id', $projWhere);
+      ->whereHas('building', function ($q) use ($projIds) {
+        $projIds && $q->whereIn('proj_id', $projIds);
       })
       ->select(DB::Raw('ifnull(sum(room_area),0) total_area,
             ifnull(sum(case room_state when 1 then room_area end),0) free_area,
@@ -130,74 +99,9 @@ class BuildingService
     }
   }
 
-  /**
-   * 格式化房源list返回数据
-   *
-   * @Author leezhua
-   * @DateTime 2021-07-19
-   * @param [type] $data
-   *
-   * @return void
-   */
-  public function formatData($data): array
-  {
-    foreach ($data as $k => &$v) {
-      $viewNum = TenantRoom::select(DB::Raw('ifnull(count(*),0) as  count'))
-        ->where('room_id', $v['id'])
-        ->first()->count;
-      $v['view_num']  = $viewNum;
-      $v['IsValid']   = $this->getIsValid($v['is_valid']);
-      $v['Status']    = $this->getStatus($v['channel_state']);
-      $v['roomState'] = $this->getRoomState($v['room_state']);
-      $v['proj_name'] = $v['building']['proj_name'];
-      $v['build_no']  = $v['building']['build_no'];
-      $v['floor_no']  = $v['floor']['floor_no'];
-      $contractService = new ContractService;
-      $v['tenant_name'] = $contractService->getTenantNameFromRoomId($v['id']);
-      // foreach ($v['pic_list'] ?? [] as $key => $val) {
-      //   $v['pic_list_full'][$key] = getOssUrl($val);
-      // }
-    }
-    return $data;
-  }
 
 
 
-  public function getIsValid($value)
-  {
-    switch ($value) {
-      case '1':
-        return '启用';
-        break;
-      case '0':
-        return '禁用';
-        break;
-    }
-  }
-
-  public function getStatus($value)
-  {
-    switch ($value) {
-      case '1':
-        return '公开';
-        break;
-      case '0':
-        return '不公开';
-        break;
-    }
-  }
-
-  public function getRoomState($value)
-  {
-    switch ($value) {
-      case '1':
-        return '可招商';
-        break;
-      case '0':
-        return '在租';
-        break;
-    }
-  }
 
   public function formatBuilding($row, $companyId)
   {

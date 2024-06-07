@@ -416,17 +416,17 @@ class ContractService
 
   public function getTenantNameFromRoomId($roomId)
   {
-    $data = ContractModel::select('tenant_id')
+    $data = ContractModel::where('contract_state', AppEnum::contractExecute)
       ->whereHas('contractRoom', function ($q) use ($roomId) {
         $q->where('room_id', $roomId);
-        $q->where('contract_state', AppEnum::contractExecute);
       })
       ->with(['tenant' => function ($query) {
         $query->select('id', 'name');
       }])
       ->first();
     if ($data) {
-      return $data->tenant->name ?? "";
+      // Log::info($data['tenant']['name']);
+      return $data['tenant']['name'] ?? "";
     } else {
       return "";
     }

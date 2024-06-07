@@ -60,6 +60,8 @@ class BuildingRoomController extends BaseController
     public function index(Request $request)
     {
 
+
+
         $map = array();
 
         if ($request->build_id) {
@@ -89,28 +91,29 @@ class BuildingRoomController extends BaseController
         $subQuery = $this->buildRoomService->buildingRoomModel()->where($map)
             ->where(function ($q) use ($request) {
                 $request->room_no && $q->where('room_no', 'like', columnLike($request->room_no));
-                $request->is_valid && $q->where('is_valid', $request->is_valid);
-            })
-            ->whereHas('building', function ($q) use ($request) {
+                if (isset($request->is_valid) && $request->is_valid !== '') {
+                    $q->where('is_valid', $request->is_valid);
+                }
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                $request->build_no && $q->where('build_no', 'like', columnLike($request->build_no));
             })
             ->with('building:id,proj_name,build_no,proj_id')
             ->with('floor:id,floor_no');
 
+        // $data = $subQuery->get();
+        // return DB::getQueryLog();
         $pageQuery = clone $subQuery;
         $data = $this->pageData($pageQuery, $request);
         if ($request->export) {
             return $this->exportToExcel($data['result'], BuildingRoomExcel::class);
         }
 
-        $buildService  = new BuildingService;
+        $buildRoomService  = new BuildingRoomService;
 
         if ($data['result']) {
-            $data['result'] = $buildService->formatData($data['result']);
+            $data['result'] = $buildRoomService->formatRoomData($data['result']);
         }
-
-        $data['stat'] = $buildService->areaStat($map, $request->proj_ids, array());
+        $subQuery = $subQuery->where('is_valid', 1);
+        $data['stat'] = $buildRoomService->areaStat($subQuery, array());
         return $this->success($data);
     }
 

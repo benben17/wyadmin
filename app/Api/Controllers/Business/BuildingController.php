@@ -554,17 +554,16 @@ class BuildingController extends BaseController
 
         $buildIds = explode(",", $building['build_ids']);
 
-        // return response()->json(DB::getQueryLog());
-        // $map['company_id'] = $this->company_id;
+        $map = array();
+        $map['is_valid'] = 1;
+        $map['room_type'] = 1;
 
         $data = FloorModel::with('building')
-            ->withCount(['floorRoom' => function ($q) {
-                $q->where('room_type', 1);
-                $q->where('is_valid', 1);
+            ->withCount(['floorRoom' => function ($q) use ($map) {
+                $q->where($map);
             }])
-            ->with(['floorRoom' => function ($q) {
-                $q->where('room_type', 1);
-                $q->where('is_valid', 1);
+            ->with(['floorRoom' => function ($q) use ($map) {
+                $q->where($map);
             }])
             ->where(function ($q) use ($request) {
                 $request->floor_no && $q->where('floor_no', 'like', $request->floor_no);
@@ -601,11 +600,9 @@ class BuildingController extends BaseController
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
-        // return response()->json(DB::getQueryLog());
-        $map = array();
 
         $DA['data'] = $BA;
-        $DA['stat'] = $this->buildService->areaStat($map, $request->proj_ids, $buildIds);
+        $DA['stat'] = $this->buildService->areaStatAll($request->proj_ids, $buildIds);
         return $this->success($DA);
     }
 
