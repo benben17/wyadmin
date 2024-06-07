@@ -111,9 +111,10 @@ class ProjectController extends BaseController
             sum(room_area) as total_area,
             sum(case when room_state = 1 then 1 else 0 end) as free_room_count,
             sum(case when room_state = 1 then room_area else 0 end) as free_area')
-                ->whereHas('building', function ($query) use ($v) {
-                    $query->where('proj_id', $v['id']);
-                })
+                // ->whereHas('building', function ($query) use ($v) {
+                //     $query->where('proj_id', $v['id']);
+                // })
+                ->where('proj_id', $v['id'])
                 ->where($subMap)
                 ->first()->toArray();
             unset($roomStat['pic_full'], $roomStat['price_label']);
