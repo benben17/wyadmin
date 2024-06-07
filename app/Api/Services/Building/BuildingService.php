@@ -111,6 +111,7 @@ class BuildingService
   {
     $DA = array('t_manager_area' => 0, 't_free_are' => 0, 't_room_count' => 0, 't_free_count' => 0);
     foreach ($data as $k => $v) {
+
       $DA['t_manager_area'] += $v['total_area'];
       $DA['t_free_are']     += $v['free_area'];
       $DA['t_room_count']   += $v['build_room_count'];

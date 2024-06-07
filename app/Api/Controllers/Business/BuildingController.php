@@ -127,7 +127,7 @@ class BuildingController extends BaseController
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
 
-        $list = $subQuery->get();
+        $list = $subQuery->where('is_valid', 1)->where('room_type', 1)->get();
         $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($list);
         return $this->success($data);
