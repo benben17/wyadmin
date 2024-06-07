@@ -86,6 +86,7 @@ class ProjectController extends BaseController
             $map['is_valid'] = $request->input('is_valid');
         }
         $subMap['room_type'] = 1;
+        $subMap['is_valid'] = 1;
         // 获取项目信息
         DB::enableQueryLog();
         $subQuery = $this->projectService->projectModel()->where($map)
