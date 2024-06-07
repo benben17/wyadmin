@@ -109,11 +109,11 @@ class BuildingService
    */
   public function getBuildingAllStat($data)
   {
-    $DA = array('t_manager_area' => 0, 't_free_are' => 0, 't_room_count' => 0, 't_free_count' => 0);
+    $DA = array('t_manager_area' => 0, 't_free_area' => 0, 't_room_count' => 0, 't_free_count' => 0);
     foreach ($data as $k => $v) {
 
       $DA['t_manager_area'] += $v['total_area'];
-      $DA['t_free_are']     += $v['free_area'];
+      $DA['t_free_area']    += $v['free_area'];
       $DA['t_room_count']   += $v['build_room_count'];
       $DA['t_free_count']   += $v['free_room_count'];
     }
@@ -121,13 +121,13 @@ class BuildingService
     $rentalRate = 0.00;
     $freeRate = 0.00;
     if ($DA['t_manager_area']) {
-      $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_are']) / $DA['t_manager_area'] * 100);
-      $freeRate   = numFormat(($DA['t_free_are']) / $DA['t_manager_area'] * 100);
+      $rentalRate = numFormat(($DA['t_manager_area'] - $DA['t_free_area']) / $DA['t_manager_area'] * 100);
+      $freeRate   = numFormat(($DA['t_free_area']) / $DA['t_manager_area'] * 100);
     }
 
     return array(
       ['label' => '招商面积', 'value' => "{$DA['t_manager_area']} " . AppEnum::squareMeterUnit],
-      ['label' => '可招商面积', 'value' => "{$DA['t_free_are']} " . AppEnum::squareMeterUnit],
+      ['label' => '可招商面积', 'value' => "{$DA['t_free_area']} " . AppEnum::squareMeterUnit],
       ['label' => '总房间数', 'value' => $DA['t_room_count']],
       ['label' => '可招商房间', 'value' => $DA['t_free_count']],
       ['label' => '当前出租率', 'value' => "{$rentalRate} " . AppEnum::percentUnit],

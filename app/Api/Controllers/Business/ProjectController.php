@@ -89,46 +89,49 @@ class ProjectController extends BaseController
         $subMap['is_valid'] = 1;
         // 获取项目信息
         DB::enableQueryLog();
-        $subQuery = $this->projectService->projectModel()->where($map)
-            ->where(function ($q) use ($request) {
-                $request->proj_name && $q->where('proj_name', 'like', '%' . $request->proj_name . '%');
-                $request->proj_ids && $q->whereIn('id', $request->proj_ids);
-                $request->proj_type &&  $q->where('proj_type', $request->proj_type);
-            });
+        // 获取项目数据
+        $subQuery = $this->projectService->projectModel()->where($map);
+        $subQuery->when($request->proj_name, function ($query) use ($request) {
+            $query->where('proj_name', 'like', '%' . $request->proj_name . '%');
+        });
+        $subQuery->when($request->proj_ids, function ($query) use ($request) {
+            $query->whereIn('id', $request->proj_ids);
+        });
+        $subQuery->when($request->proj_type, function ($query) use ($request) {
+            $query->where('proj_type', $request->proj_type);
+        });
+
+        $projIds = $subQuery->pluck('id')->toArray();
         // 分页数据
         $data = $this->pageData($subQuery, $request);
+
+        // 获取房间统计数据
+        $roomStat = BuildingRoom::selectRaw('
+             proj_id,
+             count(id) as build_room_count,
+             sum(room_area) as total_area,
+             sum(case when room_state = 1 then 1 else 0 end) as free_room_count,
+             sum(case when room_state = 1 then room_area else 0 end) as free_area
+         ')->where($subMap)
+            ->whereIn('proj_id', $projIds)
+            ->groupBy('proj_id')
+            ->get()
+            ->toArray();
+        $roomMap = array_column($roomStat, null, 'proj_id');
+        // 将房间统计数据合并到项目数据
         $arr = [
             'build_room_count' => 0,
-            'total_area'       => 0,
-            'free_room_count'  => 0,
-            'free_area'        => 0,
+            'total_area' => 0,
+            'free_room_count' => 0,
+            'free_area' => 0,
         ];
-        $map = array();
-        //通过项目获取房间信息 并进行数据合并
-        $projStat = $subQuery->get()->toArray();
-        foreach ($projStat as $k => &$v) {
-            $roomStat = BuildingRoom::selectRaw('count(id) as build_room_count,
-            sum(room_area) as total_area,
-            sum(case when room_state = 1 then 1 else 0 end) as free_room_count,
-            sum(case when room_state = 1 then room_area else 0 end) as free_area')
-                // ->whereHas('building', function ($query) use ($v) {
-                //     $query->where('proj_id', $v['id']);
-                // })
-                ->where('proj_id', $v['id'])
-                ->where($subMap)
-                ->first()->toArray();
-            unset($roomStat['pic_full'], $roomStat['price_label']);
-            $roomStat = array_map('floatval', $roomStat);
+        foreach ($data['result'] as &$item) {
+            $item = array_merge($item, $roomMap[$item['id']] ?? $arr);
+            unset($item['bill_instruction']); // 删除不需要的字段
+        }
 
-            $map[$v['id']] = $roomStat ?? $arr;
-            $v = $map[$v['id']] + $v;
-        }
-        foreach ($data['result'] as &$pv) {
-            $pv += $map[$pv['id']] ?? $arr;
-            unset($pv['bill_instruction']);
-        }
         $buildingService = new BuildingService;
-        $data['stat'] = $buildingService->getBuildingAllStat($projStat);
+        $data['stat'] = $buildingService->getBuildingAllStat($roomStat);
         return $this->success($data);
     }
 
