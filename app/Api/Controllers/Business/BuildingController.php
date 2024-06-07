@@ -93,6 +93,7 @@ class BuildingController extends BaseController
         if ($request->room_state) {
             $subMap['room_state'] = $request->room_state;
         }
+
         DB::enableQueryLog();
         $subQuery = BuildingModel::where($map)
             ->where(function ($q) use ($request) {
@@ -127,7 +128,34 @@ class BuildingController extends BaseController
             return $this->exportToExcel($data['result'], BuildingExcel::class);
         }
 
-        $list = $subQuery->where('is_valid', 1)->get();
+        $subMap['is_valid'] = 1;
+        $list = BuildingModel::where($map)
+            ->where(function ($q) use ($request) {
+                $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
+                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+            })
+            ->withCount('floor')
+
+            //统计所有房间
+            ->withCount(['buildRoom' => function ($q) use ($subMap) {
+                $q->where($subMap);
+            }])
+            // 统计空闲房间
+            ->withCount(['buildRoom as free_room_count' => function ($q) use ($subMap) {
+                $q->where($subMap);
+                $q->where('room_state', 1);
+            }])
+            //统计管理房间面积
+            ->withCount(['buildRoom as total_area' => function ($q) use ($subMap) {
+                $q->where($subMap);
+                $q->select(DB::raw('ifnull(sum(room_area),"0.00")'));
+            }])
+            //统计空闲房间面积
+            ->withCount(['buildRoom as free_area' => function ($q) use ($subMap) {
+                $q->select(DB::raw('ifnull(sum(room_area),"0.00")'));
+                $q->where($subMap);
+                $q->where('room_state', 1);
+            }])->get();
         $buildingService = new BuildingService;
         $data['stat'] = $buildingService->getBuildingAllStat($list);
         return $this->success($data);
