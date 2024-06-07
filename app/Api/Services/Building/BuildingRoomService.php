@@ -78,7 +78,7 @@ class BuildingRoomService
     //   })
     $room = $query->select(DB::Raw('ifnull(sum(room_area),0) total_area,
             ifnull(sum(case room_state when 1 then room_area end),0) free_area,
-            count(*) as total_room,
+            ifnull(sum(case is_valid when 1 then 1 end),0) total_room,
             ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
       ->first()->toArray();
     if ($room['free_area'] == 0) {
