@@ -77,6 +77,10 @@ class TenantController extends BaseController
                 isset($request->on_rent) && $q->where('on_rent', $request->on_rent);
                 $request->addr && $q->where('addr', 'like', '%' . $request->addr . '%');
                 $request->shop_name && $q->where('shop_name', 'like', '%' . $request->shop_name . '%');
+                // 访问时间
+                if ($request->visit_start_time && $request->visit_end_time) {
+                    $q->whereBetween('visit_date', [$request->visit_start_time, $request->visit_end_time]);
+                }
                 $q->where('parent_id', 0);
             })
             ->withCount('maintain')
