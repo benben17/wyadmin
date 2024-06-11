@@ -5,6 +5,7 @@ namespace App\Api\Controllers\Business;
 use Common;
 use JWTAuth;
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +17,6 @@ use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Models\BuildingFloor as FloorModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
-
 
 /**
  * @OA\Tag(
@@ -621,7 +621,11 @@ class BuildingController extends BaseController
                 ];
 
                 if ($v1->room_state === 0) {
-                    $contractRoom = ContractRoom::where('room_id', $v1->id)->with('contract')->groupBy('created_at')->first();
+                    $contractRoom = ContractRoom::where('room_id', $v1->id)
+                        ->with(['contract' => function ($q) {
+                            $q->select('contract_state', AppEnum::contractExecute);
+                        }])
+                        ->orderBy('created_at')->first();
                     $room_list['tenant_name'] = $contractRoom->contract->tenant_name ?? "";
                 }
 
