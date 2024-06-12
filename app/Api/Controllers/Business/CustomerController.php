@@ -104,6 +104,10 @@ class CustomerController extends BaseController
                         $visitTimes == 2 && $q->havingRaw('count(*) <= 1');
                     });
                 }
+                // 访问时间
+                if ($request->visit_start_time && $request->visit_end_time) {
+                    $q->whereBetween('visit_date', [$request->visit_start_time, $request->visit_end_time]);
+                }
 
                 // return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
             });
