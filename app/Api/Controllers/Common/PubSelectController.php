@@ -175,7 +175,7 @@ class PubSelectController extends BaseController
 		$subMap['room_type'] =  $request->room_type;
 		$subMap['is_valid']  = 1;
 		if ($request->room_state) {
-			$subMap['room_state'] = $request->room_state;
+			// $subMap['room_state'] = $request->room_state;
 		}
 
 		$buildings = BuildingModel::select('id', 'proj_id', 'proj_name', 'build_type', 'build_no')
