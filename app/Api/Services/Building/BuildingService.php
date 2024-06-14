@@ -116,7 +116,9 @@ class BuildingService
     $freeRooms  = 0;
 
     foreach ($data as $v) {
-      if ($v['room_state'] == 2) continue; // 房间状态为2的不计算 自持
+      if ($v['room_state'] == 2) {
+        continue; // 房间状态为2的不计算 自持
+      }
       $totalArea  += $v['total_area'];
       $freeArea   += $v['free_area'];
       $totalRooms += $v['build_room_count'];
