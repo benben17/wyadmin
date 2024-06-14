@@ -147,24 +147,29 @@ class DashboardController extends BaseController
     // ]);
 
     // 租客数据
-    $tenantInfo = Tenant::selectRaw('count(*) as total,count(worker_num) worker_num,count(cpc_number) cpc_number')
+    DB::enableQueryLog();
+    $tenantInfo = Tenant::selectRaw('count(*) as total,
+    sum(worker_num) worker_num,
+    sum(cpc_number) cpc_number')
       ->where(function ($query) use ($request) {
-        return $this->query($query, $request);
+        return $this->subQuery($query, $request);
       })
       ->first();
-
+    return DB::getQueryLog();
     $tenantWorker = [
-      'total' => $tenantInfo['total'],
+      'total'      => $tenantInfo['total'],
       'worker_num' => $tenantInfo['worker_num'],
       'cpc_number' => $tenantInfo['cpc_number'],
-      'cpc_rate' => $tenantInfo['worker_num'] == 0 ? 0 : round($tenantInfo['cpc_number'] / $tenantInfo['total'] * 100, 2),
+      'cpc_rate'   => $tenantInfo['worker_num'] == 0 ? 0 : round($tenantInfo['cpc_number'] / $tenantInfo['total'] * 100, 2),
     ];
+
+    return $this->success($tenantWorker);
     $data['tenant_worker'] = $tenantWorker;
 
     // 租客级别数据
     $tenantLevel = Tenant::selectRaw('count(*) as total,level')
       ->where(function ($query) use ($request) {
-        return $this->query($query, $request);
+        return $this->subQuery($query, $request);
       })
       ->groupBy('level')
       ->get()->toArray();
@@ -184,7 +189,7 @@ class DashboardController extends BaseController
 
     $tenantIndustry = Tenant::selectRaw('count(*) as total,industry')
       ->where(function ($query) use ($request) {
-        return $this->query($query, $request);
+        return $this->subQuery($query, $request);
       })
       ->groupBy('industry')
       ->get()->toArray();
@@ -215,7 +220,7 @@ class DashboardController extends BaseController
     return $this->success($data);
   }
 
-  private function query($query, Request $request)
+  private function subQuery($query, Request $request)
   {
     $query->where('type', 2);
     $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
@@ -392,13 +397,22 @@ class DashboardController extends BaseController
     $workOrder = WorkOrder::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
-      ->limit(20)->get()->toArray();
+      ->where('state', AppEnum::workorderClose)
+      ->limit(30)->get()->toArray();
     $equipmentMaintain = EquipmentMaintain::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
-      ->limit(20)->get()->toArray();
+
+      ->orderBy('created_at')->limit(20)->get()->toArray();
+
+    $yhWorkOrder = YhWorkOrder::where(function ($query) use ($request) {
+      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+    })
+      ->where('status', AppEnum::workorderClose)
+      ->limit(30)->get()->toArray();
     $data['work_order'] = $workOrder;
     $data['equipment_maintain'] = $equipmentMaintain;
+    $data['yh_work_order'] = $yhWorkOrder;
     return $this->success($data);
   }
 }
