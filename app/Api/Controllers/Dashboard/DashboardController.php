@@ -397,7 +397,7 @@ class DashboardController extends BaseController
     $workOrder = WorkOrder::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
-      ->where('state', AppEnum::workorderClose)
+      ->where('status', AppEnum::workorderClose)
       ->limit(30)->get()->toArray();
     $equipmentMaintain = EquipmentMaintain::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
