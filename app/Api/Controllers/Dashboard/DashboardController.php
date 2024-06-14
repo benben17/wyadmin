@@ -155,7 +155,7 @@ class DashboardController extends BaseController
         return $this->subQuery($query, $request);
       })
       ->first();
-    return DB::getQueryLog();
+    // return DB::getQueryLog();
     $tenantWorker = [
       'total'      => $tenantInfo['total'],
       'worker_num' => $tenantInfo['worker_num'],
