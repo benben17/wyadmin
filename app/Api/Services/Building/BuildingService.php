@@ -66,6 +66,7 @@ class BuildingService
             ifnull(sum(case room_state when 1 then room_area end),0) free_area,
             count(*) as total_room,
             ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
+      ->whereIn('room_state', [0, 1])
       ->first()->toArray();
     if ($room['free_area'] == 0) {
       $rentalRate = 100.00;
@@ -115,6 +116,7 @@ class BuildingService
     $freeRooms  = 0;
 
     foreach ($data as $v) {
+      if ($v['room_state'] == 2) continue; // 房间状态为2的不计算 自持
       $totalArea  += $v['total_area'];
       $freeArea   += $v['free_area'];
       $totalRooms += $v['build_room_count'];

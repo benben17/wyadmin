@@ -81,6 +81,7 @@ class RoomStatController extends BaseController
                 $request->id && $q->whereId($request->id);
                 $request->proj_ids &&  $q->whereIn('proj_id', $request->proj_ids);
             })
+            ->whereIn('room_type', [1, 2])
             ->where($map)
             ->groupBy('room_state')
             ->get()->toArray();

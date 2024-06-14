@@ -80,6 +80,7 @@ class BuildingRoomService
             ifnull(sum(case room_state when 1 then room_area end),0) free_area,
             ifnull(sum(case is_valid when 1 then 1 end),0) total_room,
             ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
+      ->whereIn('room_state', [0, 1])
       ->first()->toArray();
     if ($room['free_area'] == 0) {
       $rentalRate = 100.00;
