@@ -416,12 +416,13 @@ class StatController extends BaseController
         $StateList = str2Array($cusState['value']);
         // Log::error(json_encode($cusState['value']));
         DB::enableQueryLog();
-        $belongPerson = $this->customerService->tenantModel()->select(DB::Raw('group_concat(distinct belong_person) as user,count(*) total'))
+        $belongPerson = $this->customerService->tenantModel()
+            ->select(DB::Raw('group_concat(distinct belong_person) as user,count(*) total'))
             ->where(function ($q) use ($DA) {
                 $q->whereBetween('created_at', [$DA['start_date'], $DA['end_date']]);
                 isset($DA['proj_ids']) && $q->whereIn('proj_id', $DA['proj_ids']);
             })
-            ->groupBy('belong_person')
+            ->groupBy('belong_uid')
             ->get();
         // return response()->json(DB::getQueryLog());
 
