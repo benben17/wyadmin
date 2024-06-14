@@ -623,7 +623,7 @@ class BuildingController extends BaseController
                     'tenant_name' => "",
                 ];
 
-                if ($v1->room_state === 0) {
+                if ($v1->room_state == 0) {
                     $contractRoom = ContractRoom::where('room_id', $v1->id)
                         ->with(['contract' => function ($q) {
                             $q->where('contract_state', AppEnum::contractExecute);

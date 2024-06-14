@@ -167,6 +167,9 @@ class BuildingRoomService
       case '0':
         return '在租';
         break;
+      case '2':
+        return '自持';
+        break;
     }
   }
 }
