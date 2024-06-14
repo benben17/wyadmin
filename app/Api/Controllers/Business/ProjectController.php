@@ -112,7 +112,8 @@ class ProjectController extends BaseController
              sum(room_area) as total_area,
              sum(case when room_state = 1 then 1 else 0 end) as free_room_count,
              sum(case when room_state = 1 then room_area else 0 end) as free_area
-         ')->where($subMap)
+         ')->whereIn('room_state', [0, 1])
+            ->where($subMap)
             ->whereIn('proj_id', $projIds)
             ->groupBy('proj_id')
             ->get()
