@@ -29,6 +29,7 @@ Route::get('/login', 'AuthUserController@login');
 Route::group(['prefix' => 'dashboard'], function () {
     Route::post('index', '\App\Api\Controllers\Dashboard\DashboardController@index');
     Route::post('tenant', '\App\Api\Controllers\Dashboard\DashboardController@tenantStat');
+    Route::post('tenantMaintain', '\App\Api\Controllers\Dashboard\DashboardController@tenantMaintain');
     Route::post('project', '\App\Api\Controllers\Dashboard\DashboardController@project');
     Route::post('customer', '\App\Api\Controllers\Dashboard\DashboardController@customer');
     Route::post('workOrderData', '\App\Api\Controllers\Dashboard\DashboardController@workOrderData');

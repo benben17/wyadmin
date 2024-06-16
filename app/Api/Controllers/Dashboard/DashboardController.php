@@ -415,4 +415,48 @@ class DashboardController extends BaseController
     $data['yh_work_order'] = $yhWorkOrder;
     return $this->success($data);
   }
+
+  /**
+   * @OA\Get(
+   *      path="/api/dashboard/tenantMaintain",
+   *      operationId="tenantMaintain",
+   *      tags={"Dashboard"},
+   *      summary="租客维修数据",
+   *      description="租客维修数据",
+   *      @OA\Parameter(
+   *          name="proj_ids",
+   *          description="项目id",
+   *          required=true,
+   *          in="query",
+   *          @OA\Schema(
+   *              type="array",
+   *              @OA\Items(
+   *                  type="integer"
+   *              )
+   *          )
+   *      ),
+   *      @OA\Response(
+   *          response=200,
+   *          description="successful operation",
+   *          @OA\JsonContent()
+   *       ),
+   *      @OA\Response(response=400, description="Bad request"),
+   *      @OA\Response(response=401, description="Unauthorized"),
+   *      @OA\Response(response=403, description="Forbidden"),
+   *      @OA\Response(response=404, description="Resource Not Found"),
+   *      @OA\Response(response=500, description="Internal Server Error")
+   * )
+   */
+  public function tenantMaintain(Request $request)
+  {
+
+    $tenantMaintain = Maintain::selectRaw('count(*) as total,maintain_type')
+      ->where(function ($query) use ($request) {
+        $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
+        $query->where('parent_type', AppEnum::Tenant);
+      })
+      ->groupBy('maintain_type')->get()->toArray();
+
+    return $this->success($tenantMaintain);
+  }
 }
