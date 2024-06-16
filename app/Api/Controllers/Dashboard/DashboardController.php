@@ -163,7 +163,7 @@ class DashboardController extends BaseController
       'cpc_rate'   => $tenantInfo['worker_num'] == 0 ? 0 : round($tenantInfo['cpc_number'] / $tenantInfo['total'] * 100, 2),
     ];
 
-    return $this->success($tenantWorker);
+    // return $this->success($tenantWorker);
     $data['tenant_worker'] = $tenantWorker;
 
     // 租客级别数据
