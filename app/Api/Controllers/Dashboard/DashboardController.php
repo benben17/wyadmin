@@ -205,18 +205,19 @@ class DashboardController extends BaseController
     $data['tenant_industry'][] = ['total' => $tenantIndustryNull, 'industry' => '未知', 'percentage' => ($tenantIndustryNull / $totalTenants) * 100];
     $data['tenant_industry'] = array_values(array_filter($data['tenant_industry']));
 
-
-    $tenantMaintain = Maintain::selectRaw('count(*) as total,parent_id as tenant_id')
+    // 租户维护
+    $tenantMaintain = Maintain::selectRaw('count(*) as total,maintain_type')
       ->where(function ($query) use ($request) {
         $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
         $query->where('parent_type', AppEnum::Tenant);
       })
-      ->limit(10)->get()->toArray();
-    $tenantMaintain = array_map(function ($item) {
-      $item['tenant_name'] = getTenantNameById($item['tenant_id']);
-      return $item;
-    }, $tenantMaintain);
+      ->groupBy('maintain_type')->get()->toArray();
+    $maintainSum = array_sum(array_column($tenantMaintain, 'total'));
+    foreach ($tenantMaintain as &$item) {
+      $item['percentage'] = $maintainSum == 0 ? 0 : round($maintainSum / $item['total'] * 100, 2);
+    }
     $data['tenant_maintain'] = $tenantMaintain;
+
     return $this->success($data);
   }
 
