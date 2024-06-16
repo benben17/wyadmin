@@ -464,6 +464,13 @@ class DashboardController extends BaseController
       })
       ->groupBy('maintain_type')->get()->toArray();
 
+
+    $maintainSum = array_sum(array_column($tenantMaintain, 'total'));
+
+    foreach ($tenantMaintain as &$item) {
+      $item['percentage'] = $maintainSum == 0 ? 0 : round($maintainSum / $item['total'] * 100, 2);
+    }
+
     return $this->success($tenantMaintain);
   }
 }
