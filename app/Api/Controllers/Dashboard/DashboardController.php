@@ -183,7 +183,10 @@ class DashboardController extends BaseController
       $item['percentage'] = ($item['total'] / $totalTenants) * 100;
       return $item;
     }, $tenantLevel);
-    $data['tenant_level'][] = ['total' => $tenantLevelNull, 'level' => '未知', 'percentage' => ($tenantLevelNull / $totalTenants) * 100];
+    $data['tenant_level'][] = [
+      'total' => $tenantLevelNull, 'level' => '未知',
+      'percentage' => ($tenantLevelNull ? 0 : $tenantLevelNull / $totalTenants) * 100
+    ];
     $data['tenant_level'] = array_values(array_filter($data['tenant_level']));
     // 租客行业数据
 
