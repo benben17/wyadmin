@@ -407,7 +407,7 @@ class DashboardController extends BaseController
     $workOrder = WorkOrder::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
-      ->where('status', AppEnum::workorderClose)
+      ->where('status', '>=', AppEnum::workorderProcess)
       ->limit(30)->get()->toArray();
 
     foreach ($workOrder as &$item) {
@@ -422,7 +422,7 @@ class DashboardController extends BaseController
     $yhWorkOrder = YhWorkOrder::where(function ($query) use ($request) {
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
-      ->where('status', AppEnum::workorderClose)
+      ->where('status', '>=', AppEnum::workorderProcess)
       ->limit(30)->get()->toArray();
     foreach ($yhWorkOrder as &$item) {
       $item['tenant_name'] = getTenantNameById($item['tenant_id']);
