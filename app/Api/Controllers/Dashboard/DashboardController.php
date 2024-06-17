@@ -12,6 +12,7 @@ use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Common\Maintain;
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\ExtraInfo;
 use App\Api\Models\Contract\Contract;
 use App\Api\Controllers\BaseController;
@@ -165,7 +166,7 @@ class DashboardController extends BaseController
 
     // return $this->success($tenantWorker);
     $data['tenant_worker'] = $tenantWorker;
-
+    DB::enableQueryLog();
     // 租客级别数据
     $tenantLevel = Tenant::selectRaw('count(*) as total,level')
       ->where(function ($query) use ($request) {
@@ -173,19 +174,24 @@ class DashboardController extends BaseController
       })
       ->groupBy('level')
       ->get()->toArray();
+    // return DB::getQueryLog();
+    // return $tenantLevel;
     $tenantLevelNull = 0;
     $totalTenants = $tenantLevel ? array_sum(array_column($tenantLevel, 'total')) : 0;
-    $data['tenant_level'] = array_map(function ($item) use ($totalTenants, &$tenantLevelNull) {
+    Log::info($totalTenants);
+    $data['tenant_level'] =  array_map(function ($item) use ($totalTenants, &$tenantLevelNull) {
       if (empty($item['level'])) {
         $tenantLevelNull += $item['total'];
         return null;
       }
-      $item['percentage'] = ($item['total'] / $totalTenants) * 100;
+      $item['percentage'] = ($item['total'] == 0 ||  $totalTenants == 0) ? 0 : ($item['total'] / $totalTenants) * 100;
       return $item;
     }, $tenantLevel);
+    // return 
     $data['tenant_level'][] = [
-      'total' => $tenantLevelNull, 'level' => '未知',
-      'percentage' => ($tenantLevelNull ? 0 : $tenantLevelNull / $totalTenants) * 100
+      'total' => $tenantLevelNull,
+      'level' => '未知',
+      'percentage' => $tenantLevelNull == 0 ? 0 : ($tenantLevelNull / $totalTenants)  * 100
     ];
     $data['tenant_level'] = array_values(array_filter($data['tenant_level']));
     // 租客行业数据
@@ -202,7 +208,7 @@ class DashboardController extends BaseController
         $tenantIndustryNull += $item['total'];
         return null;
       }
-      $item['percentage'] = ($item['total'] / $totalTenants) * 100;
+      $item['percentage'] = ($item['total'] == 0 || $totalTenants == 0) ? 0 : ($item['total'] / $totalTenants) * 100;
       return $item;
     }, $tenantIndustry);
     $data['tenant_industry'][] = ['total' => $tenantIndustryNull, 'industry' => '未知', 'percentage' => ($tenantIndustryNull / $totalTenants) * 100];
@@ -217,7 +223,7 @@ class DashboardController extends BaseController
       ->groupBy('maintain_type')->get()->toArray();
     $maintainSum = array_sum(array_column($tenantMaintain, 'total'));
     foreach ($tenantMaintain as &$item) {
-      $item['percentage'] = $maintainSum == 0 ? 0 : round($maintainSum / $item['total'] * 100, 2);
+      $item['percentage'] = ($maintainSum == 0 || $item['total'] == 0) ? 0 : round($maintainSum / $item['total'] * 100, 2);
     }
     $data['tenant_maintain'] = $tenantMaintain;
 
