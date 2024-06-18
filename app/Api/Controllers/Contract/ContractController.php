@@ -669,7 +669,7 @@ class ContractController extends BaseController
                 if (!$contract) {
                     throw new Exception("保存失败");
                 }
-
+                $tenantId = $contract->tenant_id;
                 if (!empty($DA['contract_room'])) {
                     $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
                     // DB::enableQueryLog();
