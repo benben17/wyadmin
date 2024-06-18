@@ -669,6 +669,21 @@ class ContractController extends BaseController
                 if (!$contract) {
                     throw new Exception("保存失败");
                 }
+
+                if (!empty($DA['contract_room'])) {
+                    $roomList = $this->formatRoom($DA['contract_room'], $DA['id'], $DA['proj_id'], $tenantId, 2);
+                    // DB::enableQueryLog();
+                    $this->contractService->contractRoomModel()->where('contract_id', $DA['id'])->delete();
+                    $this->contractService->contractRoomModel()->addAll($roomList);
+                }
+                // 免租 全部删除后全部新增
+                if ($DA['free_type']) {
+                    $this->contractService->delFreeList($DA['id']);
+                    foreach ($DA['free_list'] as $k => $v) {
+                        $this->contractService->saveFreeList($v, $contract->id, $contract->tenant_id);
+                    }
+                }
+
                 // 租赁规则
                 if ($DA['bill_rule']) {
                     $ruleService = new BillRuleService;
