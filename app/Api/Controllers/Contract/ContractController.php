@@ -893,8 +893,8 @@ class ContractController extends BaseController
                     }
                 }
                 // 保存日志
-                $logRemark = $this->user['realname'] . "在" . nowTime() . "变更合同";
-                $contractService->saveContractLog($contract, $this->user, '合同变更', $logRemark);
+                $logRemark = $this->user['realname'] . "在" . nowTime() . "合同基础信息变更";
+                $contractService->saveContractLog($contract, $this->user, '合同基础信息变更', $logRemark);
             }, 3);
             return $this->success('合同变更基本信息成功！');
         } catch (Exception $e) {
