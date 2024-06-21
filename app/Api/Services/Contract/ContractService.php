@@ -422,7 +422,7 @@ class ContractService
       }])
       ->orderBy('created_at')->first();
     if ($contractRoom) {
-      Log::alert($contractRoom->contract->tenant_id ?? "hahha");
+      // Log::alert($contractRoom->contract->tenant_id ?? "hahha");
       return getTenantNameById($contractRoom->contract->tenant_id ?? 0);
     }
   }
