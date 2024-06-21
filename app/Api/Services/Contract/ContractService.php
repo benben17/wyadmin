@@ -424,7 +424,7 @@ class ContractService
     if ($contractRoom) {
       // Log::alert($contractRoom->contract->tenant_id ?? "hahha");
       $tenantId = $contractRoom->contract->tenant_id ?? 0;
-      if ($tenantId == 0 || !$tenantId) {
+      if ($tenantId == 0 || !$tenantId || empty($tenantId)) {
         return "";
       }
       return getTenantNameById($tenantId);
