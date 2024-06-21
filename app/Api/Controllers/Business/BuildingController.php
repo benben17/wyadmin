@@ -15,6 +15,7 @@ use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Building\BuildingService;
+use App\Api\Services\Contract\ContractService;
 use App\Api\Models\BuildingFloor as FloorModel;
 use App\Api\Models\BuildingRoom as BuildingRoomModel;
 
@@ -623,14 +624,10 @@ class BuildingController extends BaseController
                     'tenant_name' => "",
                 ];
 
-                if ($v1->room_state == 0) {
-                    $contractRoom = ContractRoom::where('room_id', $v1->id)
-                        ->with(['contract' => function ($q) {
-                            $q->where('contract_state', AppEnum::contractExecute);
-                        }])
-                        ->orderBy('created_at')->first();
-                    $room_list['tenant_name'] = $contractRoom->contract->tenant_name ?? "";
-                }
+                // if ($v1->room_state == 0) {
+                $contractService = new ContractService;
+                $room_list['tenant_name'] = $contractService->getTenantNameFromRoomId($v1->id);
+                // }
 
                 $BA[$k]['room_list'][$k1] = $room_list;
             }
