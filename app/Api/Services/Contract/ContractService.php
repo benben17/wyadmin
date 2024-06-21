@@ -416,19 +416,23 @@ class ContractService
 
   public function getTenantNameFromRoomId($roomId)
   {
+    // DB::enableQueryLog();
     $contractRoom = ContractRoomModel::where('room_id', $roomId)
-      ->with(['contract' => function ($q) {
+      ->whereHas('contract', function ($q) {
         $q->where('contract_state', AppEnum::contractExecute);
-      }])
+      })
       ->orderBy('created_at')->first();
+    // Log::info(DB::getQueryLog());
     if ($contractRoom) {
       // Log::alert($contractRoom->contract->tenant_id ?? "hahha");
-      $tenantId = $contractRoom->contract->tenant_id ?? 0;
+      $tenantId = $contractRoom->tenant_id ?? 0;
       if ($tenantId == 0 || !$tenantId || empty($tenantId)) {
         return "";
+      } else {
+        return getTenantNameById($tenantId);
       }
-      return getTenantNameById($tenantId);
     }
+    return "";
   }
 
   /** 发送通知消息 */

@@ -7,6 +7,7 @@ use App\Api\Models\Building;
 use App\Api\Models\BuildingRoom;
 use App\Api\Models\BuildingFloor;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\TenantRoom;
 use App\Api\Services\Contract\ContractService;
 
@@ -51,6 +52,7 @@ class BuildingRoomService
       $v['floor_no']  = $v['floor']['floor_no'];
       $contractService = new ContractService;
       $v['tenant_name'] = $contractService->getTenantNameFromRoomId($v['id']);
+      Log::info('room_id:' . $v['id'] . 'tenant_name:' . $v['tenant_name']);
       // foreach ($v['pic_list'] ?? [] as $key => $val) {
       //   $v['pic_list_full'][$key] = getOssUrl($val);
       // }
@@ -91,12 +93,12 @@ class BuildingRoomService
     $price = $contract->contractAvgPrice();
 
     $stat = array(
-      ['title' => '可租面积',   'value' => $room['total_area'] . '㎡'],
-      ['title' => '可招租面积',  'value' => $room['free_area'] . '㎡'],
-      ['title' => '总房间数',  'value' => $room['total_room']],
+      ['title' => '可租面积', 'value' => $room['total_area'] . '㎡'],
+      ['title' => '可招租面积', 'value' => $room['free_area'] . '㎡'],
+      ['title' => '总房间数', 'value' => $room['total_room']],
       ['title' => '可招租房间数', 'value' => $room['free_room']],
-      ['title' => '当前空置率',    'value' => $rentalRate . '%'],
-      ['title' => '平均单价',  'value' => $price . '元/㎡·天']
+      ['title' => '当前空置率', 'value' => $rentalRate . '%'],
+      ['title' => '平均单价', 'value' => $price . '元/㎡·天']
     );
     return $stat;
   }
