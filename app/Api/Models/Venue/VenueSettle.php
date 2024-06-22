@@ -20,22 +20,25 @@ class VenueSettle extends Model
     // use SoftDeletes;
     protected $table = 'bse_venue_settle';
 
-    protected $hidden = ['cus_id','book_id','venue_id'];
+    protected $hidden = ['cus_id', 'book_id', 'venue_id'];
 
 
     public function venue()
     {
-        return $this->hasOne(Venue::class,'id','venue_id');
+        return $this->hasOne(Venue::class, 'id', 'venue_id');
     }
 
     public function venueBook()
     {
-        return $this->hasOne(VenueBook::class,'id','book_id');
+        return $this->hasOne(VenueBook::class, 'id', 'book_id');
     }
 
-    public function addAll(Array $data)
+    public function addAll(array $data)
     {
         $res = DB::table($this->getTable())->insert($data);
         return $res;
     }
+
+    // 批量更新
+
 }

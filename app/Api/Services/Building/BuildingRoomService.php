@@ -52,7 +52,7 @@ class BuildingRoomService
       $v['floor_no']  = $v['floor']['floor_no'];
       $contractService = new ContractService;
       $v['tenant_name'] = $contractService->getTenantNameFromRoomId($v['id']);
-      Log::info('room_id:' . $v['id'] . 'tenant_name:' . $v['tenant_name']);
+      // Log::info('room_id:' . $v['id'] . 'tenant_name:' . $v['tenant_name']);
       // foreach ($v['pic_list'] ?? [] as $key => $val) {
       //   $v['pic_list_full'][$key] = getOssUrl($val);
       // }
