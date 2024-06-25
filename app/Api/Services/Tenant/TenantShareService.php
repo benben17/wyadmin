@@ -2,12 +2,12 @@
 
 namespace App\Api\Services\Tenant;
 
-use App\Api\Models\Bill\TenantShareFee;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-
 use function AlibabaCloud\Client\json;
+
+use App\Api\Models\Bill\TenantShareFee;
 
 class TenantShareService
 {
@@ -21,8 +21,8 @@ class TenantShareService
   public function saveShareFee($DA, $user)
   {
     try {
-      $where['tenant_id'] =  $DA['tenant_id'];
-      $where['contract_id'] =  $DA['contract_id'];
+      $where['tenant_id']   = $DA['tenant_id'];
+      $where['contract_id'] = $DA['contract_id'];
       $share = $this->model()->where($where)->first();
       if ($share) {
         $share->u_uid     = $user['id'];

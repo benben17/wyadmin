@@ -126,10 +126,10 @@ class BuildingRoomService
     $BA['room_tags']         = isset($DA['room_tags']) ? $DA['room_tags'] : "";
     $BA['channel_state']     = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
     $BA['room_area']         = isset($DA['room_area']) ? $DA['room_area'] : 0;
-    $BA['rentable_date'] = $DA['rentable_date'] ?? "";
-    $BA['remark']        = isset($DA['remark']) ? $DA['remark'] : "";
-    $BA['pics']          = isset($DA['pics']) ? $DA['pics'] : "";
-    $BA['detail']        = isset($DA['detail']) ? $DA['detail'] : "";
+    $BA['rentable_date']     = $DA['rentable_date'] ?? "";
+    $BA['remark']            = isset($DA['remark']) ? $DA['remark'] : "";
+    $BA['pics']              = isset($DA['pics']) ? $DA['pics'] : "";
+    $BA['detail']            = isset($DA['detail']) ? $DA['detail'] : "";
     return $BA;
   }
 

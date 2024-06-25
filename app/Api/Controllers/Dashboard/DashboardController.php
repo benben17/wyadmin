@@ -408,7 +408,8 @@ class DashboardController extends BaseController
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
       ->where('status', '>=', AppEnum::workorderProcess)
-      ->limit(30)->get()->toArray();
+      ->orderBy('open_time', 'desc')
+      ->limit(20)->get()->toArray();
 
     foreach ($workOrder as &$item) {
       $item['tenant_name'] = getTenantNameById($item['tenant_id']);
@@ -423,10 +424,13 @@ class DashboardController extends BaseController
       $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
     })
       ->where('status', '>=', AppEnum::workorderProcess)
-      ->limit(30)->get()->toArray();
+      ->orderBy('open_time', 'desc')
+      ->limit(20)->get()->toArray();
     foreach ($yhWorkOrder as &$item) {
       $item['tenant_name'] = getTenantNameById($item['tenant_id']);
     }
+
+
     $data['work_order'] = $workOrder;
     $data['equipment_maintain'] = $equipmentMaintain;
     $data['yh_work_order'] = $yhWorkOrder;
