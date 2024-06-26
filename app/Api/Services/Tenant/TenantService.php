@@ -193,4 +193,20 @@ class TenantService
       return false;
     }
   }
+
+
+  public function deleteTenantById(int $tenantId)
+  {
+    try {
+      DB::transaction(function () use ($tenantId) {
+
+        $this->tenantLogModel()->where('tenant_id', $tenantId)->delete();
+        $this->tenantModel()->where('id', $tenantId)->delete();
+      });
+    } catch (Exception $e) {
+      Log::error("删除租户失败" . $e->getMessage());
+      throw new Exception("删除租户失败");
+      return false;
+    }
+  }
 }

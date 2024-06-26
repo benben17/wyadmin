@@ -47,7 +47,7 @@ abstract class AppEnum extends BaseEnum
 
   const TenantCustomer = 1;  // 客户类型  1 客户  2 租户
   const TenantType     = 2;  // 客户类型  1 客户  2 租户 3 退租租户
-  const TenantLeaseback     = 3;  // 退租租户
+  const TenantLeaseback = 3;  // 退租租户
 
   const feeType        = 1;  // 费用 
   const depositFeeType = 2;  // 押金类型

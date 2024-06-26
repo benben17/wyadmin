@@ -363,4 +363,57 @@ class TenantController extends BaseController
         }
         return $this->success($data);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/del",
+     *     tags={"租户"},
+     *     summary="租户删除",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *       @OA\Property(
+     *          property="id",
+     *          type="int",
+     *          description="客户id"
+     *       )
+     *     ),
+     *       example={"id":1}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function del(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|numeric|min:1',
+        ], [
+            'id.required' => '请选择租户',
+            'id.numeric' => '租户参数错误',
+            'id.min' => '租户参数错误'
+        ]);
+        $id = $request->id;
+        $tenant = $this->tenantService->tenantModel()->find($id);
+        if (!$tenant) {
+            return $this->error('租户不存在');
+        }
+
+        if ($tenant->parent_id > 0) {
+            return $this->error('分摊租户不能删除');
+        }
+        $contract = $this->contractService->model()->where('tenant_id', $id)->first();
+        if ($contract) {
+            return $this->error('租户存在合同，不能删除');
+        }
+        $res = $this->tenantService->tenantModel()->where('id', $id)->delete();
+
+        return $res ? $this->success('租户删除成功') : $this->error('租户删除失败');
+    }
 }
