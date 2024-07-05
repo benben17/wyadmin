@@ -63,18 +63,19 @@ class TenantController extends BaseController
             'proj_ids.required' => '请选择项目',
             'proj_ids.array' => '项目参数错误'
         ]);
-        $map = array();
         // $map['parent_id'] = 0;
 
         DB::enableQueryLog();
         $query = $this->tenantService->tenantModel()
-            ->where($map)
             ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
                 $request->status && $q->whereIn('status', str2Array($request->status));
                 $request->name && $q->where('name', 'like', '%' . $request->name . '%');
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                isset($request->on_rent) && $q->where('on_rent', $request->on_rent);
+                if (isset($request->on_rent)) {
+                    $q->where('on_rent', $request->on_rent)
+                        ->Where('status', AppEnum::TenantLeaseback);
+                }
                 $request->addr && $q->where('addr', 'like', '%' . $request->addr . '%');
                 $request->shop_name && $q->where('shop_name', 'like', '%' . $request->shop_name . '%');
                 // 访问时间
@@ -85,7 +86,8 @@ class TenantController extends BaseController
             })
             ->withCount('maintain')
             ->withCount('contract');
-        // return $result;
+        // $query->get();
+        // // return $result;
         // return DB::getQueryLog();
         $data = $this->pageData($query, $request);
         foreach ($data['result'] as $k => &$tenant) {
