@@ -27,9 +27,9 @@ class Tenant extends Model
   # 获取status 的label
   public function getStatusLabelAttribute()
   {
-    if (isset($this->attributes['status'])) {
+    if (isset($this->attributes['on_rent'])) {
 
-      return $this->attributes['status'] == 1 ? '在租' : '退租';
+      return $this->attributes['on_rent'] == 1 ? '在租' : '退租';
     }
   }
   public function getProjNameAttribute()
