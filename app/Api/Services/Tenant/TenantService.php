@@ -43,9 +43,10 @@ class TenantService
         $tenant->company_id  = $user['company_id'];
         $tenant->proj_id     = $DA['proj_id'];
         $tenant->state = $DA['state'];
-        $tenant->type = $DA['type'];
+
         $tenant->tenant_no   = $this->getTenantNo($user['company_id']);
       }
+      $tenant->type         = $DA['type'];
       $tenant->u_uid         = $user['id'];
       $tenant->name          = $DA['name'];
       $tenant->parent_id    = isset($DA['parent_id']) ? $DA['parent_id'] : 0;         // 上级租户
@@ -60,6 +61,7 @@ class TenantService
       $tenant->cpc_number   = $DA['cpc_number'] ?? 0;
       $tenant->tags         = isset($DA['tags']) ? $DA['tags'] : "";
       $tenant->addr         = isset($DA['addr']) ? $DA['addr'] : "";
+      $tenant->status       = $DA['status'] ?? 0;
       $res = $tenant->save();
       if ($res) {
         return $tenant;

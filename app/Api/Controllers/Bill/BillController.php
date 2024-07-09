@@ -192,11 +192,13 @@ class BillController extends BaseController
       $tenantNames = Tenant::whereIn('id', $tenantIds)->pluck('name')->toArray();
       return $this->error("租户【" . implode(",", $tenantNames) . "】已生成账单，请勿重复生成！");
     }
+    // 查询租户
     try {
-      $tenants = Tenant::where(function ($q) use ($request) {
-        $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
-        $request->proj_id && $q->where('proj_id', $request->proj_id);
-      })->get();
+      $tenants = Tenant::where(function ($q) use ($DA) {
+        $DA['tenant_ids'] && $q->whereIn('tenant_id', $DA['tenant_ids']);
+      })
+        ->where('proj_id', $DA['proj_id'])
+        ->get();
 
       // 如果账单日大于28号，则取28号
       $billDay = $request->bill_month . '-' . ($request->bill_day > 28 ? 28 : $request->bill_day);
