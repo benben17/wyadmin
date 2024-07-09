@@ -194,6 +194,7 @@ class BillController extends BaseController
     try {
       $tenants = Tenant::where(function ($q) use ($request) {
         $request->tenant_ids && $q->whereIn('id', $request->tenant_ids);
+        $request->proj_id && $q->where('proj_id', $request->proj_id);
       })->get();
 
       // 如果账单日大于28号，则取28号
