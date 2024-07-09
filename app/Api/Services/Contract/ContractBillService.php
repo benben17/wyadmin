@@ -34,7 +34,7 @@ class ContractBillService
    */
   public function createBill($contract, $rule, int $uid)
   {
-    $type = 1; //  费用
+
     $data = array();
     $leaseTerm = $rule['lease_term'];
     $i = 0;

@@ -42,7 +42,7 @@ class TenantService
         $tenant->c_uid       = $user['id'];
         $tenant->company_id  = $user['company_id'];
         $tenant->proj_id     = $DA['proj_id'];
-        $tenant->state = $DA['state'];
+        $tenant->state       = $DA['state'];
 
         $tenant->tenant_no   = $this->getTenantNo($user['company_id']);
       }
@@ -61,7 +61,8 @@ class TenantService
       $tenant->cpc_number   = $DA['cpc_number'] ?? 0;
       $tenant->tags         = isset($DA['tags']) ? $DA['tags'] : "";
       $tenant->addr         = isset($DA['addr']) ? $DA['addr'] : "";
-      $tenant->status       = $DA['status'] ?? 0;
+      $tenant->status       = $DA['status'] ?? 1;
+      $tenant->on_rent      = $DA['on_rent'] ?? 1;
       $res = $tenant->save();
       if ($res) {
         return $tenant;

@@ -29,7 +29,8 @@ class Tenant extends Model
   {
     if (isset($this->attributes['on_rent'])) {
 
-      return $this->attributes['on_rent'] == 1 ? '在租' : '退租';
+
+      return $this->attributes['on_rent'] == 0 ? '退租' : '在租';
     }
   }
   public function getProjNameAttribute()
