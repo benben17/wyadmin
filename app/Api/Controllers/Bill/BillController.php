@@ -184,7 +184,8 @@ class BillController extends BaseController
       ->whereBetween('charge_date', $billDate)
       ->where(function ($q) use ($DA) {
         $DA['tenant_ids'] && $q->whereIn('tenant_id', $DA['tenant_ids']);
-      })
+      })->where('proj_id', $DA['proj_id'])
+
       ->first();
     if ($existsBill && $existsBill['tenant_ids'] != "") {
       $tenantIds = str2Array($existsBill['tenant_ids']);
