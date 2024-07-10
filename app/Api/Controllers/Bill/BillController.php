@@ -195,7 +195,7 @@ class BillController extends BaseController
     // 查询租户
     try {
       $tenants = Tenant::where(function ($q) use ($DA) {
-        $DA['tenant_ids'] && $q->whereIn('tenant_id', $DA['tenant_ids']);
+        $DA['tenant_ids'] && $q->whereIn('id', $DA['tenant_ids']);
       })
         ->where('proj_id', $DA['proj_id'])
         ->get();

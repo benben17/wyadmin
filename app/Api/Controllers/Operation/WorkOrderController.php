@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
+use App\Api\Models\Operation\YhWorkOrder;
 use App\Api\Services\Operation\WorkOrderService;
 
 /**

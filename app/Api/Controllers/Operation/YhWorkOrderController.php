@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Api\Controllers\BaseController;
 use Illuminate\Support\Facades\Validator;
+use App\Api\Excel\Property\YhWorkOrderExcel;
 use App\Api\Services\Common\BseRemarkService;
 use App\Api\Services\Common\AttachmentService;
 use App\Api\Services\Operation\YhWorkOrderService;
@@ -84,6 +85,10 @@ class YhWorkOrderController extends BaseController
       });
     $pageQuery = clone $subQuery;
     $data = $this->pageData($pageQuery->with('tenant:id,name'), $request);
+
+    if ($request->export) {
+      return $this->exportToExcel($data['result'], YhWorkOrderExcel::class);
+    }
     // 统计
     $stat = $subQuery->selectRaw('status, COUNT(*) as count')
       ->groupBy('status')
