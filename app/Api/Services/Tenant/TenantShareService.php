@@ -91,8 +91,8 @@ class TenantShareService
   public function getShareTenantsByContractId($contractId)
   {
     $data = $this->model()
-      ->select('tenant_id', 'contract_id')
-      ->where('parent_id', '>', 0)
+      ->select('tenant_id', 'contract_id', 'fee_list')
+      ->where('parent_id', '!=', 'tenant_id')
       ->where('contract_id', $contractId)
       ->get()
       ->toArray();
