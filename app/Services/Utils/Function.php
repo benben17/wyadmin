@@ -561,3 +561,21 @@ function getDaysBetweenTwoDates($startDate, $endDate): int
 	$days = ($endDate - $startDate) / 86400;
 	return $days;
 }
+
+
+/**
+ * 通过主租户ID 获取分摊租户id 返回主租户和分摊租户
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param int $tenantId
+ * @return array
+ */
+function getTenantIdsByPrimary(int $tenantId): array
+{
+	if ($tenantId) {
+		return [$tenantId];
+	}
+	$shareTenantId = \App\Api\Models\Tenant\Tenant::where('parentId', $tenantId)->pluck('id')->toArray();
+	$shareTenantId[] = $tenantId;
+	return $shareTenantId;
+}

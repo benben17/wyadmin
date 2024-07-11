@@ -81,7 +81,10 @@ class TenantController extends BaseController
                 if ($request->visit_start_time && $request->visit_end_time) {
                     $q->whereBetween('visit_date', [$request->visit_start_time, $request->visit_end_time]);
                 }
-                $q->where('parent_id', 0);
+                if (isset($request->parent_id)) {
+                    $q->where('parent_id', $request->parent_id);
+                }
+                //$q->where('parent_id', 0);
             })
             ->withCount('maintain')
             ->withCount('contract');

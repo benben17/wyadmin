@@ -514,40 +514,48 @@ class ContractService
     return (object)[];
   }
 
-  /** 获取合同的平均日单价 */
+  //MARK: 获取合同的平均日单价
+  /**
+   * 获取合同的平均日单价
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param integer $roomType
+   *
+   * @return void
+   */
   public function contractAvgPrice($roomType = 1)
   {
     try {
-      $contract = ContractModel::select('rental_price', 'rental_price_type', 'sign_area')
-        ->whereHas('contractRoom', function ($q) use ($roomType) {
-          $q->where('room_type', $roomType);
-        })
-        ->get()->toArray();
+      $contracts = ContractModel::whereHas('contractRoom', function ($q) use ($roomType) {
+        $q->where('room_type', $roomType);
+      })->get(['rental_price', 'rental_price_type', 'sign_area']);
 
-      if (empty($contract)) {
-        // Log::error('empty');
+      if ($contracts->isEmpty()) {
         return 0.00;
       }
+
       $totalAmount = 0.00;
-      $totalArea = 0;
-      foreach ($contract as $k => $v) {
-        $totalArea += $v['sign_area'];
-        if ($v['rental_price'] == 0) {
+      $totalArea = 0.00;
+
+      foreach ($contracts as $contract) {
+        if ($contract->rental_price == 0) {
           Log::error('rental_price :0 ');
           return 0.00;
-        } else {
-          if ($v['rental_price_type'] == 1) {
-            $totalAmount += $v['rental_price'] * $v['sign_area'];
-          } else {
-            $totalAmount += ($v['rental_price'] * 12) / 365 * $v['sign_area'];
-          }
         }
+
+        $area      = $contract->sign_area;
+        $price     = $contract->rental_price;
+        $priceType = $contract->rental_price_type;
+
+        $totalArea    += $area;
+        $totalAmount  += ($priceType == 1) ? $price * $area : ($price * 12 / 365) * $area;
       }
-      // Log::error('service' . $totalAmount);
-      return numFormat($totalAmount / $totalArea);
+
+      return $totalArea > 0 ? numFormat($totalAmount / $totalArea) : 0.00;
     } catch (Exception $e) {
       Log::error($e->getMessage());
-      return '0.00';
+      return 0.00;
     }
   }
 

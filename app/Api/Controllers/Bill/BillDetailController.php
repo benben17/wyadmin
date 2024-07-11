@@ -55,9 +55,7 @@ class BillDetailController extends BaseController
 	{
 
 		$map = array();
-		if ($request->tenant_id) {
-			$map['tenant_id'] = $request->tenant_id;
-		}
+
 		// 排序字段
 		if (!$request->orderBy) {
 			$request->orderBy = 'charge_date';
@@ -78,7 +76,9 @@ class BillDetailController extends BaseController
 			->where(function ($q) use ($request) {
 				$request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-
+				if ($request->tenant_id) {
+					$q->whereIn('tenant_id', getTenantIdsByPrimary($request->tenant_id));
+				}
 				$request->year && $q->whereYear('charge_date', $request->year);
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);

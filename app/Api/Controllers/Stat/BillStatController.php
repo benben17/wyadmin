@@ -5,13 +5,10 @@ namespace App\Api\Controllers\Stat;
 use JWTAuth;
 use App\Enums\AppEnum;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Bill\ChargeService;
 use App\Api\Services\Bill\TenantBillService;
-use Illuminate\Contracts\Container\BindingResolutionException;
 
 class BillStatController extends BaseController
 {
@@ -351,7 +348,7 @@ class BillStatController extends BaseController
       $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
       $request->year && $q->whereYear('charge_date', $request->year);
       $request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . "%");
-      $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
+      $request->tenant_id && $q->whereIn('tenant_id', getTenantIdsByPrimary($request->tenant_id));
       $request->fee_types && $q->whereIn('fee_type', $request->fee_types);
       $q->whereType(1);
     })
