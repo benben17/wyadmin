@@ -32,12 +32,15 @@ class TenantBillDetail extends Model
       return $fee['fee_name'];
     }
   }
+  //#MARK: 创建人
   public function getCUserAttribute()
   {
-    if (isset($this->attributes['c_uid'])) {
-      $user = getUserByUid($this->attributes['c_uid']);
-      return $user['realname'];
+    $cUid = $this->attributes['c_uid'] ?? null;
+    if ($cUid && $cUid != 0) {
+      $user = getUserByUid($cUid);
+      return $user['realname'] ?? '';
     }
+    return '';
   }
   // 未收金额
   public function getUnreceiveAmountAttribute()
