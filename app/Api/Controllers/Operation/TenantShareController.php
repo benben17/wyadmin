@@ -245,13 +245,28 @@ class TenantShareController extends BaseController
 
 
     /**
-     * 租户分摊
-     *
-     * @Author leezhua
-     * @DateTime 2024-03-18
-     * @param Request $request
-     *
-     * @return void
+     * @OA\Post(
+     *     path="/api/operation/tenant/share/store",
+     *     tags={"租户分摊"},
+     *     summary="租户分摊保存",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"contract_id","share_list","parent_tenant_id"},
+     *          @OA\Property(property="contract_id",type="int",description="合同id"),
+     *          @OA\Property(property="share_list",type="array",description="分摊列表"),
+     *          @OA\Property(property="parent_tenant_id",type="int",description="主租户id")
+     *       ),
+     *       example={"contract_id":1,"share_list":[{"tenant_id":1,"tenant_name":"租户名称","fee_list":[{"id":1,"share_amount":100}]}],"parent_tenant_id":1}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
      */
     public function tenantShareStore(Request $request)
     {
@@ -313,5 +328,38 @@ class TenantShareController extends BaseController
             return $this->error("分摊处理失败" . $e->getMessage());
         }
         // return response()->json(DB::getQueryLog());
+    }
+
+
+    // 已分摊租户删除
+    // 处理分摊租户费用应收，添加到主租户
+    public function shareTenantDel(Request $request)
+    {
+
+        $msg = ['id' => '租户id不允许为空'];
+        $validatedData = $request->validate([
+            'id' => 'required|numeric|min:1'
+        ], $msg);
+        $DA = $request->toArray();
+        $tenant = $this->tenantService->tenantModel()->find($DA['id']);
+        if (!$tenant) {
+            return $this->error('租户不存在');
+        }
+        if ($tenant->parent_id == 0) {
+            return $this->error('主租户不允许删除');
+        }
+        $tenantShareFee = $this->tenantShareService->model()
+            ->where('tenant_id', $DA['id'])
+            ->first()->toArray();
+        if (!$tenantShareFee) {
+            return $this->error('分摊租户不存在');
+        }
+        try {
+            $this->tenantShareService->delShareTenant($tenantShareFee);
+            return $this->success("分摊租户删除成功");
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->error("分摊租户删除失败" . $e->getMessage());
+        }
     }
 }

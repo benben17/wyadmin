@@ -32,24 +32,25 @@ class ContractService
     return new ContractModel;
   }
 
-  // 合同免租
+  //MARK: - 合同免租模型
   public function freeModel()
   {
     return new ContractFreePeriod;
   }
-  // 合同费用
+  //MARK: - 合同费用模型
   public function contractBillModel()
   {
     return new ContractBill;
   }
 
-  // 合同房间
+  //MARK: - 合同房间模型
   public function contractRoomModel()
   {
     return new ContractRoomModel;
   }
 
 
+  //MARK: 生成合同编号
   /**
    * 获取合同编号
    *  生成规则：前缀+年月日时分秒+3位随机数
@@ -63,6 +64,16 @@ class ContractService
   }
 
 
+  //MARK: - 检查合同编号是否重复
+  /**
+   * 检查合同编号是否重复
+   * @Author   leezhua
+   * @DateTime 2020-07-05
+   * @param    [str]     $contractNo  合同编号
+   * @param    integer    $projId     项目ID
+   * @param    integer    $contractId  合同ID
+   * @return   [bool]                 [description]
+   */
   public function checkContractNoRepeat($contractNo, $projId, $contractId = 0)
   {
     if (!$contractNo || empty($contractNo)) {
@@ -81,6 +92,7 @@ class ContractService
     }
   }
 
+  // MARK: - 合同详情
   /**
    * 合同查看
    * @Author   leezhua
@@ -104,6 +116,7 @@ class ContractService
     return $data;
   }
 
+  //MARK: 账单明细
   /**
    * 获取合同账单明细
    *
@@ -141,7 +154,7 @@ class ContractService
           }
           $feeBill[$i]['bill'] = $feeList;
           $feeBill[$i]['total'] = $total;
-
+          $feeBill[$i]['fee_type'] = $v;
           switch ($v) {
             case 1:
               $feeBill[$i]['fee_type_label'] = getFeeNameById($v1)['fee_name'];
@@ -234,7 +247,8 @@ class ContractService
       return array('code' => 0, 'msg' => '');
     }
   }
-  /** 合同审核 */
+  //#region 合同审核
+  // MARK: 合同审核 
   /**
    * 审核成功后 ，合同状态 contract_state更新为2
    * 客户状态 state 更新为2
@@ -301,6 +315,7 @@ class ContractService
       return false;
     }
   }
+  //#endregion
 
   /**
    * 合同日志保存
@@ -421,6 +436,7 @@ class ContractService
       ->whereHas('contract', function ($q) {
         $q->where('contract_state', AppEnum::contractExecute);
       })
+
       ->orderBy('created_at')->first();
     // Log::info(DB::getQueryLog());
     if ($contractRoom) {
@@ -434,6 +450,43 @@ class ContractService
     }
     return "";
   }
+
+
+  /**
+   * @Desc: roomId 获取合同信息
+   * @Author leezhua
+   * @Date 2024-07-10
+   * @param [int] $roomId
+   * @return array
+   */
+  public function getContractInfo(int $roomId)
+  {
+    // DB::enableQueryLog();
+    $contractRoom = ContractRoomModel::where('room_id', $roomId)
+      ->whereHas('contract', function ($q) {
+        $q->where('contract_state', AppEnum::contractExecute);
+      })
+      ->with(['contract' => function ($query) {
+        $query->select('id', 'end_date');
+        $query->where('contract_state', AppEnum::contractExecute);
+      }])
+      ->orderBy('created_at')->first();
+    // Log::info(DB::getQueryLog());
+
+    if (!$contractRoom) {
+      return ['tenant_name' => '', 'end_date' => '', 'days' => 0];
+    }
+
+    $tenantId = $contractRoom->tenant_id ?? 0;
+    $tenantName = $tenantId ? getTenantNameById($tenantId) : "";
+
+    $endDate = $contractRoom->contract->end_date ?? "";
+    $days = !empty($endDate) ? diffDays($endDate, nowTime()) : 0;
+
+    return ['tenant_name' => $tenantName, 'end_date' => $endDate, 'days' => $days];
+  }
+
+
 
   /** 发送通知消息 */
   private function sendMsg($title, $content, $user, $receiveUid = 0)
@@ -498,7 +551,7 @@ class ContractService
     }
   }
 
-
+  //MARK: - 合同免租列别
   /**
    * 保存合同免租列表
    *
@@ -531,11 +584,21 @@ class ContractService
     }
   }
 
-  /** 删除免租时间 */
+  //MARK: 删除免租时间
+  /**
+   * 删除合同免租时间
+   *
+   * @Author leezhua
+   * @DateTime 2021-07-11
+   * @param [type] $contractId
+   *
+   * @return void
+   */
   public function delFreeList($contractId)
   {
     return ContractFreePeriod::where('contract_id', $contractId)->delete();
   }
+  //MARK: - 合同账单
   /**
    * 保存合同账单
    *
@@ -588,7 +651,7 @@ class ContractService
     }
   }
 
-  // 退租处理 更新房源信息
+  //MARK: 退租处理 更新房源信息
   public function roomUpdateLeaseBack(int $contractId)
   {
     try {
@@ -702,6 +765,7 @@ class ContractService
       ];
     });
   }
+  //MARK: - 合同费用格式化
   /**
    * 合同费用格式化
    *
@@ -775,7 +839,16 @@ class ContractService
     }
   }
 
-  // 合同退回 ,管理员权限才有
+  //MARK: 合同退回 ,
+  /**
+   * @Desc:合同退回 管理员权限才有
+   * @Author leezhua
+   * @Date 2024-07-11
+   * @param [int] $contractId
+   * @param [str] $remark
+   * @param [array] $user
+   * @return void
+   */
   public function adminReturn($contractId, $remark, $user)
   {
     try {
@@ -828,7 +901,7 @@ class ContractService
     }
   }
 
-
+  //MARK: - 格式化合同并保存
   /**
    * 格式化合同并保存
    * @Author   leezhua

@@ -543,3 +543,21 @@ function getMonthRange($yearMonth): array
 	// Return an array with both start and end dates
 	return [$startDate, $endDate];
 }
+
+
+/**
+ * 获取2个日期之间的天数 判断传入的日期不允许位空
+ * @Author leezhua
+ * @Date 2024-03-30
+ * @param mixed $startDate
+ * @param mixed $endDate
+ * @return int
+ */
+
+function getDaysBetweenTwoDates($startDate, $endDate): int
+{
+	$startDate = strtotime($startDate);
+	$endDate = strtotime($endDate);
+	$days = ($endDate - $startDate) / 86400;
+	return $days;
+}

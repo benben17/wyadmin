@@ -606,30 +606,30 @@ class BuildingController extends BaseController
         // return $data;
         $BA = [];
         DB::enableQueryLog();
+        $contractService = new ContractService;
+
         foreach ($data as $k => $v) {
             $BA[$k] = [
                 'building_name' => $v['building']['build_no'] ?? '',
-                'floor_no' => $v['floor_no'] ?? '',
-                'room_count' => $v['floor_room_count'] ?? 0,
-                'room_list' => [],
+                'floor_no'      => $v['floor_no'] ?? '',
+                'room_count'    => $v['floor_room_count'] ?? 0,
+                'room_list'     => [],
             ];
 
-            foreach ($v->floorRoom as $k1 => &$v1) {
-                $room_list = [
-                    'id' => $v1->id,
-                    'room_state' => $v1->room_state,
-                    'room_area' => $v1->room_area,
-                    'room_type' => $v1->room_type,
-                    'room_no' => $v1->room_no,
-                    'tenant_name' => "",
+            foreach ($v->floorRoom as $k1 => $v1) {
+                $contractInfo = $contractService->getContractInfo($v1->id);
+
+                // 直接构建 room_list 数组
+                $BA[$k]['room_list'][$k1] = [
+                    'id'          => $v1->id,
+                    'room_state'  => $v1->room_state,
+                    'room_area'   => $v1->room_area,
+                    'room_type'   => $v1->room_type,
+                    'room_no'     => $v1->room_no,
+                    'tenant_name' => $contractInfo['tenant_name'] ?? "",
+                    'end_date'    => $contractInfo['end_date'] ?? "",
+                    'days'        => $contractInfo['days'] ?? 0,
                 ];
-
-                // if ($v1->room_state == 0) {
-                $contractService = new ContractService;
-                $room_list['tenant_name'] = $contractService->getTenantNameFromRoomId($v1->id);
-                // }
-
-                $BA[$k]['room_list'][$k1] = $room_list;
             }
         }
 

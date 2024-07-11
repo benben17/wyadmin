@@ -3,11 +3,13 @@
 namespace App\Api\Services\Tenant;
 
 use Exception;
+use App\Enums\AppEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use function AlibabaCloud\Client\json;
 
+use function AlibabaCloud\Client\json;
 use App\Api\Models\Bill\TenantShareFee;
+use App\Api\Services\Bill\TenantBillService;
 
 class TenantShareService
 {
@@ -140,4 +142,67 @@ class TenantShareService
   //   }
   // }
 
+
+  /**
+   * @Desc:已分摊租户删除，已经核销的账单不做删除
+   * @Author leezhua
+   * @Date 2024-07-10
+   * @param array $DA
+   * @return void
+   */
+  public function delShareTenant(array $tenantShare)
+  {
+    $DA = $tenantShare;
+    try{
+    DB::transaction(function () use ($DA) {
+      $billService = new TenantBillService();
+
+      // status = 1 或者 receive_amount > 0 的账单
+      $shareTenantBillsExists = $billService->billDetailModel()
+        ->where('tenant_id', $DA['tenant_id'])
+        ->where('contract_id', $DA['contract_id'])
+        ->where(function ($query) {
+            $query->where('status', AppEnum::feeStatusReceived)->orWhere('receive_amount', '>', 0);
+        })
+        ->exists();
+      if ($shareTenantBillsExists) {
+        throw new Exception("已存在核销过的费用应收！");
+      }
+
+      $feeBills = $billService->billDetailModel()->where('tenant_id', $DA['tenant_id'])
+        ->where('contract_id', $DA['contract_id'])
+        ->where('status', AppEnum::feeStatusUnReceive)
+        ->where('receive_amount', '0') // 已经核销的账单不做删除
+        ->get()->toArray();
+      if (!empty($feeBills)) {
+        foreach ($feeBills as $key => $feeBill) {
+          $primaryTenantFee = $billService->billDetailModel()
+            ->where('tenant_id', $DA['parent_id'])
+            ->where('contract_id', $DA['contract_id'])
+            ->where('fee_type', $feeBill['fee_type'])
+            ->where('charge_date', $feeBill['charge_date'])
+            ->first();
+          if(!$primaryTenantFee){
+            Log::error( "未找到对应主租户账单信息！写入一条新数据");
+            $feeBill['tenant_id']   = $DA['parent_id'];
+            $billService->saveBill($feeBill); // 直接更新
+          }else{
+            // 找到主租户账单信息，更新主租户账单信息 主要是更新金额和状态
+            $primaryTenantFee->amount = bcadd($primaryTenantFee->amount, $fee['amount'], 2);
+            $primaryTenantFee->status = AppEnum::feeStatusUnReceive;
+            $primaryTenantFee->save();
+          }
+          // 删除分摊租户的账单
+          $billService->billDetailModel()->where('id', $value['id'])->delete();
+        }
+      }
+      
+    });
+  }catch (Exception $e) {
+    
+    Log::error("分摊租户删除失败!".$e->getMessage());
+    throw new Exception("分摊租户删除失败!");
+  } 
+  
+  
 }
