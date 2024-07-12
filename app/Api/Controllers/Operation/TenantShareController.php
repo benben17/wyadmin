@@ -237,7 +237,7 @@ class TenantShareController extends BaseController
             })
             ->whereHas('tenant', function ($q) {
                 $q->where('parent_id', 0);
-            })->orderBy('charge_date', 'asc')->get()->toArray();
+            })->orderBy('charge_date', 'asc')->get();
         // return response()->json(DB::getQueryLog());
 
         return $this->success($data);
@@ -355,7 +355,7 @@ class TenantShareController extends BaseController
             return $this->error('分摊租户不存在');
         }
         try {
-            $this->tenantShareService->delShareTenant($tenantShareFee);
+            $this->tenantShareService->delShareTenant($tenantShareFee, $this->user);
             return $this->success("分摊租户删除成功");
         } catch (Exception $e) {
             Log::error($e);
