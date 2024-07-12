@@ -3,7 +3,6 @@
 namespace App\Api\Models\Bill;
 
 use App\Enums\DepositEnum;
-use Illuminate\Support\Arr;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;

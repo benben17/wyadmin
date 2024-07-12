@@ -572,10 +572,11 @@ function getDaysBetweenTwoDates($startDate, $endDate): int
  */
 function getTenantIdsByPrimary(int $tenantId): array
 {
-	if ($tenantId) {
-		return [$tenantId];
+	if (!$tenantId) {
+		return [];
 	}
-	$shareTenantId = \App\Api\Models\Tenant\Tenant::where('parentId', $tenantId)->pluck('id')->toArray();
+	$shareTenantId = \App\Api\Models\Tenant\Tenant::where('parent_id', $tenantId)
+		->pluck('id')->toArray();
 	$shareTenantId[] = $tenantId;
 	return $shareTenantId;
 }
