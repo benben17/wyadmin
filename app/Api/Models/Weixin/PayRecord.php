@@ -4,6 +4,7 @@ namespace App\Api\Models\Weixin;
 
 
 use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Venue\ActivityReg;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
