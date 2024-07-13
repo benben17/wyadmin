@@ -94,7 +94,7 @@ class TenantShareService
   {
     $data = $this->model()
       ->select('tenant_id', 'contract_id', 'fee_list')
-      ->whereColumn('parent_id', '!=', 'tenant_id')
+      // ->whereColumn('parent_id', '!=', 'tenant_id')
       ->where('contract_id', $contractId)
       ->get()
       ->toArray();
@@ -107,6 +107,7 @@ class TenantShareService
     // 使用数组映射函数来转换每个结果的 tenant_name
     $data = array_map(function ($item) {
       $item['tenant_name'] = getTenantNameById($item['tenant_id']);
+      $item['fee_list'] = json_decode($item['fee_list'], true);
       return $item;
     }, $data);
 
