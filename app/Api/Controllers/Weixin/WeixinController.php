@@ -14,7 +14,7 @@ use App\Api\Controllers\BaseController;
 use Laravel\Socialite\Facades\Socialite;
 use App\Api\Services\Weixin\WeiXinServices;
 
-class WeixinController extends BaseController
+class WeiXinController extends BaseController
 {
   protected $wxService;
   public function __construct()

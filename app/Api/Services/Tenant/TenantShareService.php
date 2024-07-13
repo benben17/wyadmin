@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 use function AlibabaCloud\Client\json;
 use App\Api\Models\Bill\TenantShareFee;
+use App\Api\Services\Common\ContactService;
 use App\Api\Services\Bill\TenantBillService;
+use App\Api\Services\Contract\ContractService;
 
 class TenantShareService
 {
@@ -196,10 +198,12 @@ class TenantShareService
             // 删除分摊租户的账单
             $billService->billDetailModel()->where('id', $feeBill['id'])->delete();
           }
+          $contractService = new ContractService;
+          $remark = '删除分摊租户' . getTenantNameById($DA['tenant_id']);
+          $contractService->saveLog($DA['contract_id'], '删除分摊租户', $remark, $user['id'], $user['real_name']);
         }
       });
     } catch (Exception $e) {
-
       Log::error("分摊租户删除失败!" . $e->getMessage());
       throw new Exception("分摊租户删除失败!");
     }

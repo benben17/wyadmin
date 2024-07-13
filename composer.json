@@ -17,6 +17,7 @@
         "darkaonline/l5-swagger": "6.0.*",
         "encore/laravel-admin": "^1.8",
         "fideloper/proxy": "^4.0",
+        "godruoyi/php-snowflake": "^2.2",
         "guzzlehttp/guzzle": "^7.3",
         "iwesen/laravel-admin-config": "^1.1",
         "jacobcyl/ali-oss-storage": "^2.1",
