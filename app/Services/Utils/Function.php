@@ -580,3 +580,5 @@ function getTenantIdsByPrimary(int $tenantId): array
 	$shareTenantId[] = $tenantId;
 	return $shareTenantId;
 }
+
+echo getTenantIdsByPrimary(3864);

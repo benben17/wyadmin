@@ -357,6 +357,42 @@
                 }
             }
         },
+        "/api/operation/tenant/bill/reminder": {
+            "post": {
+                "tags": [
+                    "账单"
+                ],
+                "summary": "催缴账单",
+                "operationId": "8ec74d2f0b50837526914af594b5a395",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "账单id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/bill/del": {
             "post": {
                 "tags": [
@@ -1068,6 +1104,53 @@
                 }
             }
         },
+        "/api/operation/charge/incomeToDeposit": {
+            "post": {
+                "tags": [
+                    "收支"
+                ],
+                "summary": "收款转押金-支出转押金",
+                "operationId": "3060e26bfee60a98e16714ccccf7fe08",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id",
+                                    "bill_detail_id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "id",
+                                        "type": "int"
+                                    },
+                                    "bill_detail_id": {
+                                        "description": "应收费用id",
+                                        "type": "int"
+                                    },
+                                    "toDate": {
+                                        "description": "转押金日期",
+                                        "type": "date"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1",
+                                "bill_detail_id": "1",
+                                "toDate": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/charge/record/list": {
             "post": {
                 "tags": [
@@ -1618,6 +1701,42 @@
                                 "id": "1",
                                 "amount": "1",
                                 "remark": "备注"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/deposit/receive/del": {
+            "post": {
+                "tags": [
+                    "押金管理"
+                ],
+                "summary": "押金管理收款删除",
+                "operationId": "c388568d052777d91926cfee5da55586",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "receiveId"
+                                ],
+                                "properties": {
+                                    "receiveId": {
+                                        "description": "收款id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "receiveId": "1"
                             }
                         }
                     }
@@ -3295,6 +3414,42 @@
                 }
             }
         },
+        "/api/business/customer/follow/del": {
+            "post": {
+                "tags": [
+                    "客户"
+                ],
+                "summary": "跟进记录删除",
+                "operationId": "cd31277bd5efadf8ede2bcfc71c45af5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "跟进记录ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/business/customer/list": {
             "post": {
                 "tags": [
@@ -3594,6 +3749,42 @@
                             },
                             "example": {
                                 "id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/business/customer/del": {
+            "post": {
+                "tags": [
+                    "租户"
+                ],
+                "summary": "删除客户",
+                "operationId": "1814cbe6087992f65ae9892b2f64f3d1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "客户id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 1
                             }
                         }
                     }
@@ -7759,6 +7950,48 @@
                 }
             }
         },
+        "/api/business/contract/changeBase": {
+            "post": {
+                "tags": [
+                    "合同"
+                ],
+                "summary": "合同变更基本信息",
+                "operationId": "e0894439ae04b1b5c198242780a3bb63",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_state",
+                                    "sign_date",
+                                    "start_date",
+                                    "end_date"
+                                ],
+                                "properties": {
+                                    "contract_state": {
+                                        "description": "0:草稿 1:待审核 2:正式合同",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_state": "1",
+                                "sign_date": "",
+                                "start_date": "1",
+                                "end_date": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/leaseback/list": {
             "post": {
                 "tags": [
@@ -8014,6 +8247,202 @@
                 "summary": "首页数据",
                 "description": "首页数据",
                 "operationId": "dashboard",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/dashboard/tenant": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "租客数据",
+                "description": "租客数据",
+                "operationId": "tenant",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/dashboard/customer": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "客户数据",
+                "description": "客户数据",
+                "operationId": "customer",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/dashboard/workOrderData": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "工单数据",
+                "description": "工单数据",
+                "operationId": "workOrderData",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/dashboard/tenantMaintain": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "租客维修数据",
+                "description": "租客维修数据",
+                "operationId": "tenantMaintain",
                 "parameters": [
                     {
                         "name": "proj_ids",
@@ -10810,6 +11239,42 @@
                 }
             }
         },
+        "/api/operation/tenant/del": {
+            "post": {
+                "tags": [
+                    "租户"
+                ],
+                "summary": "租户删除",
+                "operationId": "76908cef47c2505d1bcde5ff25809994",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "客户id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/operation/tenant/share/list": {
             "post": {
                 "tags": [
@@ -10955,6 +11420,90 @@
                             "example": {
                                 "contract_id": 1,
                                 "fee_start_date": "2024-03-01"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/share/store": {
+            "post": {
+                "tags": [
+                    "租户分摊"
+                ],
+                "summary": "租户分摊保存",
+                "operationId": "c79f6e8b864acb825535ca5743cebb10",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "contract_id",
+                                    "share_list",
+                                    "parent_tenant_id"
+                                ],
+                                "properties": {
+                                    "contract_id": {
+                                        "description": "合同id",
+                                        "type": "int"
+                                    },
+                                    "share_list": {
+                                        "description": "分摊租户列表",
+                                        "type": "list"
+                                    },
+                                    "parent_tenant_id": {
+                                        "description": "主租户id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "contract_id": 1,
+                                "share_list": "[]",
+                                "parent_tenant_id": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/tenant/share/del": {
+            "post": {
+                "tags": [
+                    "租户分摊"
+                ],
+                "summary": "分摊租户删除",
+                "operationId": "e1ca9e671177dff128c54c0c3fc53b1b",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "租户id",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": 1
                             }
                         }
                     }
@@ -11131,6 +11680,42 @@
                 ],
                 "summary": "保修工单取消",
                 "operationId": "ade0c7e5e7f4de062df8b5f167b02102",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "id": "1"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/operation/workorder/del": {
+            "post": {
+                "tags": [
+                    "保修工单"
+                ],
+                "summary": "保修工单删除",
+                "operationId": "6b51ab68901efc877b3f8c4292f76562",
                 "requestBody": {
                     "content": {
                         "application/json": {

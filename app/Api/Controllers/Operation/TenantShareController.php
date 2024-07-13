@@ -256,10 +256,10 @@ class TenantShareController extends BaseController
      *          schema="UserModel",
      *          required={"contract_id","share_list","parent_tenant_id"},
      *          @OA\Property(property="contract_id",type="int",description="合同id"),
-     *          @OA\Property(property="share_list",type="array",description="分摊列表"),
+     *          @OA\Property(property="share_list",type="list",description="分摊租户列表"),
      *          @OA\Property(property="parent_tenant_id",type="int",description="主租户id")
      *       ),
-     *       example={"contract_id":1,"share_list":[{"tenant_id":1,"tenant_name":"租户名称","fee_list":[{"id":1,"share_amount":100}]}],"parent_tenant_id":1}
+     *       example={"contract_id":1,"share_list":"[]","parent_tenant_id":1}
      *       )
      *     ),
      *     @OA\Response(
@@ -333,6 +333,28 @@ class TenantShareController extends BaseController
 
     // 已分摊租户删除
     // 处理分摊租户费用应收，添加到主租户
+    /**
+     * @OA\Post(
+     *     path="/api/operation/tenant/share/del",
+     *     tags={"租户分摊"},
+     *     summary="分摊租户删除",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"id"},
+     *       @OA\Property(property="id",type="int",description="租户id")
+     *     ),
+     *       example={"id":1}
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
     public function shareTenantDel(Request $request)
     {
 
