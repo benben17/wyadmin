@@ -405,6 +405,7 @@ Route::group(['prefix' => 'operation/tenant/share'], function () {
     Route::post('show', '\App\Api\Controllers\Operation\TenantShareController@show');
     Route::post('fee/list', '\App\Api\Controllers\Operation\TenantShareController@feeList');
     Route::post('store', '\App\Api\Controllers\Operation\TenantShareController@tenantShareStore');
+    Route::post('del', '\App\Api\Controllers\Operation\TenantShareController@delShareTenant');
 });
 
 

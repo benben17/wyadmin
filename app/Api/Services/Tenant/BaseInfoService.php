@@ -115,16 +115,17 @@ class BaseInfoService
    */
   public function getCompanyInfo($companyName, $user)
   {
-    $skyeyeLog = TenantSkyeyeLog::where('search_name', $companyName)->first();
+    // 尝试从缓存中获取公司信息
+    $skyeyeLog = TenantSkyeyeLog::where('search_name', 'like', '%' . $companyName . '%')->first();
+
+    // 如果没有找到缓存的记录，通过 Skyeye 搜索公司信息
     if (!$skyeyeLog) {
-      $companyInfo = $this->searchBySkyeye($companyName, $user);
-    } else {
-      $skyeyeLog = $skyeyeLog->toArray();
-      $skyeye = json_decode($skyeyeLog['search_result'], true);
-      $companyInfo = $this->formatSkyeyeData($skyeye);
+      return $this->searchBySkyeye($companyName, $user);
     }
-    // Log::info(json_encode($companyInfo));
-    return $companyInfo;
+
+    // 如果找到了缓存的记录，解码搜索结果并格式化数据
+    $skyeye = json_decode($skyeyeLog->search_result, true);
+    return $this->formatSkyeyeData($skyeye);
   }
 
   /**
@@ -141,45 +142,18 @@ class BaseInfoService
       'Authorization:' . $skyeyeConfig['token'],
     );
     $url = $skyeyeConfig['apiUrl'] . urlencode($companyName);
-    $output =  $this->curl_http_request($url, $header);
-    $data = json_decode($output, true);
+    $output =  http_request($url, $header);
+    $data   = json_decode($output, true);
 
     if ($data['error_code'] == 0) {
       $this->saveSkyeyeSearchLog($companyName, $data['result'], $user);
       return $this->formatSkyeyeData($data['result']);
     } else {
-
       throw new Exception($data['reason']);
       return false;
     }
   }
-  /**
-   * curl http请求
-   * @Author leezhua
-   * @Date 2024-04-04
-   * @param mixed $url 
-   * @param array $headers 
-   * @return string|bool 
-   */
-  function curl_http_request($url, $headers = [])
-  {
-    $curl = curl_init();
-    if (!empty($headers)) {
-      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($curl, CURLOPT_HEADER, 0); //返回response头部信息
-    }
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-    if (!empty($data)) {
-      curl_setopt($curl, CURLOPT_HTTPGET, 1);
-      curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-    }
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    $result =  curl_exec($curl);
-    curl_close($curl);
-    return $result;
-  }
+
 
 
   /**
@@ -247,22 +221,15 @@ class BaseInfoService
    */
   private function formatSkyeyeData(array $DA)
   {
+    // 定义需要转换日期格式的字段
+    $dateFields = ['cancelDate', 'approvedTime', 'fromTime', 'toTime', 'estiblishTime'];
 
-    if (isset($DA['cancelDate']) && $DA['cancelDate']) {
-      $DA['cancelDate'] = $this->sec2Ymd($DA['cancelDate']);
+    foreach ($dateFields as $field) {
+      if (isset($DA[$field]) && $DA[$field]) {
+        $DA[$field] = $this->sec2Ymd($DA[$field]);
+      }
     }
-    if (isset($DA['approvedTime']) && $DA['approvedTime']) {
-      $DA['approvedTime'] = $this->sec2Ymd($DA['approvedTime']); //'经营开始时间'
-    }
-    if (isset($DA['fromTime']) && $DA['fromTime']) {
-      $DA['fromTime'] = $this->sec2Ymd($DA['fromTime']);
-    }
-    if (isset($DA['toTime']) && $DA['toTime']) {
-      $DA['toTime'] = $this->sec2Ymd($DA['toTime']);
-    }
-    if (isset($DA['estiblishTime']) && $DA['estiblishTime']) {
-      $DA['estiblishTime'] = $this->sec2Ymd($DA['estiblishTime']);
-    }
+    // 处理注册资本字段
     if (isset($DA['regCapital'])) {
       $DA['regCapital'] = str_replace("万人民币", "", $DA['regCapital']);
     }

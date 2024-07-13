@@ -234,6 +234,8 @@ class TenantShareController extends BaseController
                 $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
                 $q->whereIn('fee_type', [101, 102]);
                 $q->where('status', 0);
+                $q->where('receive_amount', 0);
+                $q->where('amount', '>', 0);
             })
             ->whereHas('tenant', function ($q) {
                 $q->where('parent_id', 0);
@@ -355,33 +357,33 @@ class TenantShareController extends BaseController
      *     )
      * )
      */
-    public function shareTenantDel(Request $request)
+    public function delShareTenant(Request $request)
     {
 
-        $msg = ['id' => '租户id不允许为空'];
+        $msg = ['id' => '分摊租户ID不允许为空'];
         $validatedData = $request->validate([
             'id' => 'required|numeric|min:1'
         ], $msg);
         $DA = $request->toArray();
         $tenant = $this->tenantService->tenantModel()->find($DA['id']);
         if (!$tenant) {
-            return $this->error('租户不存在');
+            return $this->error('分摊租户不存在！');
         }
         if ($tenant->parent_id == 0) {
-            return $this->error('主租户不允许删除');
+            return $this->error('主租户不允许删除！');
         }
         $tenantShareFee = $this->tenantShareService->model()
             ->where('tenant_id', $DA['id'])
             ->first()->toArray();
         if (!$tenantShareFee) {
-            return $this->error('分摊租户不存在');
+            return $this->error('分摊信息不存在！');
         }
         try {
             $this->tenantShareService->delShareTenant($tenantShareFee, $this->user);
-            return $this->success("分摊租户删除成功");
+            return $this->success("租户分摊信息删除成功");
         } catch (Exception $e) {
             Log::error($e);
-            return $this->error("分摊租户删除失败" . $e->getMessage());
+            return $this->error("租户分摊信息删除失败" . $e->getMessage());
         }
     }
 }

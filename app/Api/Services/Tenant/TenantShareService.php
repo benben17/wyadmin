@@ -177,6 +177,7 @@ class TenantShareService
           ->where('status', AppEnum::feeStatusUnReceive)
           ->where('receive_amount', '0') // 已经核销的账单不做删除
           ->get()->toArray();
+        $billIds = [];
         if (!empty($feeBills)) {
           foreach ($feeBills as $key => $feeBill) {
             $primaryTenantFee = $billService->billDetailModel()
@@ -196,8 +197,13 @@ class TenantShareService
               $primaryTenantFee->save();
             }
             // 删除分摊租户的账单
-            $billService->billDetailModel()->where('id', $feeBill['id'])->delete();
+            $billIds[] = $feeBill['id'];
           }
+          // 删除分摊租户的账单
+          if (!empty($billIds) && count($billIds) > 0) {
+            $billService->billDetailModel()->whereIn('id', $billIds)->delete();
+          }
+          // 保存合同日志
           $contractService = new ContractService;
           $remark = '删除分摊租户' . getTenantNameById($DA['tenant_id']);
           $contractService->saveLog($DA['contract_id'], '删除分摊租户', $remark, $user['id'], $user['real_name']);
