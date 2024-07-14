@@ -255,33 +255,34 @@ class LeasebackController extends BaseController
      */
     public function leasebackBill(Request $request)
     {
-
         $this->showValidate($request);
         $request->validate([
-            'leaseback_date'         => 'required|date',
+            'leaseback_date' => 'required|date',
         ], [
             'leaseback_date.required' => '退租日期不能为空',
-            'leaseback_date.date'     => '退租日期格式不正确'
+            'leaseback_date.date' => '退租日期格式不正确',
         ]);
+
         $tenantService = new TenantBillService;
-        $feeBills = $tenantService->billDetailModel()
-            ->where('contract_id', $request->contract_id)
-            ->where('type', '!=', AppEnum::depositFeeType)
-            ->where('status', AppEnum::feeStatusUnReceive)
-            ->orderBy('fee_type', 'asc')
-            ->orderBy('charge_date', 'asc')->get();
 
-        $depositBills = $tenantService->billDetailModel()
+        // 使用单个查询获取所有账单，并按类型和状态分组
+        $bills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
-            ->where('type', AppEnum::depositFeeType)
             ->orderBy('fee_type', 'asc')
-            ->orderBy('charge_date', 'asc')->get();
+            ->orderBy('tenant_id', 'asc')
+            ->orderBy('charge_date', 'asc')
+            ->get()
+            ->groupBy(['type', 'status']);
 
-        $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
-        $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);
+        // 使用 collect 方法简化处理逻辑
+        $feeList = $bills->get(AppEnum::feeType)->get(AppEnum::feeStatusUnReceive, collect());
+        $data = collect([
+            'fee_list' => $tenantService->processLeaseBackFee($feeList, $request->leaseback_date),
+            'deposit_fee_list' => $tenantService->processLeaseBackFee($bills->get(AppEnum::depositFeeType, collect()), $request->leaseback_date),
+        ]);
+
         return $this->success($data);
     }
-
 
     public function leasebackReturn(Request $request)
     {
