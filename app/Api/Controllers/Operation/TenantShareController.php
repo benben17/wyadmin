@@ -232,7 +232,7 @@ class TenantShareController extends BaseController
                 $q->where('contract_id', $request->contract_id);
                 $q->where('bill_id', 0);
                 $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
-                $q->whereIn('fee_type', [101, 102]);
+                $q->whereIn('fee_type', [AppEnum::rentFeeType, AppEnum::depositFeeType]);
                 $q->where('status', 0);
                 $q->where('receive_amount', 0);
                 $q->where('amount', '>', 0);
@@ -309,9 +309,12 @@ class TenantShareController extends BaseController
 
                         // Log::error(json_encode($share['fee_list']));
                         $newFeeList = $this->tenantBillService->formatBillDetail($share['fee_list'], $user);
+
                         $this->tenantBillService->billDetailModel()->addAll($newFeeList);
                         $updateTenant = ['parent_id' => $primaryTenant];
-                        $this->tenantService->tenantModel()->where('id', $share['tenant_id'])->update($updateTenant);
+                        $this->tenantService->tenantModel()
+                            ->where('id', $share['tenant_id'])
+                            ->update($updateTenant);
                     }
                 }
                 // 保存合同 日志
@@ -319,7 +322,7 @@ class TenantShareController extends BaseController
                 $BA['id'] = $DA['contract_id'];
                 $BA['title'] = '增加分摊租户';
                 $BA['contract_state'] = '租户分摊';
-                $BA['remark'] = '增加分摊租户' .  implode(', ', array_unique($shareTenants));
+                $BA['remark'] = '增加分摊租户【' .  implode(', ', array_unique($shareTenants)) . "】";
                 $BA['c_uid'] = $user['id'];
                 $BA['c_username'] = $user['realname'];
                 $contractService->saveLog($BA);
@@ -374,12 +377,12 @@ class TenantShareController extends BaseController
         }
         $tenantShareFee = $this->tenantShareService->model()
             ->where('tenant_id', $DA['id'])
-            ->first()->toArray();
+            ->first();
         if (!$tenantShareFee) {
             return $this->error('分摊信息不存在！');
         }
         try {
-            $this->tenantShareService->delShareTenant($tenantShareFee, $this->user);
+            $this->tenantShareService->delShareTenant($tenantShareFee->toArray(), $this->user);
             return $this->success("租户分摊信息删除成功");
         } catch (Exception $e) {
             Log::error($e);

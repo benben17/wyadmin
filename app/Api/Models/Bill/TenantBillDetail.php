@@ -151,7 +151,8 @@ class TenantBillDetail extends Model
 
   public function addAll($data)
   {
-    return DB::table($this->getTable())->insert($data);
+    return DB::table($this->getTable())
+      ->insert($data);
   }
 
 
