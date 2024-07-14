@@ -145,7 +145,7 @@ class TenantShareService
   //   }
   // }
 
-
+  //#MARK: 分摊租户保存
   /**
    * @Desc:已分摊租户删除，已经核销的账单不做删除
    * @Author leezhua
@@ -165,20 +165,31 @@ class TenantShareService
           ->where('tenant_id', $DA['tenant_id'])
           ->where('contract_id', $DA['contract_id'])
           ->where(function ($query) {
-            $query->where('status', AppEnum::feeStatusReceived)->orWhere('receive_amount', '>', 0);
+            $query->where('status', AppEnum::feeStatusReceived)
+              ->orWhere('receive_amount', '>', 0);
           })
-          ->exists();
+          ->count() > 0;
         if ($shareTenantBillsExists) {
-          throw new Exception("已存在核销过的费用应收！");
+          throw new Exception("已有应收核销或者已收款！");
         }
-
-        $feeBills = $billService->billDetailModel()->where('tenant_id', $DA['tenant_id'])
+        // 查询删除租户的应收账单
+        $feeBills = $billService->billDetailModel()
+          ->where('tenant_id', $DA['tenant_id'])
           ->where('contract_id', $DA['contract_id'])
           ->where('status', AppEnum::feeStatusUnReceive)
           ->where('receive_amount', '0') // 已经核销的账单不做删除
           ->get()->toArray();
+
+        // 查询主租户分摊表
+        $primaryTenantShare = $this->model()->where('tenant_id', $DA['parent_id'])
+          ->where('contract_id', $DA['contract_id'])
+          ->first()->pluck('fee_list');
+        if ($primaryTenantShare->isEmpty()) {
+          throw new Exception("未找到对应主租户分摊信息！");
+        }
+        $primaryTenantFees = json_decode($primaryTenantShare->fee_list, true);
         $billIds = [];
-        if (!empty($feeBills)) {
+        if ($feeBills->isNotEmpty()) {
           foreach ($feeBills as $key => $feeBill) {
             $primaryTenantFee = $billService->billDetailModel()
               ->where('tenant_id', $DA['parent_id'])
@@ -190,28 +201,57 @@ class TenantShareService
               Log::error("未找到对应主租户账单信息！写入一条新数据");
               $feeBill['tenant_id']   = $DA['parent_id'];
               $billService->saveBill($feeBill, $user); // 直接更新
+
             } else {
               // 找到主租户账单信息，更新主租户账单信息 主要是更新金额和状态
               $primaryTenantFee->amount = bcadd($primaryTenantFee->amount, $feeBill['amount'], 2);
               $primaryTenantFee->status = AppEnum::feeStatusUnReceive;
               $primaryTenantFee->save();
             }
-            // 删除分摊租户的账单
+
+            // 更新主租户分摊金额
+            foreach ($primaryTenantFees as &$primaryFee) {
+              if ($this->isMatchingFee($primaryTenantFee, $feeBill)) {
+                $primaryFee['share_amount'] = bcsub($primaryFee['share_amount'], $feeBill['amount'], 2);
+              }
+            }
+            unset($primaryFee);
+            // 删除分摊租户的账单ID 集合
             $billIds[] = $feeBill['id'];
           }
+
           // 删除分摊租户的账单
-          if (!empty($billIds) && count($billIds) > 0) {
+          if (!empty($billIds)) {
             $billService->billDetailModel()->whereIn('id', $billIds)->delete();
+            // 处理删除分摊表中的信息
+            $this->model()->where('tenant_id', $DA['tenant_id'])->where('contract_id', $DA['contract_id'])->delete();
+
+            // 更新主租户 分摊表信息
+            $primaryTenantShare->fee_list = json_encode($primaryTenantFees);
+            $primaryTenantShare->save();
           }
           // 保存合同日志
           $contractService = new ContractService;
-          $remark = '删除分摊租户' . getTenantNameById($DA['tenant_id']);
-          $contractService->saveLog($DA['contract_id'], '删除分摊租户', $remark, $user['id'], $user['real_name']);
+          $BA['id'] = $DA['contract_id'];
+          $BA['title'] = "删除分摊租户";
+          $BA['c_uid'] = $user['id'];
+          $BA['c_username'] = $user['realname'];
+          $BA['remark'] = '删除分摊租户' . getTenantNameById($DA['tenant_id']);
+          $contractService->saveLog($BA);
         }
       });
     } catch (Exception $e) {
       Log::error("分摊租户删除失败!" . $e->getMessage());
       throw new Exception("分摊租户删除失败!");
     }
+  }
+
+
+
+  private function isMatchingFee(array $primaryTenantFee, array $feeBill): bool
+  {
+    return $primaryTenantFee['fee_type'] == $feeBill['fee_type'] &&
+      $primaryTenantFee['charge_date'] == $feeBill['charge_date'] &&
+      $primaryTenantFee['contract_id'] == $feeBill['contract_id'];
   }
 }

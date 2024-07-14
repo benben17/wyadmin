@@ -315,7 +315,7 @@ class ContractService
       return false;
     }
   }
-  //#endregion
+
 
   /**
    * 合同日志保存
@@ -406,7 +406,8 @@ class ContractService
   public function getContractByRoomId($roomId)
   {
     // try {
-    $data = ContractModel::select('id', 'start_date', 'end_date', 'room_type', 'contract_state', 'tenant_name', 'sign_date', 'rental_price', 'rental_price_type', 'tenant_id')
+    $data = $this->model()
+      ->select('id', 'start_date', 'end_date', 'room_type', 'contract_state', 'tenant_name', 'sign_date', 'rental_price', 'rental_price_type', 'tenant_id')
       ->whereHas('contractRoom', function ($q) use ($roomId) {
         $q->where('room_id', $roomId);
       })
@@ -414,15 +415,11 @@ class ContractService
         $query->select('id', 'name');
       }])
       ->get();
-    if ($data) {
-      $data->map(function ($v) {
-        $v['cus_name'] = $v['tenant']['name'];
-        unset($v['tenant']);
-      });
-      return $data->toArray();
-    } else {
-      return [];
-    }
+    return $data ? $data->map(function ($v) {
+      $v['cus_name'] = $v['tenant']['name'];
+      unset($v['tenant']);
+      return $v;
+    })->toArray() : [];
     // } catch (Exception $e) {
     //   Log::error("getContractByRoomId" . $e->getMessage());
     //   return (object)[];

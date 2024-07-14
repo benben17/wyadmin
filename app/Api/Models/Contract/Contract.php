@@ -2,8 +2,10 @@
 
 namespace App\Api\Models\Contract;
 
+use App\Enums\AppEnum;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
+use Illuminate\Support\Facades\App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -82,14 +84,14 @@ class Contract extends Model
   {
     if (isset($this->attributes['proj_id'])) {
       $proj = getProjById($this->attributes['proj_id']);
-      return $proj['proj_name'];
+      return $proj['proj_name'] ?? "";
     }
   }
 
   // 合同状态
   public function getStateLabelAttribute()
   {
-    $contractState = $this->attributes['contract_state'] ?? 0;
+
     $stateLabels = [
       '0' => '待提交',
       '1' => '待审核',
@@ -98,8 +100,8 @@ class Contract extends Model
       '98' => '退租合同',
       '99' => '作废合同',
     ];
-
-    return $stateLabels[$contractState] ?? '';
+    $contractState = $this->attributes['contract_state'] ?? 0;
+    return $stateLabels[$contractState] ?? 0;
   }
 
   public function getRentalPriceAttribute()

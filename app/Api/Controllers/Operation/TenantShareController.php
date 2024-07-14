@@ -383,7 +383,7 @@ class TenantShareController extends BaseController
             return $this->success("租户分摊信息删除成功");
         } catch (Exception $e) {
             Log::error($e);
-            return $this->error("租户分摊信息删除失败" . $e->getMessage());
+            return $this->error($e->getMessage());
         }
     }
 }
