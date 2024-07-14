@@ -267,11 +267,15 @@ class LeasebackController extends BaseController
         $feeBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
             ->where('type', '!=', AppEnum::depositFeeType)
-            ->where('status', AppEnum::feeStatusUnReceive)->get();
+            ->where('status', AppEnum::feeStatusUnReceive)
+            ->orderBy('fee_type', 'asc')
+            ->orderBy('charge_date', 'asc')->get();
 
         $depositBills = $tenantService->billDetailModel()
             ->where('contract_id', $request->contract_id)
-            ->where('type', AppEnum::depositFeeType)->get();
+            ->where('type', AppEnum::depositFeeType)
+            ->orderBy('fee_type', 'asc')
+            ->orderBy('charge_date', 'asc')->get();
 
         $data['fee_list'] = $tenantService->processLeaseBackFee($feeBills, $request->leaseback_date);
         $data['deposit_fee_list']  = $tenantService->processLeaseBackFee($depositBills, $request->leaseback_date);

@@ -583,25 +583,18 @@ class TenantBillService
 		$feeList = $feeList->toArray();
 		$leasebackDate = strtotime($leasebackDate);
 		foreach ($feeList as &$bill) {
-			$is_valid = 1;
-			// $is_valid_label = "有效";
-			$billDate = str2Array($bill['bill_date'], "至");
+			$is_valid = 1; // 默认账单有效
+			$billDate = explode("至", $bill['bill_date']); // 使用explode分割账单日期
 			if (count($billDate) != 2) {
-				continue;
+				continue; // 如果账单日期格式不正确，则跳过此账单
 			}
 			$billStartTime = strtotime($billDate[0]);
 			$billEndTime = strtotime($billDate[1]);
-			// 判断  退租的日期 小于账单开始时间
+			// 如果退租日期小于账单开始时间，则标记账单为无效
 			if ($leasebackDate < $billStartTime) {
 				$is_valid = 0;
-				// $is_valid_label = "系统删除";
 			}
-			// 退租日期大于账单开始时间时间 并且小于账单结束时间
-			// else if ($leasebackDate > $billStartTime && $leasebackDate < $billEndTime) {
-			// 	$is_valid = 1;
-			// }
 			$bill['is_valid'] = $is_valid;
-			// $bill['is_valid_label'] = $is_valid_label;
 		}
 		return $feeList;
 	}

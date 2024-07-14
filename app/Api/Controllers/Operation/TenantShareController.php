@@ -239,9 +239,14 @@ class TenantShareController extends BaseController
             })
             ->whereHas('tenant', function ($q) {
                 $q->where('parent_id', 0);
-            })->orderBy('charge_date', 'asc')->get();
-        // return response()->json(DB::getQueryLog());
+            })->orderBy('charge_date', 'asc')
+            ->orderBy('fee_type', 'asc')
+            ->get();
+        // $contractService = new ContractService;
 
+        // foreach ($data as $k => &$v) {
+        //     $v['contract_amount'] = $contractService->contractBillModel()->find($v['contract_bill_id'])->amount;
+        // }
         return $this->success($data);
     }
 
@@ -281,6 +286,23 @@ class TenantShareController extends BaseController
 
         $DA = $request->toArray();
         DB::enableQueryLog();
+
+        // 如果tenant_id 与 parent_tenant_id 相同，从$shareTenants中删除
+        $shareTenants = array_filter(
+            array_column($DA['share_list'], 'tenant_id'),
+            function ($tenantId) use ($DA) {
+                return $tenantId !== $DA['parent_tenant_id'];
+            }
+        );
+
+        $shareTenantExists = $this->tenantShareService->model()
+            ->whereIn('tenant_id', $shareTenants)
+            ->count() > 0;
+
+        if ($shareTenantExists) {
+            return $this->error('分摊租户已存在, 请勿重复添加！ 如需更新，请先删除！');
+        }
+
         try {
             $user = $this->user;
             DB::transaction(function () use ($DA, $user) {
