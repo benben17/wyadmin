@@ -41,7 +41,7 @@ class TenantShareService
       // $share->fee_type    = $DA['fee_type'];
 
       // Log::info("feeListStrings", $feeListStrings);
-      $share->fee_list = json_encode($DA['fee_list']);
+      $share->fee_list = json_encode($this->formatFeeList($DA['fee_list']));
       $share->remark   = isset($DA['remark']) ? $DA['remark'] : "";
       $res = $share->save();
       return $res;
@@ -50,6 +50,19 @@ class TenantShareService
       throw new Exception("分摊明细保存失败");
       return false;
     }
+  }
+
+
+  private function formatFeeList($feeList)
+  {
+    $feeListNew = [];
+    foreach ($feeList as $key => $fee) {
+      if (empty($fee['share_amount']) || $fee['share_amount'] == 0) {
+        continue;
+      }
+      $feeListNew[] = $fee;
+    }
+    return $feeListNew;
   }
 
   /**
