@@ -324,6 +324,7 @@ class TenantShareController extends BaseController
                         // 处理分摊租户
                         foreach ($share['fee_list'] as $k => &$v) {
                             if ($v['share_amount'] == 0) {
+                                unset($share['fee_list'][$k]);
                                 continue;
                             }
                             $v['tenant_id']     = $share['tenant_id'];
