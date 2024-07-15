@@ -21,10 +21,11 @@ class UserController extends BaseController
      * 要求附带email和password（数据来源users表）
      * @return void
      */
-
+    private $userService;
     public function __construct()
     {
         parent::__construct();
+        $this->userService = new UserServices;
     }
 
     /**

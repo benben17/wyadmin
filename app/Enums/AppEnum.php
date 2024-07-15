@@ -21,6 +21,9 @@ abstract class AppEnum extends BaseEnum
   const YhWorkOrder  = 7;  // 隐患工单
   const EquipmentMaintain    = 8;  // 设备维护
 
+  const menuTypePC  = 1; // PC端菜单类型
+  const menuTypeApp = 2; //  APP端菜单类型
+
   // 招商合同状态
   const contractSave      = 0;  // 保存
   const contractAudit     = 1;  // 待审核状态

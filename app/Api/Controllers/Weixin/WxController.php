@@ -4,22 +4,23 @@ namespace App\Api\Controllers\Weixin;
 
 use JWTAuth;
 use FFI\Exception;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Api\Services\Weixin\WeiXinServices;
 
-class WeiXinController extends BaseController
+class WxController extends BaseController
 {
   protected $wxService;
+  protected $userService;
   public function __construct()
   {
     $this->wxService = new WeiXinServices;
+    $this->userService = new UserServices;
   }
 
 
@@ -157,27 +158,29 @@ class WeiXinController extends BaseController
       'code' => 'required',
     ]);
     try {
-      $wxService = new WeiXinServices;
-      $result = $wxService->getMiniProgramOpenId($request->appid, $request->code);
-      if (isset($result['unionid'])) {
-        $userService = new UserServices;
-        $where['unionid']  = $result['unionid'];
-        $where['is_vaild'] = 1;
-        $user = $userService->userModel()->where($where)->first();
-        if (!$user) {
-          return $this->error("未绑定微信，请登陆绑定微信!");
-        }
-        if (!$token =  auth('api')->login($user, false)) { //$user->id
-          return $this->error('登录失败!');
-        }
-
-        $data = $userService->miniUserInfo($user, $token);
-        return $this->success($data);
-      } else {
-        return $this->error("登录失败" . $result['errcode']);
+      // 获取小程序用户信息
+      $wxResult = $this->wxService->getMiniProgramOpenId($validatedData['appid'], $validatedData['code']);
+      if (!isset($wxResult['unionid'])) {
+        return $this->error("微信登录失败: " . ($wxResult['errmsg'] ?? '未知错误'));
       }
-    } catch (Exception $e) {
-      return $this->error("登录失败" . $e->getMessage());
+
+      // 查找绑定用户
+      $user = $this->userService->userModel()->where('unionid', $wxResult['unionid']);
+      if (!$user) {
+        return $this->error("未绑定微信，请登录绑定微信!");
+      }
+
+      // 生成token
+      if (!$token = Auth::guard('api')->login($user, false)) {
+        return $this->error('登录失败!');
+      }
+
+      $data = $this->userService->getLoginUserInfo($user->id);
+      $data['token'] = $token; // 将token添加到用户信息中
+
+      return $this->success($data);
+    } catch (\Exception $e) {
+      return $this->error("登录失败: " . $e->getMessage());
     }
   }
 }

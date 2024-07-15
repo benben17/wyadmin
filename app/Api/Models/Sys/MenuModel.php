@@ -13,22 +13,35 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @Date 2024-07-15
  */
-class SysMenu extends Model
+class MenuModel extends Model
 {
   // use SoftDeletes;
 
   protected $table = 'sys_menu';
 
+  protected $fillable = [
+    'pid',
+    'menu_type',
+    'sort',
+    'status',
+    'is_show',
+    'name',
+    'component',
+    'path',
+    'icon',
+    'permission', 'created_at', 'updated_at'
+  ];
+
   protected $hidden = ['created_at', 'updated_at'];
 
   public function children()
   {
-    return $this->hasMany(SysMenu::class, 'parent_id', 'id');
+    return $this->hasMany(MenuModel::class, 'parent_id', 'id');
   }
 
   public function parent()
   {
-    return $this->belongsTo(SysMenu::class, 'parent_id', 'id');
+    return $this->belongsTo(MenuModel::class, 'parent_id', 'id');
   }
 
   // protected static function boot()

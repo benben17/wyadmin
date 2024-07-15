@@ -231,7 +231,7 @@ class TenantShareController extends BaseController
             ->where(function ($q) use ($request) {
                 $q->where('contract_id', $request->contract_id);
                 $q->where('bill_id', 0);
-                $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
+                // $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
                 $q->whereIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType]);
                 $q->where('status', 0);
                 $q->where('receive_amount', 0);
@@ -239,8 +239,9 @@ class TenantShareController extends BaseController
             })
             ->whereHas('tenant', function ($q) {
                 $q->where('parent_id', 0);
-            })->orderBy('charge_date', 'asc')
+            })
             ->orderBy('fee_type', 'asc')
+            ->orderBy('charge_date', 'asc')
             ->get();
         // $contractService = new ContractService;
 
@@ -322,6 +323,9 @@ class TenantShareController extends BaseController
                     } else {
                         // 处理分摊租户
                         foreach ($share['fee_list'] as $k => &$v) {
+                            if ($v['share_amount'] == 0) {
+                                continue;
+                            }
                             $v['tenant_id']     = $share['tenant_id'];
                             $v['tenant_name']   = $share['tenant_name'];
                             $v['amount']        = $v['share_amount'];

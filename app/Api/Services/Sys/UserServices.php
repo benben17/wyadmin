@@ -3,10 +3,11 @@
 namespace App\Api\Services\Sys;
 
 use Exception;
+use Illuminate\Support\Str;
 use App\Api\Models\Weixin\WxUser;
-use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Sys\UserRole as UserRoleModel;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
@@ -95,41 +96,7 @@ class UserServices
   }
 
 
-  /**
-   * @Desc: 微信小程序用户登录
-   * @Author leezhua
-   * @Date 2024-03-31
-   * @param [type] $user
-   * @param string $token
-   * @return void
-   */
-  public function miniUserInfo($user, $token = "")
-  {
-    $company = \App\Models\Company::with("product")->find($user['company_id']);
-    $project_info = $this->getLoginUser($user->id);
-    $data = [
-      'token'    => $token,
-      'uuid'     => $user->id,
-      'username' => $user->name,
-      'is_admin' => $user->is_admin,
-      'phone'    => $user->phone
-    ];
-    $data['project_info'] = $project_info;
-    $depart = getDepartById($user->depart_id);
-    $wxUser = WxUser::where('unionid', $user['unionid'])->first();    // 获取用户系统权限，当用户is admin 的时候返回空
-    $data['info'] = [
-      'name'           => $user->realname,
-      'uid'            => $user->id,
-      'access'         => ['admin'],
-      'company_name'   => $company->name,
-      'company_access' => [$company->product->en_name],
-      'avatar'         => $wxUser->avatar,
-      'nickname'       => $wxUser->nickname,
-      'depart_name'    => $depart->name
-    ];
-    // $data['menu_list'] = $this->userMenu($user);
-    return $data;
-  }
+
 
   /**
    * @Desc: 权限认证
@@ -154,5 +121,74 @@ class UserServices
       $query->where('c_uid', $user['id']);
     }
     return $query;
+  }
+
+  /**
+   * @Desc:   获取小程序所有菜单
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $user
+   * @return void
+   */
+  public function getAppMenus()
+  {
+    $menuService = new MenuService;
+    return $menuService->getMenus(2);
+  }
+
+
+
+  /**
+   * @Desc:   获取用户信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $user
+   * @return void
+   */
+  public function getLoginUserInfo(int $userId): array
+  {
+    $user = Auth::user(); // 从 Auth facade 中获取当前用户
+    $projectInfo = $this->getLoginUser($userId);
+
+    $isBind = 0;
+    $nickname = "";
+    if ($user->unionid) {
+      $wxUser = WxUser::where('unionid', $user->unionid)->first();
+      if ($wxUser) {
+        $isBind = 1;
+        $nickname = $wxUser->nickname;
+      }
+    }
+
+    $result = \App\Models\Company::with("product")->find($user->company_id);
+
+    $departName = '管理员';
+    if ($user->depart_id !== 0) {
+      $depart = getDepartById($user->depart_id); //  假设 getDepartById 是一个全局函数
+      $departName = $depart->name ?? '';
+    }
+
+    return [
+      'uuid'         => $user->id,
+      'username'     => $user->name,
+      'is_admin'     => $user->is_admin,
+      'phone'        => $user->phone,
+      'realname'     => $user->realname,
+      'is_bind'      => $isBind,
+      'role_id'      => $user->role_id,
+      'project_info' => $projectInfo,
+      'info' => [
+        'name'           => $user->realname,
+        'uid'            => $user->id,
+        'avatar'         => $user->avatar,
+        'avatar_full'    => getOssUrl($user->avatar),
+        'access'         => ['admin'],
+        'company_name'   => $result->name,
+        'company_access' => [$result->product->en_name],
+        'nickname'       => $nickname,
+        'depart_name'    => $departName,
+        'days'           => getVariable($user->company_id, 'year_days'),
+      ]
+    ];
   }
 }

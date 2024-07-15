@@ -6,6 +6,7 @@ use JWTAuth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Business\CustomerService;
 use App\Api\Services\Business\WxCustomerService;
@@ -61,10 +62,16 @@ class WxStatController extends BaseController
         $map['belong_uid'] = $this->uid;
 
         $wxCustomerService = new WxCustomerService;
-        $data['first'] = $wxCustomerService->getFirstData($tenant, $map);
-        $data['cus'] = $wxCustomerService->getCusData($tenant, $map, $today);
-        $data['follow'] = $wxCustomerService->getFollowData($request, $today, $this->uid);
-        $data['unfollow'] = $wxCustomerService->getUnfollowData($tenant, $map, $today);
+        // 准备数据获取参数
+        $cacheKey = 'customer_data_' . md5(serialize([$tenant, $map, $today]));
+        $data = Cache::remember($cacheKey, 60, function () use ($wxCustomerService, $tenant, $map, $today, $request) {
+            return [
+                'first'    => $wxCustomerService->getFirstData($tenant, $map),
+                'cus'      => $wxCustomerService->getCusData($tenant, $map, $today),
+                'follow'   => $wxCustomerService->getFollowData($request, $today, $this->uid),
+                'unfollow' => $wxCustomerService->getUnfollowData($tenant, $map, $today),
+            ];
+        });
 
         return $this->success($data);
     }

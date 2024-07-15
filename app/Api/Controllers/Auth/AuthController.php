@@ -4,10 +4,10 @@ namespace App\Api\Controllers\Auth;
 
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Api\Services\Sys\UserServices;
 use App\Api\Controllers\BaseController;
-use App\Models\Company as CompanyModel;
 
 
 /**
@@ -18,8 +18,10 @@ use App\Models\Company as CompanyModel;
  */
 class AuthController extends BaseController
 {
+    private $userService;
     public function __construct()
     {
+        $this->userService = new UserServices;
     }
 
     /**
@@ -57,56 +59,21 @@ class AuthController extends BaseController
      */
     public function login(Request $request)
     {
-        $credentials['name'] = $request->input('username');
+        $credentials['name']     = $request->input('username');
         $credentials['password'] = $request->input('password');
         if (!$token = auth('api')->attempt($credentials)) {
             return $this->error('用户名或密码错误!');
         }
-        $user = auth('api')->user();
-        $result = CompanyModel::with("product")->find($user->company_id);
-        $service = new UserServices;
-        $project_info = $service->getLoginUser($user->id);
-        $nickname = "";
-        if ($user->unionid) {
-            $wxUser = \App\Api\Models\Weixin\WxUser::where('unionid', $user['unionid'])->first();
-            $isBind = 1;
-            $nickname = $wxUser->nickname;
-        } else {
-            $isBind = 0;
-        }
-        $data = [
-            'token'    => $token,
-            'uuid'     => $user->id,
-            'username' => $user->name,
-            'is_admin' => $user->is_admin,
-            'phone'    => $user->phone,
-            'realname' => $user->realname,
-            'is_bind'  => $isBind,
-            'role_id'  => $user->role_id
-        ];
-        if ($user->depart_id == 0) {
-            $departName = '系统管理员';
-        } else {
-            $depart = getDepartById($user->depart_id);
-            $departName = $depart->name ?? '';
-        }
+        // $user = auth('api')->user();
+        // 登录成功后获取用户信息
+        $user = Auth::guard('api')->user();
+        $data['token'] = $token;
 
-        $data['project_info'] = $project_info;
-        $data['info'] = [
-            'name' => $user->realname,
-            'uid' => $user->id,
-            'avatar' => $user->avatar,
-            'avatar_full' => getOssUrl($user->avatar),
-            'access' => ['admin'],
-            'company_name' => $result->name,
-            'company_access' => [$result->product->en_name],
-            'nickname' => $nickname,
-            'depart_name' => $departName,
-            'days' => getVariable($user['company_id'], 'year_days')
-        ];
+        // 使用 UserService 获取其他用户信息
+        $data = array_merge($data, $this->userService->getLoginUserInfo($user->id));
 
         // 获取用户系统权限，当用户is admin 的时候返回空
-        $data['menu_list'] = $service->userMenu($user);
+        $data['menu_list'] = $this->userService->userMenu($user);
 
         return $this->success($data);
     }
