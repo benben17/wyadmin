@@ -58,6 +58,7 @@ class TenantShareService
     $feeListNew = [];
     foreach ($feeList as $key => $fee) {
       if (empty($fee['share_amount']) || $fee['share_amount'] == 0) {
+        unset($feeList[$key]);
         continue;
       }
       $feeListNew[] = $fee;
