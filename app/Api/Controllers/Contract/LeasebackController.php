@@ -51,39 +51,32 @@ class LeasebackController extends BaseController
      *     )
      * )
      */
+
     public function list(Request $request)
     {
         $validatedData = $request->validate([
             'proj_ids' => 'required',
         ]);
+
         $pagesize = $this->setPagesize($request);
-        $map = array();
-        if ($request->tenant_id) {
-            $map['tenant_id'] = $request->tenant_id;
-        }
-        if ($request->type) {
-            $map['type'] = $request->type;
-        }
-        // 排序字段
-        if ($request->input('orderBy')) {
-            $orderBy = $request->input('orderBy');
-        } else {
-            $orderBy = 'leaseback_date';
-        }
-        // 排序方式desc 倒叙 asc 正序
-        if ($request->input('order')) {
-            $order = $request->input('order');
-        } else {
-            $order = 'desc';
-        }
-        if (!is_array($request->proj_ids)) {
-            $request->proj_ids = str2Array($request->proj_ids);
-        }
-        DB::enableQueryLog();
-        $result = $this->leasebackService->model()->where($map)
+        $map = [
+            'tenant_id' => $request->tenant_id ?? null,
+            'type' => $request->type ?? null,
+        ];
+
+        $orderBy = $request->input('orderBy', 'leaseback_date');
+        $order = $request->input('order', 'desc');
+
+
+        $result = $this->leasebackService->model()
+            ->where(array_filter($map))
             ->whereHas('tenant', function ($q) use ($request) {
-                $request->tenant_name && $q->where('name', 'like', '%' . $request->tenant_name . '%');
-                $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
+                if ($request->tenant_name) {
+                    $q->where('name', 'like', '%' . $request->tenant_name . '%');
+                }
+                if ($request->proj_ids) {
+                    $q->whereIn('proj_id', str2Array($request->proj_ids));
+                }
             })
             ->where(function ($q) use ($request) {
                 if ($request->start_date && $request->end_date) {
@@ -100,10 +93,9 @@ class LeasebackController extends BaseController
             ->orderBy($orderBy, $order)
             ->paginate($pagesize)->toArray();
 
-        // return response()->json(DB::getQueryLog());
         $data = $this->handleBackData($result);
         foreach ($data['result'] as &$v) {
-            $v  = array_merge($v, $v['contract']);
+            $v = array_merge($v, $v['contract']);
             unset($v['contract']);
         }
         return $this->success($data);

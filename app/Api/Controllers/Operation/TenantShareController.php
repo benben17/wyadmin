@@ -232,7 +232,7 @@ class TenantShareController extends BaseController
                 $q->where('contract_id', $request->contract_id);
                 $q->where('bill_id', 0);
                 $request->fee_type && $q->where('fee_type', $request->fee_type); // 只分摊 
-                $q->whereIn('fee_type', [AppEnum::rentFeeType, AppEnum::depositFeeType]);
+                $q->whereIn('fee_type', [AppEnum::rentFeeType, AppEnum::managerFeeType]);
                 $q->where('status', 0);
                 $q->where('receive_amount', 0);
                 $q->where('amount', '>', 0);
