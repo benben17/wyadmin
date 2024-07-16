@@ -137,7 +137,6 @@ class BuildingService
   }
 
 
-
   public function formatBuilding($row, $companyId)
   {
     try {

@@ -273,4 +273,78 @@ class TenantShareService
     return $primaryTenantFee['fee_type'] === $feeBill['fee_type'] &&
       $primaryTenantFee['charge_date'] === $feeBill['charge_date'];
   }
+
+
+
+  /**
+   * 校验分摊数据
+   * @param array $shareData
+   * @throws Exception
+   */
+  private function validateShareData($shareData)
+  {
+    // 校验必填字段
+    if (empty($shareData['contract_id']) || empty($shareData['share_list'])) {
+      throw new Exception('缺少必要参数');
+    }
+
+    // 校验分摊租户信息
+    foreach ($shareData['share_list'] as $shareTenant) {
+      if (empty($shareTenant['tenant_id']) || !in_array($shareTenant['share_type'], [0, 1, 2]) || empty($shareTenant['share_num'])) {
+        throw new Exception('分摊租户缺少必要参数');
+      }
+    }
+  }
+
+  /**
+   * 计算每个分摊租户的费用
+   * @param array $shareData 主租户账单列表
+   * @param array $shareList 分摊租户列表
+   * @return array 
+   */
+  private function calculateTenantBills($shareData)
+  {
+    $shareList = $shareData['share_list'];
+    $feeList = $shareData['fee_list'];
+
+    // 将费用列表转换为以 fee_type 为键的关联数组，方便查找
+    $feeListByType = [];
+    foreach ($feeList as &$feeItem) {
+      $feeListByType[$feeItem['fee_type']] = &$feeItem;
+    }
+
+    // 遍历分摊租户
+    foreach ($shareList as &$shareTenant) {
+      $tenantId = $shareTenant['tenant_id'];
+      $shareType = $shareTenant['share_type'];
+      $shareNum = $shareTenant['share_num'];
+      $shareTenant['fee_list'] = []; // 初始化分摊租户的费用列表
+
+      foreach ($feeListByType as $feeType => &$feeItem) {
+        //  如果分摊租户的费用类型为 0，表示分摊所有费用，或者费用类型匹配
+        if ($shareTenant['fee_type'] == 0 || $feeType == $shareTenant['fee_type']) {
+          if ($shareType == 1) {
+            // 按比例分摊
+            $shareAmt = bcmul(bcdiv($feeItem['amount'], '100', 2), $shareNum, 2);
+          } else {
+            // 按固定金额分摊
+            $shareAmt = $shareNum;
+          }
+
+          // 添加到分摊租户的费用列表
+          $shareTenant['fee_list'][] = $feeItem + [
+            'parent_fee_id' => $feeItem['id'],
+            'tenant_id' => $tenantId,
+            'share_amount'    => $shareAmt,
+            'id' => 0,
+          ];
+
+          // 更新原始费用列表中的费用金额
+          $feeItem['share_amount'] = bcsub($feeItem['amount'], $shareAmt, 2);
+        }
+      }
+    }
+
+    return $shareList;
+  }
 }

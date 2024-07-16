@@ -12,6 +12,7 @@ use App\Api\Controllers\BaseController;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
+use App\Api\Services\Building\BuildingRoomService;
 
 /**
  * 项目房源信息
@@ -131,10 +132,10 @@ class WxRoomController extends BaseController
 
         // return response()->json(DB::getQueryLog());
         $data = $this->pageData($subQuery, $request);
-        $buildService  = new BuildingService;
+        $buildService  = new BuildingRoomService;
 
         if ($data['result']) {
-            $data['result'] = $buildService->formatData($data['result']);
+            $data['result'] = $buildService->formatRoomData($data['result']);
         }
 
         // $data['stat'] = $buildService->areaStat($map, $request->proj_ids);
