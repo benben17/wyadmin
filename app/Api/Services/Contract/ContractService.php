@@ -466,8 +466,9 @@ class ContractService
       ->with(['contract' => function ($query) {
         $query->select('id', 'end_date');
         $query->where('contract_state', AppEnum::contractExecute);
+        $query->orderBy('end_date', 'desc'); // 确保按end_date降序排序
       }])
-      ->orderBy('created_at')->first();
+      ->orderBy('created_at', 'desc')->first();
     // Log::info(DB::getQueryLog());
 
     if (!$contractRoom) {
@@ -478,7 +479,10 @@ class ContractService
     $tenantName = $tenantId ? getTenantNameById($tenantId) : "";
 
     $endDate = $contractRoom->contract->end_date ?? "";
-    $days = !empty($endDate) ? diffDays($endDate, nowTime()) : 0;
+    if (empty($endDate) || strtotime($endDate) <= strtotime(nowTime())) {
+      $days = 0;
+    }
+    $days = diffDays(nowTime(), $endDate);
 
     return ['tenant_name' => $tenantName, 'end_date' => $endDate, 'days' => $days];
   }
