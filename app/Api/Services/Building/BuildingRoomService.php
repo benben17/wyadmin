@@ -13,32 +13,32 @@ use App\Api\Services\Contract\ContractService;
 
 class BuildingRoomService
 {
-  protected $buildingModel;
-  protected $buildingRoomModel;
-  protected $floorModel;
+  // protected $buildingModel;
+  // protected $buildingRoomModel;
+  // protected $floorModel;
   protected $contractService;
 
   public function __construct()
   {
-    $this->buildingModel = new Building;
-    $this->buildingRoomModel = new BuildingRoom;
-    $this->floorModel = new BuildingFloor;
+    //   $this->buildingModel = new Building;
+    //   $this->buildingRoomModel = new BuildingRoom;
+    //   $this->floorModel = new BuildingFloor;
     $this->contractService = new ContractService;
   }
 
   public function buildingRoomModel()
   {
-    return $this->buildingRoomModel;
+    return new BuildingRoom;
   }
 
   public function buildingModel()
   {
-    return $this->buildingModel;
+    return  new Building;
   }
 
   public function floorModel()
   {
-    return $this->floorModel;
+    return new BuildingFloor;
   }
 
 
