@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/login', 'AuthUserController@login');
 
+
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
@@ -586,7 +587,7 @@ Route::group(['prefix' => 'wx'], function () {
 
     Route::post('/user/bind', '\App\Api\Controllers\Weixin\WeiXinController@bindWx');
     Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
-    Route::post('/auth/login', '\App\Api\Controllers\Weixin\WxController@wxAppAuth');
+    Route::post('/auth/login', '\App\Api\Controllers\Weixin\WxController@wxLogin');
 
     // 微信支付
     Route::post('/activity/reg/pay', '\App\Api\Controllers\Venue\ActivityController@activityPay');

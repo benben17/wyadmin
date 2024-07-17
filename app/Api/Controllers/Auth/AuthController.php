@@ -78,6 +78,8 @@ class AuthController extends BaseController
         return $this->success($data);
     }
 
+
+
     /**
      * @OA\Post(
      *     path="/api/auth/editpwd",

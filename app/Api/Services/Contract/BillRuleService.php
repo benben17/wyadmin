@@ -124,7 +124,8 @@ class BillRuleService
    */
   public function getRentRule($contractId)
   {
-    $rentRule = $this->model()->where('contract_id', $contractId)->where('fee_type', 101)->first();
+    $rentRule = $this->model()->where('contract_id', $contractId)
+      ->where('fee_type', AppEnum::rentFeeType)->first();
     return $rentRule;
   }
 }

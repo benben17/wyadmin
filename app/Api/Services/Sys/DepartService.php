@@ -21,6 +21,12 @@ class DepartService
     return new Depart;
   }
 
+
+  public function userModel()
+  {
+    return new User;
+  }
+
   /**
    * 检查是否重复
    *
@@ -119,6 +125,7 @@ class DepartService
       ->where(function ($q) use ($isValid) {
         $isValid && $q->where('is_vaild', $isValid);
       })
+      ->withCount('users')
       ->orderBy('seq', 'asc')->get()->toArray();
     // return response()->json(DB::getQueryLog());
 

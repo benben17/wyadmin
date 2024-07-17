@@ -13,167 +13,133 @@ use App\Api\Services\Contract\ContractService;
 
 class BuildingRoomService
 {
-  public function buildingModel()
+  protected $buildingModel;
+  protected $buildingRoomModel;
+  protected $floorModel;
+  protected $contractService;
+
+  public function __construct()
   {
-    return new Building;
-  }
-  public function buildingRoomModel()
-  {
-    return new BuildingRoom;
+    $this->buildingModel = new Building;
+    $this->buildingRoomModel = new BuildingRoom;
+    $this->floorModel = new BuildingFloor;
+    $this->contractService = new ContractService;
   }
 
-  public function floorModel()
-  {
-    return new BuildingFloor;
-  }
+  // 使用常量数组代替 switch 语句
+  const IS_VALID_MAPPING = [
+    '1' => '启用',
+    '0' => '禁用',
+  ];
 
+  const STATUS_MAPPING = [
+    '1' => '公开',
+    '0' => '不公开',
+  ];
+
+  const ROOM_STATE_MAPPING = [
+    '1' => '可招商',
+    '0' => '在租',
+    '2' => '自持',
+  ];
 
   /**
    * 格式化房源list返回数据
    *
-   * @Author leezhua
-   * @DateTime 2021-07-19
-   * @param [type] $data
-   *
-   * @return void
+   * @param $data
+   * @return array
    */
   public function formatRoomData($data): array
   {
+    // 使用 eager loading 提前加载关联数据，减少数据库查询次数
+    $data->load('building', 'floor');
+
     foreach ($data as $k => &$v) {
-      $viewNum = TenantRoom::select(DB::Raw('ifnull(count(*),0) as  count'))
-        ->where('room_id', $v['id'])
-        ->first()->count;
-      $v['view_num']  = $viewNum;
-      $v['IsValid']   = $this->getIsValid($v['is_valid']);
-      $v['Status']    = $this->getStatus($v['channel_state']);
-      $v['roomState'] = $this->getRoomState($v['room_state']);
-      $v['proj_name'] = $v['building']['proj_name'];
-      $v['build_no']  = $v['building']['build_no'];
-      $v['floor_no']  = $v['floor']['floor_no'];
-      $contractService = new ContractService;
-      $v['tenant_name'] = $contractService->getTenantNameFromRoomId($v['id']);
-      // Log::info('room_id:' . $v['id'] . 'tenant_name:' . $v['tenant_name']);
-      foreach ($v['pic_list'] ?? [] as $key => $val) {
-        $v['pic_list_full'][$key] = getOssUrl($val);
-      }
+      // 使用 exists 子查询优化查询效率
+      $v['view_num'] = TenantRoom::where('room_id', $v['id'])->exists() ? 1 : 0;
+
+      // 使用常量数组获取状态值
+      $v['IsValid']   = self::IS_VALID_MAPPING[$v['is_valid']] ?? '';
+      $v['Status']    = self::STATUS_MAPPING[$v['channel_state']] ?? '';
+      $v['roomState'] = self::ROOM_STATE_MAPPING[$v['room_state']] ?? '';
+
+      // 简化数据赋值
+      $v['proj_name']   = $v['building']->proj_name;
+      $v['build_no']    = $v['building']->build_no;
+      $v['floor_no']    = $v['floor']->floor_no;
+      $v['tenant_name'] = $this->contractService->getTenantNameFromRoomId($v['id']);
+
+      // 使用 collect() 处理图片列表
+      $v['pic_list_full'] = collect($v['pic_list'] ?? [])
+        ->map(function ($val) {
+          return getOssUrl($val);
+        })
+        ->toArray();
     }
+
     return $data;
   }
 
-
   /**
    * 通过项目 楼的信息查询管理面积信息
-   * @Author   leezhua
-   * @DateTime 2020-07-04
-   * @param    array      $buildingWhere [description]
-   * @param    array      $projWhere     [description]
-   * @return   [type]                    [description]
+   *
+   * @param $query
+   * @param array $buildIds
+   * @return array
    */
-  public function areaStat($query, $buildIds = array())
+  public function areaStat($query, array $buildIds = []): array
   {
-    // $room = BuildingRoomModel::where(function ($q) use ($buildingWhere, $buildIds) {
-    //   $buildingWhere && $q->where($buildingWhere);
-    //   $buildIds && $q->whereIn('build_id', $buildIds);
-    // })
-    //   ->whereHas('building', function ($q) use ($projWhere) {
-    //     $projWhere && $q->whereIn('proj_id', $projWhere);
-    //   })
-    $room = $query->select(DB::Raw('ifnull(sum(room_area),0) total_area,
-            ifnull(sum(case room_state when 1 then room_area end),0) free_area,
-            ifnull(sum(case is_valid when 1 then 1 end),0) total_room,
-            ifnull(sum(case room_state when 1 then 1  end),0) free_room'))
+    // 使用 when() 方法简化条件判断
+    $room = $query->select(DB::Raw('
+                IFNULL(SUM(room_area), 0) AS total_area,
+                IFNULL(SUM(CASE WHEN room_state = 1 THEN room_area ELSE 0 END), 0) AS free_area,
+                IFNULL(SUM(CASE WHEN is_valid = 1 THEN 1 ELSE 0 END), 0) AS total_room,
+                IFNULL(SUM(CASE WHEN room_state = 1 THEN 1 ELSE 0 END), 0) AS free_room
+            '))
       ->whereIn('room_state', [0, 1])
-      ->first()->toArray();
-    if ($room['free_area'] == 0) {
-      $rentalRate = 100.00;
-    } else {
-      $rentalRate = numFormat($room['free_area'] / $room['total_area'] * 100);
-    }
-    $contract =  new ContractService;
-    $price = $contract->contractAvgPrice();
+      ->first()
+      ->toArray();
 
-    $stat = array(
+    // 使用三元运算符简化 rentalRate 计算
+    $rentalRate = $room['free_area'] == 0 ? 100.00 : numFormat($room['free_area'] / $room['total_area'] * 100);
+
+    $price = $this->contractService->contractAvgPrice();
+
+    return [
       ['title' => '可租面积', 'value' => $room['total_area'] . '㎡'],
       ['title' => '可招租面积', 'value' => $room['free_area'] . '㎡'],
       ['title' => '总房间数', 'value' => $room['total_room']],
       ['title' => '可招租房间数', 'value' => $room['free_room']],
       ['title' => '当前空置率', 'value' => $rentalRate . '%'],
-      ['title' => '平均单价', 'value' => $price . '元/㎡·天']
-    );
-    return $stat;
+      ['title' => '平均单价', 'value' => $price . '元/㎡·天'],
+    ];
   }
+
   // 格式化房间数据
-  public function formatRoom($DA, $user, $type = 1)
+  public function formatRoom($DA, $user, $type = 1): array
   {
-    $BA = [];
-    if ($type == 1) {
-      $BA['c_uid'] = $user['id'];
-    } else {
-      $BA['id']    = $DA['id'];
-      $BA['u_uid'] = $user['id'];
-    }
-    $BA['room_type']         = 1;
-    $BA['company_id']        = $user['company_id'];
-    $BA['proj_id']           = $DA['proj_id'];
-    $BA['build_id']          = $DA['build_id'];
-    $BA['floor_id']          = $DA['floor_id'];
-    $BA['room_no']           = $DA['room_no'];
-    $BA['room_state']        = $DA['room_state'];
-    $BA['room_measure_area'] = isset($DA['room_measure_area']) ? $DA['room_measure_area'] : 0;
-    $BA['room_trim_state']   = isset($DA['room_trim_state']) ? $DA['room_trim_state'] : "";
-    $BA['room_price']        = isset($DA['room_price']) ? $DA['room_price'] : 0.00;
-    $BA['price_type']        = isset($DA['price_type']) ? $DA['price_type'] : 1;
-    $BA['room_tags']         = isset($DA['room_tags']) ? $DA['room_tags'] : "";
-    $BA['channel_state']     = isset($DA['channel_state']) ? $DA['channel_state'] : 0;
-    $BA['room_area']         = isset($DA['room_area']) ? $DA['room_area'] : 0;
-    if ($DA['rentable_date'] ?? "" != "") {
-      $BA['rentable_date']     = $DA['rentable_date'];
-    }
-    $BA['remark']            = isset($DA['remark']) ? $DA['remark'] : "";
-    $BA['pics']              = isset($DA['pics']) ? $DA['pics'] : "";
-    $BA['detail']            = isset($DA['detail']) ? $DA['detail'] : "";
-    return $BA;
-  }
+    $BA = $type == 1 ? ['c_uid' => $user['id']] : ['id' => $DA['id'], 'u_uid' => $user['id']];
 
-
-
-
-  public function getIsValid($value)
-  {
-    switch ($value) {
-      case '1':
-        return '启用';
-        break;
-      case '0':
-        return '禁用';
-        break;
-    }
-  }
-
-  public function getStatus($value)
-  {
-    switch ($value) {
-      case '1':
-        return '公开';
-        break;
-      case '0':
-        return '不公开';
-        break;
-    }
-  }
-
-  public function getRoomState($value)
-  {
-    switch ($value) {
-      case '1':
-        return '可招商';
-        break;
-      case '0':
-        return '在租';
-        break;
-      case '2':
-        return '自持';
-        break;
-    }
+    // 使用 array_merge 减少代码量
+    return array_merge($BA, [
+      'room_type'         => 1,
+      'company_id'        => $user['company_id'],
+      'proj_id'           => $DA['proj_id'],
+      'build_id'          => $DA['build_id'],
+      'floor_id'          => $DA['floor_id'],
+      'room_no'           => $DA['room_no'],
+      'room_state'        => $DA['room_state'],
+      'room_measure_area' => $DA['room_measure_area'] ?? 0,
+      'room_trim_state'   => $DA['room_trim_state'] ?? "",
+      'room_price'        => $DA['room_price'] ?? 0.00,
+      'price_type'        => $DA['price_type'] ?? 1,
+      'room_tags'         => $DA['room_tags'] ?? "",
+      'channel_state'     => $DA['channel_state'] ?? 0,
+      'room_area'         => $DA['room_area'] ?? 0,
+      'rentable_date'     => $DA['rentable_date'] ?? "",
+      'remark'            => $DA['remark'] ?? "",
+      'pics'              => $DA['pics'] ?? "",
+      'detail'            => $DA['detail'] ?? "",
+    ]);
   }
 }

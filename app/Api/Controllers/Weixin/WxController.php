@@ -183,4 +183,59 @@ class WxController extends BaseController
       return $this->error("登录失败: " . $e->getMessage());
     }
   }
+
+
+  /**
+   * @OA\Post(
+   *     path="/api/auth/wx/login",
+   *     tags={"auth认证"},
+   *     summary="登录",
+   *    @OA\RequestBody(
+   *       @OA\MediaType(
+   *           mediaType="application/json",
+   *       @OA\Schema(
+   *          schema="UserModel",
+   *          required={"name", "password"},
+   *       @OA\Property(
+   *          property="username",
+   *          type="string",
+   *          description="用户名"
+   *       ),
+   *       @OA\Property(
+   *          property="password",
+   *          type="string",
+   *          description="密码"
+   *       )
+   *     ),
+   *       example={
+   *              "username": "test", "password": "123456"
+   *           }
+   *       )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
+  public function wxLogin(Request $request)
+  {
+    $credentials['name']     = $request->input('username');
+    $credentials['password'] = $request->input('password');
+    if (!$token = auth('api')->attempt($credentials)) {
+      return $this->error('用户名或密码错误!');
+    }
+    // $user = auth('api')->user();
+    // 登录成功后获取用户信息
+    $user = Auth::guard('api')->user();
+    $data['token'] = $token;
+
+    // 使用 UserService 获取其他用户信息
+    $data = array_merge($data, $this->userService->getLoginUserInfo($user->id));
+
+    // 获取用户系统权限，当用户is admin 的时候返回空
+    $data['menu_list'] = $this->userService->userAppMenu($user);
+
+    return $this->success($data);
+  }
 }

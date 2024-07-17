@@ -16,6 +16,15 @@ class MenuService
   }
 
 
+
+  public function getMenuByIds(array $ids): array
+  {
+    return $this->menuModel->whereIn('id', $ids)
+      ->orderBy('sort', 'asc')
+      ->get()->toArray();
+  }
+
+
   /** 菜单新增 */
   public function addMenu($DA)
   {
@@ -32,8 +41,8 @@ class MenuService
       $DA['sort']        = $DA['sort'] ?? 0;
       $DA['status']      = $DA['status'] ?? 1;
       $DA['is_show']     = $DA['is_show'] ?? 1;
-      $DA['create_time'] = nowYmd();
-      $DA['update_time'] = nowYmd();
+      $DA['created_at'] = nowYmd();
+      $DA['updated_at'] = nowYmd();
       $DA['name']        = $DA['name'];
       $DA['component']   = $DA['component'] ?? '';
       $DA['path']        = $DA['path'];
@@ -71,17 +80,28 @@ class MenuService
    *
    * @param array $menus 所有菜单数据
    * @param int $parentId 父级菜单ID
+   * @param array $fields 需要保留的字段
    * @return array
    */
-  private function buildTree(array $menus, int $parentId = 0): array
+  public function buildTree(array $menus, int $parentId = 0, array $fields = []): array
   {
+    // 如果指定了字段，则确保'id'和'pid'字段总是存在
+    if (!empty($fields)) {
+      $fields = array_unique(array_merge(['id', 'pid'], $fields));
+      $fieldsFlipped = array_flip($fields); // 预先计算以提高效率
+    }
+
     $tree = [];
     foreach ($menus as $menu) {
       if ($menu['pid'] == $parentId) {
-        $menu['children'] = $this->buildTree($menus, $menu['id']);
-        $tree[] = $menu;
+        // 根据是否指定了字段来构建节点
+        $node = empty($fields) ? $menu : array_intersect_key($menu, $fieldsFlipped);
+        // 递归构建子树
+        $node['children'] = $this->buildTree($menus, $menu['id'], $fields);
+        $tree[] = $node;
       }
     }
+
     return $tree;
   }
 }

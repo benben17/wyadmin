@@ -65,10 +65,41 @@ class UserServices
     if (!$DA['is_admin']) {
       $res = $this->getRoleById($DA['role_id']);
       if ($res) {
-        return  str2Array($res['menu_list']);
+        return str2Array($res['menu_list']);
       }
     }
     return [];
+  }
+
+
+
+  /**
+   * 根据用户ID获取系统权限
+   * @Author   leezhua
+   * @DateTime 2020-07-18
+   * @param    [type]     $DA [description]
+   * @return   [type]         [description]
+   */
+  public function userAppMenu($DA)
+  {
+    // 直接初始化$menuList为空数组，如果没有结果直接返回
+    $menuList = [];
+    // 尝试获取角色信息
+    $res = $this->getRoleById($DA['role_id']);
+    // 如果没有找到角色信息，直接返回空数组
+    if (!$res) {
+      return $menuList;
+    }
+
+    // 使用MenuService获取菜单信息
+    $menuService = new MenuService();
+    $menus = $menuService->getMenuByIds(str2Array($res['app_menu_list']));
+    // 指定需要处理的字段
+    $fields = ['id', 'pid', 'name', 'icon', 'path', 'sort', 'type', 'children'];
+    // 构建菜单树
+    $menuList = $menuService->buildTree($menus, 0, $fields);
+
+    return $menuList;
   }
 
   /**
@@ -190,5 +221,44 @@ class UserServices
         'days'           => getVariable($user->company_id, 'year_days'),
       ]
     ];
+  }
+
+
+  /**
+   * 将扁平数组转换为树形结构，并添加层级 ID
+   *
+   * @param array $data 原始数组
+   * @param string $idKey ID 字段名
+   * @param string $childrenKey 子节点字段名
+   * @param string $parentIdKey 父节点 ID 字段名
+   * @param int $parentId 父节点 ID
+   * @param string $levelIdPrefix 层级 ID 前缀
+   * @return array
+   */
+  public static function treeWithLevelId(
+    array $data,
+    string $idKey = 'id',
+    string $childrenKey = 'sub',
+    string $parentIdKey = 'parent_id',
+    int $parentId = 0,
+    string $levelIdPrefix = ''
+  ): array {
+    $tree = [];
+    foreach ($data as $item) {
+      if ($item[$parentIdKey] == $parentId) {
+        $levelId = $levelIdPrefix . ($levelIdPrefix ? '-' : '') . $item[$idKey];
+        $item['level_id'] = $levelId;
+        $item[$childrenKey] = self::treeWithLevelId(
+          $data,
+          $idKey,
+          $childrenKey,
+          $parentIdKey,
+          $item[$idKey],
+          $levelId
+        );
+        $tree[] = $item;
+      }
+    }
+    return $tree;
   }
 }
