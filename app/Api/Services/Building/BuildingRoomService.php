@@ -68,7 +68,7 @@ class BuildingRoomService
   public function formatRoomData($data): array
   {
     // 使用 eager loading 提前加载关联数据，减少数据库查询次数
-    $data->load('building', 'floor');
+    // $data->load('building', 'floor');
 
     foreach ($data as $k => &$v) {
       // 使用 exists 子查询优化查询效率
@@ -80,9 +80,9 @@ class BuildingRoomService
       $v['roomState'] = self::ROOM_STATE_MAPPING[$v['room_state']] ?? '';
 
       // 简化数据赋值
-      $v['proj_name']   = $v['building']->proj_name;
-      $v['build_no']    = $v['building']->build_no;
-      $v['floor_no']    = $v['floor']->floor_no;
+      $v['proj_name']   = $v['building']['proj_name'];
+      $v['build_no']    = $v['building']['build_no'];
+      $v['floor_no']    = $v['floor']['floor_no'];
       $v['tenant_name'] = $this->contractService->getTenantNameFromRoomId($v['id']);
 
       // 使用 collect() 处理图片列表
