@@ -450,26 +450,28 @@ class ContractService
 
 
   /**
-   * @Desc: roomId 获取合同信息
+   * @Desc: roomIds 获取合同信息
    * @Author leezhua
    * @Date 2024-07-10
-   * @param [int] $roomId
+   * @param array $roomIds
    * @return array
    */
-  public function getContractInfo(array $roomIds)
+  public function getContractInfo(array $roomIds = [])
   {
 
-    $contactIds = ContractRoomModel::whereIn('room_id', $roomIds)
-      ->pluck('contract_id')
-      ->toArray();
+    // $contactIds = ContractRoomModel::whereIn('room_id', $roomIds)
+    //   ->pluck('contract_id')
+    //   ->toArray();
+    // Log::info(time() . "--search" . nowTime());
     $contracts = $this->model()->select('id', 'end_date', 'tenant_id')
       ->with('contractRoom:contract_id,room_id')
       ->where('contract_state', AppEnum::contractExecute)
-      ->whereIn('id', $contactIds)
+      // ->whereIn('id', $contactIds)
       ->get();
     if ($contracts) {
       $contracts = $contracts->toArray();
     }
+    // Log::info(time() . "--search----" . nowTime());
     // Log::info(DB::getQueryLog());
     return $this->filterContractsByEndDate($contracts);
   }
@@ -485,10 +487,10 @@ class ContractService
       $days = empty($endDate) || strtotime($endDate) <= strtotime($today) ? 0 : diffDays($today, $endDate);
 
       $contractInfo = [
-        'end_date' => $endDate,
-        'tenant_id' => $contract['tenant_id'],
+        'end_date'    => $endDate,
+        'tenant_id'   => $contract['tenant_id'],
         'tenant_name' => getTenantNameById($contract['tenant_id']),
-        'days' => $days
+        'days'        => $days
       ];
 
       if (!isset($filteredContracts[$roomId]) || strtotime($endDate) > strtotime($filteredContracts[$roomId]['end_date'])) {

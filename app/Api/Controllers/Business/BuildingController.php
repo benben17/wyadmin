@@ -576,7 +576,7 @@ class BuildingController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required|array',
         ]);
-        // Log::info(time() . '楼宇统计');
+        Log::info(time() . '楼宇统计' . nowTime());
         $building = BuildingModel::select(DB::Raw('group_concat(id) build_ids'))
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
@@ -602,12 +602,12 @@ class BuildingController extends BaseController
             })
             ->whereIn('build_id', $buildIds)
             ->get();
-
+        // Log::info(time() . '11楼宇统计' . nowTime());
         // return $data;
         $BA = [];
 
         $contractService = new ContractService;
-
+        $contractInfo = $contractService->getContractInfo();
         foreach ($data as $k => $v) {
             $BA[$k] = [
                 'building_name' => $v['building']['build_no'] ?? '',
@@ -616,8 +616,8 @@ class BuildingController extends BaseController
                 'room_list'     => [],
             ];
             $roomIds = array_column($v->floorRoom->toArray(), 'id');
-            $contractInfo = $contractService->getContractInfo($roomIds);
 
+            // Log::info(time() . "--" . $k . '-楼宇统计' . nowTime());
             foreach ($v->floorRoom as $k1 => $v1) {
                 // $contractInfo = $contractService->getContractInfo($v1->id);
 
@@ -636,7 +636,7 @@ class BuildingController extends BaseController
         }
 
         $DA['data'] = $BA;
-        // Log::info(time() . '楼宇统计1111');
+        Log::info(time() . '222楼宇统计' . nowTime());
         $DA['stat'] = $this->buildService->areaStatAll($request->proj_ids, $buildIds);
         return $this->success($DA);
     }
