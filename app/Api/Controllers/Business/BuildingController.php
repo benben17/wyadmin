@@ -576,7 +576,7 @@ class BuildingController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required|array',
         ]);
-
+        // Log::info(time() . '楼宇统计');
         $building = BuildingModel::select(DB::Raw('group_concat(id) build_ids'))
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
@@ -605,7 +605,7 @@ class BuildingController extends BaseController
 
         // return $data;
         $BA = [];
-        DB::enableQueryLog();
+
         $contractService = new ContractService;
 
         foreach ($data as $k => $v) {
@@ -615,9 +615,11 @@ class BuildingController extends BaseController
                 'room_count'    => $v['floor_room_count'] ?? 0,
                 'room_list'     => [],
             ];
+            $roomIds = array_column($v->floorRoom->toArray(), 'id');
+            $contractInfo = $contractService->getContractInfo($roomIds);
 
             foreach ($v->floorRoom as $k1 => $v1) {
-                $contractInfo = $contractService->getContractInfo($v1->id);
+                // $contractInfo = $contractService->getContractInfo($v1->id);
 
                 // 直接构建 room_list 数组
                 $BA[$k]['room_list'][$k1] = [
@@ -626,14 +628,15 @@ class BuildingController extends BaseController
                     'room_area'   => $v1->room_area,
                     'room_type'   => $v1->room_type,
                     'room_no'     => $v1->room_no,
-                    'tenant_name' => $contractInfo['tenant_name'] ?? "",
-                    'end_date'    => $contractInfo['end_date'] ?? "",
-                    'days'        => $contractInfo['days'] ?? 0,
+                    'tenant_name' => $contractInfo[$v1->id]['tenant_name'] ?? "",
+                    'end_date'    => $contractInfo[$v1->id]['end_date'] ?? "",
+                    'days'        => $contractInfo[$v1->id]['days'] ?? 0,
                 ];
             }
         }
 
         $DA['data'] = $BA;
+        // Log::info(time() . '楼宇统计1111');
         $DA['stat'] = $this->buildService->areaStatAll($request->proj_ids, $buildIds);
         return $this->success($DA);
     }

@@ -456,38 +456,49 @@ class ContractService
    * @param [int] $roomId
    * @return array
    */
-  public function getContractInfo(int $roomId)
+  public function getContractInfo(array $roomIds)
   {
-    // DB::enableQueryLog();
-    $contractRoom = ContractRoomModel::where('room_id', $roomId)
-      ->whereHas('contract', function ($q) {
-        $q->where('contract_state', AppEnum::contractExecute);
-      })
-      ->with(['contract' => function ($query) {
-        $query->select('id', 'end_date');
-        $query->where('contract_state', AppEnum::contractExecute);
-        $query->orderBy('end_date', 'desc'); // 确保按end_date降序排序
-      }])
-      ->orderBy('created_at', 'desc')->first();
+
+    $contactIds = ContractRoomModel::whereIn('room_id', $roomIds)
+      ->pluck('contract_id')
+      ->toArray();
+    $contracts = $this->model()->select('id', 'end_date', 'tenant_id')
+      ->with('contractRoom:contract_id,room_id')
+      ->where('contract_state', AppEnum::contractExecute)
+      ->whereIn('id', $contactIds)
+      ->get();
+    if ($contracts) {
+      $contracts = $contracts->toArray();
+    }
     // Log::info(DB::getQueryLog());
-
-    if (!$contractRoom) {
-      return ['tenant_name' => '', 'end_date' => '', 'days' => 0];
-    }
-
-    $tenantId = $contractRoom->tenant_id ?? 0;
-    $tenantName = $tenantId ? getTenantNameById($tenantId) : "";
-
-    $endDate = $contractRoom->contract->end_date ?? "";
-    if (empty($endDate) || strtotime($endDate) <= strtotime(nowTime())) {
-      $days = 0;
-    }
-    $days = diffDays(nowTime(), $endDate);
-
-    return ['tenant_name' => $tenantName, 'end_date' => $endDate, 'days' => $days];
+    return $this->filterContractsByEndDate($contracts);
   }
 
 
+  public function filterContractsByEndDate($contracts)
+  {
+    $filteredContracts = [];
+    foreach ($contracts as $contract) {
+      $roomId  = $contract['contract_room'][0]['room_id'];
+      $endDate = $contract['end_date'];
+      $today   = nowYmd();
+      $days = empty($endDate) || strtotime($endDate) <= strtotime($today) ? 0 : diffDays($today, $endDate);
+
+      $contractInfo = [
+        'end_date' => $endDate,
+        'tenant_id' => $contract['tenant_id'],
+        'tenant_name' => getTenantNameById($contract['tenant_id']),
+        'days' => $days
+      ];
+
+      if (!isset($filteredContracts[$roomId]) || strtotime($endDate) > strtotime($filteredContracts[$roomId]['end_date'])) {
+        $filteredContracts[$roomId] = $contractInfo;
+      }
+    }
+
+    // 返回处理后的合同数组
+    return $filteredContracts;
+  }
 
   /** 发送通知消息 */
   private function sendMsg($title, $content, $user, $receiveUid = 0)
