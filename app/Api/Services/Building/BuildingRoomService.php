@@ -26,6 +26,22 @@ class BuildingRoomService
     $this->contractService = new ContractService;
   }
 
+  public function buildingRoomModel()
+  {
+    return $this->buildingRoomModel;
+  }
+
+  public function buildingModel()
+  {
+    return $this->buildingModel;
+  }
+
+  public function floorModel()
+  {
+    return $this->floorModel;
+  }
+
+
   // 使用常量数组代替 switch 语句
   const IS_VALID_MAPPING = [
     '1' => '启用',
