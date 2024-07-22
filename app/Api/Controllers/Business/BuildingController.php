@@ -607,7 +607,8 @@ class BuildingController extends BaseController
         $BA = [];
 
         $contractService = new ContractService;
-        $contractInfo = $contractService->getContractInfo();
+
+
         foreach ($data as $k => $v) {
             $BA[$k] = [
                 'building_name' => $v['building']['build_no'] ?? '',
@@ -615,7 +616,13 @@ class BuildingController extends BaseController
                 'room_count'    => $v['floor_room_count'] ?? 0,
                 'room_list'     => [],
             ];
-            $roomIds = array_column($v->floorRoom->toArray(), 'id');
+
+            $roomIds = [];
+            foreach ($v->floorRoom as $k1 => $v1) {
+                $roomIds[] = $v1->id;
+            }
+
+            $contractInfo = $contractService->getContractInfo($roomIds);
 
             // Log::info(time() . "--" . $k . '-楼宇统计' . nowTime());
             foreach ($v->floorRoom as $k1 => $v1) {

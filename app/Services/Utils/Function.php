@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use App\Api\Models\Company\BankAccount;
 
 /**
  * 公用方法 获取用户公司ID
@@ -32,49 +31,52 @@ function getCompanyIds($uid): array
 	return array(0);
 }
 
+
+// MARK: 通过费用id 获取银行账户
 /**
  * 通过费用id 获取银行账户
  *
  * @Author leezhua
  * @DateTime 2024-03-21
- * @param [type] $feeId
- * @param [type] $projId
+ * @param int $feeId 
+ * @param int $projId
  *
  * @return integer
  */
-function getBankIdByFeeType($feeId, $projId): int
+function getBankIdByFeeType(int $feeId, int $projId): int
 {
 	$errorMsg = "未找到【" . getFeeNameById($feeId)['fee_name'] . "】费用的银行账户";
 	try {
-		$bank = BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])->where('proj_id', $projId)->first();
+		$bank = \App\Api\Models\Company\BankAccount::whereRaw("FIND_IN_SET(?, fee_type_id)", [$feeId])
+			->where('proj_id', $projId)->first();
 		if ($bank) {
 			return $bank->id;
-		} else {
-			throw new \Exception($errorMsg);
 		}
+		throw new \Exception($errorMsg);
 	} catch (\Exception $e) {
 		Log::error($e->getMessage());
 		throw new \Exception($errorMsg);
 	}
 }
 
-// 获取公司配置变量信息
+
+//#MARK: 获取公司配置变量信息
 function getVariable($companyId, $key)
 {
-	$cacheKey = "company_variable:{$companyId}:{$key}";
+	// 定义缓存键
+	$cacheKey = "company_variable_{$companyId}_{$key}";
 
-	// Try to get the value from the cache
-	$value = Cache::get($cacheKey);
-
-	// If the value was not in the cache, retrieve it from the database
-	if ($value === null) {
+	// 使用 Cache::remember 方法简化缓存逻辑
+	return Cache::remember($cacheKey, 60, function () use ($companyId, $key) {
 		$data = \App\Api\Models\Company\CompanyVariable::select($key)->find($companyId);
-		$value = $data[$key];
 
-		// Store the value in the cache for 1 hour
-		Cache::put($cacheKey, $value, 60);
-	}
-	return $value;
+		// 如果数据为空或键不存在，返回 null
+		if (!$data || !isset($data[$key])) {
+			return null;
+		}
+
+		return $data[$key];
+	});
 }
 
 // 获取公司配置
@@ -92,29 +94,33 @@ function companyConfig($id)
  * @param    [type]     $userinfo  [用户信息 需要有parent_type 1 渠道 2 客户 3 租户]
  * @return   [type]                []
  */
-
 function formatContact($contacts, $parentId, $userInfo, $type = 1): array
 {
+	$data = []; // 初始化$data数组
 	try {
 		if (empty($contacts) || empty($parentId) || empty($userInfo)) {
-			return false;
+			throw new \Exception("联系人信息格式化失败,参数错误");
 		}
-		foreach ($contacts as $k => $v) {
-			$data[$k]['created_at']    = nowTime();
-			$data[$k]['u_uid']         = $userInfo['id'];
-			$data[$k]['company_id']    = $userInfo['company_id'];
-			$data[$k]['parent_id']     = $parentId;
-			$data[$k]['contact_name']  = $v['contact_name'];
-			$data[$k]['parent_type']   = $userInfo['parent_type'];
-			$data[$k]['contact_role']  = isset($v['contact_role']) ? $v['contact_role'] : "";
-			$data[$k]['contact_phone'] = isset($v['contact_phone']) ? $v['contact_phone'] : "";
-			$data[$k]['is_default']    = isset($v['is_default']) ? $v['is_default'] : 0;
-			$data[$k]['updated_at']    = nowTime();
+
+		$now = nowTime(); // 将nowTime()的调用移出循环
+		foreach ($contacts as $key => $contact) {
+			$data[$key] = [
+				'u_uid'         => $userInfo['id'],
+				'company_id'    => $userInfo['company_id'],
+				'parent_id'     => $parentId,
+				'contact_name'  => $contact['contact_name'],
+				'parent_type'   => $userInfo['parent_type'],
+				'contact_role'  => $contact['contact_role'] ?? "", // 使用 ?? 运算符简化代码
+				'contact_phone' => $contact['contact_phone'] ?? "",
+				'is_default'    => $contact['is_default'] ?? 0,
+				'created_at'    => $now,
+				'updated_at'    => $now,
+			];
 		}
 		return $data;
 	} catch (\Exception $e) {
 		Log::error($e->getMessage());
-		throw new \Exception("联系人信息格式化失败" . $e->getMessage());
+		throw new \Exception("联系人信息格式化失败: " . $e->getMessage());
 	}
 }
 
@@ -429,12 +435,16 @@ function getUserByUid($uid)
 /** 获取项目信息 */
 function getProjById($projId)
 {
-	return \App\Api\Models\Project::find($projId);
+	$cacheKey = 'project_' . $projId; // 定义缓存键
+
+	return Cache::remember($cacheKey, 60, function () use ($projId) {
+		return \App\Api\Models\Project::find($projId);
+	});
 }
 
 function getProjNameById($projId)
 {
-	$proj = \App\Api\Models\Project::find($projId);
+	$proj = getProjById($projId);
 	return $proj->proj_name ?? "";
 }
 
@@ -447,23 +457,17 @@ function getProjNameById($projId)
  */
 function getTenantNameById($tenantId)
 {
-	if (!$tenantId || empty($tenantId)) {
+	if (empty($tenantId)) {
 		return "公区";
 	}
-	// 使用缓存键 'tenant_name_' . $tenantId
+
 	$cacheKey = 'tenant_name_' . $tenantId;
-	// 尝试从缓存中获取租户名称
-	$tenantName = Cache::get($cacheKey);
+	$cacheDuration = 60 * 4; // 缓存时间为 4 小时
 
-	// 如果缓存中没有租户名称，则从数据库中获取并存入缓存
-	if (!$tenantName) {
+	return Cache::remember($cacheKey, $cacheDuration, function () use ($tenantId) {
 		$tenant = \App\Api\Models\Tenant\Tenant::select('name')->find($tenantId);
-		$tenantName = $tenant['name'] ?? "";
-		// 将租户名称存入缓存，缓存时间为 60 分钟
-		Cache::put($cacheKey, $tenantName, 60 * 4);
-	}
-
-	return $tenantName;
+		return $tenant['name'] ?? "";
+	});
 }
 /**
  * 通过UID获取部门ID

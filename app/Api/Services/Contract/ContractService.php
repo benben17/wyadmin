@@ -219,6 +219,8 @@ class ContractService
     $this->saveLog($BA);
   }
 
+  //#MARK: - 合同作废
+  //#region
   /** 合同作废 */
   public function disuseContract($DA, $user)
   {
@@ -247,6 +249,9 @@ class ContractService
       return array('code' => 0, 'msg' => '');
     }
   }
+
+  //#endregion
+
   //#region 合同审核
   // MARK: 合同审核 
   /**
@@ -463,8 +468,13 @@ class ContractService
     //   ->pluck('contract_id')
     //   ->toArray();
     // Log::info(time() . "--search" . nowTime());
+    // DB::enableQueryLog();
     $contracts = $this->model()->select('id', 'end_date', 'tenant_id')
-      ->with('contractRoom:contract_id,room_id')
+      ->whereHas('contractRoom', function ($q) use ($roomIds) {
+        $q->whereIn('room_id', $roomIds);
+      })
+
+      ->with('contractRoom')
       ->where('contract_state', AppEnum::contractExecute)
       // ->whereIn('id', $contactIds)
       ->get();
@@ -472,28 +482,33 @@ class ContractService
       $contracts = $contracts->toArray();
     }
     // Log::info(time() . "--search----" . nowTime());
-    // Log::info(DB::getQueryLog());
+    Log::info($contracts);
+
     return $this->filterContractsByEndDate($contracts);
   }
 
 
   public function filterContractsByEndDate($contracts)
   {
+    // return $contracts;
     $filteredContracts = [];
     foreach ($contracts as $contract) {
-      $roomId  = $contract['contract_room'][0]['room_id'];
-      $endDate = $contract['end_date'];
-      $today   = nowYmd();
-      $days = empty($endDate) || strtotime($endDate) <= strtotime($today) ? 0 : diffDays($today, $endDate);
+      foreach ($contract['contract_room'] as $room) {
+        $roomId = $room['room_id'];
+        $endDate = $contract['end_date'];
+        $today = nowYmd();
+        $days = empty($endDate) || strtotime($endDate) <= strtotime($today) ? 0 : diffDays($today, $endDate);
 
-      $contractInfo = [
-        'end_date'    => $endDate,
-        'tenant_id'   => $contract['tenant_id'],
-        'tenant_name' => getTenantNameById($contract['tenant_id']),
-        'days'        => $days
-      ];
+        $contractInfo = [
+          'end_date'    => $endDate,
+          'tenant_id'   => $contract['tenant_id'],
+          'tenant_name' => getTenantNameById($contract['tenant_id']),
+          'days'        => $days
+        ];
 
-      if (!isset($filteredContracts[$roomId]) || strtotime($endDate) > strtotime($filteredContracts[$roomId]['end_date'])) {
+        if (isset($filteredContracts[$roomId]) && strtotime($filteredContracts[$roomId]['end_date']) > strtotime($endDate)) {
+          continue;
+        }
         $filteredContracts[$roomId] = $contractInfo;
       }
     }
@@ -588,7 +603,7 @@ class ContractService
   public function saveFreeList($DA, $contractId, $tenantId)
   {
     try {
-      $freePeriod  = new ContractFreePeriod();
+      $freePeriod  = $this->freeModel();
       $freePeriod->contract_id = $contractId;
       $freePeriod->tenant_id   = $tenantId;
       $freePeriod->start_date  = $DA['start_date'];
@@ -618,7 +633,7 @@ class ContractService
    */
   public function delFreeList($contractId)
   {
-    return ContractFreePeriod::where('contract_id', $contractId)->delete();
+    return $this->freeModel()->where('contract_id', $contractId)->delete();
   }
   //MARK: - 合同账单
   /**
@@ -721,6 +736,7 @@ class ContractService
     return false;
   }
 
+  //#MARK: - 合同变更账单处理
   /**
    * 合同变更账单处理 保存合同中的费用账单以及 租户表中的账单信息
    *
@@ -735,13 +751,14 @@ class ContractService
     // 把合同中的
     try {
       DB::transaction(function () use ($feeBill, $contract, $user) {
+        $tenantBillService = new TenantBillService;
         foreach ($feeBill as  $list) {
           foreach ($list['bill'] as $v) {
             // 保存新的合同费用
             $billFee = $this->formatFeeBill($v, $contract, $user);
             $fee = $this->contractBillModel()->create($billFee);
             // 保存新的应收
-            $tenantBillService = new TenantBillService;
+
             $billFee['contract_bill_id'] = $fee->id;
             $billFee['id'] = 0;
             $tenantBillService->saveBillDetail($billFee, $user);
@@ -768,21 +785,23 @@ class ContractService
    */
   public function getRoomsByTenantId($tenantId)
   {
-    return ContractRoomModel::whereHas('contract', function ($q) use ($tenantId) {
-      $q->where('tenant_id', $tenantId);
-    })->get();
+    return $this->contractRoomModel()
+      ->whereHas('contract', function ($q) use ($tenantId) {
+        $q->where('tenant_id', $tenantId);
+      })->get();
   }
 
   public function getRoomsByTenantIdSelect($tenantId)
   {
-    $data = ContractRoomModel::whereHas('contract', function ($q) use ($tenantId) {
-      $q->where('tenant_id', $tenantId);
-    })->get();
+    $data = $this->contractRoomModel()
+      ->whereHas('contract', function ($q) use ($tenantId) {
+        $q->where('tenant_id', $tenantId);
+      })->get();
 
     return $data->map(function ($room) {
       return [
-        'room_no' => $room->build_no . "-" . $room->floor_no . "-" . $room->room_no,
-        'room_id' =>  $room->room_id,
+        'room_no'     => $room->build_no . "-" . $room->floor_no . "-" . $room->room_no,
+        'room_id'     => $room->room_id,
         'contract_id' => $room->contract_id,
       ];
     });
@@ -852,8 +871,11 @@ class ContractService
    */
   public function getContractRoomByTenantId($tenantId)
   {
-    $room = $this->contractRoomModel()->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')
-      ->where('tenant_id', $tenantId)->groupBy('tenant_id')->first();
+    $room = $this->contractRoomModel()
+      ->selectRaw('build_no,floor_no,case when room_type = 1 then GROUP_CONCAT(room_no) else GROUP_CONCAT(station_no) end  rooms ')
+      ->where('tenant_id', $tenantId)
+      ->groupBy('tenant_id')
+      ->first();
     if ($room) {
       return $room['build_no'] . "-" . $room['floor_no'] . "-" . $room['rooms'];
     } else {

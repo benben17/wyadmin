@@ -21,12 +21,11 @@ function picFullPath($pics): array
 
 
 /**
- * 字符串转数组
+ * @Desc: 检查对象是否为空
  * @Author leezhua
- * @Date 2024-04-01
- * @param string $str 
- * @param string $delimiter 
- * @return string[] 
+ * @Date 2024-07-18
+ * @param [type] $obj
+ * @return boolean
  */
 function isEmptyObj($obj): bool
 {
