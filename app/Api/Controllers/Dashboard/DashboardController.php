@@ -185,6 +185,10 @@ class DashboardController extends BaseController
         return null;
       }
       $item['percentage'] = ($item['total'] == 0 ||  $totalTenants == 0) ? 0 : ($item['total'] / $totalTenants) * 100;
+      if ($item['percentage'] <= 0.3) {
+        $tenantLevelNull += $item['total'];
+        return null;
+      }
       return $item;
     }, $tenantLevel);
     // return 

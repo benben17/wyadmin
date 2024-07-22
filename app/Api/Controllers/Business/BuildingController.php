@@ -576,7 +576,7 @@ class BuildingController extends BaseController
         $validatedData = $request->validate([
             'proj_ids' => 'required|array',
         ]);
-        Log::info(time() . '楼宇统计' . nowTime());
+        // Log::info(time() . '楼宇统计' . nowTime());
         $building = BuildingModel::select(DB::Raw('group_concat(id) build_ids'))
             ->where(function ($q) use ($request) {
                 $request->build_no && $q->where('build_no', 'like', '%' . $request->build_no . '%');
@@ -621,13 +621,10 @@ class BuildingController extends BaseController
             foreach ($v->floorRoom as $k1 => $v1) {
                 $roomIds[] = $v1->id;
             }
-
             $contractInfo = $contractService->getContractInfo($roomIds);
-
             // Log::info(time() . "--" . $k . '-楼宇统计' . nowTime());
             foreach ($v->floorRoom as $k1 => $v1) {
                 // $contractInfo = $contractService->getContractInfo($v1->id);
-
                 // 直接构建 room_list 数组
                 $BA[$k]['room_list'][$k1] = [
                     'id'          => $v1->id,
