@@ -79,12 +79,15 @@ class BillDetailController extends BaseController
 				if ($request->tenant_id) {
 					$q->whereIn('tenant_id', getTenantIdsByPrimary($request->tenant_id));
 				}
+				// if (isset($request->status) && $request->status != "") {
+				// 	$q->where('status', $request->status);
+				// }
 				$request->year && $q->whereYear('charge_date', $request->year);
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
 				$q->whereIn('type', [AppEnum::feeType, AppEnum::dailyFeeType]);
 				$request->fee_types && $q->whereIn('fee_type', $request->fee_types);
-				if (!empty($request->is_bill)) {
+				if (isset($request->is_bill) && $request->is_bill != "") {
 					$request->is_bill ? $q->where('bill_id', '>', 0) : $q->where('bill_id', 0);
 				}
 				$request->bank_id && $q->where('bank_id', $request->bank_id);
