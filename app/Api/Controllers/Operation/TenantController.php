@@ -191,7 +191,7 @@ class TenantController extends BaseController
 
                 if ($DA['business_info']) {
                     $businessInfo = $DA['business_info'];
-                    $businessInfo['name'] = $DA['name'];
+                    $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     $info = new BaseInfoService;
                     if ($DA['business_id'] == 0 || !$DA['business_id']) {
                         $business = $info->save($businessInfo, 1);   // 新增
@@ -289,7 +289,13 @@ class TenantController extends BaseController
                     $businessInfo['business_id'] = $DA['business_id'];
                     $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     $baseInfoService = new BaseInfoService;
-                    $baseInfoService->save($businessInfo, 2); // 更新工商信息
+                    if ($DA['business_id'] == 0 || !$DA['business_id']) {
+                        $business =  $baseInfoService->save($businessInfo, 1); // 新增工商信息
+                        $this->tenantService->tenantModel()->whereId($DA['id'])
+                            ->update(['business_id' => $business['id']]);
+                    } else {
+                        $baseInfoService->save($businessInfo, 2); // 更新工商信息
+                    }
                 }
                 $log['tenant_id'] = $DA['id'];
                 $log['content'] =  $this->user['realname'] . '编辑租户:' . $tenantRes->name;
