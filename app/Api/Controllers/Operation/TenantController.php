@@ -92,8 +92,9 @@ class TenantController extends BaseController
         // // return $result;
         // return DB::getQueryLog();
         $data = $this->pageData($query, $request);
+        $contractService = new ContractService;
         foreach ($data['result'] as $k => &$tenant) {
-            $contractService = new ContractService;
+
             $signArea = $contractService->model()->where('tenant_id', $tenant['id'])->where('contract_state', AppEnum::contractExecute)->sum('sign_area');
             $tenant['total_area'] =  $signArea ?? 0.00;
 
