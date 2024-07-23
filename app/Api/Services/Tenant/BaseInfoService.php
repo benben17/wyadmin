@@ -26,13 +26,12 @@ class BaseInfoService
    */
   public function save($DA, $type = 1)
   {
-    // Log::error(json_encode($DA));
     if ($type == 1) {
-      $company              = $this->model();
-      $company->skyeye_id   = $DA['id'] ?? 0;
+      $baseInfo  = $this->model()->where('name', $DA['name'])->first() ?? $this->model();
+      $baseInfo->skyeye_id   = $DA['id'] ?? 0;
     } else {
       $baseInfo  = $this->model()->find($DA['id']);
-      $baseInfo->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'] ?? 0;
+      $baseInfo->skyeye_id   = $DA['skyeye_id'] ?? $DA['id'];
     }
 
     $baseInfo->name              = $DA['name'] ?? "";
