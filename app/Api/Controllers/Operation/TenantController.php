@@ -284,12 +284,12 @@ class TenantController extends BaseController
                 }
 
                 // 更新工商信息
-                if (isset($DA['business_info']) && $DA['business_info']) {
+                if ($DA['business_info']) {
                     $businessInfo = $DA['business_info'];
-                    $businessInfo['business_id'] = $DA['business_id'];
                     $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     $baseInfoService = new BaseInfoService;
                     if ($DA['business_id'] == 0 || !$DA['business_id']) {
+                        Log::info("新增工商信息" . json_encode($businessInfo));
                         $business =  $baseInfoService->save($businessInfo, 1); // 新增工商信息
                         $this->tenantService->tenantModel()->whereId($DA['id'])
                             ->update(['business_id' => $business['id']]);
