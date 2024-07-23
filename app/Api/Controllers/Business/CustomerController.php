@@ -181,6 +181,7 @@ class CustomerController extends BaseController
      *     )
      * )
      */
+    //MARK: 客户新增
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -229,20 +230,17 @@ class CustomerController extends BaseController
                 }
                 // 工商信息
                 $businessInfo = $DA['business_info'];
-                if ($businessInfo) {
-                    $businessInfo['name'] = $DA['name'];
+                $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
 
-                    $baseInfo = $this->baseInfoService->model()->where('name', $businessInfo['name'])->first();
-                    // if ($baseInfo) {
-                    //     $businessInfo['id'] = $baseInfo->id;
-                    //     $business = $this->baseInfoService->save($businessInfo, 2);   // 1 新增
-                    // } else {
-                    $business = $this->baseInfoService->save($businessInfo, 1);   // 1 新增
-                    // }
-                    if ($business) {
-                        $businessData['business_id'] = $business->id;
-                        $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
-                    }
+                $business = $this->baseInfoService->model()->where('name', $businessInfo['name'])->first();
+
+                if (!$business) { // 仅当 $businessInfo 存在且数据库中无记录时才创建
+                    $business = $this->baseInfoService->save($businessInfo, 1);
+                }
+
+                if ($business) {
+                    $businessData['business_id'] = $business->id;
+                    $this->customerService->tenantModel()->whereId($parent_id)->update($businessData);
                 }
                 // 线索更新
                 if (isset($DA['clue_id']) && $DA['clue_id'] > 0) {
@@ -309,6 +307,7 @@ class CustomerController extends BaseController
      *     )
      * )
      */
+    // MARK: 客户编辑
     public function update(Request $request)
     {
         $validatedData = $request->validate([
@@ -364,17 +363,13 @@ class CustomerController extends BaseController
                 // 更新工商信息
                 $businessInfo = $DA['business_info'];
                 if ($businessInfo) {
-                    $businessInfo['business_info_id'] = $DA['business_id'];
-                    $businessInfo['name'] = $DA['name'];
-
-                    $res = $this->baseInfoService->model()->where('name', $DA['name'])->first();
-                    if ($res) {
-                        $businessData['business_id'] = $res->id;
-                        $this->customerService->tenantModel()::whereId($DA['id'])->update($businessData);
-                        $businessInfo['id'] = $res->id;
-                    }
+                    $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     // 客户工商信息更新
-                    $this->baseInfoService->save($businessInfo, 2);
+                    $business = $this->baseInfoService->save($businessInfo, 2);
+                    if ($DA['business_id'] != $business->id) {
+                        $businessData['business_id'] = $business->id;
+                        $this->customerService->tenantModel()->whereId($DA['id'])->update($businessData);
+                    }
                 }
                 $cusLog['content'] = '编辑客户【' . $DA['name'] . '】';
                 $cusLog['tenant_id'] = $DA['id'];

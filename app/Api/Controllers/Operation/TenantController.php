@@ -193,16 +193,12 @@ class TenantController extends BaseController
                     $businessInfo = $DA['business_info'];
                     $businessInfo['name'] = $DA['name'];
                     $info = new BaseInfoService;
-                    $baseInfo = $info->model()->where('name', $businessInfo['name'])->first();
-                    if ($baseInfo) {
-                        $businessInfo['id'] = $baseInfo->id;
-                        $business = $info->save($businessInfo, 2);   // 编辑
+                    if ($DA['business_id'] == 0 || !$DA['business_id']) {
+                        $business = $info->save($businessInfo, 1);   // 新增
+                        $this->tenantService->tenantModel()->whereId($tenantId)
+                            ->update(['business_id' => $business->id]);
                     } else {
-                        $business = $info->save($businessInfo, 1);   // 1 新增
-                    }
-                    if ($business) {
-                        $businessData['business_id'] = $business->id;
-                        $this->tenantService->tenantModel()->whereId($tenantId)->update($businessData);
+                        $business = $info->save($businessInfo, 2);   // 编辑
                     }
                 }
 
@@ -291,12 +287,9 @@ class TenantController extends BaseController
                 if (isset($DA['business_info']) && $DA['business_info']) {
                     $businessInfo = $DA['business_info'];
                     $businessInfo['business_id'] = $DA['business_id'];
-                    $businessInfo['name'] = $DA['name'];
+                    $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     $baseInfoService = new BaseInfoService;
-                    $res = $baseInfoService->model()->where('name', $DA['name'])->first();
-                    if (!$res) {
-                        $baseInfoService->save($businessInfo, 2); // 更新工商信息
-                    }
+                    $baseInfoService->save($businessInfo, 2); // 更新工商信息
                 }
                 $log['tenant_id'] = $DA['id'];
                 $log['content'] =  $this->user['realname'] . '编辑租户:' . $tenantRes->name;
