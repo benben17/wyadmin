@@ -3,11 +3,8 @@
 namespace App\Api\Controllers\Common;
 
 use JWTAuth;
-use App\Api\Models\Project;
-use App\Api\Models\Building;
 use Illuminate\Http\Request;
 use App\Models\Area as AreaModel;
-use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 
 /**

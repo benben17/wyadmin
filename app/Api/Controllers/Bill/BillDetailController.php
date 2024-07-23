@@ -54,8 +54,6 @@ class BillDetailController extends BaseController
 	public function list(Request $request)
 	{
 
-		$map = array();
-
 		// 排序字段
 		if (!$request->orderBy) {
 			$request->orderBy = 'charge_date';
@@ -65,23 +63,18 @@ class BillDetailController extends BaseController
 			$request->order = 'desc';
 		}
 
-		if (isset($request->status) && $request->status != "") {
-			$map['status'] = $request->status;
-		}
-
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		// $map['type'] =  AppEnum::feeType;
 		$subQuery = $this->billService->billDetailModel()
-			->where($map)
 			->where(function ($q) use ($request) {
 				$request->tenant_name && $q->where('tenant_name', 'like', '%' . $request->tenant_name . '%');
 				$request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
 				if ($request->tenant_id) {
 					$q->whereIn('tenant_id', getTenantIdsByPrimary($request->tenant_id));
 				}
-				// if (isset($request->status) && $request->status != "") {
-				// 	$q->where('status', $request->status);
-				// }
+				if (isset($request->status) && $request->status != "") {
+					$q->where('status', $request->status);
+				}
 				$request->year && $q->whereYear('charge_date', $request->year);
 				$request->start_date && $q->where('charge_date', '>=', $request->start_date);
 				$request->end_date && $q->where('charge_date', '<=', $request->end_date);
@@ -144,13 +137,6 @@ class BillDetailController extends BaseController
 			->with('contract:id,contract_no')
 			->find($request->id);
 
-		// $invoiceService = new InvoiceService;
-		// $invoiceRecord = $invoiceService->invoiceRecordModel()->find($request->id);
-		// if (!$invoiceRecord) {
-		//   $invoiceRecord =   (object)array();
-		// }
-		// $data['invoice_record'] = $invoiceRecord;
-		// return response()->json(DB::getQueryLog());
 		return $this->success($data);
 	}
 

@@ -3,7 +3,6 @@
 namespace App\Api\Controllers\Business;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
@@ -11,6 +10,7 @@ use App\Api\Excel\Business\BuildingRoomExcel;
 use App\Api\Models\BuildingRoom  as RoomModel;
 use App\Api\Services\Building\BuildingService;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Services\Building\BuildingRoomService;
 
 /**
  * 项目工位信息
@@ -96,12 +96,13 @@ class StationController extends BaseController
 
         $contract = new ContractService;
         $buildService  = new BuildingService;
+        $buildRoomService = new BuildingRoomService;
         $freeRate = '0.00';
         if ($stat['free_count']) {
             $freeRate = numFormat($stat['free_count'] / $stat['total_count'] * 100);
         }
         if ($data['result']) {
-            $data['result'] = $buildService->formatData($data['result']);
+            $data['result'] = $buildRoomService->formatRoomData($data['result']);
         }
         $avgPrice = $contract->contractAvgPrice(2); // 工位 room_type = 2
         // Log::error($avgPrice);

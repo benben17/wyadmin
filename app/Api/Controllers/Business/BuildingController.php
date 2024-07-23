@@ -2,16 +2,13 @@
 
 namespace App\Api\Controllers\Business;
 
-use Common;
 use JWTAuth;
 use Exception;
-use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\BuildingExcel;
-use App\Api\Models\Contract\ContractRoom;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Building as BuildingModel;
 use App\Api\Services\Building\BuildingService;
@@ -675,6 +672,14 @@ class BuildingController extends BaseController
         }
         return $BA;
     }
+    // MARK: 格式化楼宇数据
+    /**
+     * 格式化楼宇数据
+     * @Author   leezhua
+     * @DateTime 2020-06-01
+     * @param    [数组]     $DA [楼数据]
+     * @return   [数组]         [返回格式化数组]
+     */
     private function formatBuild($DA)
     {
         $proj = ProjectModel::select('proj_name')->find($DA['proj_id'])->toArray();

@@ -6,7 +6,6 @@ use App\Enums\AppEnum;
 use Illuminate\Http\Request;
 use App\Api\Models\Tenant\Tenant;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
 use App\Api\Controllers\BaseController;
 use App\Api\Models\Company\BankAccount;
 use App\Api\Services\Sys\DepartService;

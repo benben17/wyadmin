@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Common\MaintainExcel;
-use App\Api\Services\Common\BseMaintainService as maintainService;
+use App\Api\Services\Common\BseMaintainService as MaintainService;
 
 
 /**
@@ -17,9 +17,11 @@ use App\Api\Services\Common\BseMaintainService as maintainService;
  */
 class MaintainController extends BaseController
 {
+    protected $maintainService;
     public function __construct()
     {
         parent::__construct();
+        $this->maintainService = new MaintainService;
     }
 
 
@@ -69,6 +71,10 @@ class MaintainController extends BaseController
         $validatedData = $request->validate([
             // 1 channel 2 客户 3 供应商 4 政府关系 5 租户
             'parent_type' => 'required|numeric|in:1,2,3,4,5',
+        ], [
+            'parent_type.required' => '父类型不能为空！',
+            'parent_type.numeric' => '父类型必须是数字！',
+            'parent_type.in' => '父类型不在范围内！',
         ]);
 
         $pagesize = $this->setPagesize($request);
@@ -91,8 +97,8 @@ class MaintainController extends BaseController
 
         // Log::error($this->user);
         DB::enableQueryLog();
-        $maintainService  = new maintainService;
-        $maintain = $maintainService->maintainModel()->where($map)
+
+        $maintain = $this->maintainService->maintainModel()->where($map)
             ->with('createUser:id,realname')
             ->where(function ($q) use ($request) {
                 $request->parent_type && $q->where('parent_type', $request->parent_type);
@@ -119,8 +125,8 @@ class MaintainController extends BaseController
         // return response()->json(DB::getQueryLog());
         // 获取主表名称
         foreach ($maintain['data'] as $k => &$v) {
-            $v['name'] = $maintainService->getParentName($v['parent_id'], $request->parent_type);
-            $v['maintain_type_label'] = getDictName($v['maintain_type']);
+            $v['name'] = $this->maintainService->getParentName($v['parent_id'], $request->parent_type);
+            // $v['maintain_type_label'] = getDictName($v['maintain_type']);
         }
 
         $data = $this->handleBackData($maintain);
@@ -206,16 +212,99 @@ class MaintainController extends BaseController
         ]);
 
         $DA =  $request->toArray();
-        $user = auth('api')->user();
         // $DA['parent_id'] = $DA['parent_id'];
         // $DA['parent_type'] = $DA['parent_type'];
-        $maintain = new maintainService;
-        $DA['c_username'] = isset($DA['c_username']) ? $user->realname : "";
-        $res = $maintain->add($DA, $user);
+        $DA['c_username'] = isset($DA['c_username']) ? $this->user->realname : "";
+        $res = $this->maintainService->add($DA, $this->user);
         if ($res) {
             return $this->success('维护记录添加成功！');
         }
         return $this->error('维护记录添加失败！');
+    }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/common/maintain/update",
+     *     tags={"维护"},
+     *     summary="维护记录编辑新增 id >0 编辑 id=0新增",
+     *    @OA\RequestBody(
+     *       @OA\MediaType(
+     *           mediaType="application/json",
+     *       @OA\Schema(
+     *          schema="UserModel",
+     *          required={"parent_id","parent_type","maintain_type","maintain_date","maintain_record","maintain_user","c_user"},
+     *       @OA\Property(
+     *          property="parent_id",
+     *          type="int",
+     *          description="ID 渠道ID 租户ID"
+     *       ),
+     *       @OA\Property(
+     *          property="parent_type",
+     *          type="int",
+     *          description="1 channel 2 客户 3 供应商 4 政府关系 5 租户"
+     *       ),
+     *       @OA\Property(
+     *          property="maintain_type",
+     *          type="String",
+     *          description="维护类型"
+     *       ),
+     *       @OA\Property(
+     *          property="maintain_date",
+     *          type="date",
+     *          description="维护时间"
+     *       ),
+     *       @OA\Property(
+     *          property="maintain_record",
+     *          type="String",
+     *          description="维护内容"
+     *       ),
+     *       @OA\Property(
+     *          property="maintain_feedback",
+     *          type="String",
+     *          description="维护反馈"
+     *       ),
+     *       @OA\Property(
+     *          property="maintain_user",
+     *          type="String",
+     *          description="渠道联系人"
+     *       ),
+     *       @OA\Property(
+     *          property="c_username",
+     *          type="String",
+     *          description="维护人"
+     *       )
+     *     ),
+     *       example={
+     *
+     *           }
+     *       )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description=""
+     *     )
+     * )
+     */
+    public function update(Request $request)
+    {
+
+        $validatedData = $request->validate([
+            'id'          => 'required|numeric',    //维护记录ID
+            'parent_id'       => 'required|min:1',
+            'parent_type'     => 'required|numeric|in:1,2,3,4,5',
+            'maintain_type'   => 'required|String|min:1',
+            'maintain_date'   => 'required|date',
+            'maintain_record' => 'required|String|min:1',
+            'proj_id'         => 'required|numeric',
+        ]);
+
+        $DA =  $request->toArray();
+        $res = $this->maintainService->update($DA, $this->user);
+        if ($res) {
+            return $this->success('维护记录更新成功！');
+        }
+        return $this->error('维护记录更新失败！');
     }
 
     /**
@@ -253,9 +342,8 @@ class MaintainController extends BaseController
         ]);
         $data = $request->toArray();
         // return gettype($data['Ids']);
-        $maintain = new maintainService;
-        DB::enableQueryLog();
-        $res = $maintain->delete($data['Ids']);
+        // DB::enableQueryLog();
+        $res = $this->maintainService->delete($data['Ids']);
         // return response()->json(DB::getQueryLog());
         // return $res;
         if ($res) {
@@ -307,10 +395,10 @@ class MaintainController extends BaseController
             'parent_type' => 'required|int|in:1,2,3,4,5',
         ]);
 
-        $maintain = new maintainService;
-        $data = $maintain->maintainModel()->find($request->id);
-        $data['name'] = $maintain->getParentName($data['parent_id'], $data['parent_type']);
-        $data['maintain_type_label'] = getDictName($data['maintain_type']);
+
+        $data = $this->maintainService->maintainModel()->find($request->id);
+        $data['name'] = $this->maintainService->getParentName($data['parent_id'], $data['parent_type']);
+        // $data['maintain_type_label'] = getDictName($data['maintain_type']);
         // $data = $maintain->showMaintain($request->id,);
         return $this->success($data);
     }

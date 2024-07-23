@@ -242,7 +242,37 @@ class DashboardController extends BaseController
   }
 
 
-
+  /**
+   * @OA\Get(
+   *      path="/api/dashboard/project",
+   *      operationId="project",
+   *      tags={"Dashboard"},
+   *      summary="项目数据",
+   *      description="项目数据",
+   *      @OA\Parameter(
+   *          name="proj_ids",
+   *          description="项目id",
+   *          required=true,
+   *          in="query",
+   *          @OA\Schema(
+   *              type="array",
+   *              @OA\Items(
+   *                  type="integer"
+   *              )
+   *          )
+   *      ),
+   *      @OA\Response(
+   *          response=200,
+   *          description="successful operation",
+   *          @OA\JsonContent()
+   *       ),
+   *      @OA\Response(response=400, description="Bad request"),
+   *      @OA\Response(response=401, description="Unauthorized"),
+   *      @OA\Response(response=403, description="Forbidden"),
+   *      @OA\Response(response=404, description="Resource Not Found"),
+   *      @OA\Response(response=500, description="Internal Server Error")
+   * )
+   */
   public function project(Request $request)
   {
 

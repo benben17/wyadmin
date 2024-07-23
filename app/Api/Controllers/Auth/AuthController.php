@@ -160,7 +160,8 @@ class AuthController extends BaseController
         try {
             $this->authUser();
             $uid = auth('api')->user()->id;
-            $result = \App\Models\User::with('company')->with('role:id,name')->find($uid);
+            $result = \App\Models\User::with('company')
+                ->with('role:id,name')->find($uid);
             if (!$result) {
                 return $this->error('用户信息查询失败!');
             }
