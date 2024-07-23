@@ -62,7 +62,8 @@ class TenantService
       $tenant->tags         = isset($DA['tags']) ? $DA['tags'] : "";
       $tenant->addr         = isset($DA['addr']) ? $DA['addr'] : "";
       $tenant->status       = $DA['status'] ?? 1;
-      $tenant->on_rent      = $DA['on_rent'] ?? 1;
+      $tenant->on_rent      = isset($DA['on_rent']) && $DA['on_rent'] !== null ? $DA['on_rent'] : 1;
+
       $res = $tenant->save();
       if ($res) {
         return $tenant;
