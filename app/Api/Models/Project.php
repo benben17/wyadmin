@@ -2,15 +2,14 @@
 
 namespace App\Api\Models;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *
  */
-class Project extends Model
+class Project extends BaseModel
 {
   /**
    * 关联到模型的数据表

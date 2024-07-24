@@ -12,11 +12,10 @@ use Illuminate\Support\Str;
  */
 function picFullPath($pics): array
 {
-  $picFull = [];
-  foreach (str2Array($pics) as $pic) {
-    $picFull[] = getOssUrl($pic);
+  if (empty($pics)) {
+    return [];
   }
-  return $picFull;
+  return array_map('getOssUrl', str2Array($pics));
 }
 
 

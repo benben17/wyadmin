@@ -82,18 +82,7 @@ class CustomerRemindController extends BaseController
                     if (isset($request->end_time)) {
                          $q->where('remind_date', '<=', $request->end_time);
                     }
-                    if (!$this->user['is_admin']) {
-                         if ($request->depart_id) {
-                              $departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-                              $q->whereIn('depart_id', $departIds);
-                         }
-                         if ($this->user['is_manager']) {
-                              $departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-                              $q->whereIn('depart_id', $departIds);
-                         } else if (!$request->depart_id) {
-                              $q->where('c_uid', $this->uid);
-                         }
-                    }
+                    return $this->applyUserPermission($q, $request->depart_id, $this->user);
                })->whereHas('customer', function ($q) use ($request) {
                     $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
                })
@@ -229,7 +218,7 @@ class CustomerRemindController extends BaseController
           $BA = $request->toArray();
           DB::enableQueryLog();
           $user = auth('api')->user();
-          $res = $this->remindService->saveRemind($BA, $user);
+          $res = $this->remindService->saveRemind($BA['tenant_id'], $BA['remind_date'], $user);
           // return response()->json(DB::getQueryLog());
           if ($res) {
                return $this->success('客户跟进提醒保存成功。');
@@ -286,7 +275,7 @@ class CustomerRemindController extends BaseController
           $BA = $request->toArray();
           DB::enableQueryLog();
           $user = auth('api')->user();
-          $res = $this->remindService->saveRemind($BA, $user);
+          $res = $this->remindService->saveRemind($BA['tenant_id'], $BA['remind_date'], $user);
           if ($res) {
                return $this->success('客户跟进提醒编辑成功');
           }

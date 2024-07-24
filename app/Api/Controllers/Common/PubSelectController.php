@@ -440,18 +440,7 @@ class PubSelectController extends BaseController
 					$q->whereIn('type', [1, 3]);
 				}
 				$request->proj_ids && $q->whereIn('proj_id', str2Array($request->proj_ids));
-				if (!$this->user['is_admin']) {
-					if ($request->depart_id) {
-						$departIds = getDepartIds([$request->depart_id], [$request->depart_id]);
-						$q->whereIn('depart_id', $departIds);
-					}
-					if ($this->user['is_manager']) {
-						$departIds = getDepartIds([$this->user['depart_id']], [$this->user['depart_id']]);
-						$q->whereIn('depart_id', $departIds);
-					} else if (!$request->depart_id) {
-						$q->where('belong_uid', $this->uid);
-					}
-				}
+				$this->applyUserPermission($q, $request->depart_id, $this->user);
 			})
 			->with('business_info:id,legalPersonName')
 			->orderBy('name', 'asc')

@@ -2,10 +2,10 @@
 
 namespace App\Api\Models\Company;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 
-class CompanyDictType extends Model
+
+class CompanyDictType extends BaseModel
 {
 	/**
 	 * 关联到模型的数据表

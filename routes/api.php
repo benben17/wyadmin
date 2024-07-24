@@ -127,11 +127,10 @@ Route::group(['prefix' => 'common'], function () {
     //删除联系人
     Route::Post('contact/del', '\App\Api\Controllers\Common\ContactController@delete');
     Route::post('contact/list', '\App\Api\Controllers\Common\ContactController@list');
-    //维护列表
+    //维护列表    //维护
     Route::Post('maintain/list', '\App\Api\Controllers\Common\MaintainController@list');
-    //编辑新增维护
     Route::Post('maintain/save', '\App\Api\Controllers\Common\MaintainController@store');
-    //删除维护记录
+    Route::Post('maintain/update', '\App\Api\Controllers\Common\MaintainController@update');
     Route::Post('maintain/del', '\App\Api\Controllers\Common\MaintainController@delete');
     Route::Post('maintain/show', '\App\Api\Controllers\Common\MaintainController@show');
     //备注列表
@@ -584,7 +583,6 @@ Route::group(['prefix' => 'business/wx'], function () {
 Route::group(['prefix' => 'wx'], function () {
     Route::get('/weixin', '\App\Api\Controllers\Weixin\WxController@weixin')->name('weixin');
     Route::get('/weixin/callback', '\App\Api\Controllers\Weixin\WxController@weixinCallback');
-
     Route::post('/user/bind', '\App\Api\Controllers\Weixin\WeiXinController@bindWx');
     Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
     Route::post('/auth/login', '\App\Api\Controllers\Weixin\WxController@wxLogin');

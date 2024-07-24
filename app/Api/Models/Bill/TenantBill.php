@@ -2,16 +2,15 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
-
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *
  */
-class TenantBill extends Model
+class TenantBill extends BaseModel
 {
 
   use SoftDeletes;

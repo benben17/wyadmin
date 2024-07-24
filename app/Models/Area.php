@@ -1,10 +1,10 @@
 <?php
+
 namespace App\Models;
 
 use \App\Api\Scopes\UserScope;
-use Illuminate\Database\Eloquent\Model;
 
-class Area extends Model
+class Area extends BaseModel
 {
    /**
     * 关联到模型的数据表
@@ -13,5 +13,5 @@ class Area extends Model
     */
    protected $table = 'sys_area';
 
-   protected $hidden = ['created_at','updated_at'];
+   protected $hidden = ['created_at', 'updated_at'];
 }

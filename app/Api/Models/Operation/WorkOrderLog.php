@@ -2,14 +2,13 @@
 
 namespace App\Api\Models\Operation;
 
-use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
+
 
 /**
  *  保修工单
  */
-class WorkOrderLog extends Model
+class WorkOrderLog extends BaseModel
 {
 
   /**

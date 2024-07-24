@@ -2,18 +2,16 @@
 
 namespace App\Api\Models\Sys;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
-
-class UserRole extends Model
+class UserRole extends BaseModel
 {
-   /**
-    * 关联到模型的数据表
-    *
-    * @var string
-    */
+  /**
+   * 关联到模型的数据表
+   *
+   * @var string
+   */
 
 
   use SoftDeletes;

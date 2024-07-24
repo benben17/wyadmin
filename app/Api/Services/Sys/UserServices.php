@@ -128,32 +128,6 @@ class UserServices
 
 
 
-
-  /**
-   * @Desc: 权限认证
-   * @Author leezhua
-   * @Date 2024-03-31
-   * @param [type] $user
-   * @return void
-   */
-  public static function filterByDepartId($query, $user, $depart_id)
-  {
-    if ($user['is_admin']) {
-      return $query;
-    }
-    if ($depart_id) {
-      $departIds = getDepartIds([$depart_id], [$depart_id]);
-      $query->whereIn('depart_id', $departIds);
-    }
-    if ($user['is_manager']) {
-      $departIds = getDepartIds([$user['depart_id']], [$user['depart_id']]);
-      $query->whereIn('depart_id', $departIds);
-    } else if (!$depart_id) {
-      $query->where('c_uid', $user['id']);
-    }
-    return $query;
-  }
-
   /**
    * @Desc:   获取小程序所有菜单
    * @Author leezhua

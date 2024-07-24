@@ -3,13 +3,13 @@
 namespace App\Api\Models\Energy;
 
 use App\Enums\RemarkType;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Services\CompanyServices;
 use App\Api\Models\Common\BseRemark;
-use Illuminate\Database\Eloquent\Model;
 use App\Api\Models\Contract\ContractRoom;
 
-class Meter extends Model
+class Meter extends BaseModel
 {
   /**
    * 关联到模型的数据表

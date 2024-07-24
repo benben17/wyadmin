@@ -2,14 +2,13 @@
 
 namespace App\Api\Models\Tenant;
 
-
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 客户工商信息
  */
-class BusinessInfo extends Model
+class BusinessInfo extends BaseModel
 {
 
   use SoftDeletes;

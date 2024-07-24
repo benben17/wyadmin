@@ -2,15 +2,14 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Enums\AppEnum;
 use App\Enums\ChargeEnum;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Models\Company\BankAccount;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ChargeBill extends Model
+class ChargeBill extends BaseModel
 {
   use SoftDeletes;
 

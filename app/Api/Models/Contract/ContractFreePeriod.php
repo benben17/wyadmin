@@ -2,15 +2,14 @@
 
 namespace App\Api\Models\Contract;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
+use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 免租类型 免租时间
  */
-class ContractFreePeriod extends Model
+class ContractFreePeriod extends BaseModel
 {
   /**
    * 关联到模型的数据表
@@ -24,9 +23,9 @@ class ContractFreePeriod extends Model
   protected $hidden = ['deleted_at', 'company_id', 'u_uid'];
 
 
-  public function addAll(array $data)
-  {
-    $res = DB::table($this->getTable())->insert($data);
-    return $res;
-  }
+  // public function addAll(array $data)
+  // {
+  //   $res = DB::table($this->getTable())->insert($data);
+  //   return $res;
+  // }
 }

@@ -2,12 +2,10 @@
 
 namespace App\Api\Models\Tenant;
 
-use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 
-class TenantRoom extends Model
+class TenantRoom extends BaseModel
 {
   /**
    * 关联到模型的数据表

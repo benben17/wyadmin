@@ -2,10 +2,10 @@
 
 namespace App\Api\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 
-class TenantLog extends Model
+class TenantLog extends BaseModel
 {
     /**
      * 关联到模型的数据表

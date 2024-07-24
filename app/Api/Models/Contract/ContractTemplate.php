@@ -2,12 +2,11 @@
 
 namespace App\Api\Models\Contract;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
 
-class ContractTemplate extends Model
+
+class ContractTemplate extends BaseModel
 {
   protected $table = 'bse_template';
 

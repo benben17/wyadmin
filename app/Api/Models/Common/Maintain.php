@@ -2,16 +2,16 @@
 
 namespace App\Api\Models\Common;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Channel\Channel;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * 公共维护 1 渠道 2 客户 3 供应商 4 政府关系 5 租户 
  */
-class Maintain extends Model
+class Maintain extends BaseModel
 {
   /**
    * 关联到模型的数据表

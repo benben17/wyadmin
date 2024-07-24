@@ -2,14 +2,14 @@
 
 namespace App\Api\Models\Sys;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 
 /**
  *   用户变量模型
  *
  */
-class UserProfile extends Model
+class UserProfile extends BaseModel
 {
   /**
    * 关联到模型的数据表

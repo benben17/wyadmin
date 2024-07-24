@@ -2,12 +2,11 @@
 
 namespace App\Api\Models\Common;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class BseRemark extends Model
+class BseRemark extends BaseModel
 {
   /**
    * 备注公共模型
@@ -21,10 +20,6 @@ class BseRemark extends Model
   protected $fillable = ['company_id', 'parent_type', 'parent_id', 'remark_content', 'c_user', 'c_uid', 'u_uid'];
   protected $appends = ['c_user_name'];
 
-  public function addAll(array $data)
-  {
-    return $this->insert($data);
-  }
 
   public function getCUserNameAttribute()
   {

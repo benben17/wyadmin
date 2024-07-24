@@ -2,13 +2,13 @@
 
 namespace App\Api\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 
 /**
  *  天眼查，查询日志
  */
-class SkyeyeLog extends Model
+class SkyeyeLog extends BaseModel
 {
 
   // use SoftDeletes;

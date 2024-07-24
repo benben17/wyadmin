@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class Customer extends BaseModel
 {
    /**
     * 关联到模型的数据表
@@ -12,7 +13,7 @@ class Customer extends Model
     */
    protected $table = 'admin_customer';
 
-   protected $hidden = ['created_at','updated_at'];
+   protected $hidden = ['created_at', 'updated_at'];
 
    // public function user()
    //     {

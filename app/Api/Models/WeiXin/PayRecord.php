@@ -3,6 +3,7 @@
 namespace App\Api\Models\Weixin;
 
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Venue\ActivityReg;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * 支付记录
  */
-class PayRecord extends Model
+class PayRecord extends BaseModel
 {
     /**
      * 关联到模型的数据表

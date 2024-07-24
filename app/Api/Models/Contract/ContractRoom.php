@@ -2,12 +2,11 @@
 
 namespace App\Api\Models\Contract;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
+use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
 
-class ContractRoom extends Model
+
+class ContractRoom extends BaseModel
 {
   /**
    * 关联到模型的数据表
@@ -32,12 +31,5 @@ class ContractRoom extends Model
       $contractId = $this->attributes['contract_id'];
       return Contract::select('contract_no')->find($contractId)['contract_no'];
     }
-  }
-
-  public function addAll(array $data)
-  {
-    // $data['created_at'] =  now();
-    $res = DB::table($this->getTable())->insert($data);
-    return $res;
   }
 }

@@ -2,12 +2,10 @@
 
 namespace App\Api\Models\Company;
 
+use App\Models\BaseModel;
 use App\Api\Models\Bill\TenantBillDetail;
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 
-class FeeType extends Model
+class FeeType extends BaseModel
 {
   /**
    * 费用类型

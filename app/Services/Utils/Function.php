@@ -423,9 +423,13 @@ function getDictName($dictId)
 
 /** 获取费用名称 */
 
-function getFeeNameById($feeId)
+function getFeeNameById(int $feeId)
 {
-	return \App\Api\Models\Company\FeeType::find($feeId);
+	$cacheKey = 'fee_name_' . $feeId; // 定义缓存键
+
+	return Cache::remember($cacheKey, 60, function () use ($feeId) {
+		return \App\Api\Models\Company\FeeType::find($feeId);
+	});
 }
 /** 获取用户信息 */
 function getUserByUid($uid)

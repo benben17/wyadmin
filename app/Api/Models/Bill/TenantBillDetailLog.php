@@ -2,16 +2,14 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Api\Models\Contract\Contract;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
 /**
  *  账单详细
  */
-class TenantBillDetailLog extends Model
+class TenantBillDetailLog extends BaseModel
 {
   use SoftDeletes;
   protected $table = 'bse_tenant_bill_detail_log';

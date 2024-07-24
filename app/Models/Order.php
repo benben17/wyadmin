@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
+class Order extends BaseModel
 {
   protected $table = 'sys_order';
   protected $hidden = ['deleted_at', 'c_uid', 'u_uid'];

@@ -2,16 +2,16 @@
 
 namespace App\Api\Models\Channel;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 
 /**
  *. 渠道佣金日志
  */
-class ChannelBrokerage extends Model
+class ChannelBrokerage extends BaseModel
 {
 
   // use SoftDeletes;

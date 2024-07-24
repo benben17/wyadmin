@@ -2,11 +2,9 @@
 
 namespace App\Api\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
+use App\Models\BaseModel;
 
-class Invoice extends Model
+class Invoice extends BaseModel
 {
   /**
    * 关联到模型的数据表

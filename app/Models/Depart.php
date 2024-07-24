@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
-use App\Api\Scopes\CompanyScope;
 
-class Depart extends Model
+class Depart extends BaseModel
 {
     use SoftDeletes;
     /**

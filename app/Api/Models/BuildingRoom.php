@@ -3,16 +3,16 @@
 namespace App\Api\Models;
 
 use App\Enums\AppEnum;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 房间model
  *
  */
-class BuildingRoom extends Model
+class BuildingRoom extends BaseModel
 {
 
 	use SoftDeletes;

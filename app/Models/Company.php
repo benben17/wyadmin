@@ -6,7 +6,7 @@ use \App\Api\Scopes\UserScope;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 
-class Company extends Model
+class Company extends BaseModel
 {
   /**
    * 关联到模型的数据表

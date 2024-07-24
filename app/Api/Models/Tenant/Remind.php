@@ -2,11 +2,10 @@
 
 namespace App\Api\Models\Tenant;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 
-class Remind extends Model
+class Remind extends BaseModel
 {
   /**
    * 关联到模型的数据表

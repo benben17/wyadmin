@@ -2,15 +2,15 @@
 
 namespace App\Api\Models\Contract;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 租户账单规则
  */
-class BillRule extends Model
+class BillRule extends BaseModel
 {
   use SoftDeletes;
   protected $table = 'bse_contract_bill_rule';
@@ -33,5 +33,11 @@ class BillRule extends Model
   {
     $res = DB::table($this->getTable())->insert($data);
     return $res;
+  }
+
+  protected static function boot()
+  {
+    parent::boot();
+    static::addGlobalScope(new CompanyScope);
   }
 }

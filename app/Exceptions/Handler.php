@@ -2,15 +2,15 @@
 
 namespace App\Exceptions;
 
-use Exception;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Database\QueryException;
-
 use JWTAuth;
+use Throwable;
+use Illuminate\Database\QueryException;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
+use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
 {
@@ -21,7 +21,7 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        //
+        \Illuminate\Validation\ValidationException::class, // Don't log validation errors
     ];
 
     /**
@@ -37,10 +37,10 @@ class Handler extends ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @param  \Exception  $exception
+     * @param  \Throwable  $exception
      * @return void
      */
-    public function report(Exception $exception)
+    public function report(Throwable $exception)
     {
         parent::report($exception);
     }
@@ -54,7 +54,7 @@ class Handler extends ExceptionHandler
      */
 
 
-    public function render($request, Exception $exception)
+    public function render($request, Throwable $exception)
     {
 
         if ($request->is("api/*")) {

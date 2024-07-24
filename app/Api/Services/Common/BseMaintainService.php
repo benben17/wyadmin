@@ -69,22 +69,22 @@ class BseMaintainService
      * @param    [type]     $data        [联系人信息]
      * @return   [type]                  [description]
      */
-    public function edit($DA, $user)
+    public function update($DA, $user)
     {
         try {
-            $maintain = $this->maintainModel()->find($DA['id']);
-            $maintain->parent_id = $DA['parent_id'];
-            $maintain->parent_type = $DA['parent_type'];
-            $maintain->maintain_date  = $DA['maintain_date'];
-            $maintain->maintain_user = $DA['maintain_user'];
-            $maintain->maintain_phone = isset($DA['maintain_phone']) ? $DA['maintain_phone'] : "";
-            $maintain->maintain_type = $DA['maintain_type'];
-            $maintain->maintain_record = $DA['maintain_record'];
-            $maintain->maintain_feedback = isset($DA['maintain_feedback']) ? $DA['maintain_feedback'] : "";
-            $maintain->u_uid = $user['id'];
-            $maintain->c_username = isset($DA['c_username']) ? $DA['c_username'] : $user['realname'];;
-            $maintain->maintain_depart = isset($DA['maintain_depart']) ? $DA['maintain_depart'] : "";
-            $maintain->company_id = $user['company_id'];
+            $maintain = $this->maintainModel()->findOrFail($DA['id']);
+            $maintain->parent_id         = $DA['parent_id'];
+            // $maintain->parent_type       = $DA['parent_type'];
+            $maintain->maintain_date     = $DA['maintain_date'];
+            $maintain->maintain_user     = $DA['maintain_user'];
+            $maintain->maintain_phone    = isset($DA['maintain_phone']) ? $DA['maintain_phone'] : "";
+            $maintain->maintain_type     = $DA['maintain_type'];
+            $maintain->maintain_record   = $DA['maintain_record'];
+            $maintain->maintain_feedback = $DA['maintain_feedback'] ?? "";
+            $maintain->u_uid             = $user['id'];
+            $maintain->c_username        = $user['realname'];
+            $maintain->maintain_depart   = $DA['maintain_depart'] ??  $maintain->maintain_depart;
+            $maintain->company_id        = $user['company_id'];
             $res = $maintain->save();
             return $maintain;
         } catch (Exception $e) {

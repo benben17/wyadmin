@@ -9,6 +9,8 @@ use App\Enums\WeixinEnum;
 use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use App\Api\Services\Weixin\WxConfService;
 
 /**
@@ -62,22 +64,31 @@ class WeiXinServices
   public function getAccessToken($appid, $weixinType)
   {
     $tokenKey = $appid . '_token';
-    if (Cache::has($tokenKey)) {
-      $token = Cache::get($tokenKey);
-      return $token;
-    }
 
-    $wxConf = $this->wxConfService->getWeixinConf($appid, $weixinType);
-    //获取新的access_token
-    $appid  = $wxConf['appid'];
-    $secret = $wxConf['app_secret'];
-    $url    = $this->wxApiUrl . "/cgi-bin/token?grant_type=client_credential&appid=" . $appid . "&secret=" . $secret;
-    $res    = json_decode(file_get_contents($url), true);
-    $access_token = $res['access_token'];
-    Cache::put($tokenKey, $access_token, 60 * 60 * 1.5); // 缓存1.5小时
-    return $access_token;
+    return Cache::remember($tokenKey, 90 * 60, function () use ($appid, $weixinType) {
+      $wxConf = $this->wxConfService->getWeixinConf($appid, $weixinType);
+
+      if (!$wxConf) {
+        // 处理错误，例如抛出异常或记录日志
+        throw new \Exception("Failed to retrieve WeChat config for app ID: $appid");
+      }
+
+      $response = Http::get($this->wxApiUrl . '/cgi-bin/token', [
+        'grant_type' => 'client_credential',
+        'appid' => $wxConf['appid'],
+        'secret' => $wxConf['app_secret'],
+      ]);
+
+      $data = $response->json();
+
+      if (!isset($data['access_token'])) {
+        // 处理access_token获取失败，记录日志或抛出异常
+        throw new \Exception("Failed to obtain WeChat access token: " . $response->body());
+      }
+
+      return $data['access_token'];
+    });
   }
-
   /**
    * 发送微信公众号订阅消息
    *
@@ -179,13 +190,22 @@ class WeiXinServices
   {
     try {
       DB::transaction(function () use ($wxUser, $uid) {
-        User::whereId($uid)->update(['unionid' => $wxUser['unionid']]);
-        $this->wxUserModel()->updateOrCreate('unionid', $wxUser['unionid'], ['uid' => $uid]);
+        // 使用 Eloquent 的 updateOrCreate 方法一步更新或创建
+        User::where('id', $uid)->update(['unionid' => $wxUser['unionid']]);
+        $this->wxUserModel()->updateOrCreate(
+          ['unionid' => $wxUser['unionid']], // 使用 unionid 作为唯一键
+          ['uid' => $uid]
+        );
       });
+
       return true;
     } catch (Exception $e) {
-      throw $e;
-      Log::error($e->getMessage());
+      // 记录更详细的错误信息，例如用户 ID 和微信用户信息
+      Log::error("绑定微信失败 - 用户ID: {uid}，微信信息: {wxUser}，错误信息: {message}", [
+        'uid' => $uid,
+        'wxUser' => $wxUser,
+        'message' => $e->getMessage(),
+      ]);
       return false;
     }
   }
@@ -221,18 +241,34 @@ class WeiXinServices
   {
     try {
       $wxConf = $this->wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
-      $params = [
+
+      if (!$wxConf) {
+        throw new \Exception("Failed to retrieve WeChat config for app ID: $appid");
+      }
+
+      $response = Http::get($this->wxApiUrl . 'sns/jscode2session', [
         'appid' => $appid,
         'secret' => $wxConf['app_secret'],
         'js_code' => $code,
-        'grant_type' => 'authorization_code'
-      ];
-      $url = $this->wxApiUrl . 'sns/jscode2session?' . http_build_query($params);
-      return json_decode(file_get_contents($url), true);
-    } catch (Exception $e) {
-      Log::error($e->getMessage());
-      throw new Exception($e->getMessage());
-      return false;
+        'grant_type' => 'authorization_code',
+      ]);
+
+      $data = $response->json();
+
+      // 检查是否成功获取 openid
+      if (isset($data['openid'])) {
+        return $data;
+      }
+
+      // 记录错误日志并抛出更具体的异常
+      $errorMessage = "Failed to get MiniProgram openid. Response: " . $response->body();
+      Log::error($errorMessage);
+      throw new \Exception($errorMessage);
+    } catch (\Exception $e) {
+      // 避免重复抛出异常，可以选择直接 re-throw 或者处理后抛出新的异常
+      throw $e;
+      // 或者:
+      // throw new \Exception("获取小程序 OpenID 失败", 0, $e); 
     }
   }
 }

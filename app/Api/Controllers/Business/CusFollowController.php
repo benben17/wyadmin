@@ -16,7 +16,7 @@ use App\Api\Services\Business\CustomerService;
 /**
  * @OA\Tag(
  *     name="客户跟进",
- *     description="客户跟进管理"
+ *     description="客户跟进"
  * )
  */
 class CusFollowController extends BaseController
@@ -33,7 +33,7 @@ class CusFollowController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/list",
-   *     tags={"客户"},
+   *     tags={"客户跟进"},
    *     summary="客户跟进列表",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -89,7 +89,7 @@ class CusFollowController extends BaseController
         $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->follow_username && $q->where('follow_username', 'like', $request->follow_username);
-        return UserServices::filterByDepartId($q, $this->user, $request->depart_id);
+        return $this->applyUserPermission($q,  $request->depart_id, $this->user);
       })
       ->whereHas('tenant', function ($q) use ($request) {
         $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
@@ -127,7 +127,7 @@ class CusFollowController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/add",
-   *     tags={"客户"},
+   *     tags={"客户跟进"},
    *     summary="跟进记录新增",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -211,7 +211,7 @@ class CusFollowController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/edit",
-   *     tags={"客户"},
+   *     tags={"客户跟进"},
    *     summary="跟进记录编辑，state 不允许编辑",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -256,7 +256,7 @@ class CusFollowController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/show",
-   *     tags={"客户"},
+   *     tags={"客户跟进"},
    *     summary="跟进记录查看",
    *    @OA\RequestBody(
    *       @OA\MediaType(
@@ -288,7 +288,7 @@ class CusFollowController extends BaseController
   /**
    * @OA\Post(
    *     path="/api/business/customer/follow/del",
-   *     tags={"客户"},
+   *     tags={"客户跟进"},
    *     summary="跟进记录删除",
    *    @OA\RequestBody(
    *       @OA\MediaType(

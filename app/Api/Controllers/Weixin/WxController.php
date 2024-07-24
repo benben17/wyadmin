@@ -23,22 +23,37 @@ class WxController extends BaseController
     $this->userService = new UserServices;
   }
 
-
+  /**
+   * @OA\Post(
+   *     path="/api/wx/login",
+   *     tags={"微信登陆"},
+   *     summary="微信登陆",
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
+   */
   public function weixin()
   {
     return Socialite::with('weixinweb')->redirect();
   }
   /**
-   * 微信接口回调
-   * @Author   leezhua
-   * @DateTime 2021-05-27
-   * @param    Request    $request [description]
-   * @return   [type]              [description]
+   * @OA\Get(
+   *     path="/api/wx/callback",
+   *     tags={"微信回调"},
+   *     summary="微信回调",
+   *     @OA\Response(
+   *         response=200,
+   *         description=""
+   *     )
+   * )
    */
   public function weixinCallback()
   {
     // $uid = base64_decode($request->state);
-    $wxUser = Socialite::driver('weixinweb')->stateless()->user();
+
+    $wxUser = Socialite::driver('weixinweb')->user();
 
 
     $wx_user = $this->wxService->saveWxUser($wxUser);

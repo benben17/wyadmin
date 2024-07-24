@@ -2,16 +2,16 @@
 
 namespace App\Api\Models\Channel;
 
-use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
 use App\Enums\AppEnum;
+use App\Models\BaseModel;
+use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Tenant\Tenant;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *
  */
-class Channel extends Model
+class Channel extends BaseModel
 {
   /**
    * 关联到模型的数据表

@@ -3,16 +3,15 @@
 namespace App\Api\Models\Operation;
 
 use App\Enums\AppEnum;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *  隐患工单
  */
-class YhWorkOrder extends Model
+class YhWorkOrder extends BaseModel
 {
 
   /**

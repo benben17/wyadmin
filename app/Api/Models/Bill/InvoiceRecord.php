@@ -3,15 +3,14 @@
 namespace App\Api\Models\Bill;
 
 use App\Enums\AppEnum;
+use App\Models\BaseModel;
 use App\Enums\InvoiceEnum;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
 use App\Api\Models\Tenant\Invoice;
-use App\Api\Models\Company\BankAccount;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class InvoiceRecord extends Model
+class InvoiceRecord extends BaseModel
 {
 
   use SoftDeletes;

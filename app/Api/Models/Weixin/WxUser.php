@@ -2,11 +2,10 @@
 
 namespace App\Api\Models\Weixin;
 
-use App\Api\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class WxUser extends Model
+class WxUser extends BaseModel
 {
   /**
    * 关联到模型的数据表

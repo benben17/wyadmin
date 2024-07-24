@@ -3,16 +3,15 @@
 namespace App\Api\Models\Operation;
 
 use App\Enums\AppEnum;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\CompanyServices;
 use App\Api\Models\Common\Maintain;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  *公共关系
  */
-class PubRelations extends Model
+class PubRelations extends BaseModel
 {
 
   var $parentType = AppEnum::Relationship;  // 维护时使用

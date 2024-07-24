@@ -2,8 +2,8 @@
 
 namespace App\Api\Models\Common;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @DateTime 2024-03-28
  */
-class Attachment extends Model
+class Attachment extends BaseModel
 {
 
   use SoftDeletes;

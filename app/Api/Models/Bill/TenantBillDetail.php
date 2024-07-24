@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Models\BaseModel;
 use App\Enums\DepositEnum;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
@@ -9,13 +10,12 @@ use Illuminate\Support\Facades\DB;
 use App\Api\Models\Company\FeeType;
 use App\Api\Models\Contract\Contract;
 use App\Api\Models\Company\BankAccount;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *  账单详细
  */
-class TenantBillDetail extends Model
+class TenantBillDetail extends BaseModel
 {
   use SoftDeletes;
   protected $table = 'bse_tenant_bill_detail';

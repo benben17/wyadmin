@@ -2,14 +2,14 @@
 
 namespace App\Api\Models\Equipment;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
+
 
 /**
  *  设备
  */
-class Equipment extends Model
+class Equipment extends BaseModel
 {
 
   /**

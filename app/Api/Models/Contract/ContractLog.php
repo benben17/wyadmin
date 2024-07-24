@@ -2,11 +2,10 @@
 
 namespace App\Api\Models\Contract;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
+use App\Models\BaseModel;
 
-class ContractLog extends Model
+
+class ContractLog extends BaseModel
 {
   /**
    *  合同操作

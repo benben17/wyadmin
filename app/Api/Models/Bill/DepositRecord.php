@@ -2,7 +2,7 @@
 
 namespace App\Api\Models\Bill;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @DateTime 2024-03-06
  */
-class DepositRecord extends Model
+class DepositRecord extends BaseModel
 {
 
   use SoftDeletes;

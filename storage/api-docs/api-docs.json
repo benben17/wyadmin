@@ -3234,7 +3234,7 @@
         "/api/business/customer/follow/list": {
             "post": {
                 "tags": [
-                    "客户"
+                    "客户跟进"
                 ],
                 "summary": "客户跟进列表",
                 "requestBody": {
@@ -3273,7 +3273,7 @@
         "/api/business/customer/follow/add": {
             "post": {
                 "tags": [
-                    "客户"
+                    "客户跟进"
                 ],
                 "summary": "跟进记录新增",
                 "operationId": "18ec4c612086db03ad8b6929e21c9672",
@@ -3345,7 +3345,7 @@
         "/api/business/customer/follow/edit": {
             "post": {
                 "tags": [
-                    "客户"
+                    "客户跟进"
                 ],
                 "summary": "跟进记录编辑，state 不允许编辑",
                 "operationId": "6691255ebece4646444c504b3c4e2efa",
@@ -3381,7 +3381,7 @@
         "/api/business/customer/follow/show": {
             "post": {
                 "tags": [
-                    "客户"
+                    "客户跟进"
                 ],
                 "summary": "跟进记录查看",
                 "operationId": "5419a107a49ac38d18d7ab8a2a7ec163",
@@ -3417,7 +3417,7 @@
         "/api/business/customer/follow/del": {
             "post": {
                 "tags": [
-                    "客户"
+                    "客户跟进"
                 ],
                 "summary": "跟进记录删除",
                 "operationId": "cd31277bd5efadf8ede2bcfc71c45af5",
@@ -5040,6 +5040,74 @@
                 ],
                 "summary": "维护记录编辑新增 id >0 编辑 id=0新增",
                 "operationId": "6458df14a22514437024de0befde81ac",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "parent_id",
+                                    "parent_type",
+                                    "maintain_type",
+                                    "maintain_date",
+                                    "maintain_record",
+                                    "maintain_user",
+                                    "c_user"
+                                ],
+                                "properties": {
+                                    "parent_id": {
+                                        "description": "ID 渠道ID 租户ID",
+                                        "type": "int"
+                                    },
+                                    "parent_type": {
+                                        "description": "1 channel 2 客户 3 供应商 4 政府关系 5 租户",
+                                        "type": "int"
+                                    },
+                                    "maintain_type": {
+                                        "description": "维护类型",
+                                        "type": "String"
+                                    },
+                                    "maintain_date": {
+                                        "description": "维护时间",
+                                        "type": "date"
+                                    },
+                                    "maintain_record": {
+                                        "description": "维护内容",
+                                        "type": "String"
+                                    },
+                                    "maintain_feedback": {
+                                        "description": "维护反馈",
+                                        "type": "String"
+                                    },
+                                    "maintain_user": {
+                                        "description": "渠道联系人",
+                                        "type": "String"
+                                    },
+                                    "c_username": {
+                                        "description": "维护人",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": []
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/common/maintain/update": {
+            "post": {
+                "tags": [
+                    "维护"
+                ],
+                "summary": "维护记录编辑新增 id >0 编辑 id=0新增",
+                "operationId": "28fbb92910b5bcf9a18d8a21e219706e",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -8337,6 +8405,55 @@
                 }
             }
         },
+        "/api/dashboard/project": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "项目数据",
+                "description": "项目数据",
+                "operationId": "project",
+                "parameters": [
+                    {
+                        "name": "proj_ids",
+                        "in": "query",
+                        "description": "项目id",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/dashboard/customer": {
             "get": {
                 "tags": [
@@ -11485,7 +11602,7 @@
                     "租户分摊"
                 ],
                 "summary": "分摊租户删除",
-                "operationId": "e1ca9e671177dff128c54c0c3fc53b1b",
+                "operationId": "589ba7c5d3f5df41543bd801daeaa633",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -12997,6 +13114,20 @@
                 }
             }
         },
+        "/api/sys/menu/list": {
+            "get": {
+                "tags": [
+                    "系统管理"
+                ],
+                "summary": "获取菜单列表",
+                "operationId": "faf1d6de2b2784f8f44686e2e5ebc5eb",
+                "responses": {
+                    "200": {
+                        "description": "获取菜单列表"
+                    }
+                }
+            }
+        },
         "/api/sys/order/list": {
             "post": {
                 "tags": [
@@ -14498,13 +14629,41 @@
                 }
             }
         },
+        "/api/wx/login": {
+            "post": {
+                "tags": [
+                    "微信登陆"
+                ],
+                "summary": "微信登陆",
+                "operationId": "e54369ba4b14eb772614ebd339dc98ee",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/wx/callback": {
+            "get": {
+                "tags": [
+                    "微信回调"
+                ],
+                "summary": "微信回调",
+                "operationId": "64d4260ee966954323eac3f2d5be73a5",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/wx/user/bind": {
             "post": {
                 "tags": [
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序绑定",
-                "operationId": "7b88ab5a96c845ec01cbbdb469fd71c9",
+                "operationId": "d3ff17f103da9d85aee52f969bed6278",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -14540,7 +14699,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信解除绑定",
-                "operationId": "91fbb3c128f79eee43b69cff5ec69078",
+                "operationId": "b039b26d3e8e62a33b65c944caa67f81",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -14565,7 +14724,7 @@
                     "微信小程序登陆"
                 ],
                 "summary": "微信小程序登陆",
-                "operationId": "a0cb70f2392e1b18320d0ba5afaec57c",
+                "operationId": "a45d1c27df3bae9390fe5bef36eb9b0c",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -14584,6 +14743,48 @@
                             },
                             "example": {
                                 "code": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/auth/wx/login": {
+            "post": {
+                "tags": [
+                    "auth认证"
+                ],
+                "summary": "登录",
+                "operationId": "7ca94ff08d22b6567a991edd9d3dfaba",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "name",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "用户名",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "密码",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "username": "test",
+                                "password": "123456"
                             }
                         }
                     }
@@ -14962,7 +15163,7 @@
         },
         {
             "name": "客户跟进",
-            "description": "客户跟进管理"
+            "description": "客户跟进"
         },
         {
             "name": "客户",

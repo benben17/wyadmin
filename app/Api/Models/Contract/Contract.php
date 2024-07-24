@@ -2,14 +2,12 @@
 
 namespace App\Api\Models\Contract;
 
-use App\Enums\AppEnum;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Tenant;
-use Illuminate\Support\Facades\App;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Contract extends Model
+class Contract extends BaseModel
 {
   /**
    * 关联到模型的数据表

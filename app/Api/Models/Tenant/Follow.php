@@ -3,12 +3,11 @@
 namespace App\Api\Models\Tenant;
 
 use App\Models\User;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 
-class Follow extends Model
+class Follow extends BaseModel
 {
   /**
    * 关联到模型的数据表
@@ -39,7 +38,6 @@ class Follow extends Model
   {
 
     if (isset($this->attributes['follow_type'])) {
-      Log::error($this->attributes['follow_type']);
       return getDictName($this->attributes['follow_type']);
     }
   }

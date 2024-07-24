@@ -2,8 +2,8 @@
 
 namespace App\Api\Models\Company;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @DateTime 2024-01-14
  */
-class WyAppConf extends Model
+class WyAppConf extends BaseModel
 {
   /**
    * 关联到模型的数据表

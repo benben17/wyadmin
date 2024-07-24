@@ -2,21 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 
-class User extends Model
+class User extends BaseModel
 {
     use SoftDeletes;
+
+
+
     /**
      * 关联到模型的数据表
      *
      * @var string
      */
+
     protected $table = 'users';
 
-    protected $hidden = ['password', 'remember_token', 'deleted_at,', 'updated_at'];
+    protected $hidden = ['password', 'remember_token',  'updated_at'];
     protected $appends = ['manager_label', 'c_user',];
 
     public function getCUserAttribute()

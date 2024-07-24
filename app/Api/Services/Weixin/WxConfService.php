@@ -52,21 +52,15 @@ class WxConfService
    */
   public function getWeixinConf($appid, $type)
   {
-    if (Cache::has(ConfEnum::APPID . $appid)) {
-      return [
-        'app_id' => Cache::get(ConfEnum::APPID . $appid),
-        'app_secret' => Cache::get(ConfEnum::APP_SECRET . $appid)
-      ];
-    }
-    $where = [];
-    $where(['app_id' => $appid]);
-    $where(['type' => $type]);
-    $wxAppConf =  $this->wyAppConf->where($where)->firstOrFail();
-    if ($wxAppConf) {
-      Cache::set(ConfEnum::APPID . $appid, $wxAppConf['app_id']);
-      Cache::set(ConfEnum::APP_SECRET . $appid, $wxAppConf['app_secret']);
-      return $wxAppConf;
-    }
-    return null;
+    // 使用缓存键简化逻辑
+    $cacheKey = ConfEnum::APPID . $appid . '_' . $type;
+
+    return Cache::rememberForever($cacheKey, function () use ($appid, $type) {
+      $wxAppConf = $this->wyAppConf->where('app_id', $appid)
+        ->where('type', $type)
+        ->first();
+
+      return $wxAppConf ?: null; // 使用简化的三元运算符
+    });
   }
 }

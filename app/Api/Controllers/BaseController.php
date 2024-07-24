@@ -2,7 +2,6 @@
 
 namespace App\Api\Controllers;
 
-use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Api\Controllers\Controller;
 
@@ -108,11 +107,21 @@ class BaseController extends Controller
         return $backData;
     }
 
+    /**
+     * 格式化数组,null 替换成 ''
+     * @Author leezhua
+     * @Date 2024-04-01
+     * @param array $data 
+     * @return void
+     */
     public function formatArray($data)
     {
-        return array_map(function ($value) {
-            return is_null($value) ? '' : $value;
-        }, $data);
+        // return array_map(function ($value) {
+        //     return is_null($value) ? '' : $value;
+        // }, $data);
+        array_walk($data, function (&$value) { //  &$value 表示引用传递，直接修改原数组元素
+            $value = is_null($value) ? '' : $value;
+        });
     }
 
     /**
@@ -157,6 +166,42 @@ class BaseController extends Controller
             $pagesize = config('export_rows');
         }
         return $pagesize;
+    }
+
+
+    /**
+     * 应用基于部门的权限限制到查询。
+     *
+     * @param $query  要修改的查询构建器实例。
+     * @param int|null $departId 要过滤的部门 ID（如果适用）。
+     * @param array $user 用户数据数组（包含 'is_admin', 'is_manager' 和 'uid'）。
+     *
+     * @return $query 修改后的查询构建器。
+     */
+    function applyUserPermission($query, int $departId = null, $user)
+    {
+        // If the user is not an admin, apply department restrictions
+        if ($user['is_admin']) {
+            return $query;
+        }
+
+        // If a department ID is provided...
+        if ($departId) {
+            // Get all related department IDs (including children, potentially)
+            $departIds = getDepartIds([$departId], [$departId]);
+            $query->whereIn('depart_id', $departIds);
+
+            // If the user is a manager...
+        } else if ($user['is_manager']) {
+            // Get all related department IDs for the manager's department
+            $departIds = getDepartIds([$user['depart_id']], [$user['depart_id']]);
+            $query->whereIn('depart_id', $departIds);
+        } else {
+            // Restrict results to the user's own data
+            $query->where('belong_uid', $user['uid']); // Make sure 'belong_uid' is the correct field 
+        }
+
+        return $query;
     }
 
     /**

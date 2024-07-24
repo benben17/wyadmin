@@ -2,14 +2,14 @@
 
 namespace App\Api\Models\Company;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  *  
  * Desc 字典模型
  * @package App\Api\Models\Company
  */
-class CompanyDict extends Model
+class CompanyDict extends BaseModel
 {
 
 	// use SoftDeletes;

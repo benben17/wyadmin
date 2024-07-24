@@ -2,15 +2,14 @@
 
 namespace App\Api\Models\Common;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Model;
+
 
 /**
  * 联系人类型1 渠道 2 客户 3 租户 4供应商 5 公共关系
  */
-class Contact extends Model
+class Contact extends BaseModel
 {
   /**
    *
@@ -22,11 +21,7 @@ class Contact extends Model
   // public function customer(){
   // return $this->belongto;
   // }
-  public function addAll(array $data)
-  {
-    // $res = DB::table($this->getTable())->insert($data);
-    return $this->insert($data);
-  }
+
 
   /**
    * 全局调用公司id查询

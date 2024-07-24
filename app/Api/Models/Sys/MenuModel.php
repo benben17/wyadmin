@@ -2,6 +2,7 @@
 
 namespace App\Api\Models\Sys;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @Date 2024-07-15
  */
-class MenuModel extends Model
+class MenuModel extends BaseModel
 {
   // use SoftDeletes;
 

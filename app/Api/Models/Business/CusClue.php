@@ -2,12 +2,11 @@
 
 namespace App\Api\Models\Business;
 
-use App\Enums\AppEnum;
 use App\Enums\ClueStatus;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Api\Models\Tenant\Follow;
 use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -16,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @DateTime 2021-08-20
  */
-class CusClue extends Model
+class CusClue extends BaseModel
 {
   use SoftDeletes;
   protected $table = 'bse_customer_clue';

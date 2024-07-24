@@ -2,16 +2,14 @@
 
 namespace App\Api\Models\Contract;
 
-use App\Api\Models\Bill\TenantBillDetail;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
+use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Bill\TenantBillDetail;
 
 /**
  * 合同账单
  */
-class ContractBill extends Model
+class ContractBill extends BaseModel
 {
   /**
    * 关联到模型的数据表

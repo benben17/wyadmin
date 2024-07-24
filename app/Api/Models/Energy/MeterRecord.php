@@ -2,11 +2,11 @@
 
 namespace App\Api\Models\Energy;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class MeterRecord extends Model
+
+class MeterRecord extends BaseModel
 {
   /**
    * 关联到模型的数据表

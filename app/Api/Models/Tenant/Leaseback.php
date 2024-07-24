@@ -2,15 +2,15 @@
 
 namespace App\Api\Models\Tenant;
 
-use App\Api\Models\Contract\Contract;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
+use App\Api\Models\Contract\Contract;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  *
  */
-class Leaseback extends Model
+class Leaseback extends BaseModel
 {
 
   use SoftDeletes;

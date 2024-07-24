@@ -2,16 +2,16 @@
 
 namespace App\Api\Models\Operation;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\AppEnum;
 // use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use App\Services\CompanyServices;
-use App\Enums\AppEnum;
 
 /**
  *
  */
-class Supplier extends Model
+class Supplier extends BaseModel
 {
   /**
    * 关联到模型的数据表

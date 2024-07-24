@@ -2,19 +2,17 @@
 
 namespace App\Api\Models\Bill;
 
-use App\Api\Models\Contract\BillRule;
-use App\Api\Models\Contract\Contract;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use App\Enums\AppEnum;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use App\Api\Models\Contract\Contract;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 /**
  * 分摊规则
  */
-class TenantShareFee extends Model
+class TenantShareFee extends BaseModel
 {
 
   use SoftDeletes;

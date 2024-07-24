@@ -2,16 +2,14 @@
 
 namespace App\Api\Models\Company;
 
+use App\Models\BaseModel;
 use App\Api\Models\Project;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
 
 /**
  * 收款帐号管理
  */
-class BankAccount extends Model
+class BankAccount extends BaseModel
 {
 
   // use SoftDeletes;

@@ -2,12 +2,12 @@
 
 namespace App\Api\Models\Sys;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
-class UserGroup extends Model
+class UserGroup extends BaseModel
 {
   /**
    * 关联到模型的数据表

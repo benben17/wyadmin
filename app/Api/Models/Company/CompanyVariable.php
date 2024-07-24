@@ -2,15 +2,13 @@
 
 namespace App\Api\Models\Company;
 
-use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Api\Scopes\CompanyScope;
-use Illuminate\Support\Facades\DB;
+use App\Models\BaseModel;
+
 
 /**
  * 收款帐号管理
  */
-class CompanyVariable extends Model
+class CompanyVariable extends BaseModel
 {
 
   // use SoftDeletes;

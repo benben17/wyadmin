@@ -3,14 +3,13 @@
 namespace App\Api\Models\Equipment;
 
 use App\Enums\AppEnum;
-use App\Api\Scopes\CompanyScope;
-// use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
+use App\Api\Scopes\CompanyScope;;
 
 /**
  *  设备维护模型
  */
-class EquipmentMaintain extends Model
+class EquipmentMaintain extends BaseModel
 {
 
   /**

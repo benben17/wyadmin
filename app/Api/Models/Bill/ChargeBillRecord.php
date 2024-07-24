@@ -2,9 +2,8 @@
 
 namespace App\Api\Models\Bill;
 
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
-use App\Api\Models\Tenant\Tenant;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -13,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @Author leezhua
  * @DateTime 2024-03-06
  */
-class ChargeBillRecord extends Model
+class ChargeBillRecord extends BaseModel
 {
   protected $table = 'bse_charge_bill_record';
   protected $fillable = [];
