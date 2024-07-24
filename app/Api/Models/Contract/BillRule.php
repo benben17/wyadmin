@@ -35,9 +35,9 @@ class BillRule extends BaseModel
     return $res;
   }
 
-  protected static function boot()
-  {
-    parent::boot();
-    static::addGlobalScope(new CompanyScope);
-  }
+  // protected static function boot()
+  // {
+  //   parent::boot();
+  //   static::addGlobalScope(new CompanyScope);
+  // }
 }
