@@ -410,13 +410,13 @@ class TenantController extends BaseController
         }
 
         if ($tenant->parent_id > 0) {
-            return $this->error('分摊租户不能删除');
+            return $this->error('存在分摊租户不能删除');
         }
         $contract = $this->contractService->model()->where('tenant_id', $id)->first();
         if ($contract) {
             return $this->error('租户存在合同，不能删除');
         }
-        $res = $this->tenantService->tenantModel()->where('id', $id)->delete();
+        $res = $this->tenantService->deleteTenantById($id);
 
         return $res ? $this->success('租户删除成功') : $this->error('租户删除失败');
     }

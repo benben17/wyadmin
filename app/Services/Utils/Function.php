@@ -292,8 +292,12 @@ function diffDays($date1, $date2)
 	if (empty($date1) || empty($date2)) {
 		return 0;
 	}
-	$start_date = new DateTime($date1);
-	$end_end = new DateTime($date2);
+	try {
+		$start_date = new DateTime($date1);
+		$end_end 		= new DateTime($date2);
+	} catch (\Exception $e) {
+		throw new InvalidArgumentException("日期格式不正确，请使用 'Y-m-d' 格式。");
+	}
 	$days = $start_date->diff($end_end)->days;
 	return $days;
 }
@@ -390,23 +394,13 @@ function str2Array($str, $tag = ','): array
 	return !empty($str) ? explode($tag, $str) : [];
 }
 
-/** 获取UUID */
-function uuid($prefix = '')
-{
-	$chars = md5(uniqid(mt_rand(), true));
-	$uuid = substr($chars, 0, 8) . '-';
-	$uuid .= substr($chars, 8, 4) . '-';
-	$uuid .= substr($chars, 12, 4) . '-';
-	$uuid .= substr($chars, 16, 4) . '-';
-	$uuid .= substr($chars, 20, 12);
-	return $prefix . $uuid;
-}
+
 
 
 // 核销流水号
 function getChargeVerifyNo()
 {
-	$no = date('ymdHis', strtotime(nowTime()));
+	$no = now()->format('ymdHis');
 	return 'VF-' . $no . mt_rand(10, 99);
 }
 /** 通过id获取值 */
@@ -473,6 +467,16 @@ function getTenantNameById($tenantId)
 		return $tenant['name'] ?? "";
 	});
 }
+
+
+
+function getTenantByName($tenantName)
+{
+	return Cache::remember('tenant_name_' . $tenantName, 60, function () use ($tenantName) {
+		return \App\Api\Models\Tenant\Tenant::where('name', $tenantName)->first();
+	});
+}
+
 /**
  * 通过UID获取部门ID
  *
@@ -550,24 +554,6 @@ function getMonthRange($yearMonth): array
 	$endDate = date('Y-m-t', strtotime($startDate));
 	// Return an array with both start and end dates
 	return [$startDate, $endDate];
-}
-
-
-/**
- * 获取2个日期之间的天数 判断传入的日期不允许位空
- * @Author leezhua
- * @Date 2024-03-30
- * @param mixed $startDate
- * @param mixed $endDate
- * @return int
- */
-
-function getDaysBetweenTwoDates($startDate, $endDate): int
-{
-	$startDate = strtotime($startDate);
-	$endDate = strtotime($endDate);
-	$days = ($endDate - $startDate) / 86400;
-	return $days;
 }
 
 

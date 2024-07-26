@@ -137,6 +137,7 @@ class PubController extends BaseController
       }
       return $this->success($result);
    }
+
    /**
     * @OA\Post(
     *     path="/api/common/province",

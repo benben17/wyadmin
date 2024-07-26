@@ -2,12 +2,12 @@
 
 namespace App\Api\Excel\Business;
 
+use App\Api\Models\Building;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use App\Api\Models\Building;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class BuildingExcel implements FromArray, WithHeadings, WithMapping
 {
@@ -90,5 +90,26 @@ class BuildingExcel implements FromArray, WithHeadings, WithMapping
       $row['free_room_count'],
       $row['build_usage'],
     ];
+  }
+
+
+  public function model(array $row, $user)
+  {
+    return new Building([
+      'company_id' => $user->company_id,
+      'proj_id'    => $user['proj_id'],
+      'proj_name'  => $row[1],
+      'build_type' => $row[2],
+      'build_no'   => $row[3],
+      // 'floor_count' => $row[4],
+      'build_area'       => $row[5],
+      'total_area'       => $row[6],
+      'free_area'        => $row[7],
+      // 'build_room_count' => $row[8],
+      // 'free_room_count'  => $row[9],
+      'build_usage'      => $row[10],
+      'c_uid'            => $user['id'],
+      'created_at'       => now(),
+    ]);
   }
 }

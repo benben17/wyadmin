@@ -4957,6 +4957,55 @@
                 }
             }
         },
+        "/api/common/import": {
+            "post": {
+                "tags": [
+                    "公共"
+                ],
+                "summary": "导入Excel数据",
+                "description": "",
+                "operationId": "3329d0403df1fc764675e5f59f963c11",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer {token}",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "model",
+                                    "file"
+                                ],
+                                "properties": {
+                                    "model": {
+                                        "description": "模型名称",
+                                        "type": "string"
+                                    },
+                                    "file": {
+                                        "description": "Excel文件",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "导入成功"
+                    }
+                }
+            }
+        },
         "/api/common/maintain/list": {
             "post": {
                 "tags": [

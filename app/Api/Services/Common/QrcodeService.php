@@ -3,6 +3,7 @@
 namespace App\Api\Services\Common;
 
 use Exception;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -24,7 +25,8 @@ class QrcodeService
   {
     try {
       // Log::error($content);
-      $fileName = public_path(uuid() . '.png');
+
+      $fileName = public_path(Str::uuid() . '.png');
       $ossFolder = $companyId . '/operation/' . date('Ymd');
       // QrCode::format('png')->generate('Hello, world!', public_path('qrcode.png'));
       QrCode::format('png')

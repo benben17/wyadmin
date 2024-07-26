@@ -181,6 +181,9 @@ return [
         */
         'remote_disk'   => null,
         'remote_prefix' => null,
-
+    ],
+    'mappings' => [
+        'tenant_maintain' => \App\api\Excel\Common\MaintainExcel::class,
+        // ... 其他模型与导入类的映射关系
     ],
 ];

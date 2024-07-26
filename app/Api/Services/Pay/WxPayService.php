@@ -10,7 +10,6 @@ use WeChatPay\Crypto\Rsa;
 use WeChatPay\Util\PemUtil;
 use WeChatPay\Crypto\AesGcm;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Api\Services\Weixin\WxConfService;
 
 class WxPayService
@@ -33,15 +32,15 @@ class WxPayService
     $this->companyId = $user->company_id;
     $this->confService = new WxConfService;
     $conf = $this->confService->getWechatPayConf();
-    $companyId                  = $this->companyId;
+    // $companyId                  = $this->companyId;
     // ConfEnum::keys();
-    $this->appid                = Cache::get(ConfEnum::XCX_APPID . $companyId) ?? $conf['app_id'];
-    $this->merchantId           = Cache::get(ConfEnum::MERCHANT_ID . $companyId) ?? $conf['mch_id'];
-    $this->notifyUrl            = Cache::get(ConfEnum::NOTIFY_URL . $companyId) ?? $conf['notify_url'];
-    $this->platformCert         = Cache::get(ConfEnum::PLATFORM_CERTIFICATE . $companyId) ?? $conf['platform_cert'];
-    $this->mchPrivateKey        = Cache::get(ConfEnum::MERCHANT_PRIVATE_KEY . $companyId) ?? $conf['mch_key'];
-    $this->apiv3Key             = Cache::get(ConfEnum::MERCHANT_PRIVATE_CERT . $companyId) ?? $conf['api_key'];
-    $this->mchPrivateCertSerial = Cache::get(ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $companyId) ?? $conf['mch_key_serial'];
+    $this->appid                = $conf['app_id'];
+    $this->merchantId           = $conf['mch_id'];
+    $this->notifyUrl            = $conf['notify_url'];
+    $this->platformCert         = $conf['platform_cert'];
+    $this->mchPrivateKey        = $conf['mch_key'];
+    $this->apiv3Key             = $conf['api_key'];
+    $this->mchPrivateCertSerial = $conf['mch_key_serial'];
   }
 
 
@@ -201,9 +200,10 @@ class WxPayService
         return $inBodyResourceArray;
       }
     } catch (Exception $e) {
-      throw new Exception($e);
+
       Log::error($e->getMessage());
+      Log::error($wxBody);
+      throw new Exception($e);
     }
-    Log::error($wxBody);
   }
 }

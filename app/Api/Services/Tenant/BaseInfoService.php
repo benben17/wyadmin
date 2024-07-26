@@ -4,6 +4,7 @@ namespace App\Api\Services\Tenant;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use App\Api\Models\Tenant\BusinessInfo;
 use App\Api\Models\Tenant\SkyeyeLog as TenantSkyeyeLog;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -137,13 +138,31 @@ class BaseInfoService
   public function searchBySkyeye($companyName, $user)
   {
     $skyeyeConfig = config('skyeye');
-    $header  = array(
-      'Authorization:' . $skyeyeConfig['token'],
-    );
-    $url = $skyeyeConfig['apiUrl'] . urlencode($companyName);
-    $output =  http_request($url, $header);
-    $data   = json_decode($output, true);
+    // $header  = array(
+    //   'Authorization:' . $skyeyeConfig['token'],
+    // );
+    // $url = $skyeyeConfig['apiUrl'] . urlencode($companyName);
+    // $output =  http_request($url, $header);
+    // $data   = json_decode($output, true);
+    try {
+      $response = Http::withHeaders([
+        'Authorization' => $skyeyeConfig['token'],
+      ])
+        ->get($skyeyeConfig['apiUrl'] . urlencode($companyName));
 
+      $data = $response->json();
+
+      // 在这里处理成功的响应 ($data) 
+
+    } catch (\Exception $e) {
+      // 处理请求异常，例如记录日志或抛出更具体的异常
+      Log::error("请求 Skyeye API 失败: " . $e->getMessage(), [
+        'url' => $skyeyeConfig['apiUrl'] . urlencode($companyName),
+      ]);
+
+      // 可以选择抛出异常或返回错误提示
+      throw new \Exception("获取数据失败，请稍后再试");
+    }
     if ($data['error_code'] == 0) {
       $this->saveSkyeyeSearchLog($companyName, $data['result'], $user);
       return $this->formatSkyeyeData($data['result']);
@@ -162,10 +181,9 @@ class BaseInfoService
    * @param    [type]     $companyId [description]
    * @return   [type]                [description]
    */
-  public function skyeyeSearchCount($companyId)
+  public function skyeyeSearchCount(int $companyId): int
   {
-    $searchCount =  TenantSkyeyeLog::where('company_id', $companyId)->count();
-    return $searchCount;
+    return TenantSkyeyeLog::where('company_id', $companyId)->count();
   }
 
   /**
@@ -180,14 +198,14 @@ class BaseInfoService
   public function saveSkyeyeSearchLog($companyName, $searchResult, $user)
   {
     try {
-      $skyeyeLog = new TenantSkyeyeLog;
-      $skyeyeLog->company_id = $user['company_id'];
-      $skyeyeLog->search_name = $companyName;
-      $skyeyeLog->c_uid = $user['id'];
+      $skyeyeLog                = new TenantSkyeyeLog;
+      $skyeyeLog->company_id    = $user['company_id'];
+      $skyeyeLog->search_name   = $companyName;
+      $skyeyeLog->c_uid         = $user['id'];
       $skyeyeLog->search_result = json_encode($searchResult);
       $skyeyeLog->save();
     } catch (Exception $e) {
-      Log::info($user['company_id'] . json_encode($searchResult));
+      Log::error($user['company_id'] . json_encode($searchResult));
       Log::error($e->getMessage());
     }
   }
@@ -197,17 +215,21 @@ class BaseInfoService
 
   public function sec2Ymd($milliseconds)
   {
-    $seconds = $milliseconds * 0.001;
-    if (strstr($seconds, '.')) {
-      sprintf("%01.3f", $seconds);
-      list($usec, $sec) = explode(".", $seconds);
-      $sec = str_pad($sec, 3, "0", STR_PAD_RIGHT);
-    } else {
-      $usec = $seconds;
-      $sec = "000";
+    // $seconds = $milliseconds * 0.001;
+    // if (strstr($seconds, '.')) {
+    //   sprintf("%01.3f", $seconds);
+    //   list($usec, $sec) = explode(".", $seconds);
+    //   $sec = str_pad($sec, 3, "0", STR_PAD_RIGHT);
+    // } else {
+    //   $usec = $seconds;
+    //   $sec = "000";
+    // }
+    // $date = date("Y-m-d", $usec);
+    // return str_replace('x', $sec, $date);
+    if (!$milliseconds) {
+      return "";
     }
-    $date = date("Y-m-d", $usec);
-    return str_replace('x', $sec, $date);
+    return date('Y-m-d H:i:s', floor($milliseconds / 1000));
   }
 
 
@@ -220,19 +242,17 @@ class BaseInfoService
    */
   private function formatSkyeyeData(array $DA)
   {
-    // 定义需要转换日期格式的字段
-    $dateFields = ['cancelDate', 'approvedTime', 'fromTime', 'toTime', 'estiblishTime'];
-
-    foreach ($dateFields as $field) {
-      if (isset($DA[$field]) && $DA[$field]) {
-        $DA[$field] = $this->sec2Ymd($DA[$field]);
+    // 使用 array_walk 处理日期字段
+    array_walk(
+      ['cancelDate', 'approvedTime', 'fromTime', 'toTime', 'estiblishTime'],
+      function (&$value) use (&$DA) { // 注意这里 {
+        $value = $value ? $this->sec2Ymd($value) : $value;
       }
-    }
-    // 处理注册资本字段
+    );
+    // 直接处理 regCapital 字段
     if (isset($DA['regCapital'])) {
       $DA['regCapital'] = str_replace("万人民币", "", $DA['regCapital']);
     }
-
     return $DA;
   }
 }

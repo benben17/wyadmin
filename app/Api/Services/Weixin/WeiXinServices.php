@@ -98,7 +98,7 @@ class WeiXinServices
    * @param [type] $content
    * @return void
    */
-  public function sendSubMsg($touser, $template_id, $page, $content)
+  public function sendSubMsg($appid, $touser, $template_id, $page, $content)
   {
     //access_token
     $access_token = $this->getAccessToken($appid, WeixinEnum::OFFICIAL_ACCOUNT);
@@ -169,9 +169,8 @@ class WeiXinServices
       $result = $client->get($url . $params);
       $response = $result->getBody()->getContents();
 
-      Log::error($result->getBody());
       // Log::error($url . $params);
-      Log::error($response);
+      Log::info($response);
       return json_decode($response, true);
     } catch (Exception $e) {
       Log::error(__CLASS__ . $e->getMessage());

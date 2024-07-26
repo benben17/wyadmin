@@ -134,19 +134,48 @@ class BseMaintainService
      *
      * @return String
      */
-    public function getParentName($parentId, $parentType): String
+    private $nameFieldMap = [
+        AppEnum::Channel => 'channel_name',
+        AppEnum::Supplier => 'name',
+        AppEnum::Relationship => 'name',
+        AppEnum::Tenant => 'name',
+    ];
+    private function getModel($parentType)
     {
-        // Log::error("parant_id" . $parentId . "parentType" . $parentType);
-        if ($parentType == AppEnum::Channel) {
-            $res = ChannelModel::select('channel_name as name')->find($parentId);
-        } else if ($parentType == AppEnum::Supplier) {
-            $res = SupplierModel::select('name as name')->find($parentId);
-        } else if ($parentType == AppEnum::Relationship) {
-            $res = RelationsModel::select('name as name')->find($parentId);
-        } else if ($parentType == AppEnum::Tenant) {
-            $res = TenantModel::select('name as name')->find($parentId);
+        $modelMap = [
+            AppEnum::Channel => ChannelModel::class,
+            AppEnum::Supplier => SupplierModel::class,
+            AppEnum::Relationship => RelationsModel::class,
+            AppEnum::Tenant => TenantModel::class,
+        ];
+
+        $model = $modelMap[$parentType] ?? null;
+        return $model;
+    }
+
+    public function getParentName($parentId, $parentType): string
+    {
+        $model = $this->getModel($parentType);
+
+        if (!$model) {
+            return "";
         }
-        return $res['name'] ?? "";
+        $nameField = $this->nameFieldMap[$parentType] ?? null;
+        $res = $model::select($nameField)->find($parentId);
+        return $res ? $res['name'] : "";
+    }
+
+    public function getParentId($parentName, $parentType): int
+    {
+        $model = $this->getModel($parentType);
+        $nameField = $this->nameFieldMap[$parentType] ?? null;
+
+        if (!$model || !$nameField) {
+            return 0;
+        }
+
+        $res = $model::select('id')->where($nameField, $parentName)->first();
+        return $res ? $res['id'] : 0;
     }
 
     /**

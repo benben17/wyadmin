@@ -60,7 +60,6 @@ class BillController extends BaseController
   public function list(Request $request)
   {
 
-    $map = array();
     // 排序字段
     if (!$request->orderBy) {
       $request->orderBy = 'charge_date';
@@ -68,14 +67,12 @@ class BillController extends BaseController
     if ($request->order) {
       $request->order = 'desc';
     }
-    if ($request->tenant_id) {
-      $map['tenant_id'] = $request->tenant_id;
-    }
+
     DB::enableQueryLog();
 
     $subQuery = $this->billService->billModel()
-      ->where($map)
       ->where(function ($q) use ($request) {
+        $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->year && $q->whereYear('charge_date', $request->year);
         $request->month && $q->whereMonth('charge_date', $request->month);
@@ -102,7 +99,7 @@ class BillController extends BaseController
 
       $unreceive = $item->billDetail->where('charge_date', '<=', date('Y-m-t', strtotime($item['charge_date'])))
         ->sum('unreceive_amount');
-      Log::info($unreceive);
+      // Log::info($unreceive);
       $item['bill_reminder'] = $unreceive > 0 ? '1' : '0';
       unset($item['billDetail']);
     }
@@ -278,7 +275,7 @@ class BillController extends BaseController
       'id' => 'required'
     ]);
 
-    DB::enableQueryLog();
+    // DB::enableQueryLog();
     $data = $this->billService->showBill($request->id);
     return $this->success($data);
   }
@@ -344,7 +341,10 @@ class BillController extends BaseController
   public function del(Request $request)
   {
     $validatedData = $request->validate([
-      'id' => 'required'
+      'id' => 'required|min:1'
+    ], [
+      'id.required' => '账单ID不能为空',
+      'id.min' => '账单ID格式错误',
     ]);
     try {
       DB::transaction(function () use ($request) {
@@ -355,7 +355,7 @@ class BillController extends BaseController
       return $this->success("账单删除成功。");
     } catch (Exception $e) {
       Log::error("账单删除失败！" . $e);
-      return $this->success("账单删除失败！");
+      return $this->error("账单删除失败！");
     }
   }
 

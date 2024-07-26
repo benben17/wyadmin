@@ -598,7 +598,11 @@ Route::group(['prefix' => 'wxapp/customer'], function () {
     Route::post('/list', '\App\Api\Controllers\Weixin\WxStatController@list');
 });
 
-// Route::get('/test', function() {
+// Route::get('/test', function () {
+//     $struuid = Illuminate\Support\Str::uuid(); // 生成一个 UUID
+
+//     return response()->json(['uuid' => $struuid]);
+// });
 
 // $result= config('paystatus')[1];
 // return $result;

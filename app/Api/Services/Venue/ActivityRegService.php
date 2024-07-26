@@ -39,6 +39,7 @@ class ActivityRegService
             $activityReg = $this->model()->find($DA['id']);
             $activityReg->u_uid = $user['id'];
         }
+        $activityReg->activity_id      = $DA['activity_id'];
         $activityReg->proj_id          = $DA['proj_id'];
         $activityReg->venue_id         = $DA['venue_id'];
         $activityReg->venue_name       = $DA['venue_name'];

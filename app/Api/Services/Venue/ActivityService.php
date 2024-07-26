@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Venue\ActivityType;
 
+/**
+ * 活动服务
+ */
 class ActivityService
 {
   public function model()
@@ -46,13 +49,13 @@ class ActivityService
         $activity->venue_name     = $DA['venue_name'];
         $activity->activity_title = $DA['activity_title'];
         $activity->activity_desc  = $DA['activity_desc'];
-        $activity->activity_type  = $DA['activity_type'];
-        $activity->status         = $DA['status'] ?? 1;
+        // $activity->activity_type  = $DA['activity_type'];
+        $activity->status         = $DA['status'] ?? 1; // 1未开始 2进行中 3已结束
         $activity->start_date     = $DA['start_date'];
         $activity->end_date       = $DA['end_date'];
         $activity->is_valid       = $DA['is_valid'] ?? 1; // 1有效 2无效
-        $activity->is_hot         = $DA['is_hot'] ?? 1;
-        $activity->is_top         = $DA['is_top'] ?? 1;
+        $activity->is_hot         = $DA['is_hot'] ?? 1;  // 1热门 2非热门
+        $activity->is_top         = $DA['is_top'] ?? 1; // 1置顶 2非置顶
         $res = $activity->save();
 
         foreach ($DA['activity_type'] as $typeDA) {
@@ -77,6 +80,7 @@ class ActivityService
    */
   private function saveActivityType(array $DA, array $user, int $activityId)
   {
+    DB::beginTransaction();
     try {
       $type = $this->activityTypeModel();
       $type->activity_id = $activityId;
@@ -88,8 +92,13 @@ class ActivityService
       $type->c_uid       = $user['id'];
       $type->u_uid       = $user['id'];
       $type->save();
+      DB::commit();
     } catch (Exception $e) {
-      Log::error($e->getMessage());
+      DB::rollBack();
+      Log::error("保存活动类型失败 - 活动ID: {activityId}，错误信息: {message}", [
+        'activityId' => $activityId,
+        'message' => $e->getMessage(),
+      ]);
       throw new Exception('保存活动类型失败');
     }
   }

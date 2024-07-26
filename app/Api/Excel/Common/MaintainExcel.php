@@ -2,11 +2,14 @@
 
 namespace App\Api\Excel\Common;
 
+use App\Enums\AppEnum;
 use Maatwebsite\Excel\Excel;
+use App\Api\Models\Common\Maintain;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use App\Api\Services\Common\BseMaintainService;
 
 class MaintainExcel implements FromArray, WithHeadings, WithMapping
 {
@@ -57,7 +60,7 @@ class MaintainExcel implements FromArray, WithHeadings, WithMapping
   {
     return [
       '#',
-      "渠道名称",
+      "名称",
       "联系人",
       "联系电话",
       "维护类型",
@@ -88,5 +91,50 @@ class MaintainExcel implements FromArray, WithHeadings, WithMapping
       $row['maintain_feedback'],
       $row['times']
     ];
+  }
+
+  public function model(array $row, $user, $type)
+  {
+    $maintainService = new BseMaintainService;
+    $parentType = null;
+    switch ($type) {
+      case 'tenant':
+        $parentType = AppEnum::Tenant;
+        break;
+      case 'supplier':
+        $parentType = AppEnum::Supplier;
+        break;
+      case 'channel':
+        $parentType = AppEnum::Channel;
+        break;
+      case 'relationship':
+        $parentType = AppEnum::Relationship;
+        break;
+    }
+    if (!empty($row['名称']) && $parentType) {
+      $parentId = $maintainService->getParentId($row['名称'], $parentType);
+    } else {
+      $parentId = 0;
+    }
+
+    // Access and transform your data here
+    return new Maintain([ // Assuming your model is named 'Maintain'
+      'name'              => $row['name'],
+      'parent_type'       => $parentType,
+      'parent_id'         => $parentId,
+      'company_id'        => $user->company_id,
+      'proj_id'           => $user->proj_id,
+      'maintain_user'     => $row['联系人'],
+      'maintain_phone'    => $row['联系电话'],
+      'maintain_type'    => $row['维护类型'],
+      'maintain_date'    => \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['维护时间'])->format('Y-m-d'),
+      'maintain_record'   => $row['维护记录'],
+      'c_username'        => $row['录入人'],
+      'maintain_depart'   => $row['维护部门'],
+      'maintain_feedback' => $row['维护反馈'],
+      'times'             => $row['维护次数'],
+      'c_uid' => $user->id,
+      'created_at' => now(),
+    ]);
   }
 }

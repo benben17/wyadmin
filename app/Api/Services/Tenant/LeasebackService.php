@@ -81,7 +81,10 @@ class LeasebackService
         if ($contractCount == 0) {
           $data['on_rent'] = 0;
           $data['status'] = AppEnum::TenantLeaseback;
+          // 处理租户退租
           $tenantService->tenantModel()->where('id', $tenantId)->update($data);
+          // 处理分摊租户退租
+          $tenantService->tenantModel()->where('parent_id', $tenantId)->update($data);
         }
         // 处理租户应收
         $this->processTenantFee($DA['fee_list']);

@@ -23,4 +23,6 @@ abstract class ConfEnum extends Enum
   const APPID                       = 'APPID';  // 公众号APPID
   const APP_SECRET                  = 'APP_SECRET';  // 公众号APP_SECRET
 
+
+  const WECHAT_PAY_CONF             = 'WECHAT_PAY_CONF';  // 微信支付缓存key
 }

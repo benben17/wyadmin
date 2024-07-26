@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Models\Tenant\TenantLog;
 use App\Api\Services\Company\VariableService;
+use App\Api\Services\Common\BseMaintainService;
 use App\Api\Models\Tenant\Tenant as TenantModel;
 
 /**
@@ -198,15 +199,27 @@ class TenantService
     }
   }
 
-
+  /**
+   * 删除租户
+   *
+   * @Author leezhua
+   * @DateTime 2024-07-13
+   * @param int $tenantId 租户id
+   *
+   * @return void
+   */
   public function deleteTenantById(int $tenantId)
   {
     try {
-      DB::transaction(function () use ($tenantId) {
 
+      DB::transaction(function () use ($tenantId) {
+        $maintainService = new BseMaintainService;
         $this->tenantLogModel()->where('tenant_id', $tenantId)->delete();
         $this->tenantModel()->where('id', $tenantId)->delete();
+        $maintainService->maintainModel()->where('parent_id', $tenantId)
+          ->where('parent_type', AppEnum::Tenant)->delete();
       });
+      return true;
     } catch (Exception $e) {
       Log::error("删除租户失败" . $e->getMessage());
       throw new Exception("删除租户失败");

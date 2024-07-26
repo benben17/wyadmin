@@ -17,7 +17,7 @@ use App\Api\Services\Common\BseMaintainService as MaintainService;
  */
 class MaintainController extends BaseController
 {
-    protected $maintainService;
+    private $maintainService;
     public function __construct()
     {
         parent::__construct();

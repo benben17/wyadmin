@@ -3,6 +3,7 @@
 namespace App\Api\Models\Venue;
 
 use Carbon\Carbon;
+use App\Models\BaseModel;
 use App\Api\Scopes\CompanyScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * 活动
  */
-class Activity extends Model
+class Activity extends BaseModel
 {
   /**
    * 活动
@@ -18,8 +19,8 @@ class Activity extends Model
    * @var string
    */
   use SoftDeletes;
-  protected $table = 'bse_activities';
-  protected $hidden = ['deleted_at', "company_id", 'c_uid', 'u_uid'];
+  protected $table = 'bse_activity';
+  protected $hidden = ['deleted_at', "company_id", 'u_uid'];
   protected $fillable = ['status', 'proj_id', 'venue_id', 'venue_name', 'activity_title', 'activity_desc', 'activity_type', 'start_date', 'end_date', 'is_valid', 'is_hot', 'is_top'];
   protected $appends = ['status_label'];
   protected $casts = [
