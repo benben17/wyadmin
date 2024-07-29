@@ -8,13 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class BaseModel extends Model
 {
+  // 隐藏字段
   protected $hidden = ['deleted_at', 'updated_at'];
 
+  // 日期格式化
   protected function serializeDate(DateTimeInterface $date)
   {
     return $date->format('Y-m-d H:i:s');
   }
 
+  // 批量插入
   public function addAll(array $data)
   {
     return $this->insert($data);

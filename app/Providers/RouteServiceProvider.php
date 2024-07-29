@@ -38,6 +38,7 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->mapWebRoutes();
 
+        $this->mapWeixinMiniApiRoutes();
         //
     }
 
@@ -68,5 +69,13 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware('api')
             ->namespace($this->namespace)
             ->group(base_path('routes/api.php'));
+    }
+
+    protected function mapWeixinMiniApiRoutes()
+    {
+        Route::prefix('api/miniapp')
+            ->middleware('api')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/weixin_mini_api.php'));
     }
 }
