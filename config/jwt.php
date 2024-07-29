@@ -154,6 +154,7 @@ return [
         'nbf',
         'sub',
         'jti',
+        'guard',
     ],
 
     /*

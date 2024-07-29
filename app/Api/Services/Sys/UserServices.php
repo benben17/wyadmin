@@ -3,14 +3,11 @@
 namespace App\Api\Services\Sys;
 
 use Exception;
-use Illuminate\Support\Str;
+
 use App\Api\Models\Weixin\WxUser;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use App\Api\Models\Project as ProjectModel;
 use App\Api\Models\Sys\UserRole as UserRoleModel;
-use App\Api\Models\Sys\UserGroup as UserGroupModel;
 use App\Api\Models\Sys\UserProfile as UserProfileModel;
 
 /**
@@ -72,7 +69,7 @@ class UserServices
   }
 
 
-
+  //#MARK: 获取用户小程序菜单信息
   /**
    * 根据用户ID获取系统权限
    * @Author   leezhua
@@ -115,8 +112,10 @@ class UserServices
   }
 
 
-  /** 获取用户基本信息 */
-  public function getLoginUser($uid)
+  /**
+   * 获取用户环境变量
+   */
+  public function getProject($uid)
   {
     $projInfo = "";
     $profile = UserProfileModel::find($uid);
@@ -150,22 +149,15 @@ class UserServices
    * @param [type] $user
    * @return void
    */
-  public function getLoginUserInfo(int $userId): array
+  public function getLoginUserInfo($user): array
   {
-    $user = Auth::user(); // 从 Auth facade 中获取当前用户
-    $projectInfo = $this->getLoginUser($userId);
+    $projectInfo = $this->getProject($user->id);
 
-    $isBind = 0;
-    $nickname = "";
-    if ($user->unionid) {
-      $wxUser = WxUser::where('unionid', $user->unionid)->first();
-      if ($wxUser) {
-        $isBind = 1;
-        $nickname = $wxUser->nickname;
-      }
-    }
+    $wxUser = $user->unionid ? WxUser::where('unionid', $user->unionid)->first() : null;
+    $isBind = $wxUser ? 1 : 0;
+    $nickname = $wxUser ? $wxUser->nickname : '';
 
-    $result = \App\Models\Company::with("product")->find($user->company_id);
+    $company = \App\Models\Company::with("product")->find($user->company_id);
 
     $departName = '管理员';
     if ($user->depart_id !== 0) {
@@ -188,8 +180,8 @@ class UserServices
         'avatar'         => $user->avatar,
         'avatar_full'    => getOssUrl($user->avatar),
         'access'         => ['admin'],
-        'company_name'   => $result->name,
-        'company_access' => [$result->product->en_name],
+        'company_name'   => $company->name,
+        'company_access' => [$company->product->en_name],
         'nickname'       => $nickname,
         'depart_name'    => $departName,
         'days'           => getVariable($user->company_id, 'year_days'),

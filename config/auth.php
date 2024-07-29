@@ -46,6 +46,10 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+        'mini_program' => [
+            'driver' => 'jwt',
+            'provider' => 'bse_wx_user',
+        ],
     ],
 
     /*
@@ -71,10 +75,11 @@ return [
             'model' => App\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'bse_wx_user' => [
+            'driver' => 'eloquent',
+            'model' => App\Api\Models\Weixin\WxUser::class,
+
+        ],
     ],
 
     /*

@@ -194,7 +194,7 @@ function numFormat($num): float
  * @param mixed $months 
  * @return string 
  */
-function getEndNextYmd($ymd, $months)
+function getEndNextYmd($ymd, int $months)
 {
 	if (empty($ymd) || empty($months)) {
 		return "";

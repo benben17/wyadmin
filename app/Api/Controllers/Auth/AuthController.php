@@ -61,7 +61,7 @@ class AuthController extends BaseController
     {
         $credentials['name']     = $request->input('username');
         $credentials['password'] = $request->input('password');
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (!$token = auth('api')->claims(['guard' => 'api'])->attempt($credentials)) {
             return $this->error('用户名或密码错误!');
         }
         // $user = auth('api')->user();
@@ -70,7 +70,7 @@ class AuthController extends BaseController
         $data['token'] = $token;
 
         // 使用 UserService 获取其他用户信息
-        $data = array_merge($data, $this->userService->getLoginUserInfo($user->id));
+        $data = array_merge($data, $this->userService->getLoginUserInfo($user));
 
         // 获取用户系统权限，当用户is admin 的时候返回空
         $data['menu_list'] = $this->userService->userMenu($user);

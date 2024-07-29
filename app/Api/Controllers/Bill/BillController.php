@@ -89,6 +89,7 @@ class BillController extends BaseController
       unset($item['tenant']);
       $timestamp = strtotime($item['charge_date']);
       $billMonth = [date('Y-m-01', $timestamp), date('Y-m-t', $timestamp)];
+
       $thisBillDetail = $item->billDetail->whereBetween('charge_date', $billMonth);
 
       $item['amount']           = $thisBillDetail->sum('amount');

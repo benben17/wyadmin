@@ -39,15 +39,18 @@ class ActivityRegService
             $activityReg = $this->model()->find($DA['id']);
             $activityReg->u_uid = $user['id'];
         }
+        $activity  = new ActivityService();
+        $activity  = $activity->model()->find($DA['activity_id']);
         $activityReg->activity_id      = $DA['activity_id'];
-        $activityReg->proj_id          = $DA['proj_id'];
-        $activityReg->venue_id         = $DA['venue_id'];
-        $activityReg->venue_name       = $DA['venue_name'];
-        $activityReg->activity_title   = $DA['activity_title'];
-        $activityReg->user_id          = $DA['user_id'];
-        $activityReg->user_name        = $DA['user_name'];
-        $activityReg->user_phone       = $DA['user_phone'];
+        $activityReg->proj_id          = $activity->proj_id;
+        $activityReg->venue_id         = $activity->venue_id;
+        $activityReg->venue_name       = $activity->venue_name;
+        $activityReg->activity_title   = $activity->activity_title;
+        $activityReg->user_id          = $user['id'];
+        $activityReg->user_name        = $user['name'];
+        $activityReg->user_phone       = $user['phone'];
         $activityReg->reg_time         = $DA['reg_time'] ?? nowTime();
+        $activityReg->status           = $DA['status'] ?? 1; // 报名状态 1-报名成功 0-报名失败
         $res = $activityReg->save();
         return $res;
     }

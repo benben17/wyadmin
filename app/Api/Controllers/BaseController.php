@@ -4,7 +4,7 @@ namespace App\Api\Controllers;
 
 use Illuminate\Http\Request;
 use App\Api\Controllers\Controller;
-
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
@@ -34,7 +34,14 @@ class BaseController extends Controller
     protected $sortType = ['asc', 'desc'];
     public function __construct()
     {
-        $this->uid  = auth()->payload()->get('sub');
+
+        $payload = auth('api')->payload();
+        // Log::alert($payload->get('guard'));
+        if ($payload->get('guard') !== 'api') {
+            return $this->error('token 错误！');
+        }
+
+        $this->uid = $payload->get('sub');
         if (!$this->uid) {
             return $this->error('用户信息错误');
         }

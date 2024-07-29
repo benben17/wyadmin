@@ -18,40 +18,44 @@ class WxConfService
   // private $platformCertificateSerial;
   // private $notifyUrl;
   private $wyAppConf;
-  private $companyId;
   public function __construct()
   {
     $this->wyAppConf = new WyAppConf();
-    $user = auth('api')->user();
-    $this->companyId = $user->company_id;
   }
 
 
 
-  public function getWechatPayConf()
+  /**
+   * 获取微信支付配置
+   *
+   * @param int $companyId
+   * @return array|null
+   */
+  public function getWechatPayConf(int $companyId): ?array
   {
     // 使用缓存键简化逻辑
-    $cacheKey = ConfEnum::WECHAT_PAY_CONF . $this->companyId;
+    $cacheKey = ConfEnum::WECHAT_PAY_CONF . $companyId;
 
-    // 缓存2小时 
-    return Cache::remember($cacheKey, 120, function () {
-      $wxPayConf = $this->wyAppConf->where('type', WeixinEnum::PAY)->first();
 
-      // 使用 null coalescing 运算符简化判断
+    return Cache::remember($cacheKey, 60, function () use ($companyId) {
+      $wxPayConf = $this->wyAppConf->where('type', WeixinEnum::WX_PAY)->first();
+
+      // 使用空合并运算符简化判断
       if ($wxPayConf) {
-        Cache::setMultiple([
-          ConfEnum::MERCHANT_ID . $this->companyId => $wxPayConf['mch_id'],
-          ConfEnum::XCX_APPID . $this->companyId => $wxPayConf['app_id'],
-          ConfEnum::MERCHANT_PRIVATE_KEY . $this->companyId => $wxPayConf['mch_key'],
-          ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $this->companyId => $wxPayConf['mch_key_serial'],
-          ConfEnum::NOTIFY_URL . $this->companyId => $wxPayConf['notify_url'],
-          ConfEnum::PLATFORM_CERTIFICATE . $this->companyId => $wxPayConf['platform_cert'],
+        Cache::put([
+          ConfEnum::MERCHANT_ID . $companyId => $wxPayConf['mch_id'],
+          ConfEnum::XCX_APPID . $companyId => $wxPayConf['app_id'],
+          ConfEnum::MERCHANT_PRIVATE_KEY . $companyId => $wxPayConf['mch_key'],
+          ConfEnum::MERCHANT_CERTIFICATE_SERIAL . $companyId => $wxPayConf['mch_key_serial'],
+          ConfEnum::NOTIFY_URL . $companyId => $wxPayConf['notify_url'],
+          ConfEnum::PLATFORM_CERTIFICATE . $companyId => $wxPayConf['platform_cert'],
         ]);
       }
 
-      return $wxPayConf ?: null;
+      return $wxPayConf ?? null;
     });
   }
+
   /**
    * @Desc: 获取微信配置
    * @Author leezhua

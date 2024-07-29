@@ -581,11 +581,14 @@ Route::group(['prefix' => 'business/wx'], function () {
 
 // 微信 登录
 Route::group(['prefix' => 'wx'], function () {
-    Route::get('/weixin', '\App\Api\Controllers\Weixin\WxController@weixin')->name('weixin');
-    Route::get('/weixin/callback', '\App\Api\Controllers\Weixin\WxController@weixinCallback');
+
     Route::post('/user/bind', '\App\Api\Controllers\Weixin\WeiXinController@bindWx');
     Route::post('/user/unbind', '\App\Api\Controllers\Weixin\WeiXinController@unBindWx');
-    Route::post('/auth/login', '\App\Api\Controllers\Weixin\WxController@wxLogin');
+
+    Route::get('/auth/weixin', '\App\Api\Controllers\Weixin\WxAuthController@weixin')->name('weixin');
+    Route::get('/auth/weixin/callback', '\App\Api\Controllers\Weixin\WxAuthController@wxCallback');
+    Route::post('/auth/passwdlogin', '\App\Api\Controllers\Weixin\WxAuthController@wxLogin');
+    Route::post('/auth/login', '\App\Api\Controllers\Weixin\WxAuthController@wxAppAuth');
 
     // 微信支付
     Route::post('/activity/reg/pay', '\App\Api\Controllers\Venue\ActivityController@activityPay');

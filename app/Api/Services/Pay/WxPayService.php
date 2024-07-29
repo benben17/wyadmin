@@ -31,7 +31,7 @@ class WxPayService
 
     $this->companyId = $user->company_id;
     $this->confService = new WxConfService;
-    $conf = $this->confService->getWechatPayConf();
+    $conf = $this->confService->getWechatPayConf($this->companyId);
     // $companyId                  = $this->companyId;
     // ConfEnum::keys();
     $this->appid                = $conf['app_id'];
@@ -176,7 +176,7 @@ class WxPayService
       $platformPublicKeyInstance = Rsa::from($this->platformCert, Rsa::KEY_TYPE_PUBLIC);
       // // 检查通知时间偏移量，允许5分钟之内的偏移
       $timeOffsetStatus = 300 >= abs(Formatter::timestamp() - (int)$wxTimestamp);
-      //   // 构造验签名串
+      //构造验签名串
       $verifiedStatus = Rsa::verify(
         Formatter::joinedByLineFeed($wxTimestamp, $wxpayNonce, $wxBody),
         $wxSignature,

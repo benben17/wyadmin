@@ -9,6 +9,7 @@ use App\Enums\WeixinEnum;
 use App\Api\Models\Weixin\WxUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use App\Api\Services\Weixin\WxConfService;
@@ -18,14 +19,18 @@ use App\Api\Services\Weixin\WxConfService;
  */
 class WeiXinServices
 {
-  protected $wxApiUrl = 'https://api.weixin.qq.com';
-  protected $wxConfService;
+  protected $wxApiUrl = 'https://api.weixin.qq.com/';
+
   public function wxUserModel()
   {
-    $model = new WxUser;
-    return $model;
-    $this->wxConfService = new WxConfService;
+    return new WxUser;
   }
+
+  public function userModel()
+  {
+    return new User;
+  }
+  //#MARK: 微信用户保存
   /**
    * 保存微信用户
    *
@@ -38,35 +43,39 @@ class WeiXinServices
       $wx_user = $this->wxUserModel()->where('unionid', $DA['unionid'])->first();
       if (!$wx_user) {
         $wx_user = $this->wxUserModel();
+
+        $wx_user->unionid   = isset($DA['unionid']) ? $DA['unionid'] : "";
+        $wx_user->openid    = isset($DA['openid']) ? $DA['openid'] : "";
+        $wx_user->name      = isset($DA['name']) ? $DA['name'] : "";
+        $wx_user->email     = isset($DA['email']) ? $DA['email'] : "";
+        $wx_user->username  = isset($DA['username']) ? $DA['username'] : "";
+        $wx_user->phone     = isset($DA['phone']) ? $DA['phone'] : "";
+        $wx_user->avatar    = isset($DA['avatar']) ? $DA['avatar'] : "";
+        $wx_user->nickname  = isset($DA['nickName']) ? $DA['nickName'] : "";
+        $wx_user->country   = isset($DA['country']) ? $DA['country'] : "";
+        $wx_user->province  = isset($DA['province']) ? $DA['province'] : "";
+        $wx_user->city      = isset($DA['city']) ? $DA['city'] : "";
+        $wx_user->location  = isset($DA['location']) ? $DA['location'] : "";
+        $wx_user->gender    = isset($DA['gender']) ? $DA['gender'] : "";
+        // $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
+
+        $wx_user->save();
       }
-      $wx_user->unionid   = isset($DA['unionid']) ? $DA['unionid'] : "";
-      $wx_user->openid    = isset($DA['openid']) ? $DA['openid'] : "";
-      $wx_user->name      = isset($DA['name']) ? $DA['name'] : "";
-      $wx_user->email     = isset($DA['email']) ? $DA['email'] : "";
-      $wx_user->username  = isset($DA['username']) ? $DA['username'] : "";
-      $wx_user->phone     = isset($DA['phone']) ? $DA['phone'] : "";
-      $wx_user->avatar    = isset($DA['avatar']) ? $DA['avatar'] : "";
-      $wx_user->nickname  = isset($DA['nickName']) ? $DA['nickName'] : "";
-      $wx_user->country   = isset($DA['country']) ? $DA['country'] : "";
-      $wx_user->province  = isset($DA['province']) ? $DA['province'] : "";
-      $wx_user->city      = isset($DA['city']) ? $DA['city'] : "";
-      $wx_user->location  = isset($DA['location']) ? $DA['location'] : "";
-      $wx_user->gender    = isset($DA['gender']) ? $DA['gender'] : "";
-      // $wx_user->uid       = isset($DA['uid']) ? $DA['uid'] : 0;
-      $wx_user->save();
+
       return $wx_user;
     } catch (Exception $e) {
       throw $e;
     }
   }
-
+  //#MARK: 获取公众号token
   /** 获取公众号token */
   public function getAccessToken($appid, $weixinType)
   {
     $tokenKey = $appid . '_token';
 
-    return Cache::remember($tokenKey, 90 * 60, function () use ($appid, $weixinType) {
-      $wxConf = $this->wxConfService->getWeixinConf($appid, $weixinType);
+    return Cache::remember($tokenKey, 90, function () use ($appid, $weixinType) {
+      $wxConfService = new WxConfService;
+      $wxConf = $wxConfService->getWeixinConf($appid, $weixinType);
 
       if (!$wxConf) {
         // 处理错误，例如抛出异常或记录日志
@@ -148,6 +157,7 @@ class WeiXinServices
     }
   }
 
+  //#MARK: 微信小程序登录
   /**
    * 获取wxKey
    * @param $code 传入
@@ -156,7 +166,8 @@ class WeiXinServices
   public function wxXcxLogin($appid, $code)
   {
     // 微信小程序ID
-    $weixinConf = $this->wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
+    $wxConfService = new WxConfService;
+    $weixinConf = $wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
     try {
       $params = http_build_query([
         'appid'       => $weixinConf['appid'],
@@ -178,6 +189,7 @@ class WeiXinServices
     }
   }
 
+  //#MARK: 微信小程序绑定
   /**
    * 微信与用户绑定
    *
@@ -185,16 +197,13 @@ class WeiXinServices
    * @param [type] $userId
    * @return void
    */
-  public function bindWx($wxUser, $uid)
+  public function bindWx($unionid, $uid)
   {
     try {
-      DB::transaction(function () use ($wxUser, $uid) {
+      DB::transaction(function () use ($unionid, $uid) {
         // 使用 Eloquent 的 updateOrCreate 方法一步更新或创建
-        User::where('id', $uid)->update(['unionid' => $wxUser['unionid']]);
-        $this->wxUserModel()->updateOrCreate(
-          ['unionid' => $wxUser['unionid']], // 使用 unionid 作为唯一键
-          ['uid' => $uid]
-        );
+        User::where('id', $uid)->update(['unionid' => $unionid]);
+        $this->wxUserModel()->where('unionid', $unionid)->update(['uid' => $uid]);
       });
 
       return true;
@@ -202,13 +211,13 @@ class WeiXinServices
       // 记录更详细的错误信息，例如用户 ID 和微信用户信息
       Log::error("绑定微信失败 - 用户ID: {uid}，微信信息: {wxUser}，错误信息: {message}", [
         'uid' => $uid,
-        'wxUser' => $wxUser,
         'message' => $e->getMessage(),
       ]);
       return false;
     }
   }
 
+  //#MARK: 微信小程序解绑
   /**
    * 解绑微信
    *
@@ -231,43 +240,110 @@ class WeiXinServices
   }
 
   /**
-   * 获取小程序openid ,unionid
+   * 处理新的微信用户
    *
-   * @param [type] $code
+   * @param [type] $wxResult
    * @return void
    */
-  public function getMiniProgramOpenId($code, $appid)
+  public function handleNewWxUser($wxResult)
   {
-    try {
-      $wxConf = $this->wxConfService->getWeixinConf($appid, WeixinEnum::MINI_PROGRAM);
-
-      if (!$wxConf) {
-        throw new \Exception("Failed to retrieve WeChat config for app ID: $appid");
-      }
-
-      $response = Http::get($this->wxApiUrl . 'sns/jscode2session', [
-        'appid' => $appid,
-        'secret' => $wxConf['app_secret'],
-        'js_code' => $code,
-        'grant_type' => 'authorization_code',
-      ]);
-
-      $data = $response->json();
-
-      // 检查是否成功获取 openid
-      if (isset($data['openid'])) {
-        return $data;
-      }
-
-      // 记录错误日志并抛出更具体的异常
-      $errorMessage = "Failed to get MiniProgram openid. Response: " . $response->body();
-      Log::error($errorMessage);
-      throw new \Exception($errorMessage);
-    } catch (\Exception $e) {
-      // 避免重复抛出异常，可以选择直接 re-throw 或者处理后抛出新的异常
-      throw $e;
-      // 或者:
-      // throw new \Exception("获取小程序 OpenID 失败", 0, $e); 
+    $wxUser = $this->wxUserModel()->where('unionid', $wxResult['unionid'])->first();
+    if (!$wxUser) {
+      $wxUser = [
+        'unionid'  => $wxResult['unionid'],
+        'openid'   => $wxResult['openid'],
+        'nickname' => $wxResult['nickname'] ?? "",
+        'avatar'   => $wxResult['headimgurl'] ?? "",
+      ];
+      $this->saveWxUser($wxUser);
     }
+
+    if (!$token = Auth::guard('mini_program')->claims(['guard' => 'mini_program'])->login($wxUser, false)) {
+      throw new \Exception('Failed to create token');
+    }
+
+    $tokenResult = [
+      'access_token' => $token,
+      'token_type' => 'bearer',
+      'expires' => auth()->factory()->getTTL() * 60,
+      'user_info' => [
+        'avatar' => $wxUser['avatar'],
+        'nickname' => $wxUser['nickname'],
+        'phone' => $wxUser['user_phone'],
+        'email' => $wxUser['email'],
+        'county' => $wxUser['country'],
+        'province' => $wxUser['province'],
+        'city' => $wxUser['city'],
+        'gender' => $wxUser['gender']
+      ]
+    ];
+
+    return $tokenResult;
+  }
+
+
+
+
+  /**
+   * 获取微信 session_key
+   *
+   * @param string $code 用户登录凭证
+   * @param string $appId 小程序AppID
+   * @param string $appSecret 小程序AppSecret
+   * @return string|null 返回session_key或null
+   */
+  public function getSessionKey($code, $appId)
+  {
+    $wxConf = $this->getWxConf($appId, WeixinEnum::MINI_PROGRAM);
+    $response = Http::get('https://api.weixin.qq.com/sns/jscode2session', [
+      'appid' => $appId,
+      'secret' => $wxConf['app_secret'],
+      'js_code' => $code,
+      'grant_type' => 'authorization_code',
+    ]);
+
+    if ($response->successful()) {
+      $data = $response->json();
+      return $data['session_key'] ?? null;
+    }
+    return null;
+  }
+
+  /**
+   * 解密数据
+   *
+   * @param string $encryptedData 加密数据
+   * @param string $iv 初始向量
+   * @param string $sessionKey 会话密钥
+   * @param string $appId 小程序AppID
+   * @return array|null 返回解密后的数据或null
+   */
+  public function decryptData($encryptedData, $iv, $sessionKey, $appId)
+  {
+    $aesKey = base64_decode($sessionKey);
+    $aesIV = base64_decode($iv);
+    $aesCipher = base64_decode($encryptedData);
+
+    $result = openssl_decrypt($aesCipher, 'AES-128-CBC', $aesKey, OPENSSL_RAW_DATA, $aesIV);
+    $dataObj = json_decode($result, true);
+
+    if ($dataObj == null) {
+      return null;
+    }
+
+    if ($dataObj['watermark']['appid'] != $appId) {
+      return null;
+    }
+
+    return $dataObj;
+  }
+
+
+
+  private function getWxConf($appid, $type)
+  {
+    // 使用缓存键简化逻辑
+    $wxConfService = new WxConfService;
+    return $wxConfService->getWeixinConf($appid, $type);
   }
 }

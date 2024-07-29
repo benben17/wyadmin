@@ -3,16 +3,11 @@
 namespace App\Api\Controllers\Sys;
 
 use JWTAuth;
-//use App\Exceptions\ApiException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Sys\DepartService;
-use App\Models\Company as CompanyModel;
-use App\Models\User as UserModel;
-use App\Api\Services\Sys\UserServices;
+
 
 
 class DepartController extends BaseController

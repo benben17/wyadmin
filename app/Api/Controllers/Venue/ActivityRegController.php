@@ -75,13 +75,13 @@ class ActivityRegController extends BaseController
 		$map = array();
 		DB::enableQueryLog();
 		if ($request->venue_id) {
-			$ma['venue_id'] = $request->venue_id;
+			$map['venue_id'] = $request->venue_id;
 		}
 		if ($request->pay_status) {
-			$ma['pay_status'] = $request->pay_status;
+			$map['pay_status'] = $request->pay_status;
 		}
 		if ($request->user_phone) {
-			$ma['user_phone'] = $request->user_phone;
+			$map['user_phone'] = $request->user_phone;
 		}
 		$query = $this->activityRegService->model()->where($map)
 			->where(function ($q) use ($request) {
@@ -92,6 +92,64 @@ class ActivityRegController extends BaseController
 			});
 		$data = $this->pageData($query, $request);
 		return $this->success($data);
+	}
+
+
+	// 活动报名
+	/**
+	 * @OA\Post(
+	 *     path="/api/activity/reg/save",
+	 *     tags={"活动报名"},
+	 *     summary="活动报名",
+	 *    @OA\RequestBody(
+	 *       @OA\MediaType(
+	 *           mediaType="application/json",
+	 *       @OA\Schema(
+	 *          schema="UserModel",
+	 *          required={"activity_id","user_id"},
+	 *       @OA\Property(
+	 *          property="activity_id",
+	 *          type="int",
+	 *          description="活动id"
+	 *       ),
+	 *       @OA\Property(
+	 *          property="user_id",
+	 *          type="int",
+	 *          description="用户id"
+	 *       ),
+	 *       @OA\Property(
+	 *          property="reg_time",
+	 *          type="String",
+	 *          description="报名时间"
+	 *       ),
+	 *       @OA\Property(
+	 *          property="status",
+	 *          type="int",
+	 *          description="报名状态"
+	 *       )
+	 *     ),
+	 *       example={
+	 *             "activity_id": 1,"user_id": 1,"reg_time": "","status": 1
+	 *           }
+	 *       )
+	 *     ),
+	 *     @OA\Response(
+	 *         response=200,
+	 *         description=""
+	 *     )
+	 * )
+	 */
+	public function store(Request $request)
+	{
+		$validatedData = $request->validate([
+			'activity_id' => 'required|int|gt:0',
+			'user_id'     => 'required|int|gt:0',
+			'reg_time'    => 'required',
+
+		]);
+		$param = $request->toArray();
+		$res = $this->activityRegService->saveActivityReg($param, $this->user);
+		return $this->success($res);
 	}
 
 	/**
