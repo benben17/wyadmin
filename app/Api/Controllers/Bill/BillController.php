@@ -328,7 +328,7 @@ class BillController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"id"},
-   *       @OA\Property(property="id",type="int",description="账单id")
+   *       @OA\Property(property="ids",type="array",description="账单ids")
    *     ),
    *       example={"id":""}
    *       )
@@ -342,16 +342,16 @@ class BillController extends BaseController
   public function del(Request $request)
   {
     $validatedData = $request->validate([
-      'id' => 'required|min:1'
+      'Ids' => 'required|array'
     ], [
-      'id.required' => '账单ID不能为空',
-      'id.min' => '账单ID格式错误',
+      'Ids.required' => '账单ID不能为空',
+      'Ids.array' => '账单ID格式错误',
     ]);
     try {
       DB::transaction(function () use ($request) {
 
-        $this->billService->billModel()->whereId($request->id)->delete();
-        $this->billService->billDetailModel()->where('bill_id', $request->id)->update(['bill_id' => 0]);
+        $this->billService->billModel()->whereIn('id', $request->Ids)->delete();
+        $this->billService->billDetailModel()->whereIn('bill_id', $request->Ids)->update(['bill_id' => 0]);
       }, 2);
       return $this->success("账单删除成功。");
     } catch (Exception $e) {
