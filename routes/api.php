@@ -392,7 +392,7 @@ Route::group(['prefix' => 'operation/tenant'], function () {
     Route::post('/add', '\App\Api\Controllers\Operation\TenantController@store');
     Route::post('/edit', '\App\Api\Controllers\Operation\TenantController@update');
     Route::post('/show', '\App\Api\Controllers\Operation\TenantController@show');
-
+    Route::post('/del', '\App\Api\Controllers\Operation\TenantController@delete');
     // Route::post('/sync', '\App\Api\Controllers\Operation\TenantController@tenantSync');
     // 退租租户
     // Route::post('share/add', '\App\Api\Controllers\Operation\TenantShareController@store');

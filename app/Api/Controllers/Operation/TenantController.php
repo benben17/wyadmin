@@ -394,7 +394,7 @@ class TenantController extends BaseController
      *     )
      * )
      */
-    public function del(Request $request)
+    public function delete(Request $request)
     {
         $request->validate([
             'id' => 'required|numeric|min:1',
