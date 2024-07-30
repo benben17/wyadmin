@@ -193,7 +193,7 @@ class TenantController extends BaseController
                     $businessInfo = $DA['business_info'];
                     $businessInfo['name'] = $businessInfo['name'] ?? $DA['name'];
                     $info = new BaseInfoService;
-                    if ($DA['business_id'] == 0 || !$DA['business_id']) {
+                    if (!isset($DA['business_id']) || $DA['business_id'] == 0) {
                         $business = $info->save($businessInfo, 1);   // 新增
                         $this->tenantService->tenantModel()->whereId($tenantId)
                             ->update(['business_id' => $business->id]);
@@ -202,8 +202,8 @@ class TenantController extends BaseController
                     }
                 }
 
-                $log['tenant_id'] = $tenantId;
-                $log['content'] =  $this->user['realname'] . '新增租户:' . $res->name;
+                $log['tenant_id']   = $tenantId;
+                $log['content']     =  $this->user['realname'] . '新增租户:' . $res->name;
                 $this->tenantService->saveTenantLog($log, $this->user);
             }, 2);
 
