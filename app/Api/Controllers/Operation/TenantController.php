@@ -72,13 +72,13 @@ class TenantController extends BaseController
             ->where('type', AppEnum::TenantType)
             ->where(function ($q) use ($request) {
                 $request->status && $q->whereIn('status', str2Array($request->status));
-                $request->name && $q->where('name', 'like', '%' . $request->name . '%');
+                $request->name && $q->where('name', 'like', columnLike($request->name));
                 $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
-                if (isset($request->on_rent)) {
+                if (isset($request->on_rent) && $request->on_rent != "") {
                     $q->where('on_rent', $request->on_rent);
                 }
-                $request->addr && $q->where('addr', 'like', '%' . $request->addr . '%');
-                $request->shop_name && $q->where('shop_name', 'like', '%' . $request->shop_name . '%');
+                $request->addr && $q->where('addr', 'like', columnLike($request->addr));
+                $request->shop_name && $q->where('shop_name', 'like', columnLike($request->shop_name));
                 // 访问时间
                 if ($request->visit_start_time && $request->visit_end_time) {
                     $q->whereBetween('visit_date', [$request->visit_start_time, $request->visit_end_time]);
@@ -90,33 +90,42 @@ class TenantController extends BaseController
             })
             ->withCount('maintain')
             ->withCount('contract');
-        // $query->get();
-        // // return $result;
-        // return DB::getQueryLog();
+
+
         $data = $this->pageData($query, $request);
-        $contractService = new ContractService;
+
+        $tenantIds = array_map(function ($item) {
+            return $item['id'];
+        }, $data['result']);
+        $subQuery = $this->contractService->model()
+            ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id', 'free_type', 'sign_area')
+            ->where('contract_state', AppEnum::contractExecute)
+            ->whereIn('tenant_id', $tenantIds);
+
         foreach ($data['result'] as $k => &$tenant) {
-
-            $signArea = $contractService->model()->where('tenant_id', $tenant['id'])->where('contract_state', AppEnum::contractExecute)->sum('sign_area');
+            $tenantId = $tenant['id'];
+            $signAreaQuery = clone $subQuery;
+            $signArea = $signAreaQuery->where('tenant_id', $tenantId)->sum('sign_area');
             $tenant['total_area'] =  $signArea ?? 0.00;
-
-            $contract = $this->contractService->model()
-                ->select('start_date', 'end_date', 'tenant_id', 'lease_term', 'id', 'free_type')
-                ->where('contract_state', 2)->orderByDesc('sign_date')
-                ->where('tenant_id', $tenant['id'])
-                ->first() ?? [];
+            $contractQuery = clone $subQuery;
+            $contract = $contractQuery->where('tenant_id', $tenantId)
+                ->orderByDesc('sign_date')->first() ?? [];
             $tenant['start_date'] =  $contract['start_date'] ?? "";
             $tenant['end_date']   =  $contract['end_date'] ?? "";
             $tenant['lease_term'] =  $contract['lease_term'] ?? 0;
 
-            $free = $this->contractService->freeModel()->where('tenant_id', $tenant['id'])
+            $free = $this->contractService->freeModel()->where('tenant_id', $tenantId)
+                ->whereHas('contract', function ($q) {
+                    $q->where('contract_state', AppEnum::contractExecute);
+                })
                 ->selectRaw('sum(free_num) as total_free')->first();
             $tenant['free_num'] = "无免租";
             if ($free && $contract && $contract['free_type'] > 0) {
-                $unit =  $contract['free_type'] == 1 ?  "个月" : "天";
+                $unit = $contract['free_type'] == 1 ?  "个月" : "天";
                 $tenant['free_num'] = ($free['total_free'] ?? 0) . $unit;
             }
-            $tenant['rooms'] = $this->contractService->getRoomsByTenantIdSelect($tenant['id']);
+            $tenant['label'] = $tenant['parent_id'] == 0 ? '分摊客户' : '主客户';
+            $tenant['rooms'] = $this->contractService->getRoomsByTenantIdSelect($tenantId);
         }
         // return response()->json(DB::getQueryLog());
         return $this->success($data);

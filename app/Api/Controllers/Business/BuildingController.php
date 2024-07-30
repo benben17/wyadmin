@@ -637,7 +637,7 @@ class BuildingController extends BaseController
         }
 
         $DA['data'] = $BA;
-        Log::info(time() . '222楼宇统计' . nowTime());
+        // Log::info(time() . '222楼宇统计' . nowTime());
         $DA['stat'] = $this->buildService->areaStatAll($request->proj_ids, $buildIds);
         return $this->success($DA);
     }

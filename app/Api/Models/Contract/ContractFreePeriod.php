@@ -23,6 +23,11 @@ class ContractFreePeriod extends BaseModel
   protected $hidden = ['deleted_at', 'company_id', 'u_uid'];
 
 
+  public function contract()
+  {
+    return $this->belongsTo(Contract::class,  'contract_id', 'id');
+  }
+
   // public function addAll(array $data)
   // {
   //   $res = DB::table($this->getTable())->insert($data);

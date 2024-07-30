@@ -178,7 +178,7 @@ class DashboardController extends BaseController
     // return $tenantLevel;
     $tenantLevelNull = 0;
     $totalTenants = $tenantLevel ? array_sum(array_column($tenantLevel, 'total')) : 0;
-    Log::info($totalTenants);
+    // Log::info($totalTenants);
     $data['tenant_level'] =  array_map(function ($item) use ($totalTenants, &$tenantLevelNull) {
       if (empty($item['level'])) {
         $tenantLevelNull += $item['total'];

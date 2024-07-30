@@ -482,7 +482,7 @@ class ContractService
       $contracts = $contracts->toArray();
     }
     // Log::info(time() . "--search----" . nowTime());
-    Log::info($contracts);
+    // Log::info($contracts);
 
     return $this->filterContractsByEndDate($contracts);
   }
