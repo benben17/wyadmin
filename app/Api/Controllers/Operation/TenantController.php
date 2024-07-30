@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Api\Controllers\BaseController;
 use App\Api\Services\Tenant\TenantService;
+use App\Api\Services\Bill\TenantBillService;
 use App\Api\Services\Tenant\BaseInfoService;
 use App\Api\Services\Contract\ContractService;
+use App\Api\Controllers\Bill\BillDetailController;
 use App\Api\Models\Common\Contact as ContactModel;
 
 /**
@@ -412,9 +414,14 @@ class TenantController extends BaseController
         if ($tenant->parent_id > 0) {
             return $this->error('存在分摊租户不能删除');
         }
-        $contract = $this->contractService->model()->where('tenant_id', $id)->first();
-        if ($contract) {
+        $contract = $this->contractService->model()->where('tenant_id', $id)->count();
+        if ($contract > 0) {
             return $this->error('租户存在合同，不能删除');
+        }
+        $billDetailService = new TenantBillService;
+        $billDetail = $billDetailService->billDetailModel()->where('tenant_id', $id)->count();
+        if ($billDetail > 0) {
+            return $this->error('租户存在账单，不能删除');
         }
         $res = $this->tenantService->deleteTenantById($id);
 
