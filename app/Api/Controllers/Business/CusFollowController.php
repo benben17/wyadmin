@@ -84,6 +84,7 @@ class CusFollowController extends BaseController
     DB::enableQueryLog();
     $subQuery = $this->customerService->followModel()->where($map)
       ->where(function ($q) use ($request) {
+        $request->tenant_id && $q->where('tenant_id', $request->tenant_id);
         $request->start_time && $q->where('follow_time', '>=', $request->start_time);
         $request->end_time && $q->where('follow_time', '<=', $request->end_time);
         $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
