@@ -89,10 +89,10 @@ class CusFollowController extends BaseController
         $request->visit_times && $q->where('visit_times', '>=', $request->visit_times);
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->follow_username && $q->where('follow_username', 'like', $request->follow_username);
-        return $this->applyUserPermission($q,  $request->depart_id, $this->user);
       })
       ->whereHas('tenant', function ($q) use ($request) {
         $request->tenant_name && $q->where('name', 'like', "%" . $request->tenant_name . "%");
+        return $this->applyUserPermission($q,  $request->depart_id, $this->user);
       });
 
     // return response()->json(DB::getQueryLog());

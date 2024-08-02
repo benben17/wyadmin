@@ -394,12 +394,12 @@ class BillStatController extends BaseController
       // Create an entry for the tenant if not exists
       if (!isset($formattedData[$tenantId])) {
         $formattedData[$tenantId] = [
-          'tenant_id' => $tenantId,
-          'tenant_name' => $tenantName,
-          'total_amt' => 0.00,
-          'total_receive_amt' => 0.00,
+          'tenant_id'           => $tenantId,
+          'tenant_name'         => $tenantName,
+          'total_amt'           => 0.00,
+          'total_receive_amt'   => 0.00,
           'total_unreceive_amt' => 0.00,
-          'year' => $request->year,
+          'year'                => $request->year,
         ] + $monthsTemplate;
       }
 

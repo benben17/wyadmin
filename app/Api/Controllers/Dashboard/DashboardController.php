@@ -150,8 +150,8 @@ class DashboardController extends BaseController
     // 租客数据
     DB::enableQueryLog();
     $tenantInfo = Tenant::selectRaw('count(*) as total,
-    sum(worker_num) worker_num,
-    sum(cpc_number) cpc_number')
+      sum(worker_num) worker_num,
+      sum(cpc_number) cpc_number')
       ->where(function ($query) use ($request) {
         return $this->subQuery($query, $request);
       })
@@ -161,12 +161,12 @@ class DashboardController extends BaseController
       'total'      => $tenantInfo['total'],
       'worker_num' => $tenantInfo['worker_num'],
       'cpc_number' => $tenantInfo['cpc_number'],
-      'cpc_rate'   => $tenantInfo['worker_num'] == 0 ? 0 : round($tenantInfo['cpc_number'] / $tenantInfo['worker_num'] * 100, 2),
+      'cpc_rate'   => $tenantInfo['worker_num'] == 0 ? 0 : numFormat($tenantInfo['cpc_number'] / $tenantInfo['worker_num'] * 100),
     ];
 
     // return $this->success($tenantWorker);
     $data['tenant_worker'] = $tenantWorker;
-    DB::enableQueryLog();
+    // DB::enableQueryLog();
     // 租客级别数据
     $tenantLevel = Tenant::selectRaw('count(*) as total,level')
       ->where(function ($query) use ($request) {
@@ -215,7 +215,11 @@ class DashboardController extends BaseController
       $item['percentage'] = ($item['total'] == 0 || $totalTenants == 0) ? 0 : ($item['total'] / $totalTenants) * 100;
       return $item;
     }, $tenantIndustry);
-    $data['tenant_industry'][] = ['total' => $tenantIndustryNull, 'industry' => '未知', 'percentage' => ($tenantIndustryNull / $totalTenants) * 100];
+    $data['tenant_industry'][] = [
+      'total' => $tenantIndustryNull,
+      'industry' => '未知',
+      'percentage' => ($tenantIndustryNull / $totalTenants) * 100
+    ];
     $data['tenant_industry'] = array_values(array_filter($data['tenant_industry']));
 
     // 租户维护
@@ -275,39 +279,42 @@ class DashboardController extends BaseController
    */
   public function project(Request $request)
   {
-
+    $projIds = $request->proj_ids ?? [];
     $projects = Project::selectRaw('count(*) as total,proj_city_id,proj_province_id')
-      ->groupBy('proj_city_id')->get()->toArray();
-    // $total = array_sum(array_column($data, 'total'));
-    // $data[] = ['total' => $total, 'proj_city_id' => 0];
+      ->where(function ($query) use ($projIds) {
+        if ($projIds) {
+          $query->whereIn('id', $projIds);
+        }
+      })
+      ->groupBy('proj_city_id')
+      ->get()->toArray();
+
 
     foreach ($projects as &$item) {
       $city = Area::find($item['proj_city_id']);
       $province = Area::find($item['proj_province_id']);
-      if ($city) {
-        $item['province_name']  = $province->name;
-        $item['city_code'] = $city->code;
-        $item['city_name'] = $city->name;
-      } else {
-        $item['province_name']  = '未知';
-        $item['city_code'] = '';
-        $item['city_name'] = '未知';
-      }
-    }
-    $data['yh_work_count'] = YhWorkOrder::where(function ($query) use ($request) {
-      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
-    })->count();
 
-    $data['work_count'] = WorkOrder::where(function ($query) use ($request) {
-      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
-    })->count();
-    $data['maintain_count'] = EquipmentMaintain::where(function ($query) use ($request) {
-      $request->proj_ids && $query->whereIn('proj_id', $request->proj_ids);
-    })->count();
+      $item['province_name'] = $province->name ?? '未知';
+      $item['city_code']     = $city->code ?? '';
+      $item['city_name']     = $city->name ?? '未知';
+    }
+
+    $projIds = $request->proj_ids ?? [];
+    $data['yh_work_count'] = $this->getCountByProjIds(YhWorkOrder::class, $projIds);
+    $data['work_count'] = $this->getCountByProjIds(WorkOrder::class, $projIds);
+    $data['maintain_count'] = $this->getCountByProjIds(EquipmentMaintain::class, $projIds);
     $data['project'] = $projects;
     return $this->success($data);
   }
 
+  private function getCountByProjIds($model, $projIds)
+  {
+    return $model::where(function ($query) use ($projIds) {
+      if ($projIds) {
+        $query->whereIn('proj_id', $projIds);
+      }
+    })->count();
+  }
   /**
    * @OA\Get(
    *      path="/api/dashboard/customer",
