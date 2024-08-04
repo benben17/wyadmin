@@ -89,6 +89,7 @@ class TenantController extends BaseController
                 //$q->where('parent_id', 0);
             })
             ->withCount('maintain')
+            ->with('contacts')
             ->withCount('contract');
 
 
