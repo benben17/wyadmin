@@ -135,34 +135,33 @@ class BseMaintainService
      * @return String
      */
     private $nameFieldMap = [
-        AppEnum::Channel => 'channel_name',
-        AppEnum::Supplier => 'name',
+        AppEnum::Channel      => 'channel_name',
+        AppEnum::Supplier     => 'name',
         AppEnum::Relationship => 'name',
-        AppEnum::Tenant => 'name',
+        AppEnum::Tenant       => 'name',
     ];
     private function getModel($parentType)
     {
         $modelMap = [
-            AppEnum::Channel => ChannelModel::class,
-            AppEnum::Supplier => SupplierModel::class,
+            AppEnum::Channel      => ChannelModel::class,
+            AppEnum::Supplier     => SupplierModel::class,
             AppEnum::Relationship => RelationsModel::class,
-            AppEnum::Tenant => TenantModel::class,
+            AppEnum::Tenant       => TenantModel::class,
         ];
 
-        $model = $modelMap[$parentType] ?? null;
-        return $model;
+        return $modelMap[$parentType] ?? '';
     }
 
     public function getParentName($parentId, $parentType): string
     {
-        $model = $this->getModel($parentType);
+        $model = $this->getModel((string) $parentType);
 
         if (!$model) {
             return "";
         }
         $nameField = $this->nameFieldMap[$parentType] ?? null;
         $res = $model::select($nameField)->find($parentId);
-        return $res ? $res['name'] : "";
+        return $res['name'] ?? "";
     }
 
     public function getParentId($parentName, $parentType): int
