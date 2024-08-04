@@ -105,10 +105,10 @@ class WxAuthController extends BaseController
         if (!$token = Auth::guard('api')->claims(['guard' => 'api'])->login($user, false)) {
           return $this->error('登录失败!');
         }
-
-        $data = $this->userService->getLoginUserInfo($user->id);
-        $data['token'] = $token; // 将token
-        return $this->success($data);
+        $user = Auth::guard('api')->user();
+        $userData = $this->userService->genWxUserLoginData($user);
+        $data['token'] = $token;
+        return $this->success($userData);
       } else {
         return $this->error("未绑定用户");
       }
@@ -160,14 +160,8 @@ class WxAuthController extends BaseController
     }
     // 登录成功后获取用户信息
     $user = Auth::guard('api')->user();
+    $userData = $this->userService->genWxUserLoginData($user);
     $data['token'] = $token;
-
-    // 使用 UserService 获取其他用户信息
-    $data = array_merge($data, $this->userService->getLoginUserInfo($user));
-
-    // 获取用户系统权限，当用户is admin 的时候返回空
-    $data['menu_list'] = $this->userService->userAppMenu($user);
-
-    return $this->success($data);
+    return $this->success($userData);
   }
 }

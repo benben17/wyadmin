@@ -190,6 +190,22 @@ class UserServices
   }
 
 
+
+  /**
+   * @Desc:   获取用户信息
+   * @Author leezhua
+   * @Date 2024-03-31
+   * @param [type] $user
+   * @return void
+   */
+  public function genWxUserLoginData($user)
+  {
+    $data = $this->getLoginUserInfo($user);
+
+    $data['menu_list'] = $this->userAppMenu($user);
+    return $data;
+  }
+
   /**
    * 将扁平数组转换为树形结构，并添加层级 ID
    *

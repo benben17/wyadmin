@@ -143,24 +143,24 @@ class BseMaintainService
     private function getModel($parentType)
     {
         $modelMap = [
-            AppEnum::Channel => ChannelModel::class,
-            AppEnum::Supplier => SupplierModel::class,
+            AppEnum::Channel      => ChannelModel::class,
+            AppEnum::Supplier     => SupplierModel::class,
             AppEnum::Relationship => RelationsModel::class,
-            AppEnum::Tenant => TenantModel::class,
+            AppEnum::Tenant       => TenantModel::class,
         ];
 
-        $model = $modelMap[$parentType] ?? null;
+        $model = $modelMap[$parentType] ?? '';
         return $model;
     }
 
     public function getParentName($parentId, $parentType): string
     {
-        $model = $this->getModel($parentType);
+        $model = $this->getModel((string) $parentType);
 
         if (!$model) {
             return "";
         }
-        $nameField = $this->nameFieldMap[$parentType] ?? null;
+        $nameField = $this->nameFieldMap[(string)$parentType] ?? null;
         $res = $model::select($nameField)->find($parentId);
         return $res ? $res['name'] : "";
     }

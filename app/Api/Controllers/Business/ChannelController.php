@@ -113,6 +113,7 @@ class ChannelController extends BaseController
             });
 
         $pageQuery = clone $subQuery;
+
         $data = $pageQuery->with(['channelPolicy:id,name', 'channelContact'])
             ->withCount('customer')
             ->withCount([
@@ -121,6 +122,7 @@ class ChannelController extends BaseController
                 }
             ]);
         $data = $this->pageData($data, $request);
+        // return response()->json(DB::getQueryLog());
         if ($request->export) {
             return $this->exportToExcel($data['result'], ChannelExcel::class);
         }
