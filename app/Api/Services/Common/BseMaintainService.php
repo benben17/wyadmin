@@ -135,10 +135,10 @@ class BseMaintainService
      * @return String
      */
     private $nameFieldMap = [
-        AppEnum::Channel      => 'channel_name',
-        AppEnum::Supplier     => 'name',
-        AppEnum::Relationship => 'name',
-        AppEnum::Tenant       => 'name',
+        AppEnum::Channel      => 'channel_name as name',
+        AppEnum::Supplier     => 'name as name',
+        AppEnum::Relationship => 'name as name',
+        AppEnum::Tenant       => 'name  as name',
     ];
     private function getModel($parentType)
     {
@@ -160,7 +160,7 @@ class BseMaintainService
             return "";
         }
         $nameField = $this->nameFieldMap[(string)$parentType] ?? null;
-        $res = $model::select($nameField)->find($parentId);
+        $res = $model::selectRaw($nameField)->find($parentId);
         return $res['name'] ?? "";
     }
 
