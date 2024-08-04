@@ -121,6 +121,7 @@ class ChannelController extends BaseController
                     $q->where('state', '成交客户');
                 }
             ]);
+        // return $data->get();
         $data = $this->pageData($data, $request);
         // return response()->json(DB::getQueryLog());
         if ($request->export) {
@@ -229,6 +230,7 @@ class ChannelController extends BaseController
             'channel_type' => 'required',
             'is_vaild' => 'required|numeric',
             'channel_contact' => 'array',
+            'policy_id' => 'required|numeric',
         ]);
         try {
             $userInfo = $this->user;
@@ -350,11 +352,13 @@ class ChannelController extends BaseController
             'id.required' => '渠道信息不存在!',
             'channel_name.required' => '渠道信息名称不能为空!',
             'channel_name.unique' => '渠道名称重复!'
+
         ];
         $validator = Validator::make($request->all(), [
             'id' => 'required|numeric|gt:0',
             'channel_name' =>  ['required', Rule::unique('bse_channel')->ignore($request->input('id'))],
             'channel_contact' => 'required|array',
+            'policy_id' => 'required|numeric',
         ], $messages);
 
         $error = $validator->errors()->first();
