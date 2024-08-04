@@ -159,7 +159,7 @@ class BseMaintainService
         if (!$model) {
             return "";
         }
-        $nameField = $this->nameFieldMap[$parentType] ?? null;
+        $nameField = $this->nameFieldMap[(string)$parentType] ?? null;
         $res = $model::select($nameField)->find($parentId);
         return $res['name'] ?? "";
     }
