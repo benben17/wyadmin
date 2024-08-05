@@ -113,7 +113,7 @@ class CustomerController extends BaseController
             });
         $resultQuery = clone $subQuery;
         $result = $resultQuery->with('channel:channel_name,channel_type,id')
-            // ->with('contacts')
+            ->with('contacts')
             ->with('contactInfo')
             ->with('extraInfo')
             ->withCount('follow')
