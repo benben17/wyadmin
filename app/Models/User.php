@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use DateTimeInterface;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Api\Models\Sys\UserGroup as UserGroupModel;
 
 class User extends BaseModel
@@ -23,14 +25,19 @@ class User extends BaseModel
     protected $hidden = ['password', 'remember_token',  'updated_at'];
     protected $appends = ['manager_label', 'c_user',];
 
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     public function getCUserAttribute()
     {
         if (isset($this->attributes['c_uid'])) {
             $user = getUserByUid($this->attributes['c_uid']);
-            return $user['realname'];
-        } else {
-            return "";
+            return $user['realname'] ?? "";
         }
+        return "";
     }
 
     public function getManagerLabelAttribute()
@@ -41,6 +48,7 @@ class User extends BaseModel
             return "";
         }
     }
+
 
     public function company()
     {

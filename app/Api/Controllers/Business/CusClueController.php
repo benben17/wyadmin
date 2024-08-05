@@ -7,7 +7,7 @@ use DOMDocument;
 use App\Enums\ClueStatus;
 use App\Enums\InvoiceEnum;
 use Illuminate\Http\Request;
-use App\Api\Models\Tenant\Invoice;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Api\Controllers\BaseController;
 use App\Api\Excel\Business\CusClueExcel;
@@ -68,8 +68,9 @@ class CusClueController extends BaseController
         $request->proj_ids && $q->whereIn('proj_id', $request->proj_ids);
         $request->clue_type && $q->where('clue_type', $request->clue_type);
         $request->status && $q->where('status', $request->status);
-        $request->phone && $q->where('phone', 'like', $request->end_date . "%");
+        $request->phone && $q->where('phone', 'like', columnLike($request->phone));
       });
+
     $data = $this->pageData($query, $request);
     if ($request->export) {
       return $this->exportToExcel($data['result'], CusClueExcel::class);
