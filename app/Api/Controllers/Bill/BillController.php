@@ -328,9 +328,9 @@ class BillController extends BaseController
    *       @OA\Schema(
    *          schema="UserModel",
    *          required={"id"},
-   *       @OA\Property(property="ids",type="array",description="账单ids")
+   *       @OA\Property(property="ids",type="list",description="账单ids")
    *     ),
-   *       example={"id":""}
+   *       example={"id":"[1,2]"}
    *       )
    *     ),
    *     @OA\Response(

@@ -409,15 +409,15 @@
                                     "id"
                                 ],
                                 "properties": {
-                                    "id": {
-                                        "description": "账单id",
-                                        "type": "int"
+                                    "ids": {
+                                        "description": "账单ids",
+                                        "type": "list"
                                     }
                                 },
                                 "type": "object"
                             },
                             "example": {
-                                "id": ""
+                                "id": "[1,2]"
                             }
                         }
                     }
@@ -11411,7 +11411,7 @@
                     "租户"
                 ],
                 "summary": "租户删除",
-                "operationId": "76908cef47c2505d1bcde5ff25809994",
+                "operationId": "bf399a38172625224dfbe3f3bb37fdb5",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -13168,11 +13168,132 @@
                 "tags": [
                     "系统管理"
                 ],
-                "summary": "获取菜单列表",
+                "summary": "菜单列表",
                 "operationId": "faf1d6de2b2784f8f44686e2e5ebc5eb",
+                "parameters": [
+                    {
+                        "name": "menu_type",
+                        "in": "query",
+                        "description": "菜单类型 1:PC端 2:移动端",
+                        "required": true,
+                        "schema": {
+                            "type": "int"
+                        }
+                    },
+                    {
+                        "name": "return_type",
+                        "in": "query",
+                        "description": "返回类型 tree:树形结构",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "获取菜单列表"
+                        "description": "菜单列表"
+                    }
+                }
+            }
+        },
+        "/api/sys/menu/add": {
+            "post": {
+                "tags": [
+                    "系统管理"
+                ],
+                "summary": "新增菜单",
+                "operationId": "36bbfb96c9f7c40c9aef2f215df9a229",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "path"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "菜单名称",
+                                        "type": "string"
+                                    },
+                                    "path": {
+                                        "description": "菜单路径",
+                                        "type": "string"
+                                    },
+                                    "pid": {
+                                        "description": "父级菜单ID",
+                                        "type": "int"
+                                    },
+                                    "menu_type": {
+                                        "description": "菜单类型 1:PC端 2:移动端",
+                                        "type": "int"
+                                    },
+                                    "sort": {
+                                        "description": "排序",
+                                        "type": "int"
+                                    },
+                                    "status": {
+                                        "description": "状态 1:启用 2:禁用",
+                                        "type": "int"
+                                    },
+                                    "is_show": {
+                                        "description": "是否显示 1:显示 2:隐藏",
+                                        "type": "int"
+                                    },
+                                    "component": {
+                                        "description": "组件路径",
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "description": "图标",
+                                        "type": "string"
+                                    },
+                                    "permission": {
+                                        "description": "权限标识",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "新增菜单"
+                    }
+                }
+            }
+        },
+        "/api/sys/menu/del": {
+            "post": {
+                "tags": [
+                    "系统管理"
+                ],
+                "summary": "删除菜单",
+                "operationId": "e7e16ac54f57a6b29e8f0585e8a14b79",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "菜单ID",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "删除菜单"
                     }
                 }
             }
@@ -14000,6 +14121,58 @@
                 }
             }
         },
+        "/api/activity/reg/save": {
+            "post": {
+                "tags": [
+                    "活动报名"
+                ],
+                "summary": "活动报名",
+                "operationId": "b98fc6d95488d95f1efeabe562920e73",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "activity_id",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "activity_id": {
+                                        "description": "活动id",
+                                        "type": "int"
+                                    },
+                                    "user_id": {
+                                        "description": "用户id",
+                                        "type": "int"
+                                    },
+                                    "reg_time": {
+                                        "description": "报名时间",
+                                        "type": "String"
+                                    },
+                                    "status": {
+                                        "description": "报名状态",
+                                        "type": "int"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "activity_id": 1,
+                                "user_id": 1,
+                                "reg_time": "",
+                                "status": 1
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/activity/reg/show": {
             "post": {
                 "tags": [
@@ -14678,13 +14851,13 @@
                 }
             }
         },
-        "/api/wx/login": {
+        "/api/wx/auth/login": {
             "post": {
                 "tags": [
                     "微信登陆"
                 ],
                 "summary": "微信登陆",
-                "operationId": "e54369ba4b14eb772614ebd339dc98ee",
+                "operationId": "bbfee4bab1007551782062a8c4936981",
                 "responses": {
                     "200": {
                         "description": ""
@@ -14692,13 +14865,91 @@
                 }
             }
         },
-        "/api/wx/callback": {
+        "/api/wx/auth/callback": {
             "get": {
                 "tags": [
                     "微信回调"
                 ],
                 "summary": "微信回调",
-                "operationId": "64d4260ee966954323eac3f2d5be73a5",
+                "operationId": "50f59e87b219044cf73eefb94fa77fac",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/wx/auth/weixin": {
+            "post": {
+                "tags": [
+                    "微信小程序登陆"
+                ],
+                "summary": "微信小程序登陆",
+                "operationId": "aed1aa1bde877af9b5890037caae8e08",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "code"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "description": "code",
+                                        "type": "String"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "code": ""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/wx/auth/passwdlogin": {
+            "post": {
+                "tags": [
+                    "auth认证"
+                ],
+                "summary": "登录",
+                "operationId": "c44b72dd10d8032af51d05bb3ec9412d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "schema": "UserModel",
+                                "required": [
+                                    "name",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "用户名",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "密码",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": {
+                                "username": "test",
+                                "password": "123456"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": ""
@@ -14757,84 +15008,6 @@
                                 "required": []
                             },
                             "example": []
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/wx/auth/login": {
-            "post": {
-                "tags": [
-                    "微信小程序登陆"
-                ],
-                "summary": "微信小程序登陆",
-                "operationId": "a45d1c27df3bae9390fe5bef36eb9b0c",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "code"
-                                ],
-                                "properties": {
-                                    "code": {
-                                        "description": "code",
-                                        "type": "String"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "code": ""
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/auth/wx/login": {
-            "post": {
-                "tags": [
-                    "auth认证"
-                ],
-                "summary": "登录",
-                "operationId": "7ca94ff08d22b6567a991edd9d3dfaba",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "schema": "UserModel",
-                                "required": [
-                                    "name",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "username": {
-                                        "description": "用户名",
-                                        "type": "string"
-                                    },
-                                    "password": {
-                                        "description": "密码",
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            },
-                            "example": {
-                                "username": "test",
-                                "password": "123456"
-                            }
                         }
                     }
                 },

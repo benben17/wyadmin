@@ -8,53 +8,86 @@ use App\Api\Models\Sys\MenuModel;
 class MenuService
 {
 
-  private $menuModel;
 
   public function __construct()
   {
-    $this->menuModel = new MenuModel;
   }
-
-
+  public function menuModel()
+  {
+    return new MenuModel;
+  }
 
   public function getMenuByIds(array $ids): array
   {
-    return $this->menuModel->whereIn('id', $ids)
+    return $this->menuModel()->whereIn('id', $ids)
       ->orderBy('sort', 'asc')
       ->get()->toArray();
   }
 
 
   /** 菜单新增 */
-  public function addMenu($DA)
+  public function addMenu(array $DA)
   {
     try {
-      // 判断 name不允许重复 path 也不允许重复
-      $exists = $this->menuModel->where('name', $DA['name'])->whereOr('path', $DA['path'])->count() > 0;
-      if ($exists) {
-        throw new Exception('菜单名称已存在');
-      }
+      $this->validateMenuData($DA);
 
-      // 格式化传入的数据 
-      $DA['pid']         = $DA['pid'] ?? 0;
-      $DA['menu_type']   = $DA['menu_type'] ?? 1;
-      $DA['sort']        = $DA['sort'] ?? 0;
-      $DA['status']      = $DA['status'] ?? 1;
-      $DA['is_show']     = $DA['is_show'] ?? 1;
-      $DA['created_at'] = nowYmd();
-      $DA['updated_at'] = nowYmd();
-      $DA['name']        = $DA['name'];
-      $DA['component']   = $DA['component'] ?? '';
-      $DA['path']        = $DA['path'];
-      $DA['icon']        = $DA['icon'] ?? '';
-      $DA['permission']  = $DA['permission'] ?? '';
+      $DA = $this->formatMenuData($DA);
 
-      $res = $this->menuModel->create($DA);
+      $this->menuModel()->create($DA);
     } catch (Exception $e) {
       throw new Exception($e->getMessage());
     }
   }
 
+  public function editMenu(array $DA)
+  {
+    try {
+      $menu = $this->menuModel()->findOrFail($DA['id']);
+      if (!$menu) {
+        throw new Exception($DA['name'] . '菜单不存在');
+      }
+
+      $this->validateMenuData($DA, $DA['id']);
+      $DA = $this->formatMenuData($DA);
+
+      $menu->update($DA);
+    } catch (Exception $e) {
+      throw new Exception($e->getMessage());
+    }
+  }
+
+  private function validateMenuData(array $DA, $id = null)
+  {
+    $query = $this->menuModel()->where('name', $DA['name'])
+      ->where('menu_type', $DA['menu_type'])
+      ->where('path', $DA['path']);
+
+    if ($id) {
+      $query->where('id', '!=', $id);
+    }
+
+    if ($query->exists()) {
+      throw new Exception('菜单名称或路径已存在');
+    }
+  }
+
+  private function formatMenuData(array $DA)
+  {
+    return [
+      'pid' => $DA['pid'] ?? 0,
+      'menu_type' => $DA['menu_type'] ?? 1,
+      'sort' => $DA['sort'] ?? 0,
+      'status' => $DA['status'] ?? 1,
+      'is_show' => $DA['is_show'] ?? 1,
+      'created_at' => now(),
+      'updated_at' => now(),
+      'name' => $DA['name'],
+      'component' => $DA['component'] ?? '',
+      'path' => $DA['path'],
+      'icon' => $DA['icon'] ?? '',
+      'permission' => $DA['permission'] ?? '',
+    ];
+  }
   /**
    * 获取PC端菜单
    *
@@ -65,7 +98,7 @@ class MenuService
   public function getMenus(int $menuType)
   {
     // 获取父菜单数据
-    $allMenus = $this->menuModel
+    $allMenus = $this->menuModel()
       ->where('menu_type', $menuType)
       ->orderBy('sort', 'asc')
       ->get()

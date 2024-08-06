@@ -106,6 +106,9 @@ Route::group(['prefix' => 'sys'], function () {
     Route::post('company/variable/edit', '\App\Api\Controllers\Sys\CompanyController@editVariable');
 
     //菜单
+    Route::post('menu/add', '\App\Api\Controllers\Sys\MenuController@store');
+    Route::post('menu/edit', '\App\Api\Controllers\Sys\MenuController@edit');
+    Route::post('menu/del', '\App\Api\Controllers\Sys\MenuController@delete');
     Route::post('menu/list', '\App\Api\Controllers\Sys\MenuController@index');
 });
 
