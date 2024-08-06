@@ -345,7 +345,7 @@ class CustomerService
       $rooms[$k]['build_no']    = $v['build_no'];
       $rooms[$k]['floor_id']    = $v['floor_id'];
       $rooms[$k]['floor_no']    = $v['floor_no'];
-      $rooms[$k]['room_id']    = $v['room_id'];
+      $rooms[$k]['room_id']    = $v['room_id'] ?? $v['id'];
       $rooms[$k]['room_no']    = $v['room_no'];
       $rooms[$k]['room_area']    = $v['room_area'];
       $rooms[$k]['room_type']    = isset($v['room_type']) ? $v['room_type'] : $roomType;

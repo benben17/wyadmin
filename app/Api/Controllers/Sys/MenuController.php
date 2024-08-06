@@ -57,6 +57,7 @@ class MenuController extends BaseController
       'menu_type.in' => '菜单类型不正确1:PC端 2:移动端',
     ]);
     if ($request->return_type == 'tree') {
+
       $menus = $this->menuService->getMenus($request->menu_type);
     } else {
       $menus = $this->menuService->menuModel()
