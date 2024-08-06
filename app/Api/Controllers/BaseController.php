@@ -35,7 +35,12 @@ class BaseController extends Controller
     public function __construct()
     {
 
-        $payload = auth('api')->payload();
+        try {
+            $payload = auth('api')->payload();
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            Log::error('Token error: ' . $e->getMessage());
+            return $this->error('token 错误！');
+        }
         // Log::alert($payload->get('guard'));
         if ($payload->get('guard') !== 'api') {
             return $this->error('token 错误！');
