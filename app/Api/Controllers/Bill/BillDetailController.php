@@ -325,11 +325,19 @@ class BillDetailController extends BaseController
 	 */
 	public function edit(Request $request)
 	{
-		$validatedData = $request->validate([
-			'id' => 'required|gt:0',
-			'amount' => 'required|gt:0',
-			'edit_reason' => 'required',
-		]);
+		$validatedData = $request->validate(
+			[
+				'id' => 'required|gt:0',
+				'amount' => 'required',
+				'edit_reason' => 'required',
+			],
+			[
+				'id.gt' => '费用ID必须大于0',
+				'id.required' => '费用ID不能为空',
+				'amount.required' => '收款金额不能为空',
+				'edit_reason.required' => '修改原因不能为空',
+			]
+		);
 
 		$res = $this->billService->editBillDetail($request->toArray(), $this->user);
 		if (!$res) {
