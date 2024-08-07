@@ -495,19 +495,7 @@ class ChargeController extends BaseController
 			$item['flow_no']     = $item['charge']['flow_no'] ?? '';
 			unset($item['charge']);
 		}
-		$statData = $statQuery->groupBy('fee_type')
-			->selectRaw('fee_type, sum(amount) as amount')
-			->get()
-			->keyBy('fee_type')
-			->toArray();
-		$feeList = FeeType::where('type', 1)->select('fee_name', 'id')->get()->toArray();
-
-		$stat = array_map(function ($v) use ($statData) {
-			$amount = $statData[$v['id']]['amount'] ?? '0.00';
-			$v['amount'] = number_format($amount);
-			return $v;
-		}, $feeList);
-		$data['stat'] = $stat;
+		$this->chargeService->recordListStat($statQuery, $data);
 		return $this->success($data);
 	}
 

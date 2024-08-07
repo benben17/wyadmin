@@ -9,8 +9,10 @@ use App\Enums\DepositEnum;
 use Illuminate\Support\Facades\DB;
 use App\Api\Models\Bill\ChargeBill;
 use App\Api\Models\Bill\TenantBill;
+use App\Api\Models\Company\FeeType;
 use Illuminate\Support\Facades\Log;
 use Doctrine\DBAL\Query\QueryException;
+use Facade\Ignition\QueryRecorder\Query;
 use App\Api\Models\Bill\ChargeBillRecord;
 use App\Api\Models\Bill\TenantBillDetail;
 use App\Api\Services\Bill\TenantBillService;
@@ -524,5 +526,41 @@ class ChargeService
     $total['available_amt'] = bcsub(bcsub($total['total_amt'], $total['refund_amt'], 2), $total['verify_amt'], 2);
 
     $data['total'] = num_format($total);
+  }
+
+
+  /**
+   * 核销明细表头统计
+   * @Author leezhua
+   * @Date 2024-04-12
+   * @param mixed $query 
+   * @return array 
+   */
+  public function recordListStat($query, &$data)
+  {
+    $statQuery = clone $query;
+    $subQuery = clone $query;
+    $statData = $statQuery->groupBy('fee_type')
+      ->selectRaw('fee_type, sum(amount) as amount')
+      ->get()
+      ->keyBy('fee_type')
+      ->toArray();
+    $feeList = FeeType::where('type', 1)->select('fee_name', 'id')->get()->toArray();
+
+    $stat = array_map(function ($v) use ($statData) {
+      $amount = $statData[$v['id']]['amount'] ?? '0.00';
+      $v['amount'] = number_format($amount);
+      return $v;
+    }, $feeList);
+    $data['stat'] = $stat;
+    $chargeAmt = $subQuery->get()
+      ->sum(function ($record) {
+        return $record->charge->amount;
+      });
+    $verifyAmt = $subQuery->sum('amount');
+    $data['total'] = [
+      'charge_amt' => num_format($chargeAmt),
+      'verify_amt' => num_format($verifyAmt)
+    ];
   }
 }

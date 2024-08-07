@@ -420,18 +420,18 @@ class TenantController extends BaseController
         if (!$tenant) {
             return $this->error('租户不存在');
         }
-
-        if ($tenant->parent_id > 0) {
-            return $this->error('存在分摊租户不能删除');
+        $shareTenants = $this->tenantService->tenantModel()->where('parent_id', $id)->count();
+        if ($shareTenants > 0) {
+            return $this->error('存在分摊租户不能删除!');
         }
         $contract = $this->contractService->model()->where('tenant_id', $id)->count();
         if ($contract > 0) {
-            return $this->error('租户存在合同，不能删除');
+            return $this->error('租户存在合同，不能删除!');
         }
         $billDetailService = new TenantBillService;
         $billDetail = $billDetailService->billDetailModel()->where('tenant_id', $id)->count();
         if ($billDetail > 0) {
-            return $this->error('租户存在账单，不能删除');
+            return $this->error('租户存在账单，不能删除!');
         }
         $res = $this->tenantService->deleteTenantById($id);
 

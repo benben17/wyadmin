@@ -53,7 +53,7 @@ function num_format(&$data, $decimals = 2)
     $data = (array) $data;
     num_format($data, $decimals);
   } else {
-    if (is_float($data) || is_numeric($data) || is_double($data)) {
+    if (is_float($data) || is_numeric($data) || is_double($data) || is_string($data)) {
       $data =  number_format($data, $decimals);
     }
   }
