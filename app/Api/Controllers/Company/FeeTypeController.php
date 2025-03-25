@@ -97,7 +97,7 @@ class FeeTypeController extends BaseController
   {
     $validatedData = $request->validate([
       'fee_name' => 'required|String|max:32',
-      'type' => 'required|gt:1',
+      'type' => 'required|gt:0',
     ]);
 
     $where['fee_name'] = $request->fee_name;
